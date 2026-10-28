@@ -1,0 +1,26 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/components/Spinner/Spinner.module.css
+   Version : 1.0.0
+   Latest commit: core/ui-kit
+   Author : Gerrah
+   Purpose : A loading circle that turns once a second, in the colour of the text around it. Reduced motion slows it down instead of stopping it, so it still reads as busy. */
+
+.spinner {
+  display: inline-flex;
+  color: inherit;
+}
+
+.icon {
+  animation: spinner-turn 1s linear infinite;
+}
+
+@keyframes spinner-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icon {
+    animation-duration: 3s;
+  }
+}

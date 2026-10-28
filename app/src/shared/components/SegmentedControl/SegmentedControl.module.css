@@ -1,0 +1,74 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/components/SegmentedControl/SegmentedControl.module.css
+   Version : 1.0.0
+   Latest commit: core/ui-kit
+   Author : Gerrah
+   Purpose : Look of the segmented control: options in a raised track, the picked one filled green, all in the uppercase button font. The radio dots are hidden; the label is what people click. */
+
+.group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-0-5);
+  margin: 0;
+  padding: 3px;
+  border: 0;
+  border-radius: var(--radius-field);
+  background-color: var(--color-surface-raised);
+}
+
+.legend {
+  composes: hidden from "../VisuallyHidden/VisuallyHidden.module.css";
+}
+
+.option {
+  position: relative;
+  display: inline-flex;
+}
+
+.input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.text {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-height-small);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-size: var(--text-button);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-ui);
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition:
+    background-color var(--motion-fast) ease,
+    color var(--motion-fast) ease;
+}
+
+.input:hover + .text {
+  background-color: var(--color-surface);
+}
+
+.input:checked + .text {
+  background-color: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+
+/* The radio itself is invisible, so its focus ring is drawn on the label text. */
+.input:focus-visible {
+  outline: none;
+}
+
+.input:focus-visible + .text {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.group:disabled {
+  opacity: 0.5;
+}

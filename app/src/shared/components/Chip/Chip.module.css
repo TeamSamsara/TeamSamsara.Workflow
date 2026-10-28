@@ -1,0 +1,61 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/components/Chip/Chip.module.css
+   Version : 1.0.0
+   Latest commit: core/ui-kit
+   Author : Gerrah
+   Purpose : Look of a chip: 12px medium text, either on a raised fill with 6px corners (tag) or fully rounded with a border (outline), with an optional 10px colour dot and a small remove button. */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  max-width: 100%;
+  padding: var(--space-0-5) var(--space-2);
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-small);
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-small);
+  white-space: nowrap;
+}
+
+.chip[data-variant="outline"] {
+  border-color: var(--color-border-control);
+  border-radius: var(--radius-pill);
+  background-color: transparent;
+}
+
+.dot {
+  flex: none;
+  width: var(--space-2-5);
+  height: var(--space-2-5);
+  border-radius: 50%;
+  background-color: var(--chip-dot);
+}
+
+.label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: calc(-1 * var(--space-1));
+  padding: var(--space-0-5);
+  border: 0;
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+.remove:hover {
+  color: var(--color-text);
+}
+
+.removeIcon {
+  --icon-size: var(--space-3-5);
+}

@@ -1,0 +1,90 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/components/Modal/Modal.module.css
+   Version : 1.0.0
+   Latest commit: core/ui-kit
+   Author : Gerrah
+   Purpose : Look of the dialog: a centred surface card with 16px corners and a deep shadow over the dim overlay, a 24px Norwester title with the close button beside it, and the buttons along the bottom on the right. */
+
+.dialog {
+  width: min(var(--dialog-width), calc(100vw - 2 * var(--space-4)));
+  max-height: calc(100vh - 2 * var(--space-4));
+  margin: auto;
+  padding: var(--space-6);
+  overflow-y: auto;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-dialog);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-dialog);
+  animation: dialog-in var(--motion-base) var(--ease-out) both;
+}
+
+.dialog[data-size="wide"] {
+  width: min(calc(var(--dialog-width) * 1.5), calc(100vw - 2 * var(--space-4)));
+}
+
+.dialog::backdrop {
+  background-color: var(--color-overlay);
+  animation: backdrop-in var(--motion-base) ease both;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.title {
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: var(--text-dialog-title);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-dialog-title);
+  letter-spacing: var(--tracking-heading);
+}
+
+.description {
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2-5);
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

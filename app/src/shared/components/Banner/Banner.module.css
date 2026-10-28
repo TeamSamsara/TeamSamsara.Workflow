@@ -1,0 +1,48 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/components/Banner/Banner.module.css
+   Version : 1.0.0
+   Latest commit: core/ui-kit
+   Author : Gerrah
+   Purpose : Look of a banner: a filled box with 10px corners, an icon and 14px text, in the colour of its tone. */
+
+.banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2-5);
+  padding: var(--space-3) var(--space-3-5);
+  border-radius: var(--radius-field);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.banner[data-tone="info"] {
+  background-color: var(--color-info);
+  color: var(--color-text-on-info);
+}
+
+.banner[data-tone="success"] {
+  background-color: var(--color-accent-soft);
+  color: var(--color-text-on-accent);
+}
+
+.banner[data-tone="alert"] {
+  background-color: var(--color-alert);
+  color: var(--color-text-on-alert);
+}
+
+.banner[data-tone="error"] {
+  background-color: var(--color-error);
+  color: var(--color-text-on-error);
+}
+
+.icon {
+  margin-top: var(--space-0-5);
+}
+
+.text {
+  min-width: 0;
+}
+
+.text a {
+  color: inherit;
+  font-weight: var(--weight-bold);
+}
