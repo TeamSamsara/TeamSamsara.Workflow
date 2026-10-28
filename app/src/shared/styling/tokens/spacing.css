@@ -1,0 +1,89 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/styling/tokens/spacing.css
+   Version : 1.0.0
+   Latest commit: core/project-setup
+   Author : Gerrah
+   Purpose : Defines the spacing scale, layout sizes, control sizes, corner radius, lines, shadows and layers shared by every screen. */
+
+:root {
+  /* Spacing scale: gaps and padding. The number is steps of 4px (1-5 = 6px). */
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-1-5: 6px;
+  --space-2: 8px;
+  --space-2-5: 10px;
+  --space-3: 12px;
+  --space-3-5: 14px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Page: padding around the main area, and the gap between cards. */
+  --page-padding-x: 32px;
+  --page-padding-y: 28px;
+  --content-gap: 20px;
+  --card-padding: 20px;
+
+  /* Layout widths: flex-basis values, so columns wrap on small screens. */
+  --sidebar-width: 232px;
+  --settings-nav-width: 190px;
+  --auth-aside-width: 380px;
+  --auth-form-width: 440px;
+  --auth-form-width-wide: 520px;
+  --dialog-width: 600px;
+
+  /* Controls: heights and inner padding. */
+  --control-height: 40px;
+  --control-height-small: 34px;
+  --control-height-large: 44px;
+  --field-height: 42px;
+  --button-padding-x: 18px;
+  --field-padding-x: 14px;
+  --nav-link-height: 44px;
+  --list-row-height: 52px;
+  --calendar-cell-height: 132px;
+
+  /* Icons, avatars, switches */
+  --icon-size: 18px;
+  --icon-size-small: 16px;
+  --icon-size-feature: 28px;
+  --avatar-size: 32px;
+  --avatar-size-large: 64px;
+  --switch-width: 42px;
+  --switch-height: 24px;
+  --switch-knob: 18px;
+
+  /* Corners */
+  --radius-small: 6px;
+  --radius-control: 8px;
+  --radius-field: 10px;
+  --radius-card: 12px;
+  --radius-dialog: 16px;
+  --radius-pill: 999px;
+
+  /* Lines */
+  --border-width: 1px;
+  --tab-indicator-width: 3px;
+  --nav-marker-width: 3px;
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
+  /* Shadows */
+  --shadow-dialog: 0 24px 60px rgb(0 0 0 / 35%);
+
+  /* Layers: what sits on top of what. */
+  --layer-dropdown: 100;
+  --layer-dialog: 200;
+  --layer-toast: 300;
+}
+
+/* Phones: tighter page padding. 640px matches the "small" breakpoint used in the code. */
+@media (max-width: 640px) {
+  :root {
+    --page-padding-x: 16px;
+    --page-padding-y: 20px;
+    --card-padding: 16px;
+  }
+}

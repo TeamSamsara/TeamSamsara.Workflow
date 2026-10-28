@@ -1,0 +1,13 @@
+{
+  "name": "teamsamsara-workflow",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Workflow - planning and task tool",
+  "scripts": {
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^17.5.1"
+  }
+}

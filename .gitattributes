@@ -1,0 +1,2 @@
+# Git hooks run in sh, which needs Unix line endings, whatever the OS
+.husky/** text eol=lf

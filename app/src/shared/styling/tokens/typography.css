@@ -1,0 +1,70 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/styling/tokens/typography.css
+   Version : 1.0.0
+   Latest commit: core/project-setup
+   Author : Gerrah
+   Purpose : Defines the font roles, text sizes, line heights, weights and letter spacing components use. */
+
+:root {
+  /* Font roles: components use these names, never the font names. */
+  --font-display: "Anton", "Impact", sans-serif;
+  --font-ui: "Agdasima", "Arial Narrow", sans-serif;
+  --font-heading: "Norwester", "Impact", sans-serif;
+  --font-body: "DM Sans", system-ui, sans-serif;
+
+  /* Display (Anton): the big slogan on the sign-in pages. */
+  --text-display: 64px;
+  --leading-display: 64px;
+
+  /* Headings (Norwester) */
+  --text-page-title: 32px;
+  --leading-page-title: 38px;
+  --text-auth-title: 30px;
+  --leading-auth-title: 36px;
+  --text-dialog-title: 24px;
+  --leading-dialog-title: 30px;
+  --text-section-heading: 18px;
+  --leading-section-heading: 24px;
+  --text-brand: 20px;
+  --leading-brand: 22px;
+
+  /* UI labels (Agdasima, uppercase): sidebar links, buttons and tabs, table headers and small group titles. */
+  --text-nav-link: 20px;
+  --text-button: 18px;
+  --text-button-small: 16px;
+  --text-tab: 18px;
+  --text-label-caps: 15px;
+
+  /* Body (DM Sans) */
+  --text-body-large: 15px;
+  --leading-body-large: 23px;
+  --text-body: 14px;
+  --leading-body: 21px;
+  --text-field-label: 13px;
+  --text-meta: 13px;
+  --leading-meta: 20px;
+  --text-small: 12px;
+  --leading-small: 17px;
+
+  /* Weights: the only ones fonts.css loads. */
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-bold: 700;
+
+  /* Letter spacing: -3% on Norwester headings, a little air on uppercase Agdasima. */
+  --tracking-heading: -0.03em;
+  --tracking-ui: 0.02em;
+  --tracking-label-caps: 0.04em;
+}
+
+/* Phones: big headings shrink so they fit. 640px matches the "small" breakpoint used in the code. */
+@media (max-width: 640px) {
+  :root {
+    --text-display: 44px;
+    --leading-display: 46px;
+    --text-page-title: 26px;
+    --leading-page-title: 32px;
+    --text-auth-title: 26px;
+    --leading-auth-title: 32px;
+  }
+}

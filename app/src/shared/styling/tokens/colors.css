@@ -1,0 +1,117 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/styling/tokens/colors.css
+   Version : 1.0.0
+   Latest commit: core/project-setup
+   Author : Gerrah
+   Purpose : Defines the brand palette and the semantic color roles every component uses, for the light and dark themes. */
+
+/* Theme: data-theme on <html> forces a theme; without it the device setting decides. */
+:root {
+  color-scheme: light dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+:root {
+  /* Palette: website brand values. Components never use these directly. */
+  --palette-dark: #151d23;
+  --palette-slate: #242b31;
+  --palette-green: #95ff50;
+  --palette-green-soft: #95ec5d;
+  --palette-green-muted: #6f9954;
+  --palette-grey-light: #ededed;
+  --palette-grey-placeholder: #d9d9d9;
+  --palette-grey-page: #f3f3f3;
+  --palette-grey-border: #c2bcbc;
+  --palette-red: #c0392b;
+  --palette-amber: #ffd36a;
+  --palette-blue: #2f6fb5;
+  --palette-white: #ffffff;
+
+  /* Palette: extra shades the planner needs for dark mode and readable text. */
+  --palette-ink: #0f1519;
+  --palette-graphite: #2f373e;
+  --palette-steel: #3a434b;
+  --palette-steel-light: #727c86;
+  --palette-grey-mid: #8a8f94;
+  --palette-grey-text: #5b636a;
+  --palette-grey-text-dark: #a3abb2;
+  --palette-green-deep: #3d6b1f;
+  --palette-red-light: #ff8a7a;
+  --palette-blue-light: #8ab8ff;
+
+  /* Roles: what components use. light-dark(light value, dark value). */
+
+  /* Backgrounds: the page, cards on it, and raised parts inside cards. */
+  --color-page: light-dark(var(--palette-grey-page), var(--palette-dark));
+  --color-surface: light-dark(var(--palette-white), var(--palette-slate));
+  --color-surface-raised: light-dark(
+    var(--palette-grey-light),
+    var(--palette-graphite)
+  );
+
+  /* Sidebar: dark in both themes. */
+  --color-nav: light-dark(var(--palette-dark), var(--palette-ink));
+  --color-nav-text: var(--palette-grey-light);
+  --color-nav-muted: var(--palette-grey-text-dark);
+  --color-nav-active: var(--palette-slate);
+
+  /* Text */
+  --color-text: light-dark(var(--palette-dark), var(--palette-grey-light));
+  --color-text-muted: light-dark(
+    var(--palette-grey-text),
+    var(--palette-grey-text-dark)
+  );
+
+  /* Lines: dividers between things, and the outline of buttons and fields. */
+  --color-border: light-dark(var(--palette-grey-border), var(--palette-steel));
+  --color-border-control: light-dark(
+    var(--palette-grey-mid),
+    var(--palette-steel-light)
+  );
+
+  /* Accent: green fills, and the darker green used for links and text on light backgrounds. */
+  --color-accent: var(--palette-green);
+  --color-accent-soft: var(--palette-green-soft);
+  --color-accent-muted: var(--palette-green-muted);
+  --color-accent-text: light-dark(
+    var(--palette-green-deep),
+    var(--palette-green)
+  );
+  --color-text-on-accent: var(--palette-slate);
+
+  /* Keyboard focus: the outline around whatever has focus. */
+  --color-focus-ring: light-dark(
+    var(--palette-green-deep),
+    var(--palette-green)
+  );
+
+  /* Error: fills (Late pill, danger button) and error messages. */
+  --color-error: var(--palette-red);
+  --color-error-text: light-dark(var(--palette-red), var(--palette-red-light));
+  --color-text-on-error: var(--palette-white);
+
+  /* Info: fills (Approved pill, info banner) and info text. */
+  --color-info: var(--palette-blue);
+  --color-info-text: light-dark(var(--palette-blue), var(--palette-blue-light));
+  --color-text-on-info: var(--palette-white);
+
+  /* Attention: In review and Invited pills, warning banners. */
+  --color-alert: var(--palette-amber);
+  --color-text-on-alert: var(--palette-slate);
+
+  /* Fields and avatars */
+  --color-field-fill: light-dark(var(--palette-white), var(--palette-graphite));
+  --color-avatar-placeholder: light-dark(
+    var(--palette-grey-placeholder),
+    var(--palette-steel)
+  );
+
+  /* Behind dialogs */
+  --color-overlay: rgb(15 21 25 / 55%);
+}
