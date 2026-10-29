@@ -1,18 +1,18 @@
 // File : /TeamSamsara.Workflow/app/src/features/roles/ui/RoleDisplayForm.tsx
-// Version : 1.0.0
-// Latest commit: feature/roles
+// Version : 1.1.0
+// Latest commit: feature/task-setup
 // Author : Gerrah
 // Purpose : A role's Display tab fields: name, colour and description, with a
 // preview of how a member's name and chip look in that colour.
 
 import type { CSSProperties } from "react";
 import { Avatar } from "@/shared/components/Avatar/Avatar";
+import { ColorPicker } from "@/shared/components/Fields/ColorPicker/ColorPicker";
 import { TextArea } from "@/shared/components/Fields/TextArea/TextArea";
 import { TextField } from "@/shared/components/Fields/TextField/TextField";
 import { TextLimits } from "@/shared/validation/textLimits";
 import type { RoleFields } from "../types/roleTypes";
 import { RoleChip } from "./RoleChip";
-import { RoleColorPicker } from "./RoleColorPicker";
 import { RoleDisplayFormText } from "./roleDisplayFormContent";
 import styles from "./RoleDisplayForm.module.css";
 
@@ -41,9 +41,10 @@ export function RoleDisplayForm({
         error={nameError}
         disabled={disabled}
       />
-      <RoleColorPicker
+      <ColorPicker
         value={fields.color}
         onChange={(color) => onChange({ color })}
+        hint={RoleDisplayFormText.colorHint}
         disabled={disabled}
       />
       <TextArea
