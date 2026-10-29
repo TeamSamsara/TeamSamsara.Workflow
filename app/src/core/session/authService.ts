@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/session/authService.ts
-// Version : 1.0.0
-// Latest commit: core/session
+// Version : 1.1.0
+// Latest commit: feature/auth-screens
 // Author : Gerrah
 // Purpose : Everything the app asks Firebase Auth to do: sign in and out, send
 // the password link, check a link's code, and set the new password from it.
@@ -15,6 +15,7 @@ import {
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { RoutePaths } from "@/shared/constants/routePaths";
+import { inviteMarkerParameter, type PasswordLinkPurpose } from "./actionLink";
 
 export async function signIn(email: string, password: string): Promise<void> {
   await signInWithEmailAndPassword(auth, email.trim(), password);
@@ -24,10 +25,20 @@ export function signOut(): Promise<void> {
   return firebaseSignOut(auth);
 }
 
-/** Sends the email with a link to choose a password. After saving it, people land on sign-in. */
-export function sendPasswordLink(email: string): Promise<void> {
+/**
+ * Sends the email with a link to choose a password. An invite marks the link so
+ * the page greets the person; either way they land on sign-in afterwards.
+ */
+export function sendPasswordLink(
+  email: string,
+  purpose: PasswordLinkPurpose = "reset",
+): Promise<void> {
+  const continueUrl = new URL(RoutePaths.signIn, window.location.origin);
+  if (purpose === "invite") {
+    continueUrl.searchParams.set(inviteMarkerParameter, "1");
+  }
   return sendPasswordResetEmail(auth, email.trim(), {
-    url: `${window.location.origin}${RoutePaths.signIn}`,
+    url: continueUrl.toString(),
   });
 }
 

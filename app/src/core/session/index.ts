@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/session/index.ts
-// Version : 1.0.0
-// Latest commit: core/session
+// Version : 1.1.0
+// Latest commit: feature/auth-screens
 // Author : Gerrah
 // Purpose : What other layers may use from the session module.
 
@@ -14,7 +14,11 @@ export {
 export { authErrorKind } from "./authErrors";
 export type { AuthErrorKind } from "./authErrors";
 export { readActionLink } from "./actionLink";
-export type { ActionLink, ActionLinkMode } from "./actionLink";
+export type {
+  ActionLink,
+  ActionLinkMode,
+  PasswordLinkPurpose,
+} from "./actionLink";
 export { RedirectIfSignedIn } from "./RedirectIfSignedIn";
 export { RequireSignedIn } from "./RequireSignedIn";
 export { readReturnPath } from "./returnPath";

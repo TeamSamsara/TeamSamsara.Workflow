@@ -1,8 +1,8 @@
 /* File : /TeamSamsara.Workflow/app/src/shared/components/Fields/fieldControl.module.css
-   Version : 1.0.0
-   Latest commit: core/ui-kit
+   Version : 1.1.0
+   Latest commit: feature/auth-screens
    Author : Gerrah
-   Purpose : The outlined box every typing field shares (text field, text area, select): 42px tall, 10px corners, a focus ring while in use and a red outline when invalid. Fields reuse it with composes. */
+   Purpose : The outlined box every typing field shares (text field, text area, select): 42px tall, 10px corners, a focus ring while in use, a red outline when invalid and a raised fill when read-only. Fields reuse it with composes. */
 
 .control {
   position: relative;
@@ -37,6 +37,12 @@
 
 .control[data-disabled="true"] {
   opacity: 0.6;
+}
+
+/* Read-only: shown, copyable, but clearly not for typing. */
+.control:has(.input:read-only) {
+  border-color: var(--color-border);
+  background-color: var(--color-surface-raised);
 }
 
 /* The bare input inside the box. */
