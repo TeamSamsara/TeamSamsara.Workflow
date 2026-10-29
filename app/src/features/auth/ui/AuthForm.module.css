@@ -1,0 +1,28 @@
+/* File : /TeamSamsara.Workflow/app/src/features/auth/ui/AuthForm.module.css
+   Version : 1.0.0
+   Latest commit: feature/auth-screens
+   Author : Gerrah
+   Purpose : Layout shared by the sign-in forms: fields stacked 18px apart, the "Forgot password?" link on the right, and a muted note under the button. */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.inlineLink {
+  align-self: flex-end;
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+  text-decoration: none;
+}
+
+.inlineLink:hover {
+  text-decoration: underline;
+}
+
+.note {
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}

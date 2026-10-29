@@ -1,0 +1,65 @@
+/* File : /TeamSamsara.Workflow/app/src/views/auth/AuthView.module.css
+   Version : 1.0.0
+   Latest commit: feature/auth-screens
+   Author : Gerrah
+   Purpose : Layout shared by the sign-in pages: sections stacked 22px apart, a divider, the muted note, the tips box, and the centred spinner while a link is checked. */
+
+.view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.backLink {
+  align-self: flex-start;
+  margin-left: calc(-1 * var(--button-padding-x));
+}
+
+.divider {
+  height: var(--border-width);
+  border: 0;
+  margin: 0;
+  background-color: var(--color-border);
+}
+
+.note {
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.tips {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2-5);
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+  list-style: none;
+}
+
+.tip {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2-5);
+  color: var(--color-text);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.tipIcon {
+  --icon-size: var(--icon-size-small);
+  margin-top: var(--space-0-5);
+  color: var(--color-accent-text);
+}
+
+.question {
+  font-weight: var(--weight-bold);
+}
+
+.checking {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-10) 0;
+}

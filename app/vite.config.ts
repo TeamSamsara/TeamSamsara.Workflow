@@ -24,7 +24,13 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  css: {
+    // Lightning CSS (bundled with Vite) handles CSS Modules, including
+    // `composes: … from "./other.module.css"`, without PostCSS warnings.
+    transformer: "lightningcss",
+  },
   build: {
+    cssMinify: "lightningcss",
     chunkSizeWarningLimit: largestExpectedChunkKb,
     rolldownOptions: {
       output: {
