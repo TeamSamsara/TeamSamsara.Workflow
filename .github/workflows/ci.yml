@@ -85,11 +85,11 @@ jobs:
       - name: Show why the rule tests failed
         if: failure()
         run: |
-          {
-            tail -n 120 rules-output.txt
-            echo "----- firestore-debug.log -----"
-            tail -n 40 firestore-debug.log 2>/dev/null || true
-          } | sed -e 's/%/%25/g' -e 's/\r/%0D/g' | awk 'BEGIN{ORS="%0A"} {print}' > failure.txt
+          # Only the failing tests and the totals; the rest is in the full log.
+          sed -e 's/\x1b\[[0-9;]*m//g' rules-output.txt \
+            | grep -E -A6 "FAIL|AssertionError|Error:|Test Files|Tests  " \
+            | grep -v "GrpcConnection" | head -n 80 \
+            | sed -e 's/%/%25/g' -e 's/\r/%0D/g' | awk 'BEGIN{ORS="%0A"} {print}' > failure.txt
           echo "::error title=Rule tests::$(cat failure.txt)"
 
       - name: Emulator seed script runs

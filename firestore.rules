@@ -53,10 +53,24 @@ service cloud.firestore {
      * many roles there are. Administrator allows everything.
      */
     function can(permission) {
-      let grants = get(/databases/$(database)/documents/config/roles).data.grants;
+      let grants = rolesGrants();
       return isActiveMember()
         && (grants.get("administrator", []).hasAny(heldRoleIds())
           || grants.get(permission, []).hasAny(heldRoleIds()));
+    }
+
+    /** The permission index (permission → role ids) as it is before this write. */
+    function rolesGrants() {
+      return get(/databases/$(database)/documents/config/roles).data.grants;
+    }
+
+    /**
+     * The same check as can(), from values worked out once. Rules that check
+     * every permission use this: Firestore stops after 1,000 steps per request.
+     */
+    function holds(grants, held, permission) {
+      return grants.get("administrator", []).hasAny(held)
+        || grants.get(permission, []).hasAny(held);
     }
     // #endregion
 
@@ -92,7 +106,7 @@ service cloud.firestore {
       // Administrator. Which roles sit above whose is kept by the app.
       allow update: if can("manageRoles")
         && isValidRoles(request.resource.data)
-        && onlyHeldGrantsChange();
+        && onlyHeldGrantsChange(rolesGrants(), heldRoleIds());
     }
 
     /** The shape every save keeps: Everyone exists and is never Administrator, someone still is. */
@@ -111,26 +125,27 @@ service cloud.firestore {
     }
 
     /** A permission's list of roles is unchanged, or the editor holds that permission. */
-    function grantUnchangedOrHeld(permission) {
+    function grantUnchangedOrHeld(grants, held, permission) {
       return request.resource.data.grants.get(permission, [])
-          == resource.data.grants.get(permission, [])
-        || can(permission);
+          == grants.get(permission, [])
+        || holds(grants, held, permission);
     }
 
-    function onlyHeldGrantsChange() {
-      return grantUnchangedOrHeld("administrator")
-        && grantUnchangedOrHeld("manageSettings")
-        && grantUnchangedOrHeld("manageMembers")
-        && grantUnchangedOrHeld("manageRoles")
-        && grantUnchangedOrHeld("manageWorkGroups")
-        && grantUnchangedOrHeld("editWorkflows")
-        && grantUnchangedOrHeld("planEvents")
-        && grantUnchangedOrHeld("createStandaloneTasks")
-        && grantUnchangedOrHeld("doAssignedTasks")
-        && grantUnchangedOrHeld("editAnyTask")
-        && grantUnchangedOrHeld("approveTasks")
-        && grantUnchangedOrHeld("reassignTasks")
-        && grantUnchangedOrHeld("viewAll");
+    function onlyHeldGrantsChange(grants, held) {
+      return grants.get("administrator", []).hasAny(held)
+        || (grantUnchangedOrHeld(grants, held, "manageSettings")
+          && grantUnchangedOrHeld(grants, held, "administrator")
+          && grantUnchangedOrHeld(grants, held, "manageMembers")
+          && grantUnchangedOrHeld(grants, held, "manageRoles")
+          && grantUnchangedOrHeld(grants, held, "manageWorkGroups")
+          && grantUnchangedOrHeld(grants, held, "editWorkflows")
+          && grantUnchangedOrHeld(grants, held, "planEvents")
+          && grantUnchangedOrHeld(grants, held, "createStandaloneTasks")
+          && grantUnchangedOrHeld(grants, held, "doAssignedTasks")
+          && grantUnchangedOrHeld(grants, held, "editAnyTask")
+          && grantUnchangedOrHeld(grants, held, "approveTasks")
+          && grantUnchangedOrHeld(grants, held, "reassignTasks")
+          && grantUnchangedOrHeld(grants, held, "viewAll"));
     }
 
     // Same lengths as TextLimits in app/src/shared/validation/textLimits.ts.
@@ -207,40 +222,33 @@ service cloud.firestore {
         "timeZone", "invitedBy", "invitedAt", "joinedAt", "lastActiveAt"];
     }
 
-    function rolesGrants() {
-      return get(/databases/$(database)/documents/config/roles).data.grants;
-    }
-
-    /** Whether these role ids grant a permission (through the grants index). */
-    function grantsPermission(roleIds, permission) {
-      return roleIds.hasAny(rolesGrants().get(permission, []));
-    }
-
     /** A permission the member gains from the change, which the editor must hold. */
-    function gainIsHeld(before, after, permission) {
-      return !grantsPermission(after, permission)
-        || grantsPermission(before, permission)
-        || can(permission);
+    function gainIsHeld(grants, held, before, after, permission) {
+      return !after.hasAny(grants.get(permission, []))
+        || before.hasAny(grants.get(permission, []))
+        || holds(grants, held, permission);
     }
 
     /**
      * Like Discord: you can't give anyone (yourself included) a permission you
-     * don't have, through any role. Administrator is only given by administrators.
+     * don't have, through any role. Administrator is only given by
+     * administrators, who may give anything.
      */
-    function onlyHeldPermissionsGained(before, after) {
-      return gainIsHeld(before, after, "administrator")
-        && gainIsHeld(before, after, "manageSettings")
-        && gainIsHeld(before, after, "manageMembers")
-        && gainIsHeld(before, after, "manageRoles")
-        && gainIsHeld(before, after, "manageWorkGroups")
-        && gainIsHeld(before, after, "editWorkflows")
-        && gainIsHeld(before, after, "planEvents")
-        && gainIsHeld(before, after, "createStandaloneTasks")
-        && gainIsHeld(before, after, "doAssignedTasks")
-        && gainIsHeld(before, after, "editAnyTask")
-        && gainIsHeld(before, after, "approveTasks")
-        && gainIsHeld(before, after, "reassignTasks")
-        && gainIsHeld(before, after, "viewAll");
+    function onlyHeldPermissionsGained(grants, held, before, after) {
+      return grants.get("administrator", []).hasAny(held)
+        || (gainIsHeld(grants, held, before, after, "administrator")
+          && gainIsHeld(grants, held, before, after, "manageSettings")
+          && gainIsHeld(grants, held, before, after, "manageMembers")
+          && gainIsHeld(grants, held, before, after, "manageRoles")
+          && gainIsHeld(grants, held, before, after, "manageWorkGroups")
+          && gainIsHeld(grants, held, before, after, "editWorkflows")
+          && gainIsHeld(grants, held, before, after, "planEvents")
+          && gainIsHeld(grants, held, before, after, "createStandaloneTasks")
+          && gainIsHeld(grants, held, before, after, "doAssignedTasks")
+          && gainIsHeld(grants, held, before, after, "editAnyTask")
+          && gainIsHeld(grants, held, before, after, "approveTasks")
+          && gainIsHeld(grants, held, before, after, "reassignTasks")
+          && gainIsHeld(grants, held, before, after, "viewAll"));
     }
 
     /** A new member from an invite: Invited, from the inviter, with the server's time. */
@@ -254,7 +262,7 @@ service cloud.firestore {
         && data.status == "invited"
         && data.roleIds is list
         && data.workGroupIds is list
-        && onlyHeldPermissionsGained([], data.roleIds)
+        && onlyHeldPermissionsGained(rolesGrants(), heldRoleIds(), [], data.roleIds)
         && data.timeZone == null
         && data.invitedBy == request.auth.uid
         && data.invitedAt == request.time
@@ -272,23 +280,28 @@ service cloud.firestore {
       let before = resource.data;
       let after = request.resource.data;
       let changed = changedFields();
+      let grants = rolesGrants();
+      let held = heldRoleIds();
+      let adminRoles = grants.get("administrator", []);
       return isActiveMember()
         && changed.hasOnly(["displayName", "roleIds", "workGroupIds",
           "status", "invitedBy", "invitedAt"])
         && (!changed.hasAny(["displayName", "status", "invitedBy", "invitedAt"])
-          || can("manageMembers"))
+          || holds(grants, held, "manageMembers"))
         && (!changed.hasAny(["roleIds"])
-          || can("manageMembers") || can("manageRoles"))
+          || holds(grants, held, "manageMembers")
+          || holds(grants, held, "manageRoles"))
         && (!changed.hasAny(["workGroupIds"])
-          || can("manageMembers") || can("manageWorkGroups"))
+          || holds(grants, held, "manageMembers")
+          || holds(grants, held, "manageWorkGroups"))
         && after.displayName is string
         && after.displayName.size() <= 80
         && after.roleIds is list
         && after.workGroupIds is list
-        && ((!grantsPermission(before.roleIds, "administrator")
-            && !grantsPermission(after.roleIds, "administrator"))
-          || can("administrator"))
-        && onlyHeldPermissionsGained(before.roleIds, after.roleIds)
+        && ((!before.roleIds.hasAny(adminRoles) && !after.roleIds.hasAny(adminRoles))
+          || adminRoles.hasAny(held))
+        && (!changed.hasAny(["roleIds"])
+          || onlyHeldPermissionsGained(grants, held, before.roleIds, after.roleIds))
         && isAllowedStatusChange(before, after, changed);
     }
 
