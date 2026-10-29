@@ -1,13 +1,20 @@
 // File : /TeamSamsara.Workflow/app/src/lib/firebase.ts
-// Version : 1.0.0
-// Latest commit: core/project-setup
+// Version : 1.1.0
+// Latest commit: core/data
 // Author : Gerrah
 // Purpose : Initializes Firebase once and exports the Auth and Firestore
-// clients, pointed at the local emulators when the env flag is on.
+// clients, pointed at the local emulators when the env flag is on. Firestore keeps
+// a copy of what it has read in the browser, so pages open fast and keep working
+// through a dropped connection; several open tabs share that copy.
 
 import { initializeApp } from "firebase/app";
 import { connectAuthEmulator, getAuth } from "firebase/auth";
-import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
+import {
+  connectFirestoreEmulator,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from "firebase/firestore";
 import { FirebaseEmulators, FirebaseEnvFlags } from "./firebaseConstants";
 
 const firebaseConfig = {
@@ -19,7 +26,11 @@ const firebaseConfig = {
 
 export const firebaseApp = initializeApp(firebaseConfig);
 export const auth = getAuth(firebaseApp);
-export const db = getFirestore(firebaseApp);
+export const db = initializeFirestore(firebaseApp, {
+  localCache: persistentLocalCache({
+    tabManager: persistentMultipleTabManager(),
+  }),
+});
 
 if (import.meta.env.VITE_USE_FIREBASE_EMULATORS === FirebaseEnvFlags.enabled) {
   connectAuthEmulator(
