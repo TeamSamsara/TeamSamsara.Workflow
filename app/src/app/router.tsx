@@ -1,16 +1,24 @@
 // File : /TeamSamsara.Workflow/app/src/app/router.tsx
-// Version : 1.4.0
-// Latest commit: core/workspace
+// Version : 1.5.0
+// Latest commit: feature/roles
 // Author : Gerrah
 // Purpose : Every route in the app. Layouts and the not-found page load with the
 // app; every other page loads only when it is first opened. Pages not built yet show ComingSoonView, and each
 // feature PR swaps its own in.
 
-import { createBrowserRouter, type RouteObject } from "react-router-dom";
+import {
+  createBrowserRouter,
+  Navigate,
+  type RouteObject,
+} from "react-router-dom";
 import { ManagePermissions, RequirePermission } from "@/core/access";
 import { RedirectIfSignedIn, RequireSignedIn } from "@/core/session";
 import { RequireWorkspace } from "@/core/workspace";
-import { RoutePaths, type RoutePath } from "@/shared/constants/routePaths";
+import {
+  RoleTabs,
+  RoutePaths,
+  type RoutePath,
+} from "@/shared/constants/routePaths";
 import { ForbiddenView } from "@/views/system/ForbiddenView";
 import { NotFoundView } from "@/views/system/NotFoundView";
 import { AppLoading } from "./AppLoading";
@@ -60,6 +68,21 @@ const setupView = () =>
     Component: module.SetupView,
   }));
 
+const rolesView = () =>
+  import("@/views/settings/roles/RolesView").then((module) => ({
+    Component: module.RolesView,
+  }));
+
+const roleDisplayView = () =>
+  import("@/views/settings/roles/RoleDisplayView").then((module) => ({
+    Component: module.RoleDisplayView,
+  }));
+
+const rolePermissionsView = () =>
+  import("@/views/settings/roles/RolePermissionsView").then((module) => ({
+    Component: module.RolePermissionsView,
+  }));
+
 const comingSoonView = () =>
   import("@/views/system/ComingSoonView").then((module) => ({
     Component: module.ComingSoonView,
@@ -71,7 +94,11 @@ const comingSoonView = () =>
  * A settings page behind the permission settingsNav gives it, so the menu and
  * the guard always agree on who may open it.
  */
-function settingsPage(path: RoutePath, lazy: RouteObject["lazy"]): RouteObject {
+function settingsPage(
+  path: RoutePath,
+  lazy: RouteObject["lazy"],
+  children?: RouteObject[],
+): RouteObject {
   const required = settingsNav.find((item) => item.to === path)?.requires;
   return {
     element: (
@@ -80,7 +107,7 @@ function settingsPage(path: RoutePath, lazy: RouteObject["lazy"]): RouteObject {
         fallback={<ForbiddenView />}
       />
     ),
-    children: [{ path, lazy }],
+    children: [{ path, lazy, children }],
   };
 }
 // #endregion
@@ -119,7 +146,24 @@ export const router = createBrowserRouter([
                       { index: true, element: <SettingsIndexRedirect /> },
                       settingsPage(RoutePaths.settingsGeneral, comingSoonView),
                       settingsPage(RoutePaths.settingsMembers, comingSoonView),
-                      settingsPage(RoutePaths.settingsRoles, comingSoonView),
+                      settingsPage(RoutePaths.settingsRoles, rolesView, [
+                        {
+                          path: RoutePaths.settingsRole,
+                          children: [
+                            {
+                              index: true,
+                              element: (
+                                <Navigate to={RoleTabs.display} replace />
+                              ),
+                            },
+                            { path: RoleTabs.display, lazy: roleDisplayView },
+                            {
+                              path: RoleTabs.permissions,
+                              lazy: rolePermissionsView,
+                            },
+                          ],
+                        },
+                      ]),
                       settingsPage(RoutePaths.settingsGroups, comingSoonView),
                       settingsPage(
                         RoutePaths.settingsPlatforms,

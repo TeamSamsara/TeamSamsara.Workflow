@@ -1,12 +1,16 @@
 // File : /TeamSamsara.Workflow/app/src/core/access/roleRank.test.ts
-// Version : 1.0.0
-// Latest commit: core/access
+// Version : 1.1.0
+// Latest commit: feature/roles
 // Author : Gerrah
 // Purpose : Tests that members manage only the roles below their highest one,
 // that Administrators manage all, and that Everyone is never handed out.
 
 import { describe, expect, it } from "vitest";
-import type { RoleRecord, RolesRecord } from "@/core/data";
+import {
+  buildPermissionGrants,
+  type RoleRecord,
+  type RolesRecord,
+} from "@/core/data";
 import { assignableRoles, canManageRole, highestPosition } from "./roleRank";
 
 const role = (
@@ -27,9 +31,10 @@ const lead = role("lead", 3, ["manageRoles"]);
 const planner = role("planner", 2);
 const editor = role("editor", 1);
 const everyone = role("everyone", 0);
+const roleList = [admin, lead, planner, editor, everyone];
 const roles: RolesRecord = {
-  roles: [admin, lead, planner, editor, everyone],
-  grants: {},
+  roles: roleList,
+  grants: buildPermissionGrants(roleList),
 };
 
 describe("role order", () => {

@@ -1,0 +1,151 @@
+/* File : /TeamSamsara.Workflow/app/src/features/roles/ui/RoleList.module.css
+   Version : 1.0.0
+   Latest commit: feature/roles
+   Author : Gerrah
+   Purpose : Look of the role list card: header with New role, 44px rows with a drag handle (or a lock), the colour dot, name and count, the open role raised, a dashed line where a dragged row will land, and Everyone set apart below. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-section-heading);
+  text-transform: uppercase;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-control);
+  border-top: 2px dashed transparent;
+}
+
+.item[data-dragging="true"] {
+  opacity: 0.5;
+}
+
+.item[data-drop-target="true"] {
+  border-top-color: var(--color-accent);
+}
+
+.handle,
+.lock {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-6);
+  height: var(--control-height-large);
+  color: var(--color-text-muted);
+  --icon-size: var(--space-4);
+}
+
+.handle {
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-small);
+  background: none;
+  cursor: grab;
+}
+
+.handle:hover {
+  color: var(--color-text);
+}
+
+.handle:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -2px;
+}
+
+.lock {
+  opacity: 0.6;
+  --icon-size: var(--space-3-5);
+}
+
+.link {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-2-5);
+  min-width: 0;
+  min-height: var(--control-height-large);
+  padding: 0 var(--space-2-5);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  text-decoration: none;
+  transition: background-color var(--motion-fast) ease;
+}
+
+.link:hover {
+  background-color: var(--color-surface-raised);
+}
+
+.link[aria-current="page"] {
+  background-color: var(--color-surface-raised);
+}
+
+.dot {
+  flex-shrink: 0;
+  width: var(--space-3);
+  height: var(--space-3);
+  border-radius: 50%;
+  background-color: var(--role-color);
+}
+
+.name {
+  flex: 1;
+  overflow: hidden;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.count {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}
+
+.divider {
+  height: var(--border-width);
+  margin: var(--space-1-5) 0;
+  border: 0;
+  background-color: var(--color-border);
+}
+
+.everyone {
+  padding-left: calc(var(--space-6) + var(--space-2-5));
+}
+
+.hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}

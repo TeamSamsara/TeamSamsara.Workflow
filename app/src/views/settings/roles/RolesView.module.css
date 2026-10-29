@@ -1,0 +1,121 @@
+/* File : /TeamSamsara.Workflow/app/src/views/settings/roles/RolesView.module.css
+   Version : 1.0.0
+   Latest commit: feature/roles
+   Author : Gerrah
+   Purpose : Layout of Settings → Roles: the page heading, then the role list (narrow) and the open role (wide) side by side, wrapping one above the other when there is no room; the editor card's header with Reset and Save, and the Delete role row. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--content-gap);
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-10) 0;
+}
+
+.pageHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.pageTitle,
+.heading {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-dialog-title);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-dialog-title);
+  text-transform: uppercase;
+}
+
+.description,
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.columns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-5);
+}
+
+.list {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.editor {
+  display: flex;
+  flex: 3 1 520px;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+  padding: var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.editorHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.editorTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2-5);
+  min-width: 0;
+}
+
+.dot {
+  flex-shrink: 0;
+  width: var(--space-4);
+  height: var(--space-4);
+  border-radius: 50%;
+  background-color: var(--role-color);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.divider {
+  height: var(--border-width);
+  margin: 0;
+  border: 0;
+  background-color: var(--color-border);
+}
+
+.dangerRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.dangerText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  font-size: var(--text-body);
+}
+
+.text {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}

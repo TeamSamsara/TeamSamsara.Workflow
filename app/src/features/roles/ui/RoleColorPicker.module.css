@@ -1,0 +1,107 @@
+/* File : /TeamSamsara.Workflow/app/src/features/roles/ui/RoleColorPicker.module.css
+   Version : 1.0.0
+   Latest commit: feature/roles
+   Author : Gerrah
+   Purpose : Look of the colour picker: round 32px swatches with a ring around the picked one, and the Custom button showing the custom colour when one is picked. */
+
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  composes: label from "../../../shared/components/Fields/FieldFrame/FieldFrame.module.css";
+  margin-bottom: var(--space-2);
+  padding: 0;
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.swatch {
+  position: relative;
+  width: var(--space-8);
+  height: var(--space-8);
+  border: 3px solid transparent;
+  border-radius: 50%;
+  background-color: var(--swatch-color);
+  cursor: pointer;
+  transition: border-color var(--motion-fast) ease;
+}
+
+.swatch:has(:checked) {
+  border-color: var(--color-text);
+  box-shadow: inset 0 0 0 2px var(--color-surface);
+}
+
+.swatch:has(:focus-visible),
+.custom:has(:focus-visible) {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.input,
+.colorInput {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.custom {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--control-height-small);
+  padding: 0 var(--space-3);
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-size: var(--text-button-small);
+  letter-spacing: var(--tracking-ui);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.custom[data-selected="true"] {
+  border-color: var(--color-text);
+}
+
+.customDot {
+  width: var(--space-4);
+  height: var(--space-4);
+  border-radius: 50%;
+  background: var(--swatch-color, var(--swatch-rainbow));
+}
+
+.picker:disabled .swatch,
+.picker:disabled .custom {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.picker:disabled .input,
+.picker:disabled .colorInput {
+  cursor: not-allowed;
+}
+
+.hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}

@@ -1,0 +1,53 @@
+/* File : /TeamSamsara.Workflow/app/src/features/roles/ui/RoleDisplayForm.module.css
+   Version : 1.0.0
+   Latest commit: feature/roles
+   Author : Gerrah
+   Purpose : Look of the Display tab: fields stacked 20px apart, and the preview box on the page colour with a member's name in the role's colour beside its chip. */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3-5) var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-page);
+}
+
+.previewLabel,
+.previewDetail {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}
+
+.previewRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.previewText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-width: 0;
+}
+
+.previewTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.previewName {
+  color: var(--role-color);
+  font-size: var(--text-body);
+}
