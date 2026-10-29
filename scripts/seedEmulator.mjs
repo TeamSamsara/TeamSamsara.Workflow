@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/scripts/seedEmulator.mjs
-// Version : 1.3.0
-// Latest commit: feature/members
+// Version : 1.4.0
+// Latest commit: feature/workspace-settings
 // Author : Gerrah
 // Purpose : Fills the local emulators with a ready-made workspace and test
 // accounts, so the app can be tried without touching the real project. It wipes
@@ -192,6 +192,7 @@ async function main() {
         name: "Team Samsara (dev)",
         timeZone: "America/Toronto",
         weekStartsOn: "monday",
+        dateFormat: "weekdayMonthDay",
         timeFormat: "12h",
         defaultTheme: "device",
         enabledPlatformIds: [],

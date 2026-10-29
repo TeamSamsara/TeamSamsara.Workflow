@@ -1,0 +1,26 @@
+/* File : /TeamSamsara.Workflow/app/src/features/platforms/ui/PlatformMark.module.css
+   Version : 1.0.0
+   Latest commit: feature/workspace-settings
+   Author : Gerrah
+   Purpose : Look of a platform mark: a rounded square in the platform's colour with its logo in white, 32px (or 24px small). The black brands get a hairline so they still show on a dark page. */
+
+.mark {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-8);
+  height: var(--space-8);
+  border-radius: var(--radius-control);
+  background-color: var(--platform-color);
+  box-shadow: inset 0 0 0 var(--border-width) var(--color-border);
+  color: var(--palette-white);
+  --icon-size: var(--space-4);
+}
+
+.mark[data-size="small"] {
+  width: var(--space-6);
+  height: var(--space-6);
+  border-radius: var(--radius-small);
+  --icon-size: var(--space-3);
+}

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/setup/SetupForm.tsx
-// Version : 1.0.0
-// Latest commit: core/workspace
+// Version : 1.1.0
+// Latest commit: feature/workspace-settings
 // Author : Gerrah
 // Purpose : The setup form, used only by SetupView, in two steps: the
 // workspace (name, time zone, week start, time format), then the account that
@@ -8,6 +8,7 @@
 
 import { useMemo, useState, type FormEvent } from "react";
 import {
+  DateFormats,
   TimeFormats,
   WeekStarts,
   type TimeFormat,
@@ -121,6 +122,7 @@ export function SetupForm({
         name,
         timeZone,
         weekStartsOn,
+        dateFormat: DateFormats[0],
         timeFormat,
         defaultTheme: "device",
         enabledPlatformIds: [],

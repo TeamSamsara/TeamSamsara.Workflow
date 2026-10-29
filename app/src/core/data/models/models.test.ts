@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/models/models.test.ts
-// Version : 1.0.0
-// Latest commit: core/data
+// Version : 1.1.0
+// Latest commit: feature/workspace-settings
 // Author : Gerrah
 // Purpose : Tests that the workspace, member and roles records survive a save and
 // load unchanged, fill in safe defaults for missing fields, and that the roles
@@ -27,6 +27,7 @@ describe("workspace record", () => {
     name: "Team Samsara",
     timeZone: "America/Toronto",
     weekStartsOn: "sunday",
+    dateFormat: "dayMonth",
     timeFormat: "24h",
     defaultTheme: "dark",
     enabledPlatformIds: ["x", "youtube"],
@@ -44,6 +45,7 @@ describe("workspace record", () => {
       name: "",
       timeZone: fallbackTimeZone,
       weekStartsOn: "monday",
+      dateFormat: "weekdayMonthDay",
       timeFormat: "12h",
       defaultTheme: "device",
       enabledPlatformIds: [],

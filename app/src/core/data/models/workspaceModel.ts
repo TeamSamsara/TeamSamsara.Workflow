@@ -1,9 +1,9 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/models/workspaceModel.ts
-// Version : 1.0.0
-// Latest commit: core/data
+// Version : 1.1.0
+// Latest commit: feature/workspace-settings
 // Author : Gerrah
 // Purpose : The workspace record (config/workspace): its name, the time zone
-// events are planned in, week start, time format, the default theme for new
+// events are planned in, week start, date and time formats, the default theme for new
 // members, and which platforms are switched on.
 
 import type { DocumentData } from "firebase/firestore";
@@ -15,6 +15,7 @@ import {
   readString,
   readStringList,
 } from "../fieldReaders";
+import { DateFormats, type DateFormat } from "@/shared/time/dates";
 import { fromDate } from "../timestamps";
 
 export const WeekStarts = ["monday", "sunday"] as const;
@@ -22,6 +23,9 @@ export type WeekStart = (typeof WeekStarts)[number];
 
 export const TimeFormats = ["12h", "24h"] as const;
 export type TimeFormat = (typeof TimeFormats)[number];
+
+// How dates are written lives with the date helpers that write them.
+export { DateFormats, type DateFormat };
 
 /**
  * The theme choices a workspace can default to. Listed here rather than imported,
@@ -42,6 +46,7 @@ export interface WorkspaceRecord {
   /** IANA time zone the team plans in, e.g. "America/Toronto". */
   timeZone: string;
   weekStartsOn: WeekStart;
+  dateFormat: DateFormat;
   timeFormat: TimeFormat;
   /** What a member sees before picking a theme of their own. */
   defaultTheme: ThemeChoice;
@@ -55,6 +60,8 @@ function parse(_id: string, data: DocumentData): WorkspaceRecord {
     name: readString(data, "name"),
     timeZone: readString(data, "timeZone", fallbackTimeZone),
     weekStartsOn: readChoice(data, "weekStartsOn", WeekStarts, "monday"),
+    // Workspaces made before this setting existed read as the first format.
+    dateFormat: readChoice(data, "dateFormat", DateFormats, DateFormats[0]),
     timeFormat: readChoice(data, "timeFormat", TimeFormats, "12h"),
     defaultTheme: readChoice(
       data,
@@ -72,6 +79,7 @@ function serialize(workspace: WorkspaceRecord): DocumentData {
     name: workspace.name,
     timeZone: workspace.timeZone,
     weekStartsOn: workspace.weekStartsOn,
+    dateFormat: workspace.dateFormat,
     timeFormat: workspace.timeFormat,
     defaultTheme: workspace.defaultTheme,
     enabledPlatformIds: workspace.enabledPlatformIds,

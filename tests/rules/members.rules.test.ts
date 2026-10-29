@@ -164,9 +164,7 @@ describe("changing names, roles and groups", () => {
     await assertSucceeds(
       updateDoc(member("gwen", "sam"), { workGroupIds: ["video"] }),
     );
-    await assertFails(
-      updateDoc(member("gwen", "sam"), { roleIds: [] }),
-    );
+    await assertFails(updateDoc(member("gwen", "sam"), { roleIds: [] }));
     await assertFails(updateDoc(member("gwen", "sam"), { displayName: "Sam" }));
   });
 
