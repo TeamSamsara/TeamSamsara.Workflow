@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/shared/components/Modal/Modal.module.css
-   Version : 1.0.0
-   Latest commit: core/ui-kit
+   Version : 1.1.0
+   Latest commit: task/visual-fixes
    Author : Gerrah
    Purpose : Look of the dialog: a centred surface card with 16px corners and a deep shadow over the dim overlay, a 24px Norwester title with the close button beside it, and the buttons along the bottom on the right. */
 
@@ -54,6 +54,7 @@
   font-weight: var(--weight-regular);
   line-height: var(--leading-dialog-title);
   letter-spacing: var(--tracking-heading);
+  text-transform: uppercase;
 }
 
 .description {

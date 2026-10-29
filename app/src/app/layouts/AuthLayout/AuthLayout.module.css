@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/app/layouts/AuthLayout/AuthLayout.module.css
-   Version : 1.0.0
-   Latest commit: core/app-shell
+   Version : 1.1.0
+   Latest commit: task/visual-fixes
    Author : Gerrah
    Purpose : Layout of the sign-in frame: the dark brand panel on the left with the green Anton slogan, the form column centred on the right, at most 440px wide. The panel wraps above the form when there is no room beside it. */
 
@@ -40,6 +40,7 @@
   font-size: var(--text-dialog-title);
   line-height: var(--leading-dialog-title);
   letter-spacing: var(--tracking-heading);
+  text-transform: uppercase;
 }
 
 .pitch {
