@@ -1,0 +1,75 @@
+/* File : /TeamSamsara.Workflow/app/src/features/work-groups/ui/WorkGroupPicker.module.css
+   Version : 1.0.0
+   Latest commit: feature/work-groups
+   Author : Gerrah
+   Purpose : Look of the work group picker: outlined pills that fill green when picked, with a focus ring from the keyboard. */
+
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  composes: label from "../../../shared/components/Fields/FieldFrame/FieldFrame.module.css";
+  margin-bottom: var(--space-2);
+  padding: 0;
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-height-small);
+  padding: 0 var(--space-3-5);
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-pill);
+  color: var(--color-text);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast) ease,
+    border-color var(--motion-fast) ease;
+}
+
+.pill:has(:checked) {
+  border-color: var(--color-accent);
+  background-color: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+
+.pill:has(:focus-visible) {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.picker:disabled .pill {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+.hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}

@@ -1,0 +1,17 @@
+/* File : /TeamSamsara.Workflow/app/src/features/work-groups/ui/WorkGroupDialogs.module.css
+   Version : 1.0.0
+   Latest commit: feature/work-groups
+   Author : Gerrah
+   Purpose : Inside the New and Delete work group dialogs: content stacked 20px apart, and body text. */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.text {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
