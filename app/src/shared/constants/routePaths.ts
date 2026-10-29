@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/constants/routePaths.ts
-// Version : 1.1.0
-// Latest commit: core/session
+// Version : 1.2.0
+// Latest commit: core/workspace
 // Author : Gerrah
 // Purpose : Every address in the app, in one place, so links and routes can
 // never disagree about where a page lives.
@@ -32,6 +32,9 @@ export const RoutePaths = {
   linkExpired: "/link-expired",
   noAccess: "/no-access",
   // #endregion
+
+  /** First-time setup; opens only while there is no workspace. */
+  setup: "/setup",
 
   /** Matches any address no other route claims. */
   notFound: "*",

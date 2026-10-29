@@ -1,14 +1,16 @@
 // File : /TeamSamsara.Workflow/app/src/app/layouts/AppLayout/Sidebar.tsx
-// Version : 1.1.0
-// Latest commit: core/access
+// Version : 1.2.0
+// Latest commit: core/workspace
 // Author : Gerrah
-// Purpose : The dark sidebar: the logo, the main menu (only the items the member
-// may use), and the account link with the theme toggle at the bottom. On narrow screens it slides in as a menu and is
-// out of reach (inert) while closed.
+// Purpose : The dark sidebar: the logo with the workspace's name, the main menu
+// (only the items the member may use), and the account link with the theme
+// toggle at the bottom. On narrow screens it slides in as a menu and is out of
+// reach (inert) while closed.
 
 import { NavLink } from "react-router-dom";
 import { usePermissions } from "@/core/access";
 import { ThemeToggle } from "@/core/theme";
+import { useWorkspaceRecord } from "@/core/workspace";
 import { classNames } from "@/lib/classNames";
 import { Branding } from "@/shared/constants/branding";
 import { RoutePaths } from "@/shared/constants/routePaths";
@@ -28,6 +30,7 @@ interface SidebarProps {
 
 export function Sidebar({ id, isCompact, isOpen, className }: SidebarProps) {
   const { canAny } = usePermissions();
+  const workspace = useWorkspaceRecord();
   const visibleItems = navItems.filter(
     (item) => !item.requiresAnyOf || canAny(item.requiresAnyOf),
   );
@@ -41,7 +44,10 @@ export function Sidebar({ id, isCompact, isOpen, className }: SidebarProps) {
     >
       <div className={styles.brand}>
         <img src={Branding.logoSrc} alt="" className={styles.logo} />
-        <span className={styles.appName}>{Branding.appName}</span>
+        <span className={styles.brandText}>
+          <span className={styles.appName}>{Branding.appName}</span>
+          <span className={styles.workspaceName}>{workspace.name}</span>
+        </span>
       </div>
 
       <nav aria-label={SidebarText.mainMenu} className={styles.menu}>

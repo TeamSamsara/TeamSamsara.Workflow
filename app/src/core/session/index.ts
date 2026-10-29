@@ -1,11 +1,12 @@
 // File : /TeamSamsara.Workflow/app/src/core/session/index.ts
-// Version : 1.1.0
-// Latest commit: feature/auth-screens
+// Version : 1.2.0
+// Latest commit: core/workspace
 // Author : Gerrah
 // Purpose : What other layers may use from the session module.
 
 export {
   checkPasswordLink,
+  createAccount,
   sendPasswordLink,
   setPasswordFromLink,
   signIn,

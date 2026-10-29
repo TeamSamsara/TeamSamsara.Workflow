@@ -1,8 +1,8 @@
 /* File : /TeamSamsara.Workflow/app/src/app/layouts/AuthLayout/AuthLayout.module.css
-   Version : 1.1.0
-   Latest commit: task/visual-fixes
+   Version : 1.2.0
+   Latest commit: core/workspace
    Author : Gerrah
-   Purpose : Layout of the sign-in frame: the dark brand panel on the left with the green Anton slogan, the form column centred on the right, at most 440px wide. The panel wraps above the form when there is no room beside it. */
+   Purpose : Layout of the sign-in frame: the dark brand panel on the left with the green Anton slogan, the form column centred on the right, at most 440px wide (520px for setup). The panel wraps above the form when there is no room beside it. */
 
 .layout {
   display: flex;
@@ -93,6 +93,10 @@
   max-width: var(--auth-form-width);
   margin: 0 auto;
   padding: var(--space-6) 0;
+}
+
+.content[data-wide="true"] {
+  max-width: var(--auth-form-width-wide);
 }
 /* #endregion */
 

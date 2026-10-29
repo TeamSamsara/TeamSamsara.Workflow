@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/session/authErrors.ts
-// Version : 1.0.0
-// Latest commit: core/session
+// Version : 1.1.0
+// Latest commit: core/workspace
 // Author : Gerrah
 // Purpose : Sorts Firebase sign-in errors into the few reasons people are told
 // about. Wrong email and wrong password are deliberately the same reason, so the
@@ -14,6 +14,7 @@ export type AuthErrorKind =
   | "linkExpired"
   | "linkInvalid"
   | "weakPassword"
+  | "emailInUse"
   | "wrongCurrentPassword"
   | "offline"
   | "unknown";
@@ -29,6 +30,7 @@ const kindByCode: Record<string, AuthErrorKind> = {
   "auth/expired-action-code": "linkExpired",
   "auth/invalid-action-code": "linkInvalid",
   "auth/weak-password": "weakPassword",
+  "auth/email-already-in-use": "emailInUse",
   "auth/requires-recent-login": "wrongCurrentPassword",
   "auth/network-request-failed": "offline",
 };

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/router.tsx
-// Version : 1.3.0
-// Latest commit: core/access
+// Version : 1.4.0
+// Latest commit: core/workspace
 // Author : Gerrah
 // Purpose : Every route in the app. Layouts and the not-found page load with the
 // app; every other page loads only when it is first opened. Pages not built yet show ComingSoonView, and each
@@ -9,12 +9,16 @@
 import { createBrowserRouter, type RouteObject } from "react-router-dom";
 import { ManagePermissions, RequirePermission } from "@/core/access";
 import { RedirectIfSignedIn, RequireSignedIn } from "@/core/session";
+import { RequireWorkspace } from "@/core/workspace";
 import { RoutePaths, type RoutePath } from "@/shared/constants/routePaths";
 import { ForbiddenView } from "@/views/system/ForbiddenView";
 import { NotFoundView } from "@/views/system/NotFoundView";
 import { AppLoading } from "./AppLoading";
 import { AppLayout } from "./layouts/AppLayout/AppLayout";
-import { AuthLayout } from "./layouts/AuthLayout/AuthLayout";
+import {
+  AuthLayout,
+  type AuthLayoutHandle,
+} from "./layouts/AuthLayout/AuthLayout";
 import { SettingsIndexRedirect } from "./layouts/SettingsLayout/SettingsIndexRedirect";
 import { SettingsLayout } from "./layouts/SettingsLayout/SettingsLayout";
 import { settingsNav } from "./layouts/SettingsLayout/settingsNav";
@@ -51,6 +55,11 @@ const noAccessView = () =>
     Component: module.NoAccessView,
   }));
 
+const setupView = () =>
+  import("@/views/setup/SetupView").then((module) => ({
+    Component: module.SetupView,
+  }));
+
 const comingSoonView = () =>
   import("@/views/system/ComingSoonView").then((module) => ({
     Component: module.ComingSoonView,
@@ -78,65 +87,90 @@ function settingsPage(path: RoutePath, lazy: RouteObject["lazy"]): RouteObject {
 
 export const router = createBrowserRouter([
   {
-    // Signed-in pages: only an active member gets past RequireSignedIn.
-    element: <RequireSignedIn />,
+    // Every page but setup needs a workspace; with none yet, visitors go to setup.
+    element: <RequireWorkspace />,
     errorElement: <RouteError />,
     hydrateFallbackElement: <AppLoading />,
     children: [
       {
-        element: <AppLayout />,
+        // Signed-in pages: only an active member gets past RequireSignedIn.
+        element: <RequireSignedIn />,
+        errorElement: <RouteError />,
         children: [
-          { path: RoutePaths.calendar, lazy: comingSoonView },
-          { path: RoutePaths.myTasks, lazy: comingSoonView },
-          { path: RoutePaths.workflows, lazy: comingSoonView },
-          { path: RoutePaths.account, lazy: comingSoonView },
           {
-            path: RoutePaths.settings,
-            element: (
-              <RequirePermission
-                anyOf={ManagePermissions}
-                fallback={<ForbiddenView />}
-              />
-            ),
+            element: <AppLayout />,
             children: [
+              { path: RoutePaths.calendar, lazy: comingSoonView },
+              { path: RoutePaths.myTasks, lazy: comingSoonView },
+              { path: RoutePaths.workflows, lazy: comingSoonView },
+              { path: RoutePaths.account, lazy: comingSoonView },
               {
-                element: <SettingsLayout />,
+                path: RoutePaths.settings,
+                element: (
+                  <RequirePermission
+                    anyOf={ManagePermissions}
+                    fallback={<ForbiddenView />}
+                  />
+                ),
                 children: [
-                  { index: true, element: <SettingsIndexRedirect /> },
-                  settingsPage(RoutePaths.settingsGeneral, comingSoonView),
-                  settingsPage(RoutePaths.settingsMembers, comingSoonView),
-                  settingsPage(RoutePaths.settingsRoles, comingSoonView),
-                  settingsPage(RoutePaths.settingsGroups, comingSoonView),
-                  settingsPage(RoutePaths.settingsPlatforms, comingSoonView),
-                  settingsPage(RoutePaths.settingsTaskSetup, comingSoonView),
+                  {
+                    element: <SettingsLayout />,
+                    children: [
+                      { index: true, element: <SettingsIndexRedirect /> },
+                      settingsPage(RoutePaths.settingsGeneral, comingSoonView),
+                      settingsPage(RoutePaths.settingsMembers, comingSoonView),
+                      settingsPage(RoutePaths.settingsRoles, comingSoonView),
+                      settingsPage(RoutePaths.settingsGroups, comingSoonView),
+                      settingsPage(
+                        RoutePaths.settingsPlatforms,
+                        comingSoonView,
+                      ),
+                      settingsPage(
+                        RoutePaths.settingsTaskSetup,
+                        comingSoonView,
+                      ),
+                    ],
+                  },
                 ],
               },
+              { path: RoutePaths.notFound, element: <NotFoundView /> },
             ],
           },
-          { path: RoutePaths.notFound, element: <NotFoundView /> },
+        ],
+      },
+      {
+        element: <AuthLayout />,
+        errorElement: <RouteError />,
+        children: [
+          {
+            // Sign-in pages: an active member is sent on to the app.
+            element: <RedirectIfSignedIn />,
+            children: [
+              { path: RoutePaths.signIn, lazy: signInView },
+              { path: RoutePaths.forgotPassword, lazy: forgotPasswordView },
+              { path: RoutePaths.checkInbox, lazy: checkInboxView },
+              { path: RoutePaths.linkExpired, lazy: linkExpiredView },
+            ],
+          },
+          // Open in any state: an email link can be opened while signed in, and
+          // No access is where a signed-in account without access is sent.
+          { path: RoutePaths.emailLink, lazy: emailLinkView },
+          { path: RoutePaths.noAccess, lazy: noAccessView },
         ],
       },
     ],
   },
   {
+    // First-time setup, open only while there is no workspace (SetupView checks).
     element: <AuthLayout />,
     errorElement: <RouteError />,
     hydrateFallbackElement: <AppLoading />,
     children: [
       {
-        // Sign-in pages: an active member is sent on to the app.
-        element: <RedirectIfSignedIn />,
-        children: [
-          { path: RoutePaths.signIn, lazy: signInView },
-          { path: RoutePaths.forgotPassword, lazy: forgotPasswordView },
-          { path: RoutePaths.checkInbox, lazy: checkInboxView },
-          { path: RoutePaths.linkExpired, lazy: linkExpiredView },
-        ],
+        path: RoutePaths.setup,
+        lazy: setupView,
+        handle: { wideContent: true } satisfies AuthLayoutHandle,
       },
-      // Open in any state: an email link can be opened while signed in, and
-      // No access is where a signed-in account without access is sent.
-      { path: RoutePaths.emailLink, lazy: emailLinkView },
-      { path: RoutePaths.noAccess, lazy: noAccessView },
     ],
   },
 ]);

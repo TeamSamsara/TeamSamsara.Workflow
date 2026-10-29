@@ -1,17 +1,27 @@
 // File : /TeamSamsara.Workflow/app/src/core/theme/ThemeProvider.tsx
-// Version : 1.0.0
-// Latest commit: core/app-shell
+// Version : 1.1.0
+// Latest commit: core/workspace
 // Author : Gerrah
 // Purpose : Holds the theme choice for the whole app. It starts from the saved
-// choice (index.html already showed it before React started), follows the device
-// while set to "device", and saves and shows every change.
+// choice (index.html already showed it before React started), falls back to the
+// workspace default until the person picks one, follows the device while set to
+// "device", and saves and shows every change.
 
-import { useCallback, useMemo, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { useMediaQuery } from "@/shared/hooks/useMediaQuery";
 import { ThemeContext, type ThemeState } from "./ThemeContext";
 import {
   applyThemeChoice,
+  readStoredDefaultTheme,
   readStoredThemeChoice,
+  saveDefaultTheme,
   saveThemeChoice,
 } from "./themeService";
 import {
@@ -21,19 +31,33 @@ import {
 } from "./themeTypes";
 
 interface ThemeProviderProps {
+  /** The workspace's default, for people who haven't picked a theme. Unknown while it loads. */
+  defaultChoice?: ThemeChoice;
   children: ReactNode;
 }
 
-export function ThemeProvider({ children }: ThemeProviderProps) {
-  const [choice, setChoiceState] = useState<ThemeChoice>(
-    () => readStoredThemeChoice() ?? DefaultThemeChoice,
+export function ThemeProvider({ defaultChoice, children }: ThemeProviderProps) {
+  const [ownChoice, setOwnChoice] = useState<ThemeChoice | null>(
+    readStoredThemeChoice,
   );
+  const [rememberedDefault] = useState(readStoredDefaultTheme);
   const deviceIsDark = useMediaQuery(DeviceDarkQuery);
+
+  const choice =
+    ownChoice ?? defaultChoice ?? rememberedDefault ?? DefaultThemeChoice;
+
+  // Before paint, so a change never shows the old colours for a frame.
+  useLayoutEffect(() => {
+    applyThemeChoice(choice);
+  }, [choice]);
+
+  useEffect(() => {
+    if (defaultChoice) saveDefaultTheme(defaultChoice);
+  }, [defaultChoice]);
 
   const setChoice = useCallback((next: ThemeChoice) => {
     saveThemeChoice(next);
-    applyThemeChoice(next);
-    setChoiceState(next);
+    setOwnChoice(next);
   }, []);
 
   const state = useMemo<ThemeState>(() => {

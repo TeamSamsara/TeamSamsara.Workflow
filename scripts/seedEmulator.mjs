@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/scripts/seedEmulator.mjs
-// Version : 1.1.0
-// Latest commit: core/access
+// Version : 1.2.0
+// Latest commit: core/workspace
 // Author : Gerrah
 // Purpose : Fills the local emulators with a ready-made workspace and test
 // accounts, so the app can be tried without touching the real project. It wipes
@@ -10,6 +10,12 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { initializeTestEnvironment } from "@firebase/rules-unit-testing";
+// Node strips the types from this file as it loads it, so the seed starts from
+// the same roles as a real first-time setup.
+import {
+  AdminRoleId,
+  defaultRoles,
+} from "../app/src/core/workspace/seed/defaultRoles.ts";
 
 // #region Settings
 const repoRoot = path.resolve(
@@ -34,23 +40,10 @@ const devPassword = "Workflow-dev-1";
 // #endregion
 
 // #region Seed data
-const everyoneRole = {
-  id: "everyone",
-  name: "Everyone",
-  color: "#8A8F94",
-  description: "Every member has this role.",
-  position: 0,
-  permissions: ["viewAll", "doAssignedTasks"],
-};
-
-const adminRole = {
-  id: "admin",
-  name: "Admin",
-  color: "#E5484D",
-  description: "Can do everything.",
-  position: 2,
-  permissions: ["administrator"],
-};
+/** Admin moves up one place, so the extra role below sits between it and Everyone. */
+const startingRoles = defaultRoles.map((role) =>
+  role.id === AdminRoleId ? { ...role, position: role.position + 1 } : role,
+);
 
 /** A role with only some workspace settings, to try a partial Settings area. */
 const peopleManagerRole = {
@@ -68,7 +61,7 @@ const accounts = [
     key: "alex",
     name: "Alex Moreau",
     status: "active",
-    roleIds: ["admin"],
+    roleIds: [AdminRoleId],
     note: "Admin",
   },
   {
@@ -174,7 +167,7 @@ async function main() {
   const now = new Date();
   await env.withSecurityRulesDisabled(async (context) => {
     const db = context.firestore();
-    const roles = [everyoneRole, adminRole, peopleManagerRole];
+    const roles = [...startingRoles, peopleManagerRole];
     const writes = [
       db.doc("config/workspace").set({
         name: "Team Samsara (dev)",
