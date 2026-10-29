@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/firestore.rules
-// Version : 1.7.0
-// Latest commit: feature/workspace-settings
+// Version : 1.8.0
+// Latest commit: task/group-leads-and-x-premium
 // Author : Gerrah
 // Purpose : Who may read and write what in Firestore. Everything is denied until
 // a rule below allows it; each PR opens exactly what its feature needs, with a
@@ -156,8 +156,8 @@ service cloud.firestore {
     function isValidWorkspace(data) {
       let required = ["name", "timeZone", "weekStartsOn", "timeFormat",
         "defaultTheme", "enabledPlatformIds", "createdAt"];
-      // dateFormat came later, so workspaces made before it may not have it.
-      return data.keys().hasOnly(required.concat(["dateFormat"]))
+      // dateFormat and upgradedPlatformIds came later, so older workspaces may not have them.
+      return data.keys().hasOnly(required.concat(["dateFormat", "upgradedPlatformIds"]))
         && data.keys().hasAll(required)
         && isValidName(data.name)
         && data.timeZone is string && data.timeZone.size() > 0
@@ -169,6 +169,9 @@ service cloud.firestore {
         // The same ids as PlatformCatalogue in app/src/features/platforms.
         && data.enabledPlatformIds is list
         && data.enabledPlatformIds.hasOnly(["x", "instagram", "youtube", "tiktok", "twitch", "bluesky", "threads", "linkedin", "facebook"])
+        // Platforms with a paid tier (UpgradablePlatformIds in the app).
+        && data.get("upgradedPlatformIds", []) is list
+        && data.get("upgradedPlatformIds", []).hasOnly(["x"])
         && data.createdAt is timestamp;
     }
 
@@ -378,12 +381,19 @@ service cloud.firestore {
     }
 
     // Same lengths as TextLimits in app/src/shared/validation/textLimits.ts.
+    // Leads and links came later, so older groups may not have them. Each
+    // lead's permissions and each link's address are checked by the app.
     function isValidWorkGroup(data) {
-      return data.keys().hasOnly(["name", "description", "createdAt"])
+      return data.keys().hasOnly(["name", "description", "createdAt",
+          "leadIds", "links"])
         && data.keys().hasAll(["name", "description", "createdAt"])
         && isValidName(data.name)
         && data.description is string
         && data.description.size() <= 300
+        && data.get("leadIds", []) is list
+        && data.get("leadIds", []).size() <= 10
+        && data.get("links", []) is list
+        && data.get("links", []).size() <= 10
         && data.createdAt is timestamp;
     }
     // #endregion

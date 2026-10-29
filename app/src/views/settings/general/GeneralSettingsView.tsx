@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/general/GeneralSettingsView.tsx
-// Version : 1.0.0
-// Latest commit: feature/workspace-settings
+// Version : 1.1.0
+// Latest commit: task/group-leads-and-x-premium
 // Author : Gerrah
 // Purpose : Settings → General: the workspace's name, time and date settings
 // and default theme, saved together. Everyone signed in sees a rename at once
@@ -26,7 +26,10 @@ import { GeneralSettingsForm } from "./GeneralSettingsForm";
 import { GeneralSettingsViewText as Text } from "./generalSettingsViewContent";
 import styles from "./GeneralSettingsView.module.css";
 
-type Editable = Omit<WorkspaceSettings, "enabledPlatformIds">;
+type Editable = Omit<
+  WorkspaceSettings,
+  "enabledPlatformIds" | "upgradedPlatformIds"
+>;
 
 const fields = [
   "name",
@@ -117,6 +120,7 @@ export function GeneralSettingsView() {
         settings={{
           ...draft,
           enabledPlatformIds: workspace.enabledPlatformIds,
+          upgradedPlatformIds: workspace.upgradedPlatformIds,
         }}
         onChange={(changes) => {
           setEdits((current) => ({ ...current, ...changes }));

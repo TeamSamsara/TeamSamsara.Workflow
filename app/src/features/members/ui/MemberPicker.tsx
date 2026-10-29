@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/members/ui/MemberPicker.tsx
-// Version : 1.0.0
-// Latest commit: feature/members
+// Version : 1.1.0
+// Latest commit: task/group-leads-and-x-premium
 // Author : Gerrah
 // Purpose : A dialog to pick members (to give them a role, put them in a
 // group, and later to hand over a task): search, tick, Add.
@@ -23,6 +23,8 @@ interface MemberPickerProps {
   onPick: (memberIds: string[]) => void;
   onClose: () => void;
   isSaving?: boolean;
+  /** What to say when nobody can be picked. */
+  emptyText?: string;
 }
 
 export function MemberPicker({
@@ -31,6 +33,7 @@ export function MemberPicker({
   onPick,
   onClose,
   isSaving = false,
+  emptyText = MemberPickerText.none,
 }: MemberPickerProps) {
   const [search, setSearch] = useState("");
   const [picked, setPicked] = useState<string[]>([]);
@@ -77,7 +80,7 @@ export function MemberPicker({
           />
         ) : null}
         {items.length === 0 ? (
-          <p className={styles.muted}>{MemberPickerText.none}</p>
+          <p className={styles.muted}>{emptyText}</p>
         ) : shown.length === 0 ? (
           <p className={styles.muted}>{MemberPickerText.noMatch}</p>
         ) : (

@@ -1,8 +1,8 @@
 /* File : /TeamSamsara.Workflow/app/src/features/platforms/ui/PlatformsTable.module.css
-   Version : 1.0.0
-   Latest commit: feature/workspace-settings
+   Version : 1.1.0
+   Latest commit: task/group-leads-and-x-premium
    Author : Gerrah
-   Purpose : Look of the platforms table cells: the mark beside the name, muted limits, and the shared switch at the end of each row. */
+   Purpose : Look of the platforms table cells: the mark beside the name, muted limits with the paid-tier checkbox under them, and the shared switch at the end of each row. */
 
 .platform {
   display: flex;
@@ -13,6 +13,11 @@
 .limits {
   color: var(--color-text-muted);
   font-size: var(--text-meta);
+}
+
+.upgrade {
+  margin-top: var(--space-2);
+  color: var(--color-text);
 }
 
 .useHeading,

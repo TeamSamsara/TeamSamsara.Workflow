@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/workspaceSettings.rules.test.ts
-// Version : 1.0.0
-// Latest commit: feature/workspace-settings
+// Version : 1.1.0
+// Latest commit: task/group-leads-and-x-premium
 // Author : Gerrah
 // Purpose : Tests Settings → General and Platforms against the rules: only
 // Manage settings (or an Administrator) edits the workspace record; every
@@ -91,6 +91,17 @@ describe("General", () => {
 });
 
 describe("Platforms", () => {
+  it("records a paid tier only for platforms that have one", async () => {
+    await assertSucceeds(
+      updateDoc(settings("jordan"), { upgradedPlatformIds: arrayUnion("x") }),
+    );
+    await assertFails(
+      updateDoc(settings("jordan"), {
+        upgradedPlatformIds: arrayUnion("twitch"),
+      }),
+    );
+  });
+
   it("switches catalogue platforms on and off", async () => {
     await assertSucceeds(
       updateDoc(settings("jordan"), {

@@ -1,18 +1,23 @@
 // File : /TeamSamsara.Workflow/app/src/features/platforms/index.ts
-// Version : 1.0.0
-// Latest commit: feature/workspace-settings
+// Version : 1.1.0
+// Latest commit: task/group-leads-and-x-premium
 // Author : Gerrah
 // Purpose : What other layers may use from the platforms feature.
 
 export {
   findPlatform,
+  limitsFor,
   PlatformCatalogue,
   PlatformIds,
+  UpgradablePlatformIds,
 } from "./catalogue/platformCatalogue";
 export type {
+  EffectiveLimits,
   MediaLimits,
   Platform,
+  PlatformFormat,
   PlatformSetting,
+  PlatformUpgrade,
   PlatformTextField,
   TextLimit,
 } from "./catalogue/platformTypes";

@@ -1,19 +1,21 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/groups/WorkGroupsView.tsx
-// Version : 1.1.0
-// Latest commit: feature/members
+// Version : 1.2.0
+// Latest commit: task/group-leads-and-x-premium
 // Author : Gerrah
 // Purpose : Settings → Work groups: the group cards on top, the open group's
-// editor under them (name, what it does, who is in it, with Add members and
-// Remove), New group and Delete group. Leaving a group with unsaved changes
+// editor under them (name, what it does, its leads and links, who is in it,
+// with Add members and Remove), New group and Delete group. Leaving a group with unsaved changes
 // asks first; adding and removing people saves straight away.
 
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { Navigate, useBlocker, useNavigate, useParams } from "react-router-dom";
+import { usePermissions } from "@/core/access";
 import { DataErrorText, dataErrorMessage } from "@/core/data";
 import { memberName, MemberPicker, useMembers } from "@/features/members";
 import {
   addToWorkGroup,
+  canLeadGroups,
   DeleteWorkGroupDialog,
   NewWorkGroupDialog,
   removeFromWorkGroup,
@@ -21,11 +23,16 @@ import {
   useWorkGroups,
   WorkGroupForm,
   WorkGroupGrid,
+  WorkGroupLeadsText,
+  WorkGroupLimits,
+  WorkGroupLinksEditor,
+  WorkGroupLinksText,
   type WorkGroupListItem,
 } from "@/features/work-groups";
 import { Avatar } from "@/shared/components/Avatar/Avatar";
 import { Banner } from "@/shared/components/Banner/Banner";
 import { Button } from "@/shared/components/Button/Button";
+import { IconButton } from "@/shared/components/Button/IconButton";
 import { Modal } from "@/shared/components/Modal/Modal";
 import { Spinner } from "@/shared/components/Spinner/Spinner";
 import { StatusPanel } from "@/shared/components/StatusPanel/StatusPanel";
@@ -43,6 +50,9 @@ function WorkGroupEditor({ item }: { item: WorkGroupListItem }) {
   const allMembers = useMembers();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPicking, setIsPicking] = useState(false);
+  const [isPickingLead, setIsPickingLead] = useState(false);
+  const [triedSave, setTriedSave] = useState(false);
+  const { roles } = usePermissions();
 
   const onError = (error: unknown) =>
     toast.show({
@@ -77,12 +87,32 @@ function WorkGroupEditor({ item }: { item: WorkGroupListItem }) {
       draft.isDirty && nextLocation.pathname !== workGroupPath(group.id),
   );
 
+  const hasLinkErrors = draft.linkErrors.some(Boolean);
+
   function save() {
+    setTriedSave(true);
+    if (hasLinkErrors) return;
     const name = draft.fields.name.trim();
-    draft.save(() =>
-      toast.show({ tone: "success", title: WorkGroupsViewText.saved(name) }),
-    );
+    draft.save(() => {
+      setTriedSave(false);
+      toast.show({ tone: "success", title: WorkGroupsViewText.saved(name) });
+    });
   }
+
+  // Only people whose roles let them approve or reassign tasks can lead.
+  const eligibleLeads = roles
+    ? allMembers.items.filter(
+        (entry) =>
+          entry.member.status !== "disabled" &&
+          canLeadGroups(entry.member, roles) &&
+          !draft.fields.leadIds.includes(entry.member.id),
+      )
+    : [];
+  const leadMembers = draft.fields.leadIds
+    .map((leadId) =>
+      allMembers.items.find((entry) => entry.member.id === leadId),
+    )
+    .filter((entry) => entry !== undefined);
 
   return (
     <section className={styles.editor} aria-labelledby={`group-${group.id}`}>
@@ -109,7 +139,11 @@ function WorkGroupEditor({ item }: { item: WorkGroupListItem }) {
           <Button
             variant="primary"
             onClick={save}
-            disabled={!draft.isDirty || Boolean(draft.nameError)}
+            disabled={
+              !draft.isDirty ||
+              Boolean(draft.nameError) ||
+              (triedSave && hasLinkErrors)
+            }
             isLoading={draft.isSaving}
           >
             {WorkGroupsViewText.save}
@@ -125,6 +159,79 @@ function WorkGroupEditor({ item }: { item: WorkGroupListItem }) {
         nameError={draft.nameError}
         disabled={draft.isSaving}
       />
+
+      <div className={styles.section}>
+        <div className={styles.membersHeader}>
+          <h3 className={styles.subheading}>{WorkGroupLeadsText.title}</h3>
+          <Button
+            size="small"
+            iconStart="add"
+            onClick={() => setIsPickingLead(true)}
+            disabled={
+              draft.isSaving ||
+              allMembers.status !== "ready" ||
+              draft.fields.leadIds.length >= WorkGroupLimits.leads
+            }
+          >
+            {WorkGroupLeadsText.add}
+          </Button>
+        </div>
+        {leadMembers.length ? (
+          <div className={styles.chips}>
+            {leadMembers.map((entry) => {
+              const name = memberName(entry.member);
+              return (
+                <span key={entry.member.id} className={styles.lead}>
+                  <Avatar name={name} size="small" />
+                  {name}
+                  <IconButton
+                    icon="close"
+                    size="small"
+                    variant="ghost"
+                    label={WorkGroupLeadsText.remove(name)}
+                    onClick={() =>
+                      draft.change({
+                        leadIds: draft.fields.leadIds.filter(
+                          (id) => id !== entry.member.id,
+                        ),
+                      })
+                    }
+                    disabled={draft.isSaving}
+                  />
+                </span>
+              );
+            })}
+          </div>
+        ) : (
+          <p className={styles.muted}>{WorkGroupLeadsText.none}</p>
+        )}
+        <p className={styles.muted}>{WorkGroupLeadsText.hint}</p>
+      </div>
+
+      <div className={styles.section}>
+        <h3 className={styles.subheading}>{WorkGroupLinksText.title}</h3>
+        <WorkGroupLinksEditor
+          links={draft.fields.links}
+          errors={draft.linkErrors}
+          onChange={(links) => draft.change({ links })}
+          showErrors={triedSave}
+          disabled={draft.isSaving}
+        />
+        <p className={styles.muted}>{WorkGroupLinksText.hint}</p>
+      </div>
+
+      {isPickingLead ? (
+        <MemberPicker
+          title={WorkGroupLeadsText.pickerTitle(group.name)}
+          items={eligibleLeads}
+          emptyText={WorkGroupLeadsText.noneEligible}
+          onPick={(memberIds) => {
+            draft.change({ leadIds: [...draft.fields.leadIds, ...memberIds] });
+            setIsPickingLead(false);
+          }}
+          onClose={() => setIsPickingLead(false)}
+        />
+      ) : null}
 
       <div className={styles.members}>
         <div className={styles.membersHeader}>

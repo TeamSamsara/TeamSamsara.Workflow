@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/ui/WorkGroupForm.tsx
-// Version : 1.0.0
-// Latest commit: feature/work-groups
+// Version : 1.1.0
+// Latest commit: task/group-leads-and-x-premium
 // Author : Gerrah
 // Purpose : A work group's name and "what this group does" fields.
 
@@ -12,7 +12,7 @@ import { WorkGroupFormText } from "./workGroupsContent";
 import styles from "./WorkGroupForm.module.css";
 
 interface WorkGroupFormProps {
-  fields: WorkGroupFields;
+  fields: Pick<WorkGroupFields, "name" | "description">;
   onChange: (changes: Partial<WorkGroupFields>) => void;
   nameError?: string;
   disabled?: boolean;

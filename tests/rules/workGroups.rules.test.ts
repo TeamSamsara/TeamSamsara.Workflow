@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/workGroups.rules.test.ts
-// Version : 1.0.0
-// Latest commit: feature/work-groups
+// Version : 1.1.0
+// Latest commit: task/group-leads-and-x-premium
 // Author : Gerrah
 // Purpose : Tests work groups: active members read them; only Manage work
 // groups (or an Administrator) creates, edits and deletes them, with valid
@@ -85,6 +85,28 @@ describe("reading work groups", () => {
       getDoc(doc(signedInAs(env, "chris"), "workGroups/design")),
     );
     await assertFails(getDoc(doc(signedOut(env), "workGroups/design")));
+  });
+});
+
+describe("leads and links", () => {
+  it("can be added to a group, an older one too", async () => {
+    await assertSucceeds(
+      updateDoc(doc(signedInAs(env, "jordan"), "workGroups/design"), {
+        leadIds: ["alex"],
+        links: [{ label: "Shared drive", url: "https://drive.google.com/x" }],
+      }),
+    );
+  });
+
+  it("are capped at ten each, and must be lists", async () => {
+    const db = signedInAs(env, "jordan");
+    const many = Array.from({ length: 11 }, (_unused, index) => `m${index}`);
+    await assertFails(
+      updateDoc(doc(db, "workGroups/design"), { leadIds: many }),
+    );
+    await assertFails(
+      updateDoc(doc(db, "workGroups/design"), { links: "https://x.com" }),
+    );
   });
 });
 

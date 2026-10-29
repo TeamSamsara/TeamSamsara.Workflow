@@ -1,15 +1,16 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/hooks/useWorkGroupDraft.ts
-// Version : 1.0.0
-// Latest commit: feature/work-groups
+// Version : 1.1.0
+// Latest commit: task/group-leads-and-x-premium
 // Author : Gerrah
-// Purpose : The unsaved edits to one work group: change the name or what it
-// does, see whether anything changed, Reset, or Save. Follows the saved group
+// Purpose : The unsaved edits to one work group: its name, what it does, its
+// leads and links; whether anything changed, Reset, or Save. Follows the saved group
 // while nothing is being edited, so changes by others show at once.
 
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { dataErrorMessage } from "@/core/data";
 import { checkName } from "@/shared/validation/nameRules";
+import { checkLink } from "../service/groupRules";
 import { saveWorkGroup } from "../service/workGroupService";
 import type { WorkGroupFields, WorkGroupRecord } from "../types/workGroupTypes";
 
@@ -20,13 +21,21 @@ interface Edits {
   committed: boolean;
 }
 
+const linksKey = (fields: WorkGroupFields) =>
+  fields.links.map((link) => `${link.label}\u0000${link.url}`).join("\u0001");
+
 const same = (a: WorkGroupFields, b: WorkGroupFields) =>
-  a.name === b.name && a.description === b.description;
+  a.name === b.name &&
+  a.description === b.description &&
+  a.leadIds.join() === b.leadIds.join() &&
+  linksKey(a) === linksKey(b);
 
 export interface WorkGroupDraft {
   fields: WorkGroupFields;
   isDirty: boolean;
   nameError: string | undefined;
+  /** For each link, the problem with it (or undefined). */
+  linkErrors: (string | undefined)[];
   change: (changes: Partial<WorkGroupFields>) => void;
   reset: () => void;
   save: (onSaved?: () => void) => void;
@@ -35,7 +44,12 @@ export interface WorkGroupDraft {
 }
 
 export function useWorkGroupDraft(group: WorkGroupRecord): WorkGroupDraft {
-  const saved = { name: group.name, description: group.description };
+  const saved: WorkGroupFields = {
+    name: group.name,
+    description: group.description,
+    leadIds: group.leadIds,
+    links: group.links,
+  };
   const [edits, setEdits] = useState<Edits | null>(null);
 
   // Once the live group shows what was saved, the edits are done with.
@@ -48,11 +62,14 @@ export function useWorkGroupDraft(group: WorkGroupRecord): WorkGroupDraft {
     mutationFn: (next: WorkGroupFields) => saveWorkGroup(group.id, next),
   });
   const nameError = checkName(fields.name);
+  const linkErrors = fields.links.map(checkLink);
+  const hasErrors = Boolean(nameError) || linkErrors.some(Boolean);
 
   return {
     fields,
     isDirty: !same(fields, saved),
     nameError,
+    linkErrors,
     change: (changes) => {
       setEdits({
         groupId: group.id,
@@ -66,10 +83,15 @@ export function useWorkGroupDraft(group: WorkGroupRecord): WorkGroupDraft {
       mutation.reset();
     },
     save: (onSaved) => {
-      if (nameError) return;
-      const toSave = {
+      if (hasErrors) return;
+      const toSave: WorkGroupFields = {
         name: fields.name.trim(),
         description: fields.description.trim(),
+        leadIds: [...new Set(fields.leadIds)],
+        links: fields.links.map((link) => ({
+          label: link.label.trim(),
+          url: link.url.trim(),
+        })),
       };
       mutation.mutate(toSave, {
         onSuccess: () => {

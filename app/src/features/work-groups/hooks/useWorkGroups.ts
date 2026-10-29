@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/hooks/useWorkGroups.ts
-// Version : 1.1.0
-// Latest commit: feature/members
+// Version : 1.2.0
+// Latest commit: task/group-leads-and-x-premium
 // Author : Gerrah
 // Purpose : Every work group, by name, each with the members in it. Live:
 // changes by anyone show at once. Open-task counts join in with the tasks PR.
@@ -14,6 +14,7 @@ import {
   memberConverter,
   useLiveCollection,
   type DataErrorKind,
+  type MemberRecord,
 } from "@/core/data";
 import {
   workGroupConverter,
@@ -60,6 +61,13 @@ export function useWorkGroups(): WorkGroupList {
           ? memberList
               .filter((member) => member.workGroupIds.includes(group.id))
               .sort((a, b) => a.displayName.localeCompare(b.displayName))
+          : null,
+        leads: memberList
+          ? group.leadIds
+              .map((leadId) =>
+                memberList.find((member) => member.id === leadId),
+              )
+              .filter((member): member is MemberRecord => member !== undefined)
           : null,
       }));
     return { status: "ready", items, error: null };

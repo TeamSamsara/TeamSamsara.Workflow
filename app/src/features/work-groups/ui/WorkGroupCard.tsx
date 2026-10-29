@@ -1,9 +1,10 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/ui/WorkGroupCard.tsx
-// Version : 1.0.0
-// Latest commit: feature/work-groups
+// Version : 1.1.0
+// Latest commit: task/group-leads-and-x-premium
 // Author : Gerrah
 // Purpose : One work group as a card: its name, member count, the first few
-// members' avatars, and what it does. The open group is outlined in green.
+// members' avatars, who leads it, and what it does. The open group is outlined
+// in green.
 
 import { NavLink } from "react-router-dom";
 import { Avatar } from "@/shared/components/Avatar/Avatar";
@@ -23,6 +24,7 @@ export function WorkGroupCard({ item, to }: WorkGroupCardProps) {
   const { group, members } = item;
   const shown = members?.slice(0, avatarsShown) ?? [];
   const hidden = (members?.length ?? 0) - shown.length;
+  const leads = item.leads ?? [];
 
   return (
     <NavLink to={to} className={styles.card}>
@@ -48,6 +50,13 @@ export function WorkGroupCard({ item, to }: WorkGroupCardProps) {
               {WorkGroupCardText.moreMembers(hidden)}
             </span>
           ) : null}
+        </span>
+      ) : null}
+      {leads.length ? (
+        <span className={styles.meta}>
+          {WorkGroupCardText.ledBy(
+            leads.map((lead) => lead.displayName || lead.email).join(", "),
+          )}
         </span>
       ) : null}
       <span className={styles.description}>
