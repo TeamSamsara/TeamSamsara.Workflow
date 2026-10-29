@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/vite.config.ts
-// Version : 1.1.0
-// Latest commit: core/session
+// Version : 1.2.0
+// Latest commit: core/workspace
 // Author : Gerrah
 // Purpose : Vite setup: React, the @/ alias, and the build split into a few
 // files. Firebase and React rarely change, so they get files of their own that
@@ -34,7 +34,7 @@ export default defineConfig({
     chunkSizeWarningLimit: largestExpectedChunkKb,
     rolldownOptions: {
       output: {
-        advancedChunks: {
+        codeSplitting: {
           groups: [
             {
               name: "firebase",
