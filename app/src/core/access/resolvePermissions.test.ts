@@ -1,12 +1,16 @@
 // File : /TeamSamsara.Workflow/app/src/core/access/resolvePermissions.test.ts
-// Version : 1.0.0
-// Latest commit: core/access
+// Version : 1.1.0
+// Latest commit: feature/roles
 // Author : Gerrah
 // Purpose : Tests that permissions add up from Everyone and held roles, and that
 // Administrator grants everything.
 
 import { describe, expect, it } from "vitest";
-import type { RoleRecord, RolesRecord } from "@/core/data";
+import {
+  buildPermissionGrants,
+  type RoleRecord,
+  type RolesRecord,
+} from "@/core/data";
 import { PermissionKeys } from "./permissionKeys";
 import { heldRoleIds, resolvePermissions } from "./resolvePermissions";
 
@@ -23,14 +27,16 @@ const role = (
   permissions,
 });
 
+const roleList = [
+  role("admin", 3, ["administrator"]),
+  role("planner", 2, ["planEvents", "editWorkflows"]),
+  role("reviewer", 1, ["approveTasks", "notARealPermission"]),
+  role("everyone", 0, ["viewAll", "doAssignedTasks"]),
+];
+
 const roles: RolesRecord = {
-  roles: [
-    role("admin", 3, ["administrator"]),
-    role("planner", 2, ["planEvents", "editWorkflows"]),
-    role("reviewer", 1, ["approveTasks", "notARealPermission"]),
-    role("everyone", 0, ["viewAll", "doAssignedTasks"]),
-  ],
-  grants: {},
+  roles: roleList,
+  grants: buildPermissionGrants(roleList),
 };
 
 describe("resolvePermissions", () => {
@@ -57,6 +63,16 @@ describe("resolvePermissions", () => {
     expect(resolvePermissions(["admin"], roles).size).toBe(
       PermissionKeys.length,
     );
+  });
+
+  it("follows the grants index, like the security rules, if the two ever disagree", () => {
+    const tampered: RolesRecord = {
+      roles: [role("planner", 2, ["administrator"]), role("everyone", 0, [])],
+      grants: { planEvents: ["planner"] },
+    };
+    expect([...resolvePermissions(["planner"], tampered)]).toEqual([
+      "planEvents",
+    ]);
   });
 
   it("ignores roles that no longer exist", () => {

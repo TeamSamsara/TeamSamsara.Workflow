@@ -1,10 +1,12 @@
 // File : /TeamSamsara.Workflow/app/src/core/access/resolvePermissions.ts
-// Version : 1.0.0
-// Latest commit: core/access
+// Version : 1.1.0
+// Latest commit: feature/roles
 // Author : Gerrah
 // Purpose : Works out what a member may do, the way Discord does: the Everyone
 // role's permissions, plus every permission of every role they hold. Roles only
-// add, never take away, and Administrator means everything.
+// add, never take away, and Administrator means everything. It reads the grants
+// index (permission → role ids), the same thing the security rules read, so the
+// screen and the server always agree on what someone may do.
 
 import { EveryoneRoleId, type RolesRecord } from "@/core/data";
 import {
@@ -31,12 +33,10 @@ export function resolvePermissions(
   const held = heldRoleIds(memberRoleIds, roles);
   const granted = new Set<PermissionKey>();
 
-  for (const role of roles.roles) {
-    if (!held.has(role.id)) continue;
-    for (const permission of role.permissions) {
-      // A permission the app doesn't know (an old or mistyped one) grants nothing.
-      if (isPermissionKey(permission)) granted.add(permission);
-    }
+  for (const [permission, roleIds] of Object.entries(roles.grants)) {
+    // A permission the app doesn't know (an old or mistyped one) grants nothing.
+    if (!isPermissionKey(permission)) continue;
+    if (roleIds.some((roleId) => held.has(roleId))) granted.add(permission);
   }
 
   return granted.has("administrator") ? new Set(PermissionKeys) : granted;
