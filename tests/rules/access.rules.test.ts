@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/access.rules.test.ts
-// Version : 1.0.0
-// Latest commit: core/access
+// Version : 1.1.0
+// Latest commit: core/workspace
 // Author : Gerrah
 // Purpose : Tests who counts as an active member: they (and just-invited members)
 // read the workspace settings, the roles and the member list; disabled members,
@@ -64,8 +64,8 @@ describe("workspace settings and roles", () => {
     await assertFails(getDoc(doc(signedInAs(env, "stranger"), "config/roles")));
   });
 
-  it("are not readable signed out", async () => {
-    await assertFails(getDoc(doc(signedOut(env), "config/workspace")));
+  it("are not readable signed out (except whether a workspace exists)", async () => {
+    await assertFails(getDoc(doc(signedOut(env), "config/roles")));
   });
 
   it("are not writable through these rules", async () => {

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/session/sessionContent.ts
-// Version : 1.0.0
-// Latest commit: core/session
+// Version : 1.1.0
+// Latest commit: core/workspace
 // Author : Gerrah
 // Purpose : What people read when signing in, or using an email link, goes wrong.
 
@@ -15,6 +15,8 @@ export const AuthErrorText: Record<AuthErrorKind, string> = {
     "This link has expired. Links are good for 1 hour and work only once.",
   linkInvalid: "This link has already been used or isn't complete.",
   weakPassword: "Choose a longer password, with a number or a symbol.",
+  emailInUse:
+    "This email already has an account, and that isn't its password. Enter its password, or use another email.",
   wrongCurrentPassword: "Your current password isn't right.",
   offline: "You seem to be offline. Check your connection and try again.",
   unknown: "Something went wrong. Try again in a moment.",

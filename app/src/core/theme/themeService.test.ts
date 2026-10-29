@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/theme/themeService.test.ts
-// Version : 1.0.0
-// Latest commit: core/app-shell
+// Version : 1.1.0
+// Latest commit: core/workspace
 // Author : Gerrah
 // Purpose : Tests saving, reading and showing the theme choice, including a
 // browser that blocks storage.
@@ -10,7 +10,9 @@ import { StorageKeys } from "@/shared/constants/storageKeys";
 import {
   applyThemeChoice,
   isThemeChoice,
+  readStoredDefaultTheme,
   readStoredThemeChoice,
+  saveDefaultTheme,
   saveThemeChoice,
 } from "./themeService";
 
@@ -36,11 +38,17 @@ describe("saving and reading", () => {
     expect(readStoredThemeChoice()).toBe("dark");
   });
 
-  it("clears the saved value for device", () => {
-    saveThemeChoice("light");
+  it("keeps device as a real choice, apart from the workspace default", () => {
+    saveDefaultTheme("dark");
     saveThemeChoice("device");
-    expect(window.localStorage.getItem(StorageKeys.theme)).toBeNull();
+    expect(window.localStorage.getItem(StorageKeys.theme)).toBe("device");
+    expect(readStoredThemeChoice()).toBe("device");
+    expect(readStoredDefaultTheme()).toBe("dark");
+  });
+
+  it("reads nothing when no one has chosen", () => {
     expect(readStoredThemeChoice()).toBeNull();
+    expect(readStoredDefaultTheme()).toBeNull();
   });
 
   it("ignores a value it does not know", () => {

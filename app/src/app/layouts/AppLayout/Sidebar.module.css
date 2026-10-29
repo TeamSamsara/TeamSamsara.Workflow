@@ -1,8 +1,8 @@
 /* File : /TeamSamsara.Workflow/app/src/app/layouts/AppLayout/Sidebar.module.css
-   Version : 1.1.0
-   Latest commit: task/visual-fixes
+   Version : 1.2.0
+   Latest commit: core/workspace
    Author : Gerrah
-   Purpose : Look of the sidebar: dark in both themes, the logo and Norwester app name on top, uppercase Agdasima menu links with a green marker on the current page, and the account row pinned to the bottom. */
+   Purpose : Look of the sidebar: dark in both themes, the logo, Norwester app name and workspace name on top, uppercase Agdasima menu links with a green marker on the current page, and the account row pinned to the bottom. */
 
 .sidebar {
   display: flex;
@@ -27,12 +27,27 @@
   object-fit: contain;
 }
 
+.brandText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
 .appName {
   font-family: var(--font-heading);
   font-size: var(--text-brand);
   line-height: var(--leading-brand);
   letter-spacing: var(--tracking-heading);
   text-transform: uppercase;
+}
+
+.workspaceName {
+  overflow: hidden;
+  color: var(--color-nav-muted);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 /* #endregion */
 

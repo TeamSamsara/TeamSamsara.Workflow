@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/base.rules.test.ts
-// Version : 1.2.0
-// Latest commit: core/access
+// Version : 1.3.0
+// Latest commit: core/workspace
 // Author : Gerrah
 // Purpose : Proves the starting point of the rules: nothing can be read or
 // written, signed in or not, until a later rule allows it.
@@ -30,7 +30,8 @@ afterAll(async () => {
 
 describe("base rules", () => {
   it("deny reads when signed out", async () => {
-    await assertFails(signedOut(env).doc("config/workspace").get());
+    await assertFails(signedOut(env).doc("members/alex").get());
+    await assertFails(signedOut(env).doc("config/roles").get());
   });
 
   it("deny reads of anything not opened by a later rule", async () => {
@@ -40,7 +41,7 @@ describe("base rules", () => {
 
   it("deny writes of anything not opened by a later rule", async () => {
     const db = signedInAs(env, "alex");
-    await assertFails(db.doc("config/workspace").update({ name: "Mine" }));
+    await assertFails(db.doc("config/workspace").delete());
     await assertFails(db.doc("tasks/new").set({ title: "Sneaky" }));
   });
 });

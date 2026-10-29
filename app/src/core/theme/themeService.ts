@@ -1,10 +1,11 @@
 // File : /TeamSamsara.Workflow/app/src/core/theme/themeService.ts
-// Version : 1.0.0
-// Latest commit: core/app-shell
+// Version : 1.1.0
+// Latest commit: core/workspace
 // Author : Gerrah
 // Purpose : Reads and saves the theme choice, and shows it by setting data-theme
 // on <html>, which colors.css reads. "device" removes the attribute, so the
-// browser follows the operating system.
+// browser follows the operating system. A person's own choice is kept apart from
+// the workspace's default, so "not chosen yet" can follow the workspace.
 
 import { browserStorage } from "@/lib/browserStorage";
 import { StorageKeys } from "@/shared/constants/storageKeys";
@@ -16,19 +17,29 @@ export function isThemeChoice(value: unknown): value is ThemeChoice {
   return ThemeChoices.some((choice) => choice === value);
 }
 
-/** The saved choice, or null when nothing (or nothing valid) is saved. */
-export function readStoredThemeChoice(): ThemeChoice | null {
-  const stored = browserStorage.read(StorageKeys.theme);
+function readChoice(key: string): ThemeChoice | null {
+  const stored = browserStorage.read(key);
   return isThemeChoice(stored) ? stored : null;
 }
 
-/** Saves the choice. "device" is the default, so it clears the saved value instead. */
+/** The person's saved choice, or null when they haven't picked one. */
+export function readStoredThemeChoice(): ThemeChoice | null {
+  return readChoice(StorageKeys.theme);
+}
+
+/** Saves the person's choice, "device" included, so it beats the workspace default. */
 export function saveThemeChoice(choice: ThemeChoice): void {
-  if (choice === "device") {
-    browserStorage.remove(StorageKeys.theme);
-    return;
-  }
   browserStorage.write(StorageKeys.theme, choice);
+}
+
+/** The workspace default seen on this browser last time, or null. */
+export function readStoredDefaultTheme(): ThemeChoice | null {
+  return readChoice(StorageKeys.themeDefault);
+}
+
+/** Remembers the workspace default for the next visit's first paint. */
+export function saveDefaultTheme(choice: ThemeChoice): void {
+  browserStorage.write(StorageKeys.themeDefault, choice);
 }
 
 /** Shows the choice on the page right away. */

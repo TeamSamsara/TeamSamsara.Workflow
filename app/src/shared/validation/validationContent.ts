@@ -1,10 +1,13 @@
 // File : /TeamSamsara.Workflow/app/src/shared/validation/validationContent.ts
-// Version : 1.0.0
-// Latest commit: feature/auth-screens
+// Version : 1.1.0
+// Latest commit: core/workspace
 // Author : Gerrah
 // Purpose : The words for the shared checks: field errors and the password rules.
 
 export const ValidationText = {
+  nameRequired: "Enter a name.",
+  nameTooLong: (characters: number) =>
+    `Keep it to ${characters} characters or fewer.`,
   emailRequired: "Enter your email.",
   emailInvalid: "That doesn't look like an email address.",
   passwordRequired: "Enter your password.",
