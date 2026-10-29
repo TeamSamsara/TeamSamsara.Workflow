@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/index.ts
-// Version : 1.1.0
-// Latest commit: core/session
+// Version : 1.2.0
+// Latest commit: feature/work-groups
 // Author : Gerrah
 // Purpose : What other layers may use from the data module.
 
@@ -8,6 +8,7 @@ export { commitWrites, maxWritesPerBatch } from "./batchWrite";
 export type { BatchWrite } from "./batchWrite";
 export { Collections, ConfigDocuments } from "./collections";
 export type { CollectionName, ConfigDocumentName } from "./collections";
+export { DataErrorText } from "./dataContent";
 export { dataErrorKind, dataErrorMessage } from "./dataErrors";
 export type { DataErrorKind } from "./dataErrors";
 export * from "./fieldReaders";

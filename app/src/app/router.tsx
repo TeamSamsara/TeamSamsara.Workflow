@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/router.tsx
-// Version : 1.5.0
-// Latest commit: feature/roles
+// Version : 1.6.0
+// Latest commit: feature/work-groups
 // Author : Gerrah
 // Purpose : Every route in the app. Layouts and the not-found page load with the
 // app; every other page loads only when it is first opened. Pages not built yet show ComingSoonView, and each
@@ -81,6 +81,11 @@ const roleDisplayView = () =>
 const rolePermissionsView = () =>
   import("@/views/settings/roles/RolePermissionsView").then((module) => ({
     Component: module.RolePermissionsView,
+  }));
+
+const workGroupsView = () =>
+  import("@/views/settings/groups/WorkGroupsView").then((module) => ({
+    Component: module.WorkGroupsView,
   }));
 
 const comingSoonView = () =>
@@ -164,7 +169,10 @@ export const router = createBrowserRouter([
                           ],
                         },
                       ]),
-                      settingsPage(RoutePaths.settingsGroups, comingSoonView),
+                      settingsPage(RoutePaths.settingsGroups, workGroupsView, [
+                        // The view reads the id and opens that group itself.
+                        { path: RoutePaths.settingsGroup },
+                      ]),
                       settingsPage(
                         RoutePaths.settingsPlatforms,
                         comingSoonView,

@@ -1,0 +1,124 @@
+/* File : /TeamSamsara.Workflow/app/src/views/settings/groups/WorkGroupsView.module.css
+   Version : 1.0.0
+   Latest commit: feature/work-groups
+   Author : Gerrah
+   Purpose : Layout of Settings → Work groups: the heading with New group, the card grid, then the open group's editor card with its actions and member list. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--content-gap);
+}
+
+.pageHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.pageText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.heading {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-dialog-title);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-dialog-title);
+  text-transform: uppercase;
+}
+
+.subheading {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-section-heading);
+  text-transform: uppercase;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.text {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-10) 0;
+}
+
+.empty {
+  align-self: center;
+  max-width: var(--auth-form-width);
+}
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.editorHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.members {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.memberList {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.member {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2-5) 0;
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.member:last-child {
+  border-bottom: 0;
+}
+
+.memberText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: var(--text-body);
+}
