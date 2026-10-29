@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/membersSelf.rules.test.ts
-// Version : 1.0.0
-// Latest commit: core/session
+// Version : 1.1.0
+// Latest commit: core/access
 // Author : Gerrah
 // Purpose : Tests what a member may do with their own record: read it, become
 // active on their first sign-in, and note when they were last active. Nothing
@@ -77,8 +77,10 @@ describe("reading member records", () => {
     await assertSucceeds(getDoc(memberDoc("stranger", "stranger")));
   });
 
-  it("does not let a member read someone else's record", async () => {
-    await assertFails(getDoc(memberDoc("sam", "mika")));
+  // Active members reading everyone's record is covered in access.rules.test.ts.
+  it("does not let a disabled member or a stranger read someone else's record", async () => {
+    await assertFails(getDoc(memberDoc("chris", "sam")));
+    await assertFails(getDoc(memberDoc("stranger", "sam")));
   });
 
   it("does not let anyone signed out read a record", async () => {
