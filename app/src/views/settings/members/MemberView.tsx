@@ -66,6 +66,8 @@ function MemberEditor({ item }: { item: MemberListItem }) {
     displayName: draft.details.displayName,
     email: member.email,
   });
+  // In sentences, a member without a name is "they" rather than their email.
+  const sentenceName = draft.details.displayName.trim() || null;
 
   function save() {
     draft.save(() =>
@@ -115,7 +117,7 @@ function MemberEditor({ item }: { item: MemberListItem }) {
       <div className={styles.columns}>
         <div className={styles.main}>
           <MemberRolesCard
-            name={name}
+            name={sentenceName}
             roleIds={draft.details.roleIds}
             allRoles={roles.roles}
             assignable={locked ? [] : givableRoles(roles, editor)}
@@ -141,7 +143,7 @@ function MemberEditor({ item }: { item: MemberListItem }) {
         </div>
         <div className={styles.side}>
           <MemberPermissionsCard
-            name={name}
+            name={sentenceName}
             roleIds={draft.details.roleIds}
             roles={roles}
           />

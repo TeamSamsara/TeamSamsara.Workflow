@@ -48,6 +48,13 @@
   white-space: nowrap;
 }
 
+.name[data-email="true"] {
+  font-family: var(--font-body);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-bold);
+  text-transform: none;
+}
+
 .muted {
   margin: 0;
   color: var(--color-text-muted);

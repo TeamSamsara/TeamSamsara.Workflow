@@ -150,7 +150,7 @@ function WorkGroupEditor({ item }: { item: WorkGroupListItem }) {
               const name = memberName(member);
               return (
                 <li key={member.id} className={styles.member}>
-                  <Avatar name={name} size="small" />
+                  <Avatar name={name} />
                   <span className={styles.memberText}>
                     <b>{name}</b>
                     <span className={styles.muted}>{member.email}</span>

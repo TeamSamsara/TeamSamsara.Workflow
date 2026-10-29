@@ -17,7 +17,8 @@ import { MemberCardsText } from "./membersContent";
 import styles from "./MemberCards.module.css";
 
 interface MemberPermissionsCardProps {
-  name: string;
+  /** Their name, or null while they have none (the text then says "they"). */
+  name: string | null;
   roleIds: readonly string[];
   roles: RolesRecord;
 }

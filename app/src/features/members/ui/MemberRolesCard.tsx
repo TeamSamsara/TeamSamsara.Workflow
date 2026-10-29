@@ -11,7 +11,8 @@ import { MemberCardsText } from "./membersContent";
 import styles from "./MemberCards.module.css";
 
 interface MemberRolesCardProps {
-  name: string;
+  /** Their name, or null while they have none (the text then says "they"). */
+  name: string | null;
   /** The role ids as being edited. */
   roleIds: readonly string[];
   /** Every role, top first. */

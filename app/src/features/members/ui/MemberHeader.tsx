@@ -50,7 +50,10 @@ export function MemberHeader({
         <div className={styles.identity}>
           <Avatar name={name} size="large" />
           <div className={styles.text}>
-            <h2 className={styles.name}>{name}</h2>
+            {/* An email in the heading font would be shouted in capitals. */}
+            <h2 className={styles.name} data-email={!displayName.trim()}>
+              {name}
+            </h2>
             <p className={styles.muted}>
               {member.email}
               {when ? ` · ${when}` : ""}

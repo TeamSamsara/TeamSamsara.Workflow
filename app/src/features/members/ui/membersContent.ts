@@ -51,7 +51,11 @@ export const InviteDialogText = {
   cancel: "Cancel",
   close: "Close",
   send: (count: number) =>
-    count === 1 ? "Send 1 invite" : `Send ${count} invites`,
+    count === 0
+      ? "Send invites"
+      : count === 1
+        ? "Send 1 invite"
+        : `Send ${count} invites`,
   sending: (done: number, total: number) => `Sending ${done} of ${total}…`,
   resultsTitle: "How it went",
   outcome: {
@@ -75,14 +79,16 @@ export const MemberHeaderText = {
 
 export const MemberCardsText = {
   rolesTitle: "Roles",
-  rolesNote: (name: string) =>
-    `Roles add up: ${name} can do everything any of these roles allows. You can only give roles below your own highest role.`,
+  /** name is null until the member has one. */
+  rolesNote: (name: string | null) =>
+    `Roles add up: ${name ?? "they"} can do everything any of these roles allows. You can only give roles below your own highest role.`,
   lockedRoles: "Roles you can't change",
   groupsTitle: "Work groups",
   groupsNote: "Tasks given to a work group show up in every member's My tasks.",
-  permissionsTitle: (name: string) => `What ${name} can do`,
-  permissionsNote: (name: string) =>
-    `Worked out from all of ${name}'s roles. Change it by changing roles.`,
+  permissionsTitle: (name: string | null) =>
+    name ? `What ${name} can do` : "What they can do",
+  permissionsNote: (name: string | null) =>
+    `Worked out from all of ${name ? `${name}'s` : "their"} roles. Change it by changing roles.`,
   can: "Can",
   cannot: "Can't",
 } as const;
@@ -128,5 +134,9 @@ export const MemberPickerText = {
   noMatch: "Nobody matches.",
   cancel: "Cancel",
   add: (count: number) =>
-    count === 1 ? "Add 1 member" : `Add ${count} members`,
+    count === 0
+      ? "Add members"
+      : count === 1
+        ? "Add 1 member"
+        : `Add ${count} members`,
 } as const;

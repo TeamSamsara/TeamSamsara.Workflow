@@ -58,7 +58,7 @@ export function MemberPicker({
             disabled={picked.length === 0}
             isLoading={isSaving}
           >
-            {MemberPickerText.add(Math.max(picked.length, 1))}
+            {MemberPickerText.add(picked.length)}
           </Button>
         </>
       }

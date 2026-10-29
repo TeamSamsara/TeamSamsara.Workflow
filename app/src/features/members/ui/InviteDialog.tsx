@@ -73,7 +73,7 @@ export function InviteDialog({ onClose }: InviteDialogProps) {
               isLoading={isSending}
               disabled={!isReady}
             >
-              {InviteDialogText.send(Math.max(emails.length, 1))}
+              {InviteDialogText.send(emails.length)}
             </Button>
           </>
         )
