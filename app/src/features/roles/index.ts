@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/roles/index.ts
-// Version : 1.0.0
-// Latest commit: feature/roles
+// Version : 1.1.0
+// Latest commit: feature/members
 // Author : Gerrah
 // Purpose : What other layers may use from the roles feature.
 
@@ -12,10 +12,11 @@ export type { RoleList as RoleListState } from "./hooks/useRoleList";
 export {
   canChangePermission,
   deleteBlocker,
+  givableRoles,
   isLastAdministratorRole,
 } from "./service/roleAccess";
 export type { DeleteBlocker, RoleEditor } from "./service/roleAccess";
-export { saveRoleOrder } from "./service/roleService";
+export { giveRole, saveRoleOrder, takeRole } from "./service/roleService";
 export type { RoleFields, RoleListItem } from "./types/roleTypes";
 export { DeleteRoleDialog } from "./ui/DeleteRoleDialog";
 export { NewRoleDialog } from "./ui/NewRoleDialog";

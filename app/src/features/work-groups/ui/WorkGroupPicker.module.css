@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/features/work-groups/ui/WorkGroupPicker.module.css
-   Version : 1.0.0
-   Latest commit: feature/work-groups
+   Version : 1.1.0
+   Latest commit: feature/members
    Author : Gerrah
    Purpose : Look of the work group picker: outlined pills that fill green when picked, with a focus ring from the keyboard. */
 
@@ -12,6 +12,10 @@
   margin: 0;
   padding: 0;
   border: 0;
+}
+
+.hiddenLegend {
+  composes: hidden from "../../../shared/components/VisuallyHidden/VisuallyHidden.module.css";
 }
 
 .legend {

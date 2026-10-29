@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/lib/firebase.ts
-// Version : 1.1.0
-// Latest commit: core/data
+// Version : 1.2.0
+// Latest commit: feature/members
 // Author : Gerrah
 // Purpose : Initializes Firebase once and exports the Auth and Firestore
 // clients, pointed at the local emulators when the env flag is on. Firestore keeps
@@ -17,7 +17,7 @@ import {
 } from "firebase/firestore";
 import { FirebaseEmulators, FirebaseEnvFlags } from "./firebaseConstants";
 
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
@@ -32,12 +32,14 @@ export const db = initializeFirestore(firebaseApp, {
   }),
 });
 
-if (import.meta.env.VITE_USE_FIREBASE_EMULATORS === FirebaseEnvFlags.enabled) {
-  connectAuthEmulator(
-    auth,
-    `http://${FirebaseEmulators.host}:${FirebaseEmulators.authPort}`,
-    { disableWarnings: true },
-  );
+export const usesEmulators =
+  import.meta.env.VITE_USE_FIREBASE_EMULATORS === FirebaseEnvFlags.enabled;
+
+/** The Auth emulator's address, for any extra Auth connection (see secondaryAuth). */
+export const authEmulatorUrl = `http://${FirebaseEmulators.host}:${FirebaseEmulators.authPort}`;
+
+if (usesEmulators) {
+  connectAuthEmulator(auth, authEmulatorUrl, { disableWarnings: true });
   connectFirestoreEmulator(
     db,
     FirebaseEmulators.host,

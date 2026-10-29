@@ -1,0 +1,52 @@
+/* File : /TeamSamsara.Workflow/app/src/features/members/ui/MemberPicker.module.css
+   Version : 1.0.0
+   Latest commit: feature/members
+   Author : Gerrah
+   Purpose : Look of the member picker: the search box, then a scrolling list of people with a checkbox, avatar, name and email. */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.list {
+  /* Long lists scroll inside the dialog instead of stretching it. */
+  --picker-list-height: 22rem;
+
+  display: flex;
+  flex-direction: column;
+  max-height: var(--picker-list-height);
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.item {
+  padding: var(--space-2) 0;
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.item:last-child {
+  border-bottom: 0;
+}
+
+.person {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2-5);
+}
+
+.personText {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--text-body);
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/index.ts
-// Version : 1.0.0
-// Latest commit: feature/work-groups
+// Version : 1.1.0
+// Latest commit: feature/members
 // Author : Gerrah
 // Purpose : What other layers may use from the work groups feature.
 
@@ -9,6 +9,10 @@ export { useWorkGroupDraft } from "./hooks/useWorkGroupDraft";
 export type { WorkGroupDraft } from "./hooks/useWorkGroupDraft";
 export { useWorkGroups } from "./hooks/useWorkGroups";
 export type { WorkGroupList } from "./hooks/useWorkGroups";
+export {
+  addToWorkGroup,
+  removeFromWorkGroup,
+} from "./service/workGroupService";
 export { workGroupConverter } from "./types/workGroupTypes";
 export type {
   WorkGroupFields,

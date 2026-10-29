@@ -1,0 +1,51 @@
+/* File : /TeamSamsara.Workflow/app/src/views/settings/members/MemberView.module.css
+   Version : 1.0.0
+   Latest commit: feature/members
+   Author : Gerrah
+   Purpose : Layout of a member's page: the back link, the header card, then roles, groups and access (wide column) beside what they can do (narrow column), one above the other when there is no room. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--content-gap);
+}
+
+.back {
+  align-self: flex-start;
+  margin-left: calc(-1 * var(--button-padding-x));
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-10) 0;
+}
+
+.columns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-5);
+}
+
+.main {
+  display: flex;
+  flex: 3 1 380px;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.side {
+  display: flex;
+  flex: 2 1 300px;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.text {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}

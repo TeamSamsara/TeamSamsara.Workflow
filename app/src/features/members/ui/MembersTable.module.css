@@ -1,0 +1,70 @@
+/* File : /TeamSamsara.Workflow/app/src/features/members/ui/MembersTable.module.css
+   Version : 1.0.0
+   Latest commit: feature/members
+   Author : Gerrah
+   Purpose : Look of the members table cells: the avatar beside name and email, wrapping chips, muted dates, and the open arrow at the end of each row. */
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.person:hover .name {
+  text-decoration: underline;
+}
+
+.personText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name {
+  font-size: var(--text-body);
+}
+
+.muted,
+.empty {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-6) 0;
+  text-align: center;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1-5);
+}
+
+.openCell {
+  width: var(--control-height);
+  text-align: right;
+}
+
+.open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-height-small);
+  height: var(--control-height-small);
+  border-radius: var(--radius-control);
+  color: var(--color-text-muted);
+}
+
+.row:hover .open {
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+}
+
+.hidden {
+  composes: hidden from "../../../shared/components/VisuallyHidden/VisuallyHidden.module.css";
+}

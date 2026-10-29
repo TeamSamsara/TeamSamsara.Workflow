@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/roles/ui/RolePicker.tsx
-// Version : 1.0.0
-// Latest commit: feature/roles
+// Version : 1.1.0
+// Latest commit: feature/members
 // Author : Gerrah
 // Purpose : A checkbox list of the roles you may give someone (below your own
 // highest role, never Everyone), each with its colour dot. Used when inviting
@@ -18,6 +18,8 @@ interface RolePickerProps {
   selectedIds: readonly string[];
   onChange: (selectedIds: string[]) => void;
   disabled?: boolean;
+  /** Inside a card already titled "Roles": keep the label for screen readers only, and no hint. */
+  compact?: boolean;
 }
 
 export function RolePicker({
@@ -25,6 +27,7 @@ export function RolePicker({
   selectedIds,
   onChange,
   disabled = false,
+  compact = false,
 }: RolePickerProps) {
   function toggle(roleId: string, on: boolean) {
     const next = on
@@ -36,7 +39,9 @@ export function RolePicker({
 
   return (
     <fieldset className={styles.picker} disabled={disabled}>
-      <legend className={styles.legend}>{RolePickerText.legend}</legend>
+      <legend className={compact ? styles.hiddenLegend : styles.legend}>
+        {RolePickerText.legend}
+      </legend>
       {roles.length === 0 ? (
         <p className={styles.hint}>{RolePickerText.none}</p>
       ) : (
@@ -59,7 +64,7 @@ export function RolePicker({
           ))}
         </div>
       )}
-      <p className={styles.hint}>{RolePickerText.hint}</p>
+      {compact ? null : <p className={styles.hint}>{RolePickerText.hint}</p>}
     </fieldset>
   );
 }

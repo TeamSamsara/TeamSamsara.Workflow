@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/ui/WorkGroupPicker.tsx
-// Version : 1.0.0
-// Latest commit: feature/work-groups
+// Version : 1.1.0
+// Latest commit: feature/members
 // Author : Gerrah
 // Purpose : Picks work groups as a row of pill-shaped checkboxes. Used when
 // inviting a member, on a member's page, and when giving a task to groups.
@@ -16,6 +16,8 @@ interface WorkGroupPickerProps {
   disabled?: boolean;
   /** Leave out the hint under the pills. */
   hideHint?: boolean;
+  /** Inside a card already titled "Work groups": the label is for screen readers only. */
+  hideLegend?: boolean;
 }
 
 export function WorkGroupPicker({
@@ -24,6 +26,7 @@ export function WorkGroupPicker({
   onChange,
   disabled = false,
   hideHint = false,
+  hideLegend = false,
 }: WorkGroupPickerProps) {
   function toggle(groupId: string, on: boolean) {
     const next = on
@@ -34,7 +37,9 @@ export function WorkGroupPicker({
 
   return (
     <fieldset className={styles.picker} disabled={disabled}>
-      <legend className={styles.legend}>{WorkGroupPickerText.legend}</legend>
+      <legend className={hideLegend ? styles.hiddenLegend : styles.legend}>
+        {WorkGroupPickerText.legend}
+      </legend>
       {groups.length === 0 ? (
         <p className={styles.hint}>{WorkGroupPickerText.none}</p>
       ) : (

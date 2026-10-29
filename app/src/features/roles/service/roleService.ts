@@ -1,15 +1,21 @@
 // File : /TeamSamsara.Workflow/app/src/features/roles/service/roleService.ts
-// Version : 1.0.0
-// Latest commit: feature/roles
+// Version : 1.1.0
+// Latest commit: feature/members
 // Author : Gerrah
 // Purpose : Saves role changes. Every change reads the roles document and
 // writes it back in one transaction, so two people editing roles at once never
 // undo each other's work, and the permission index is rebuilt in the same write.
 
 import {
+  arrayRemove,
+  arrayUnion,
   collection,
   doc,
+  getDocs,
+  query,
   runTransaction,
+  updateDoc,
+  where,
   type DocumentReference,
 } from "firebase/firestore";
 import {
@@ -60,7 +66,43 @@ export function saveRoleOrder(orderedIds: readonly string[]): Promise<void> {
   return changeRoles((roles) => reorderRoles(roles, orderedIds));
 }
 
-/** Deletes the role. Members keep the id in their record, but it no longer grants anything. */
-export function deleteRole(id: string): Promise<void> {
-  return changeRoles((roles) => removeRole(roles, id));
+/**
+ * Deletes the role, then takes it off every member who had it. That second
+ * step is tidying only: a deleted role's id grants nothing, and ids are never
+ * reused, so a member the editor may not change simply keeps a dead id.
+ */
+export async function deleteRole(id: string): Promise<void> {
+  await changeRoles((roles) => removeRole(roles, id));
+  const holders = await getDocs(
+    query(
+      collection(db, Collections.members),
+      where("roleIds", "array-contains", id),
+    ),
+  );
+  await Promise.allSettled(
+    holders.docs.map((member) =>
+      updateDoc(member.ref, { roleIds: arrayRemove(id) }),
+    ),
+  );
+}
+
+/** Gives the role to these members (from the role's Members tab). */
+export function giveRole(
+  roleId: string,
+  memberIds: readonly string[],
+): Promise<void[]> {
+  return Promise.all(
+    memberIds.map((memberId) =>
+      updateDoc(doc(db, Collections.members, memberId), {
+        roleIds: arrayUnion(roleId),
+      }),
+    ),
+  );
+}
+
+/** Takes the role away from one member. */
+export function takeRole(roleId: string, memberId: string): Promise<void> {
+  return updateDoc(doc(db, Collections.members, memberId), {
+    roleIds: arrayRemove(roleId),
+  });
 }

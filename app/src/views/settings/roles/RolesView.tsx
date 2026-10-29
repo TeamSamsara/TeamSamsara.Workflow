@@ -1,9 +1,9 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/roles/RolesView.tsx
-// Version : 1.0.0
-// Latest commit: feature/roles
+// Version : 1.1.0
+// Latest commit: feature/members
 // Author : Gerrah
 // Purpose : Settings → Roles: the ordered role list on the left, and the open
-// role on the right with its Display and Permissions tabs, Reset and Save. The
+// role on the right with its Display, Permissions and Members tabs, Reset and Save. The
 // draft is shared by both tabs, and leaving the role with unsaved changes asks
 // first.
 
@@ -66,6 +66,13 @@ function RoleEditorPanel({ item, list }: RoleEditorPanelProps) {
         {
           to: rolePath(roleId, RoleTabs.permissions),
           label: RolesViewText.tabs.permissions,
+        },
+        {
+          to: rolePath(roleId, RoleTabs.members),
+          label:
+            item.memberCount === null
+              ? RolesViewText.tabs.members
+              : RolesViewText.membersTab(item.memberCount),
         },
       ];
 

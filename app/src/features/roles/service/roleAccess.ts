@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/roles/service/roleAccess.ts
-// Version : 1.0.0
-// Latest commit: feature/roles
+// Version : 1.1.0
+// Latest commit: feature/members
 // Author : Gerrah
 // Purpose : What the signed-in member may do on the role screens, Discord
 // style: manage only roles below their own highest one, and switch on or off
@@ -8,7 +8,12 @@
 // only they may hand out Administrator. The security rules check the same
 // permission limits, so these only decide what the screen offers.
 
-import { canManageRole, type PermissionKey } from "@/core/access";
+import {
+  assignableRoles,
+  canManageRole,
+  isPermissionKey,
+  type PermissionKey,
+} from "@/core/access";
 import { EveryoneRoleId, type RoleRecord, type RolesRecord } from "@/core/data";
 
 export interface RoleEditor {
@@ -72,4 +77,23 @@ export function firstMovableIndex(
     canManageRole(editor.memberRoleIds, role, roles),
   );
   return index === -1 ? orderedRoles.length : index;
+}
+
+/**
+ * The roles the member may give someone (or take away): below their own
+ * highest role, never Everyone, and only roles whose permissions they hold
+ * themselves. The security rules refuse anything else.
+ */
+export function givableRoles(
+  roles: RolesRecord,
+  editor: RoleEditor,
+): RoleRecord[] {
+  return assignableRoles(editor.memberRoleIds, roles).filter(
+    (role) =>
+      isAdministrator(editor) ||
+      role.permissions.every(
+        (permission) =>
+          !isPermissionKey(permission) || editor.permissions.has(permission),
+      ),
+  );
 }

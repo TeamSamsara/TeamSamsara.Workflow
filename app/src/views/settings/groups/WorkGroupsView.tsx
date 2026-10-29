@@ -1,17 +1,22 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/groups/WorkGroupsView.tsx
-// Version : 1.0.0
-// Latest commit: feature/work-groups
+// Version : 1.1.0
+// Latest commit: feature/members
 // Author : Gerrah
 // Purpose : Settings → Work groups: the group cards on top, the open group's
-// editor under them (name, what it does, who is in it), New group and Delete
-// group. Leaving a group with unsaved changes asks first.
+// editor under them (name, what it does, who is in it, with Add members and
+// Remove), New group and Delete group. Leaving a group with unsaved changes
+// asks first; adding and removing people saves straight away.
 
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { Navigate, useBlocker, useNavigate, useParams } from "react-router-dom";
-import { DataErrorText } from "@/core/data";
+import { DataErrorText, dataErrorMessage } from "@/core/data";
+import { memberName, MemberPicker, useMembers } from "@/features/members";
 import {
+  addToWorkGroup,
   DeleteWorkGroupDialog,
   NewWorkGroupDialog,
+  removeFromWorkGroup,
   useWorkGroupDraft,
   useWorkGroups,
   WorkGroupForm,
@@ -35,7 +40,37 @@ function WorkGroupEditor({ item }: { item: WorkGroupListItem }) {
   const draft = useWorkGroupDraft(group);
   const toast = useToast();
   const navigate = useNavigate();
+  const allMembers = useMembers();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isPicking, setIsPicking] = useState(false);
+
+  const onError = (error: unknown) =>
+    toast.show({
+      tone: "error",
+      title: WorkGroupsViewText.failed,
+      detail: dataErrorMessage(error),
+    });
+  const add = useMutation({
+    mutationFn: (memberIds: string[]) => addToWorkGroup(group.id, memberIds),
+    onSuccess: (_result, memberIds) => {
+      setIsPicking(false);
+      toast.show({
+        tone: "success",
+        title: WorkGroupsViewText.added(memberIds.length, group.name),
+      });
+    },
+    onError,
+  });
+  const remove = useMutation({
+    mutationFn: ({ memberId }: { memberId: string; name: string }) =>
+      removeFromWorkGroup(group.id, memberId),
+    onSuccess: (_result, { name }) =>
+      toast.show({
+        tone: "success",
+        title: WorkGroupsViewText.removed(name, group.name),
+      }),
+    onError,
+  });
 
   const blocker = useBlocker(
     ({ nextLocation }) =>
@@ -92,31 +127,65 @@ function WorkGroupEditor({ item }: { item: WorkGroupListItem }) {
       />
 
       <div className={styles.members}>
-        <h3 className={styles.subheading}>
-          {WorkGroupsViewText.membersHeading}
-        </h3>
+        <div className={styles.membersHeader}>
+          <h3 className={styles.subheading}>
+            {WorkGroupsViewText.membersHeading}
+          </h3>
+          <Button
+            size="small"
+            iconStart="add"
+            onClick={() => setIsPicking(true)}
+            disabled={allMembers.status !== "ready"}
+          >
+            {WorkGroupsViewText.addMembers}
+          </Button>
+        </div>
         {members === null ? (
           <Spinner label={WorkGroupsViewText.loading} />
         ) : members.length === 0 ? (
           <p className={styles.muted}>{WorkGroupsViewText.noMembers}</p>
         ) : (
           <ul className={styles.memberList}>
-            {members.map((member) => (
-              <li key={member.id} className={styles.member}>
-                <Avatar
-                  name={member.displayName || member.email}
-                  size="small"
-                />
-                <span className={styles.memberText}>
-                  <b>{member.displayName || member.email}</b>
-                  <span className={styles.muted}>{member.email}</span>
-                </span>
-              </li>
-            ))}
+            {members.map((member) => {
+              const name = memberName(member);
+              return (
+                <li key={member.id} className={styles.member}>
+                  <Avatar name={name} size="small" />
+                  <span className={styles.memberText}>
+                    <b>{name}</b>
+                    <span className={styles.muted}>{member.email}</span>
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="small"
+                    aria-label={WorkGroupsViewText.removeLabel(
+                      name,
+                      group.name,
+                    )}
+                    onClick={() => remove.mutate({ memberId: member.id, name })}
+                    disabled={remove.isPending}
+                  >
+                    {WorkGroupsViewText.remove}
+                  </Button>
+                </li>
+              );
+            })}
           </ul>
         )}
         <p className={styles.muted}>{WorkGroupsViewText.membersNote}</p>
       </div>
+
+      {isPicking ? (
+        <MemberPicker
+          title={WorkGroupsViewText.pickerTitle(group.name)}
+          items={allMembers.items.filter(
+            (entry) => !entry.member.workGroupIds.includes(group.id),
+          )}
+          onPick={(memberIds) => add.mutate(memberIds)}
+          onClose={() => setIsPicking(false)}
+          isSaving={add.isPending}
+        />
+      ) : null}
 
       {isDeleting ? (
         <DeleteWorkGroupDialog

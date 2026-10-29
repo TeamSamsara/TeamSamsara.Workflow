@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/constants/routePaths.ts
-// Version : 1.4.0
-// Latest commit: feature/work-groups
+// Version : 1.5.0
+// Latest commit: feature/members
 // Author : Gerrah
 // Purpose : Every address in the app, in one place, so links and routes can
 // never disagree about where a page lives.
@@ -17,6 +17,8 @@ export const RoutePaths = {
   settings: "/settings",
   settingsGeneral: "/settings/general",
   settingsMembers: "/settings/members",
+  /** One member's page. */
+  settingsMember: "/settings/members/:memberId",
   settingsRoles: "/settings/roles",
   /** One role; opens its Display tab (Permissions for Everyone). */
   settingsRole: "/settings/roles/:roleId",
@@ -50,6 +52,7 @@ export type RoutePath = (typeof RoutePaths)[keyof typeof RoutePaths];
 export const RoleTabs = {
   display: "display",
   permissions: "permissions",
+  members: "members",
 } as const;
 export type RoleTab = (typeof RoleTabs)[keyof typeof RoleTabs];
 
@@ -62,4 +65,9 @@ export function rolePath(roleId: string, tab?: RoleTab): string {
 /** /settings/groups/:groupId */
 export function workGroupPath(groupId: string): string {
   return `${RoutePaths.settingsGroups}/${encodeURIComponent(groupId)}`;
+}
+
+/** /settings/members/:memberId */
+export function memberPath(memberId: string): string {
+  return `${RoutePaths.settingsMembers}/${encodeURIComponent(memberId)}`;
 }

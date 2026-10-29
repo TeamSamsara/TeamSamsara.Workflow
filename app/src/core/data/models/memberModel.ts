@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/models/memberModel.ts
-// Version : 1.0.0
-// Latest commit: core/data
+// Version : 1.1.0
+// Latest commit: feature/members
 // Author : Gerrah
 // Purpose : The member record (members/{account id}): who the person is, whether
 // they may use the app, and which roles and work groups they are in. A record
@@ -17,8 +17,24 @@ import {
 } from "../fieldReaders";
 import { fromDate } from "../timestamps";
 
-export const MemberStatuses = ["invited", "active", "disabled"] as const;
+/**
+ * invited: has an account but hasn't signed in yet. active: signed in at least
+ * once. disabled: access turned off, can be turned back on. removed: taken out
+ * of the workspace; the record stays so their name still shows on old work,
+ * and inviting the same email again brings them back.
+ */
+export const MemberStatuses = [
+  "invited",
+  "active",
+  "disabled",
+  "removed",
+] as const;
 export type MemberStatus = (typeof MemberStatuses)[number];
+
+/** Everyone still in the workspace (not removed): the people lists show these. */
+export function isCurrentMember(member: Pick<MemberRecord, "status">): boolean {
+  return member.status !== "removed";
+}
 
 export interface MemberRecord {
   /** The member's sign-in account id, which is also the document id. */

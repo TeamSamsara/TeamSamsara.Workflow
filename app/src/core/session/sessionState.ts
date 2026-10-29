@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/session/sessionState.ts
-// Version : 1.0.0
-// Latest commit: core/session
+// Version : 1.1.0
+// Latest commit: feature/members
 // Author : Gerrah
 // Purpose : Works out the session from the two things it depends on: the
 // signed-in account and that account's member record. Kept apart from React so
@@ -30,7 +30,10 @@ export function deriveSessionState(
   }
 
   const record = member.data;
-  if (!record) return { status: "noAccess", user, reason: "noRecord" };
+  // A removed member is, as far as access goes, not a member at all.
+  if (!record || record.status === "removed") {
+    return { status: "noAccess", user, reason: "noRecord" };
+  }
   if (record.status === "disabled") {
     return { status: "noAccess", user, reason: "disabled" };
   }

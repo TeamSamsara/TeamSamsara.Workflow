@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/scripts/seedEmulator.mjs
-// Version : 1.2.0
-// Latest commit: core/workspace
+// Version : 1.3.0
+// Latest commit: feature/members
 // Author : Gerrah
 // Purpose : Fills the local emulators with a ready-made workspace and test
 // accounts, so the app can be tried without touching the real project. It wipes
@@ -55,6 +55,20 @@ const peopleManagerRole = {
   permissions: ["manageMembers", "manageWorkGroups"],
 };
 
+/** Two work groups, so group pickers and cards have something to show. */
+const workGroups = [
+  {
+    id: "design",
+    name: "Design",
+    description: "Thumbnails, overlays and brand assets.",
+  },
+  {
+    id: "video",
+    name: "Video",
+    description: "Edits highlights, thumbnails and VODs.",
+  },
+];
+
 /** status null = an account with no member record (never invited). */
 const accounts = [
   {
@@ -69,6 +83,7 @@ const accounts = [
     name: "Jordan Blake",
     status: "active",
     roleIds: ["peopleManager"],
+    workGroupIds: ["video"],
     note: "People manager: Members and Work groups settings only",
   },
   {
@@ -76,6 +91,7 @@ const accounts = [
     name: "Sam Rivera",
     status: "active",
     roleIds: [],
+    workGroupIds: ["design", "video"],
     note: "Member, Everyone role only",
   },
   {
@@ -169,6 +185,9 @@ async function main() {
     const db = context.firestore();
     const roles = [...startingRoles, peopleManagerRole];
     const writes = [
+      ...workGroups.map(({ id, ...group }) =>
+        db.doc(`workGroups/${id}`).set({ ...group, createdAt: now }),
+      ),
       db.doc("config/workspace").set({
         name: "Team Samsara (dev)",
         timeZone: "America/Toronto",
@@ -191,7 +210,7 @@ async function main() {
           email: emailFor(account.key),
           status: account.status,
           roleIds: account.roleIds,
-          workGroupIds: [],
+          workGroupIds: account.workGroupIds ?? [],
           timeZone: null,
           invitedBy: null,
           invitedAt: now,
