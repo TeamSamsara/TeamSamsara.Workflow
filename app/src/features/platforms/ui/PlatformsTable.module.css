@@ -1,0 +1,34 @@
+/* File : /TeamSamsara.Workflow/app/src/features/platforms/ui/PlatformsTable.module.css
+   Version : 1.0.0
+   Latest commit: feature/workspace-settings
+   Author : Gerrah
+   Purpose : Look of the platforms table cells: the mark beside the name, muted limits, and the shared switch at the end of each row. */
+
+.platform {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.limits {
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+}
+
+.useHeading,
+.useCell {
+  text-align: right;
+}
+
+.switch {
+  composes: switch from "../../../shared/components/Fields/Switch/Switch.module.css";
+  cursor: pointer;
+}
+
+.switch:disabled {
+  cursor: not-allowed;
+}
+
+.knob {
+  composes: knob from "../../../shared/components/Fields/Switch/Switch.module.css";
+}

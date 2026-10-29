@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/workspace/workspaceService.ts
-// Version : 1.0.0
-// Latest commit: core/workspace
+// Version : 1.1.0
+// Latest commit: feature/workspace-settings
 // Author : Gerrah
 // Purpose : Reads the workspace record live, and saves changes to its settings.
 
@@ -8,6 +8,7 @@ import {
   doc,
   onSnapshot,
   updateDoc,
+  type FieldValue,
   type Unsubscribe,
 } from "firebase/firestore";
 import {
@@ -42,9 +43,12 @@ export function listenToWorkspace(
   );
 }
 
+/** Settings to change; a list may be changed in place (arrayUnion, arrayRemove). */
+export type WorkspaceChanges = {
+  [Key in keyof WorkspaceSettings]?: WorkspaceSettings[Key] | FieldValue;
+};
+
 /** Saves some of the settings. Needs the Manage settings permission. */
-export function updateWorkspace(
-  changes: Partial<WorkspaceSettings>,
-): Promise<void> {
+export function updateWorkspace(changes: WorkspaceChanges): Promise<void> {
   return updateDoc(workspaceRef(), changes);
 }

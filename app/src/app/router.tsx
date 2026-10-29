@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/router.tsx
-// Version : 1.6.0
-// Latest commit: feature/work-groups
+// Version : 1.7.0
+// Latest commit: feature/workspace-settings
 // Author : Gerrah
 // Purpose : Every route in the app. Layouts and the not-found page load with the
 // app; every other page loads only when it is first opened. Pages not built yet show ComingSoonView, and each
@@ -107,6 +107,16 @@ const roleMembersView = () =>
     Component: module.RoleMembersView,
   }));
 
+const generalSettingsView = () =>
+  import("@/views/settings/general/GeneralSettingsView").then((module) => ({
+    Component: module.GeneralSettingsView,
+  }));
+
+const platformsView = () =>
+  import("@/views/settings/platforms/PlatformsView").then((module) => ({
+    Component: module.PlatformsView,
+  }));
+
 const comingSoonView = () =>
   import("@/views/system/ComingSoonView").then((module) => ({
     Component: module.ComingSoonView,
@@ -170,7 +180,10 @@ export const router = createBrowserRouter([
                     element: <SettingsLayout />,
                     children: [
                       { index: true, element: <SettingsIndexRedirect /> },
-                      settingsPage(RoutePaths.settingsGeneral, comingSoonView),
+                      settingsPage(
+                        RoutePaths.settingsGeneral,
+                        generalSettingsView,
+                      ),
                       settingsPage(RoutePaths.settingsMembers, membersView),
                       settingsPage(RoutePaths.settingsMember, memberView, {
                         requires: "manageMembers",
@@ -200,10 +213,7 @@ export const router = createBrowserRouter([
                         // The view reads the id and opens that group itself.
                         children: [{ path: RoutePaths.settingsGroup }],
                       }),
-                      settingsPage(
-                        RoutePaths.settingsPlatforms,
-                        comingSoonView,
-                      ),
+                      settingsPage(RoutePaths.settingsPlatforms, platformsView),
                       settingsPage(
                         RoutePaths.settingsTaskSetup,
                         comingSoonView,
