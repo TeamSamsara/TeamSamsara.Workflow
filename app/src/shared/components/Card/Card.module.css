@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/shared/components/Card/Card.module.css
-   Version : 1.0.0
-   Latest commit: core/ui-kit
+   Version : 1.1.0
+   Latest commit: task/visual-fixes
    Author : Gerrah
    Purpose : Look of a card: the surface colour with a thin divider border and 12px corners, children stacked 14px apart, and the header row with a Norwester heading and actions on the right. */
 
@@ -46,6 +46,7 @@
   font-weight: var(--weight-regular);
   line-height: var(--leading-section-heading);
   letter-spacing: var(--tracking-heading);
+  text-transform: uppercase;
 }
 
 .description {

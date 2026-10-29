@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/shared/components/StatusPanel/StatusPanel.module.css
-   Version : 1.0.0
-   Latest commit: core/ui-kit
+   Version : 1.1.0
+   Latest commit: task/visual-fixes
    Author : Gerrah
    Purpose : Look of a status panel: a 56px rounded tile with a 28px icon in the tone's colour, a 30px Norwester title, muted 15px text and a row of actions, all left-aligned in one column. */
 
@@ -48,6 +48,7 @@
   font-weight: var(--weight-regular);
   line-height: var(--leading-auth-title);
   letter-spacing: var(--tracking-heading);
+  text-transform: uppercase;
 }
 
 .body {
