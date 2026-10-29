@@ -1,18 +1,23 @@
 // File : /TeamSamsara.Workflow/app/src/features/platforms/ui/PlatformsTable.tsx
-// Version : 1.0.0
-// Latest commit: feature/workspace-settings
+// Version : 1.1.0
+// Latest commit: task/group-leads-and-x-premium
 // Author : Gerrah
 // Purpose : The platform catalogue as a table: each platform with the limits
 // Workflow checks, whether this workspace uses it, and a switch to change that
-// (saved straight away).
+// (saved straight away). A platform with a paid tier (X Premium) has a box to
+// say the workspace's account has it, which raises the limits shown.
 
 import { useMutation } from "@tanstack/react-query";
 import { dataErrorMessage } from "@/core/data";
+import { Checkbox } from "@/shared/components/Fields/Checkbox/Checkbox";
 import { Pill } from "@/shared/components/Pill/Pill";
 import { Table } from "@/shared/components/Table/Table";
 import { useToast } from "@/shared/components/Toast/useToast";
 import type { Platform, PlatformSetting } from "../catalogue/platformTypes";
-import { setPlatformEnabled } from "../service/platformSettingsService";
+import {
+  setPlatformEnabled,
+  setPlatformPremium,
+} from "../service/platformSettingsService";
 import { describeLimits } from "./describeLimits";
 import { PlatformMark } from "./PlatformMark";
 import { PlatformsTableText } from "./platformsContent";
@@ -52,6 +57,31 @@ export function PlatformsTable({ settings, canChange }: PlatformsTableProps) {
       }),
   });
 
+  const premium = useMutation({
+    mutationFn: ({
+      platform,
+      hasPremium,
+    }: {
+      platform: Platform;
+      hasPremium: boolean;
+    }) => setPlatformPremium(platform.id, hasPremium),
+    onSuccess: (_result, { platform, hasPremium }) => {
+      const tier = platform.premium?.name ?? platform.name;
+      toast.show({
+        tone: "success",
+        title: hasPremium
+          ? PlatformsTableText.premiumOn(tier)
+          : PlatformsTableText.premiumOff(tier),
+      });
+    },
+    onError: (error) =>
+      toast.show({
+        tone: "error",
+        title: PlatformsTableText.failed,
+        detail: dataErrorMessage(error),
+      }),
+  });
+
   return (
     <Table caption={PlatformsTableText.caption} minWidth={tableMinWidth}>
       <thead>
@@ -65,7 +95,7 @@ export function PlatformsTable({ settings, canChange }: PlatformsTableProps) {
         </tr>
       </thead>
       <tbody>
-        {settings.map(({ platform, enabled }) => {
+        {settings.map(({ platform, enabled, hasPremium }) => {
           const isSaving =
             toggle.isPending && toggle.variables?.platform.id === platform.id;
           return (
@@ -73,10 +103,30 @@ export function PlatformsTable({ settings, canChange }: PlatformsTableProps) {
               <td>
                 <span className={styles.platform}>
                   <PlatformMark platform={platform} />
-                  <b>{platform.name}</b>
+                  <span className={styles.platformText}>
+                    <b>{platform.name}</b>
+                    {platform.premium ? (
+                      <Checkbox
+                        label={PlatformsTableText.premiumLabel(
+                          platform.premium.name,
+                        )}
+                        checked={hasPremium}
+                        onChange={(event) =>
+                          premium.mutate({
+                            platform,
+                            hasPremium: event.target.checked,
+                          })
+                        }
+                        disabled={!canChange || !enabled || premium.isPending}
+                        className={styles.premium}
+                      />
+                    ) : null}
+                  </span>
                 </span>
               </td>
-              <td className={styles.limits}>{describeLimits(platform)}</td>
+              <td className={styles.limits}>
+                {describeLimits(platform, hasPremium)}
+              </td>
               <td>
                 <Pill tone={enabled ? "success" : "muted"}>
                   {enabled ? PlatformsTableText.on : PlatformsTableText.off}

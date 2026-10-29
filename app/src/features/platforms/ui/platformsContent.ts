@@ -1,8 +1,8 @@
 // File : /TeamSamsara.Workflow/app/src/features/platforms/ui/platformsContent.ts
-// Version : 1.0.0
-// Latest commit: feature/workspace-settings
+// Version : 1.1.0
+// Latest commit: task/group-leads-and-x-premium
 // Author : Gerrah
-// Purpose : The words for platform limits and the platforms table.
+// Purpose : The words for platform limits, the platforms table and paid tiers.
 
 import type { PlatformTextField } from "../catalogue/platformTypes";
 
@@ -14,6 +14,7 @@ export const PlatformFieldText: Record<PlatformTextField, string> = {
   title: "Title",
   description: "Description",
   streamTitle: "Stream title",
+  articleBody: "Articles",
 };
 
 export const PlatformLimitText = {
@@ -39,4 +40,7 @@ export const PlatformsTableText = {
   turnedOn: (name: string) => `${name} switched on`,
   turnedOff: (name: string) => `${name} switched off`,
   failed: "That didn't save",
+  premiumLabel: (tier: string) => `Has ${tier}`,
+  premiumOn: (tier: string) => `${tier} switched on`,
+  premiumOff: (tier: string) => `${tier} switched off`,
 } as const;

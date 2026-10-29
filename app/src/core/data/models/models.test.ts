@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/models/models.test.ts
-// Version : 1.1.0
-// Latest commit: feature/workspace-settings
+// Version : 1.2.0
+// Latest commit: task/group-leads-and-x-premium
 // Author : Gerrah
 // Purpose : Tests that the workspace, member and roles records survive a save and
 // load unchanged, fill in safe defaults for missing fields, and that the roles
@@ -31,6 +31,7 @@ describe("workspace record", () => {
     timeFormat: "24h",
     defaultTheme: "dark",
     enabledPlatformIds: ["x", "youtube"],
+    premiumPlatformIds: [],
     createdAt: new Date("2026-10-01T12:00:00Z"),
   };
 
@@ -49,6 +50,7 @@ describe("workspace record", () => {
       timeFormat: "12h",
       defaultTheme: "device",
       enabledPlatformIds: [],
+      premiumPlatformIds: [],
       createdAt: null,
     });
   });

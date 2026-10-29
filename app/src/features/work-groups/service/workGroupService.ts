@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/service/workGroupService.ts
-// Version : 1.1.0
-// Latest commit: feature/members
+// Version : 1.2.0
+// Latest commit: fix/group-leads-and-x-premium
 // Author : Gerrah
 // Purpose : Creates, edits and deletes work groups. Names and descriptions are
 // trimmed on the way in. Who is in a group is kept on member records, so adding
@@ -25,7 +25,15 @@ import type { WorkGroupFields } from "../types/workGroupTypes";
 const groupsCollection = () => collection(db, Collections.workGroups);
 
 function tidy(fields: WorkGroupFields): WorkGroupFields {
-  return { name: fields.name.trim(), description: fields.description.trim() };
+  return {
+    name: fields.name.trim(),
+    description: fields.description.trim(),
+    leadIds: [...new Set(fields.leadIds)],
+    links: fields.links.map((link) => ({
+      label: link.label.trim(),
+      url: link.url.trim(),
+    })),
+  };
 }
 
 /** Adds a group and gives back its id. */
@@ -76,12 +84,20 @@ export function addToWorkGroup(
   );
 }
 
-/** Takes one member out of the group. */
-export function removeFromWorkGroup(
+/**
+ * Takes one member out of the group. A lead stops being one first, so the
+ * group never names a lead who isn't in it.
+ */
+export async function removeFromWorkGroup(
   groupId: string,
   memberId: string,
 ): Promise<void> {
-  return updateDoc(doc(db, Collections.members, memberId), {
+  // If the group can't be saved (say an old lead no longer qualifies), the
+  // member still leaves; the page flags any lead who isn't in the group.
+  await updateDoc(doc(groupsCollection(), groupId), {
+    leadIds: arrayRemove(memberId),
+  }).catch(() => undefined);
+  await updateDoc(doc(db, Collections.members, memberId), {
     workGroupIds: arrayRemove(groupId),
   });
 }

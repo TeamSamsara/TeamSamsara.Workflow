@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/workspaceSettings.rules.test.ts
-// Version : 1.0.0
-// Latest commit: feature/workspace-settings
+// Version : 1.1.0
+// Latest commit: fix/group-leads-and-x-premium
 // Author : Gerrah
 // Purpose : Tests Settings → General and Platforms against the rules: only
 // Manage settings (or an Administrator) edits the workspace record; every
@@ -110,6 +110,22 @@ describe("Platforms", () => {
     );
     await assertFails(
       updateDoc(settings("sam"), { enabledPlatformIds: arrayUnion("youtube") }),
+    );
+  });
+});
+
+describe("paid tiers", () => {
+  it("records X Premium, and only for platforms that have a tier", async () => {
+    await assertSucceeds(
+      updateDoc(settings("jordan"), { premiumPlatformIds: arrayUnion("x") }),
+    );
+    await assertFails(
+      updateDoc(settings("jordan"), {
+        premiumPlatformIds: arrayUnion("twitch"),
+      }),
+    );
+    await assertFails(
+      updateDoc(settings("sam"), { premiumPlatformIds: ["x"] }),
     );
   });
 });

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/setup/SetupForm.tsx
-// Version : 1.1.0
-// Latest commit: feature/workspace-settings
+// Version : 1.2.0
+// Latest commit: task/group-leads-and-x-premium
 // Author : Gerrah
 // Purpose : The setup form, used only by SetupView, in two steps: the
 // workspace (name, time zone, week start, time format), then the account that
@@ -126,6 +126,7 @@ export function SetupForm({
         timeFormat,
         defaultTheme: "device",
         enabledPlatformIds: [],
+        premiumPlatformIds: [],
       },
       account: { displayName, email, password },
       signedInUser,

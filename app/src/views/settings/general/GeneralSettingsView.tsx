@@ -26,7 +26,10 @@ import { GeneralSettingsForm } from "./GeneralSettingsForm";
 import { GeneralSettingsViewText as Text } from "./generalSettingsViewContent";
 import styles from "./GeneralSettingsView.module.css";
 
-type Editable = Omit<WorkspaceSettings, "enabledPlatformIds">;
+type Editable = Omit<
+  WorkspaceSettings,
+  "enabledPlatformIds" | "premiumPlatformIds"
+>;
 
 const fields = [
   "name",
@@ -117,6 +120,7 @@ export function GeneralSettingsView() {
         settings={{
           ...draft,
           enabledPlatformIds: workspace.enabledPlatformIds,
+          premiumPlatformIds: workspace.premiumPlatformIds,
         }}
         onChange={(changes) => {
           setEdits((current) => ({ ...current, ...changes }));

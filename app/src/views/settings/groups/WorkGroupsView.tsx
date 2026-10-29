@@ -1,19 +1,23 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/groups/WorkGroupsView.tsx
-// Version : 1.1.0
-// Latest commit: feature/members
+// Version : 1.2.0
+// Latest commit: task/group-leads-and-x-premium
 // Author : Gerrah
 // Purpose : Settings → Work groups: the group cards on top, the open group's
-// editor under them (name, what it does, who is in it, with Add members and
-// Remove), New group and Delete group. Leaving a group with unsaved changes
-// asks first; adding and removing people saves straight away.
+// editor under them (name, what it does, its leads and links, who is in it,
+// with Add members and Remove), New group and Delete group. Name, leads and
+// links save with Save changes, and leaving with unsaved changes asks first;
+// adding and removing people saves straight away.
 
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { Navigate, useBlocker, useNavigate, useParams } from "react-router-dom";
 import { DataErrorText, dataErrorMessage } from "@/core/data";
 import { memberName, MemberPicker, useMembers } from "@/features/members";
+import { usePermissions } from "@/core/access";
 import {
   addToWorkGroup,
+  canLeadGroup,
+  maxGroupLeads,
   DeleteWorkGroupDialog,
   NewWorkGroupDialog,
   removeFromWorkGroup,
@@ -21,10 +25,14 @@ import {
   useWorkGroups,
   WorkGroupForm,
   WorkGroupGrid,
+  WorkGroupLeads,
+  WorkGroupLinks,
+  type LeadEntry,
   type WorkGroupListItem,
 } from "@/features/work-groups";
 import { Avatar } from "@/shared/components/Avatar/Avatar";
 import { Banner } from "@/shared/components/Banner/Banner";
+import { Pill } from "@/shared/components/Pill/Pill";
 import { Button } from "@/shared/components/Button/Button";
 import { Modal } from "@/shared/components/Modal/Modal";
 import { Spinner } from "@/shared/components/Spinner/Spinner";
@@ -43,6 +51,36 @@ function WorkGroupEditor({ item }: { item: WorkGroupListItem }) {
   const allMembers = useMembers();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPicking, setIsPicking] = useState(false);
+  const [isPickingLeads, setIsPickingLeads] = useState(false);
+  const roles = usePermissions().roles;
+
+  // Each lead with whether they can still lead (in the group, able to approve
+  // or reassign). Someone the member list doesn't know is shown as gone.
+  const leads: LeadEntry[] = draft.fields.leadIds.map((id) => {
+    const entry = allMembers.items.find((item) => item.member.id === id);
+    return entry
+      ? {
+          id,
+          name: memberName(entry.member),
+          email: entry.member.email,
+          eligible:
+            roles !== null && canLeadGroup(entry.member, group.id, roles),
+        }
+      : {
+          id,
+          name: WorkGroupsViewText.formerMember,
+          email: "",
+          eligible: false,
+        };
+  });
+  const hasLeadProblem =
+    allMembers.status === "ready" && leads.some((lead) => !lead.eligible);
+  const leadCandidates = allMembers.items.filter(
+    (entry) =>
+      roles !== null &&
+      canLeadGroup(entry.member, group.id, roles) &&
+      !draft.fields.leadIds.includes(entry.member.id),
+  );
 
   const onError = (error: unknown) =>
     toast.show({
@@ -109,7 +147,12 @@ function WorkGroupEditor({ item }: { item: WorkGroupListItem }) {
           <Button
             variant="primary"
             onClick={save}
-            disabled={!draft.isDirty || Boolean(draft.nameError)}
+            disabled={
+              !draft.isDirty ||
+              Boolean(draft.nameError) ||
+              draft.hasLinkErrors ||
+              hasLeadProblem
+            }
             isLoading={draft.isSaving}
           >
             {WorkGroupsViewText.save}
@@ -123,6 +166,25 @@ function WorkGroupEditor({ item }: { item: WorkGroupListItem }) {
         fields={draft.fields}
         onChange={draft.change}
         nameError={draft.nameError}
+        disabled={draft.isSaving}
+      />
+
+      {hasLeadProblem ? (
+        <Banner tone="alert">{WorkGroupsViewText.leadProblem}</Banner>
+      ) : null}
+      <WorkGroupLeads
+        leads={leads}
+        onAdd={() => setIsPickingLeads(true)}
+        onRemove={(memberId) =>
+          draft.change({
+            leadIds: draft.fields.leadIds.filter((id) => id !== memberId),
+          })
+        }
+        disabled={draft.isSaving || allMembers.status !== "ready"}
+      />
+      <WorkGroupLinks
+        links={draft.fields.links}
+        onChange={(links) => draft.change({ links })}
         disabled={draft.isSaving}
       />
 
@@ -155,6 +217,9 @@ function WorkGroupEditor({ item }: { item: WorkGroupListItem }) {
                     <b>{name}</b>
                     <span className={styles.muted}>{member.email}</span>
                   </span>
+                  {group.leadIds.includes(member.id) ? (
+                    <Pill tone="info">{WorkGroupsViewText.leadBadge}</Pill>
+                  ) : null}
                   <Button
                     variant="ghost"
                     size="small"
@@ -184,6 +249,21 @@ function WorkGroupEditor({ item }: { item: WorkGroupListItem }) {
           onPick={(memberIds) => add.mutate(memberIds)}
           onClose={() => setIsPicking(false)}
           isSaving={add.isPending}
+        />
+      ) : null}
+
+      {isPickingLeads ? (
+        <MemberPicker
+          title={WorkGroupsViewText.leadPickerTitle(group.name)}
+          items={leadCandidates}
+          onPick={(memberIds) => {
+            const room = maxGroupLeads - draft.fields.leadIds.length;
+            draft.change({
+              leadIds: [...draft.fields.leadIds, ...memberIds.slice(0, room)],
+            });
+            setIsPickingLeads(false);
+          }}
+          onClose={() => setIsPickingLeads(false)}
         />
       ) : null}
 

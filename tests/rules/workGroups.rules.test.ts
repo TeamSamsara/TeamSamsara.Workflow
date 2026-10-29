@@ -1,10 +1,11 @@
 // File : /TeamSamsara.Workflow/tests/rules/workGroups.rules.test.ts
-// Version : 1.0.0
-// Latest commit: feature/work-groups
+// Version : 1.1.0
+// Latest commit: fix/group-leads-and-x-premium
 // Author : Gerrah
 // Purpose : Tests work groups: active members read them; only Manage work
 // groups (or an Administrator) creates, edits and deletes them, with valid
-// fields and the server's creation time.
+// fields and the server's creation time; leads must be in the group and able
+// to approve or reassign tasks; links are named https addresses.
 
 import {
   assertFails,
@@ -35,9 +36,11 @@ const roles = {
       permissions: ["manageWorkGroups"],
     },
     admin: { name: "Admin", position: 2, permissions: ["administrator"] },
+    reviewer: { name: "Reviewer", position: 1, permissions: ["approveTasks"] },
   },
   grants: {
     administrator: ["admin"],
+    approveTasks: ["reviewer"],
     manageWorkGroups: ["organiser"],
     viewAll: ["everyone"],
   },
@@ -61,6 +64,17 @@ beforeEach(async () => {
     "members/jordan": { status: "active", roleIds: ["organiser"] },
     "members/sam": { status: "active", roleIds: [] },
     "members/chris": { status: "disabled", roleIds: ["organiser"] },
+    "members/rita": {
+      status: "active",
+      roleIds: ["reviewer"],
+      workGroupIds: ["design"],
+    },
+    "members/otto": {
+      status: "active",
+      roleIds: ["reviewer"],
+      workGroupIds: [],
+    },
+    "members/dora": { status: "active", roleIds: [], workGroupIds: ["design"] },
     "workGroups/design": {
       name: "Design",
       description: "",
@@ -143,6 +157,59 @@ describe("changing work groups", () => {
     );
     await assertFails(
       updateDoc(doc(db, "workGroups/design"), { createdAt: serverTimestamp() }),
+    );
+  });
+});
+
+describe("leads and links", () => {
+  const design = (as: string) => doc(signedInAs(env, as), "workGroups/design");
+
+  it("accepts a lead who is in the group and can approve or reassign", async () => {
+    await assertSucceeds(updateDoc(design("jordan"), { leadIds: ["rita"] }));
+  });
+
+  it("refuses a lead outside the group, or without the permission", async () => {
+    await assertFails(updateDoc(design("jordan"), { leadIds: ["otto"] }));
+    await assertFails(updateDoc(design("jordan"), { leadIds: ["dora"] }));
+    await assertFails(updateDoc(design("jordan"), { leadIds: ["nobody"] }));
+  });
+
+  it("caps leads at 5", async () => {
+    await assertFails(
+      updateDoc(design("jordan"), {
+        leadIds: ["rita", "rita", "rita", "rita", "rita", "rita"],
+      }),
+    );
+  });
+
+  it("accepts named https links, up to 10", async () => {
+    await assertSucceeds(
+      updateDoc(design("jordan"), {
+        links: [{ label: "Shared drive", url: "https://drive.google.com/x" }],
+      }),
+    );
+    const many = Array.from({ length: 11 }, (_, index) => ({
+      label: `Link ${index}`,
+      url: "https://example.com",
+    }));
+    await assertFails(updateDoc(design("jordan"), { links: many }));
+  });
+
+  it("refuses links without a name, or not https", async () => {
+    await assertFails(
+      updateDoc(design("jordan"), {
+        links: [{ label: "", url: "https://example.com" }],
+      }),
+    );
+    await assertFails(
+      updateDoc(design("jordan"), {
+        links: [{ label: "Old", url: "http://example.com" }],
+      }),
+    );
+    await assertFails(
+      updateDoc(design("jordan"), {
+        links: [{ label: "Bad", url: "javascript:alert(1)" }],
+      }),
     );
   });
 });

@@ -1,0 +1,126 @@
+/* File : /TeamSamsara.Workflow/app/src/features/work-groups/ui/WorkGroupEditorParts.module.css
+   Version : 1.0.0
+   Latest commit: fix/group-leads-and-x-premium
+   Author : Gerrah
+   Purpose : Look of the leads and links sections in the group editor: a Norwester heading with its button, the leads as rows (a flagged one in amber), and the links as name and address side by side with open and remove at the end. */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.heading {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-section-heading);
+  text-transform: uppercase;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+/* #region Leads */
+.leads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2-5);
+  padding: var(--space-1-5) var(--space-1-5) var(--space-1-5) var(--space-2-5);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-field);
+  background-color: var(--color-surface-raised);
+}
+
+/* Amber edge and a bold note: amber text itself is too faint on a light page. */
+.lead[data-eligible="false"] {
+  border-color: var(--color-alert);
+  box-shadow: inset var(--space-1) 0 0 var(--color-alert);
+}
+
+.lead[data-eligible="false"] .muted {
+  color: var(--color-text);
+  font-weight: var(--weight-bold);
+}
+
+.leadText {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--text-body);
+}
+/* #endregion */
+
+/* #region Links */
+.linkRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
+  gap: var(--space-2-5);
+  align-items: start;
+}
+
+.linkActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: var(--control-height-large);
+}
+
+/* The first row has labels above the fields; line the buttons up with the boxes. */
+.linkActions[data-first="true"] {
+  margin-top: calc(var(--leading-small) + var(--space-1-5));
+}
+
+.openLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-height-small);
+  height: var(--control-height-small);
+  border-radius: var(--radius-control);
+  color: var(--color-text-muted);
+  --icon-size: var(--space-4);
+}
+
+/* Keeps the space for the open button, so every row's fields line up. */
+.openSpacer {
+  display: inline-block;
+  width: var(--control-height-small);
+}
+
+.openLink:hover {
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+}
+
+/* Breakpoints.small: name above address. */
+@media (max-width: 640px) {
+  .linkRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .linkLabel {
+    grid-column: 1 / -1;
+  }
+}
+/* #endregion */

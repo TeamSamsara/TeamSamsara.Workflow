@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/groups/workGroupsViewContent.ts
-// Version : 1.1.0
-// Latest commit: feature/members
+// Version : 1.2.0
+// Latest commit: task/group-leads-and-x-premium
 // Author : Gerrah
 // Purpose : The words on the Work groups settings page.
 
@@ -21,6 +21,11 @@ export const WorkGroupsViewText = {
   membersNote:
     "Work groups say who does the work. Roles say what people are allowed to do. Someone can be in any number of groups.",
   addMembers: "Add members",
+  leadPickerTitle: (group: string) => `Leads for ${group}`,
+  leadBadge: "Lead",
+  formerMember: "Someone no longer here",
+  leadProblem:
+    "Some leads can't lead this group any more. Remove them before saving.",
   pickerTitle: (group: string) => `Add to ${group}`,
   remove: "Remove",
   removeLabel: (name: string, group: string) => `Take ${name} out of ${group}`,
