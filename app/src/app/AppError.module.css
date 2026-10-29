@@ -1,0 +1,19 @@
+/* File : /TeamSamsara.Workflow/app/src/app/AppError.module.css
+   Version : 1.0.0
+   Latest commit: core/app-shell
+   Author : Gerrah
+   Purpose : Layout of the full-page screens (crash, page error, first load): their content centred on the whole page, which they replace. */
+
+.page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-10) var(--page-padding-x);
+  background-color: var(--color-page);
+}
+
+.panel {
+  width: 100%;
+  max-width: var(--auth-form-width);
+}

@@ -7,6 +7,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Workflow - planning and task tool" />
     <title>Workflow</title>
+    <!-- Shows the saved theme before the page paints, so it never flashes the wrong colours.
+         The key matches StorageKeys.theme in src/shared/constants/storageKeys.ts. -->
+    <script>
+      try {
+        var savedTheme = localStorage.getItem("workflow.theme");
+        if (savedTheme === "light" || savedTheme === "dark") {
+          document.documentElement.dataset.theme = savedTheme;
+        }
+      } catch (error) {
+        // Storage is blocked: the page follows the device theme.
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

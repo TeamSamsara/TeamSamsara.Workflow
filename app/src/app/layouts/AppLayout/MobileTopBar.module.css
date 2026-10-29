@@ -1,0 +1,37 @@
+/* File : /TeamSamsara.Workflow/app/src/app/layouts/AppLayout/MobileTopBar.module.css
+   Version : 1.0.0
+   Latest commit: core/app-shell
+   Author : Gerrah
+   Purpose : Look of the phone top bar: the card surface with a divider under it, the logo and app name on the left, the menu button on the right. It stays at the top while the page scrolls. */
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: var(--layer-dropdown);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--page-padding-x);
+  border-bottom: var(--border-width) solid var(--color-border);
+  background-color: var(--color-surface);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2-5);
+}
+
+.logo {
+  width: var(--space-8);
+  height: var(--space-6);
+  object-fit: contain;
+}
+
+.appName {
+  font-family: var(--font-heading);
+  font-size: var(--text-brand);
+  line-height: var(--leading-brand);
+  letter-spacing: var(--tracking-heading);
+}

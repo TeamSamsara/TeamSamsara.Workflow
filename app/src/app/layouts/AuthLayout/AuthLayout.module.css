@@ -1,0 +1,114 @@
+/* File : /TeamSamsara.Workflow/app/src/app/layouts/AuthLayout/AuthLayout.module.css
+   Version : 1.0.0
+   Latest commit: core/app-shell
+   Author : Gerrah
+   Purpose : Layout of the sign-in frame: the dark brand panel on the left with the green Anton slogan, the form column centred on the right, at most 440px wide. The panel wraps above the form when there is no room beside it. */
+
+.layout {
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 100vh;
+  background-color: var(--color-page);
+}
+
+/* #region Brand panel */
+.panel {
+  display: flex;
+  flex: 1 1 var(--auth-aside-width);
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-8);
+  padding: var(--space-12);
+  background-color: var(--color-nav);
+  color: var(--color-nav-text);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3-5);
+}
+
+.logo {
+  width: calc(var(--avatar-size-large) - var(--space-3));
+  height: var(--space-10);
+  object-fit: contain;
+}
+
+.appName {
+  font-family: var(--font-heading);
+  font-size: var(--text-dialog-title);
+  line-height: var(--leading-dialog-title);
+  letter-spacing: var(--tracking-heading);
+}
+
+.pitch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3-5);
+}
+
+.slogan {
+  display: flex;
+  flex-direction: column;
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: var(--text-display);
+  line-height: var(--leading-display);
+  text-transform: uppercase;
+}
+
+.sloganLine {
+  display: block;
+}
+
+.tagline {
+  max-width: calc(var(--auth-aside-width) - var(--space-5));
+  color: var(--color-nav-muted);
+  font-size: var(--text-body-large);
+  line-height: var(--leading-body-large);
+}
+/* #endregion */
+
+/* #region Form column */
+.main {
+  display: flex;
+  flex: 2 1 calc(var(--auth-form-width) + var(--space-10));
+  flex-direction: column;
+  padding: var(--space-8);
+}
+
+.topBar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  max-width: var(--auth-form-width);
+  margin: 0 auto;
+  padding: var(--space-6) 0;
+}
+/* #endregion */
+
+/* Breakpoints.small: the panel becomes a short band above the form, and the form takes the rest of the height. */
+@media (max-width: 640px) {
+  .layout {
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+
+  .panel {
+    flex: none;
+    padding: var(--space-6) var(--page-padding-x);
+  }
+
+  .main {
+    flex: 1;
+    padding: var(--space-4) var(--page-padding-x);
+  }
+}
