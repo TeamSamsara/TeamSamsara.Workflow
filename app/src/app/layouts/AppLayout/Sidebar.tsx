@@ -1,12 +1,13 @@
 // File : /TeamSamsara.Workflow/app/src/app/layouts/AppLayout/Sidebar.tsx
-// Version : 1.0.0
-// Latest commit: core/app-shell
+// Version : 1.1.0
+// Latest commit: core/access
 // Author : Gerrah
-// Purpose : The dark sidebar: the logo, the main menu, and the account link with
-// the theme toggle at the bottom. On narrow screens it slides in as a menu and is
+// Purpose : The dark sidebar: the logo, the main menu (only the items the member
+// may use), and the account link with the theme toggle at the bottom. On narrow screens it slides in as a menu and is
 // out of reach (inert) while closed.
 
 import { NavLink } from "react-router-dom";
+import { usePermissions } from "@/core/access";
 import { ThemeToggle } from "@/core/theme";
 import { classNames } from "@/lib/classNames";
 import { Branding } from "@/shared/constants/branding";
@@ -26,6 +27,11 @@ interface SidebarProps {
 }
 
 export function Sidebar({ id, isCompact, isOpen, className }: SidebarProps) {
+  const { canAny } = usePermissions();
+  const visibleItems = navItems.filter(
+    (item) => !item.requiresAnyOf || canAny(item.requiresAnyOf),
+  );
+
   return (
     <aside
       id={id}
@@ -40,7 +46,7 @@ export function Sidebar({ id, isCompact, isOpen, className }: SidebarProps) {
 
       <nav aria-label={SidebarText.mainMenu} className={styles.menu}>
         <ul className={styles.list}>
-          {navItems.map((item) => (
+          {visibleItems.map((item) => (
             <li key={item.to}>
               <NavLink to={item.to} end={item.end} className={styles.link}>
                 <Icon name={item.icon} />

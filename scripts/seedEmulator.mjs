@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/scripts/seedEmulator.mjs
-// Version : 1.0.0
-// Latest commit: core/session
+// Version : 1.1.0
+// Latest commit: core/access
 // Author : Gerrah
 // Purpose : Fills the local emulators with a ready-made workspace and test
 // accounts, so the app can be tried without touching the real project. It wipes
@@ -12,12 +12,20 @@ import { fileURLToPath } from "node:url";
 import { initializeTestEnvironment } from "@firebase/rules-unit-testing";
 
 // #region Settings
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const firebaseConfig = JSON.parse(readFileSync(path.join(repoRoot, "firebase.json"), "utf8"));
-const firebaseProjects = JSON.parse(readFileSync(path.join(repoRoot, ".firebaserc"), "utf8"));
+const repoRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+);
+const firebaseConfig = JSON.parse(
+  readFileSync(path.join(repoRoot, "firebase.json"), "utf8"),
+);
+const firebaseProjects = JSON.parse(
+  readFileSync(path.join(repoRoot, ".firebaserc"), "utf8"),
+);
 
 // `firebase emulators:exec` sets GCLOUD_PROJECT; otherwise use the project the app points at.
-const projectId = process.env.GCLOUD_PROJECT ?? firebaseProjects.projects.default;
+const projectId =
+  process.env.GCLOUD_PROJECT ?? firebaseProjects.projects.default;
 const authEmulator = `http://${firebaseConfig.emulators.auth.host}:${firebaseConfig.emulators.auth.port}`;
 const firestoreEmulator = firebaseConfig.emulators.firestore;
 
@@ -40,17 +48,64 @@ const adminRole = {
   name: "Admin",
   color: "#E5484D",
   description: "Can do everything.",
-  position: 1,
+  position: 2,
   permissions: ["administrator"],
+};
+
+/** A role with only some workspace settings, to try a partial Settings area. */
+const peopleManagerRole = {
+  id: "peopleManager",
+  name: "People manager",
+  color: "#3E8ED0",
+  description: "Invites members and arranges work groups.",
+  position: 1,
+  permissions: ["manageMembers", "manageWorkGroups"],
 };
 
 /** status null = an account with no member record (never invited). */
 const accounts = [
-  { key: "alex", name: "Alex Moreau", status: "active", roleIds: ["admin"], note: "Admin" },
-  { key: "sam", name: "Sam Rivera", status: "active", roleIds: [], note: "Member, Everyone role only" },
-  { key: "mika", name: "Mika Tanaka", status: "invited", roleIds: [], note: "Invited, becomes active on first sign-in" },
-  { key: "chris", name: "Chris Novak", status: "disabled", roleIds: [], note: "Access turned off" },
-  { key: "stranger", name: "Stranger", status: null, roleIds: [], note: "Signed up without an invite" },
+  {
+    key: "alex",
+    name: "Alex Moreau",
+    status: "active",
+    roleIds: ["admin"],
+    note: "Admin",
+  },
+  {
+    key: "jordan",
+    name: "Jordan Blake",
+    status: "active",
+    roleIds: ["peopleManager"],
+    note: "People manager: Members and Work groups settings only",
+  },
+  {
+    key: "sam",
+    name: "Sam Rivera",
+    status: "active",
+    roleIds: [],
+    note: "Member, Everyone role only",
+  },
+  {
+    key: "mika",
+    name: "Mika Tanaka",
+    status: "invited",
+    roleIds: [],
+    note: "Invited, becomes active on first sign-in",
+  },
+  {
+    key: "chris",
+    name: "Chris Novak",
+    status: "disabled",
+    roleIds: [],
+    note: "Access turned off",
+  },
+  {
+    key: "stranger",
+    name: "Stranger",
+    status: null,
+    roleIds: [],
+    note: "Signed up without an invite",
+  },
 ];
 // #endregion
 
@@ -73,21 +128,30 @@ function buildPermissionGrants(roles) {
 async function authRequest(method, route, body) {
   const response = await fetch(`${authEmulator}${route}`, {
     method,
-    headers: { "Content-Type": "application/json", Authorization: "Bearer owner" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer owner",
+    },
     body: body ? JSON.stringify(body) : undefined,
   });
   if (!response.ok) {
-    throw new Error(`Auth emulator ${method} ${route} failed: ${response.status} ${await response.text()}`);
+    throw new Error(
+      `Auth emulator ${method} ${route} failed: ${response.status} ${await response.text()}`,
+    );
   }
   return response.json();
 }
 
 function createAccount(account) {
-  return authRequest("POST", "/identitytoolkit.googleapis.com/v1/accounts:signUp?key=emulator", {
-    email: emailFor(account.key),
-    password: devPassword,
-    displayName: account.name,
-  });
+  return authRequest(
+    "POST",
+    "/identitytoolkit.googleapis.com/v1/accounts:signUp?key=emulator",
+    {
+      email: emailFor(account.key),
+      password: devPassword,
+      displayName: account.name,
+    },
+  );
 }
 // #endregion
 
@@ -110,7 +174,7 @@ async function main() {
   const now = new Date();
   await env.withSecurityRulesDisabled(async (context) => {
     const db = context.firestore();
-    const roles = [everyoneRole, adminRole];
+    const roles = [everyoneRole, adminRole, peopleManagerRole];
     const writes = [
       db.doc("config/workspace").set({
         name: "Team Samsara (dev)",
@@ -148,7 +212,12 @@ async function main() {
   await env.cleanup();
 
   console.log(`\nDone. Every account's password is ${devPassword}\n`);
-  console.table(created.map((account) => ({ email: emailFor(account.key), what: account.note })));
+  console.table(
+    created.map((account) => ({
+      email: emailFor(account.key),
+      what: account.note,
+    })),
+  );
 }
 
 main().catch((error) => {
