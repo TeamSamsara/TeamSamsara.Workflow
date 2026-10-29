@@ -6,7 +6,9 @@
   "scripts": {
     "prepare": "husky",
     "emulators": "firebase emulators:start",
-    "test:rules": "firebase emulators:exec --only firestore --project demo-workflow-rules \"vitest run --config tests/rules/vitest.config.ts\""
+    "test:rules": "firebase emulators:exec --only firestore --project demo-workflow-rules \"vitest run --config tests/rules/vitest.config.ts\"",
+    "seed": "node scripts/seedEmulator.mjs",
+    "test:seed": "firebase emulators:exec --only auth,firestore --project demo-workflow-rules \"node scripts/seedEmulator.mjs\""
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.2",

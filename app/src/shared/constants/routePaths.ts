@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/constants/routePaths.ts
-// Version : 1.0.0
-// Latest commit: core/app-shell
+// Version : 1.1.0
+// Latest commit: core/session
 // Author : Gerrah
 // Purpose : Every address in the app, in one place, so links and routes can
 // never disagree about where a page lives.
@@ -25,6 +25,12 @@ export const RoutePaths = {
 
   // #region Sign-in
   signIn: "/sign-in",
+  forgotPassword: "/forgot-password",
+  checkInbox: "/check-your-inbox",
+  /** Where every Firebase email link lands (set as the action URL in the console). */
+  emailLink: "/auth/link",
+  linkExpired: "/link-expired",
+  noAccess: "/no-access",
   // #endregion
 
   /** Matches any address no other route claims. */

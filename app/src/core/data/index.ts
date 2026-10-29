@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/index.ts
-// Version : 1.0.0
-// Latest commit: core/data
+// Version : 1.1.0
+// Latest commit: core/session
 // Author : Gerrah
 // Purpose : What other layers may use from the data module.
 
@@ -17,6 +17,8 @@ export type { LiveResult, LiveStatus } from "./liveTypes";
 export { fromDate, serverTime, toDate } from "./timestamps";
 export { useLiveCollection } from "./useLiveCollection";
 export { useLiveDocument } from "./useLiveDocument";
+export { useLiveSubscription } from "./useLiveSubscription";
+export type { LiveListener } from "./useLiveSubscription";
 export * from "./models/memberModel";
 export * from "./models/rolesModel";
 export * from "./models/workspaceModel";

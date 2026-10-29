@@ -1,6 +1,6 @@
 # File : /TeamSamsara.Workflow/.github/workflows/ci.yml
-# Version : 1.1.0
-# Latest commit: core/data
+# Version : 1.2.0
+# Latest commit: core/session
 # Author : Gerrah
 # Purpose : Checks every PR into dev or main, and every push to them: lint,
 # type-check, unit tests and a production build of the app, and the Firestore
@@ -77,3 +77,6 @@ jobs:
 
       - name: Rule tests against the emulator
         run: npm run test:rules
+
+      - name: Emulator seed script runs
+        run: npm run test:seed
