@@ -1,6 +1,6 @@
 # File : /TeamSamsara.Workflow/.github/workflows/ci.yml
-# Version : 1.2.0
-# Latest commit: core/session
+# Version : 1.3.0
+# Latest commit: feature/members
 # Author : Gerrah
 # Purpose : Checks every PR into dev or main, and every push to them: lint,
 # type-check, unit tests and a production build of the app, and the Firestore
@@ -76,7 +76,21 @@ jobs:
         run: npm ci
 
       - name: Rule tests against the emulator
-        run: npm run test:rules
+        run: |
+          set -o pipefail
+          npm run test:rules 2>&1 | tee rules-output.txt
+
+      # The end of the output as one annotation, so a failure can be read
+      # without opening the full log.
+      - name: Show why the rule tests failed
+        if: failure()
+        run: |
+          # Only the failing tests and the totals; the rest is in the full log.
+          sed -e 's/\x1b\[[0-9;]*m//g' rules-output.txt \
+            | grep -E -A6 "FAIL|AssertionError|Error:|Test Files|Tests  " \
+            | grep -v "GrpcConnection" | head -n 80 \
+            | sed -e 's/%/%25/g' -e 's/\r/%0D/g' | awk 'BEGIN{ORS="%0A"} {print}' > failure.txt
+          echo "::error title=Rule tests::$(cat failure.txt)"
 
       - name: Emulator seed script runs
         run: npm run test:seed

@@ -1,8 +1,8 @@
 /* File : /TeamSamsara.Workflow/app/src/views/settings/roles/RolesView.module.css
-   Version : 1.0.0
-   Latest commit: feature/roles
+   Version : 1.1.0
+   Latest commit: feature/members
    Author : Gerrah
-   Purpose : Layout of Settings → Roles: the page heading, then the role list (narrow) and the open role (wide) side by side, wrapping one above the other when there is no room; the editor card's header with Reset and Save, and the Delete role row. */
+   Purpose : Layout of Settings → Roles: the page heading, then the role list (narrow) and the open role (wide) side by side, wrapping one above the other when there is no room; the editor card's header with Reset and Save, the Delete role row, and the Members tab's toolbar and table cells. */
 
 .page {
   display: flex;
@@ -119,3 +119,38 @@
   font-size: var(--text-body);
   line-height: var(--leading-body);
 }
+
+/* #region Members tab */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2-5);
+}
+
+.search {
+  flex: 1 1 260px;
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.personText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1-5);
+}
+
+.endCell {
+  text-align: right;
+}
+/* #endregion */

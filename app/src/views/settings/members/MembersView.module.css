@@ -1,0 +1,68 @@
+/* File : /TeamSamsara.Workflow/app/src/views/settings/members/MembersView.module.css
+   Version : 1.0.0
+   Latest commit: feature/members
+   Author : Gerrah
+   Purpose : Layout of Settings → Members: the heading with Invite people, then a card holding the search and status filter above the table. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--content-gap);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-dialog-title);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-dialog-title);
+  text-transform: uppercase;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.search {
+  flex: 1 1 260px;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-10) 0;
+}

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/roles/hooks/useRoleList.ts
-// Version : 1.0.0
-// Latest commit: feature/roles
+// Version : 1.1.0
+// Latest commit: feature/members
 // Author : Gerrah
 // Purpose : The roles in order (top first, Everyone last), each with how many
 // members hold it and whether the signed-in member may manage it, plus where
@@ -12,6 +12,7 @@ import { canManageRole, usePermissions } from "@/core/access";
 import {
   Collections,
   EveryoneRoleId,
+  isCurrentMember,
   memberConverter,
   useLiveCollection,
   type RolesRecord,
@@ -55,7 +56,10 @@ export function useRoleList(): RoleList {
       };
     }
 
-    const memberList = members.status === "ready" ? (members.data ?? []) : null;
+    const memberList =
+      members.status === "ready"
+        ? (members.data ?? []).filter(isCurrentMember)
+        : null;
     const items = roles.roles.map((role) => {
       const isEveryone = role.id === EveryoneRoleId;
       const memberCount = memberList

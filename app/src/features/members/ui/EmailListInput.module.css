@@ -1,0 +1,101 @@
+/* File : /TeamSamsara.Workflow/app/src/features/members/ui/EmailListInput.module.css
+   Version : 1.0.0
+   Latest commit: feature/members
+   Author : Gerrah
+   Purpose : Look of the email chips field: a field-styled box that wraps chips and the text input, with the usual label, hint, focus ring and error. */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+}
+
+.label {
+  composes: label from "../../../shared/components/Fields/FieldFrame/FieldFrame.module.css";
+}
+
+.box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1-5);
+  min-height: var(--control-height-large);
+  padding: var(--space-1-5) var(--space-2-5);
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-field);
+  background-color: var(--color-field-fill);
+  cursor: text;
+}
+
+.box:focus-within {
+  border-color: var(--color-focus-ring);
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+}
+
+.box[data-invalid="true"] {
+  border-color: var(--color-error);
+}
+
+.box[data-disabled="true"] {
+  opacity: 0.6;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: var(--space-0-5) var(--space-1-5) var(--space-0-5) var(--space-2-5);
+  border-radius: var(--radius-small);
+  background-color: var(--color-surface-raised);
+  font-size: var(--text-meta);
+}
+
+.remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-5);
+  height: var(--space-5);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-small);
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  --icon-size: var(--space-3-5);
+}
+
+.remove:hover {
+  color: var(--color-text);
+}
+
+.input {
+  flex: 1;
+  min-width: 10rem;
+  padding: var(--space-1) 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-body);
+}
+
+.hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  margin: 0;
+  color: var(--color-error-text);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-small);
+  --icon-size: var(--space-3-5);
+}

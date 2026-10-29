@@ -11,7 +11,11 @@ import {
   Navigate,
   type RouteObject,
 } from "react-router-dom";
-import { ManagePermissions, RequirePermission } from "@/core/access";
+import {
+  ManagePermissions,
+  RequirePermission,
+  type PermissionKey,
+} from "@/core/access";
 import { RedirectIfSignedIn, RequireSignedIn } from "@/core/session";
 import { RequireWorkspace } from "@/core/workspace";
 import {
@@ -88,6 +92,21 @@ const workGroupsView = () =>
     Component: module.WorkGroupsView,
   }));
 
+const membersView = () =>
+  import("@/views/settings/members/MembersView").then((module) => ({
+    Component: module.MembersView,
+  }));
+
+const memberView = () =>
+  import("@/views/settings/members/MemberView").then((module) => ({
+    Component: module.MemberView,
+  }));
+
+const roleMembersView = () =>
+  import("@/views/settings/roles/RoleMembersView").then((module) => ({
+    Component: module.RoleMembersView,
+  }));
+
 const comingSoonView = () =>
   import("@/views/system/ComingSoonView").then((module) => ({
     Component: module.ComingSoonView,
@@ -97,14 +116,16 @@ const comingSoonView = () =>
 // #region Guards
 /**
  * A settings page behind the permission settingsNav gives it, so the menu and
- * the guard always agree on who may open it.
+ * the guard always agree on who may open it. A page that isn't in the menu
+ * (one member's page, say) names the permission it needs.
  */
 function settingsPage(
   path: RoutePath,
   lazy: RouteObject["lazy"],
-  children?: RouteObject[],
+  options: { children?: RouteObject[]; requires?: PermissionKey } = {},
 ): RouteObject {
-  const required = settingsNav.find((item) => item.to === path)?.requires;
+  const required =
+    options.requires ?? settingsNav.find((item) => item.to === path)?.requires;
   return {
     element: (
       <RequirePermission
@@ -112,7 +133,7 @@ function settingsPage(
         fallback={<ForbiddenView />}
       />
     ),
-    children: [{ path, lazy, children }],
+    children: [{ path, lazy, children: options.children }],
   };
 }
 // #endregion
@@ -150,29 +171,35 @@ export const router = createBrowserRouter([
                     children: [
                       { index: true, element: <SettingsIndexRedirect /> },
                       settingsPage(RoutePaths.settingsGeneral, comingSoonView),
-                      settingsPage(RoutePaths.settingsMembers, comingSoonView),
-                      settingsPage(RoutePaths.settingsRoles, rolesView, [
-                        {
-                          path: RoutePaths.settingsRole,
-                          children: [
-                            {
-                              index: true,
-                              element: (
-                                <Navigate to={RoleTabs.display} replace />
-                              ),
-                            },
-                            { path: RoleTabs.display, lazy: roleDisplayView },
-                            {
-                              path: RoleTabs.permissions,
-                              lazy: rolePermissionsView,
-                            },
-                          ],
-                        },
-                      ]),
-                      settingsPage(RoutePaths.settingsGroups, workGroupsView, [
+                      settingsPage(RoutePaths.settingsMembers, membersView),
+                      settingsPage(RoutePaths.settingsMember, memberView, {
+                        requires: "manageMembers",
+                      }),
+                      settingsPage(RoutePaths.settingsRoles, rolesView, {
+                        children: [
+                          {
+                            path: RoutePaths.settingsRole,
+                            children: [
+                              {
+                                index: true,
+                                element: (
+                                  <Navigate to={RoleTabs.display} replace />
+                                ),
+                              },
+                              { path: RoleTabs.display, lazy: roleDisplayView },
+                              {
+                                path: RoleTabs.permissions,
+                                lazy: rolePermissionsView,
+                              },
+                              { path: RoleTabs.members, lazy: roleMembersView },
+                            ],
+                          },
+                        ],
+                      }),
+                      settingsPage(RoutePaths.settingsGroups, workGroupsView, {
                         // The view reads the id and opens that group itself.
-                        { path: RoutePaths.settingsGroup },
-                      ]),
+                        children: [{ path: RoutePaths.settingsGroup }],
+                      }),
                       settingsPage(
                         RoutePaths.settingsPlatforms,
                         comingSoonView,

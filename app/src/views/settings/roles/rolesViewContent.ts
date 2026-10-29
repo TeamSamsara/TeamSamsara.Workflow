@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/roles/rolesViewContent.ts
-// Version : 1.0.0
-// Latest commit: feature/roles
+// Version : 1.1.0
+// Latest commit: feature/members
 // Author : Gerrah
 // Purpose : The words on the Roles settings page and its tabs.
 
@@ -11,7 +11,8 @@ export const RolesViewText = {
   loading: "Loading roles",
   editTitle: (name: string) => `Edit role: ${name}`,
   tabsLabel: "Role sections",
-  tabs: { display: "Display", permissions: "Permissions" },
+  tabs: { display: "Display", permissions: "Permissions", members: "Members" },
+  membersTab: (count: number) => `Members ${count}`,
   reset: "Reset",
   save: "Save changes",
   saved: (name: string) => `${name} saved`,

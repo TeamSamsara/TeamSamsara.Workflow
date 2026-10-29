@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/session/sessionState.test.ts
-// Version : 1.0.0
-// Latest commit: core/session
+// Version : 1.1.0
+// Latest commit: feature/members
 // Author : Gerrah
 // Purpose : Tests every combination of sign-in account and member record.
 
@@ -77,6 +77,15 @@ describe("deriveSessionState", () => {
       status: "noAccess",
       user,
       reason: "disabled",
+    });
+  });
+
+  it("treats a removed member as having no record", () => {
+    const removed = { ...member, status: "removed" as const };
+    expect(deriveSessionState(user, ready(removed))).toEqual({
+      status: "noAccess",
+      user,
+      reason: "noRecord",
     });
   });
 

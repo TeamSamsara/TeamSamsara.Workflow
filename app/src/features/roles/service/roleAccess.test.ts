@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/roles/service/roleAccess.test.ts
-// Version : 1.0.0
-// Latest commit: feature/roles
+// Version : 1.1.0
+// Latest commit: feature/members
 // Author : Gerrah
 // Purpose : Tests what a member may do on the role screens: switches limited to
 // their own permissions, Administrator kept for administrators, deleting
@@ -17,6 +17,7 @@ import {
   canChangePermission,
   deleteBlocker,
   firstMovableIndex,
+  givableRoles,
   isLastAdministratorRole,
   type RoleEditor,
 } from "./roleAccess";
@@ -98,5 +99,22 @@ describe("firstMovableIndex", () => {
 
   it("locks the whole list for someone with no role above another", () => {
     expect(firstMovableIndex(ordered, roles, editorWith([]))).toBe(4);
+  });
+});
+
+describe("givableRoles", () => {
+  const ids = (list: RoleRecord[]) => list.map((item) => item.id);
+
+  it("offers roles below the member, with only permissions they hold", () => {
+    expect(ids(givableRoles(roles, leadEditor))).toEqual(["planner"]);
+  });
+
+  it("offers an administrator every role but Everyone", () => {
+    expect(ids(givableRoles(roles, adminEditor))).toEqual([
+      "admin",
+      "lead",
+      "planner",
+      "reviewer",
+    ]);
   });
 });

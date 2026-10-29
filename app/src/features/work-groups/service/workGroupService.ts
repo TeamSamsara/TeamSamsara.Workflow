@@ -1,17 +1,22 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/service/workGroupService.ts
-// Version : 1.0.0
-// Latest commit: feature/work-groups
+// Version : 1.1.0
+// Latest commit: feature/members
 // Author : Gerrah
 // Purpose : Creates, edits and deletes work groups. Names and descriptions are
-// trimmed on the way in. Deleting a group leaves its id on member records,
-// where it no longer means anything (ids are never reused).
+// trimmed on the way in. Who is in a group is kept on member records, so adding
+// and removing people writes there; deleting a group takes it off them too.
 
 import {
   addDoc,
+  arrayRemove,
+  arrayUnion,
   collection,
   deleteDoc,
   doc,
+  getDocs,
+  query,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { Collections, serverTime } from "@/core/data";
 import { db } from "@/lib/firebase";
@@ -41,6 +46,42 @@ export function saveWorkGroup(
   return updateDoc(doc(groupsCollection(), id), { ...tidy(fields) });
 }
 
-export function deleteWorkGroup(id: string): Promise<void> {
-  return deleteDoc(doc(groupsCollection(), id));
+/** Deletes the group, then takes it off its members (tidying: a dead id means nothing). */
+export async function deleteWorkGroup(id: string): Promise<void> {
+  await deleteDoc(doc(groupsCollection(), id));
+  const inGroup = await getDocs(
+    query(
+      collection(db, Collections.members),
+      where("workGroupIds", "array-contains", id),
+    ),
+  );
+  await Promise.allSettled(
+    inGroup.docs.map((member) =>
+      updateDoc(member.ref, { workGroupIds: arrayRemove(id) }),
+    ),
+  );
+}
+
+/** Puts these members in the group. */
+export function addToWorkGroup(
+  groupId: string,
+  memberIds: readonly string[],
+): Promise<void[]> {
+  return Promise.all(
+    memberIds.map((memberId) =>
+      updateDoc(doc(db, Collections.members, memberId), {
+        workGroupIds: arrayUnion(groupId),
+      }),
+    ),
+  );
+}
+
+/** Takes one member out of the group. */
+export function removeFromWorkGroup(
+  groupId: string,
+  memberId: string,
+): Promise<void> {
+  return updateDoc(doc(db, Collections.members, memberId), {
+    workGroupIds: arrayRemove(groupId),
+  });
 }

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/groups/workGroupsViewContent.ts
-// Version : 1.0.0
-// Latest commit: feature/work-groups
+// Version : 1.1.0
+// Latest commit: feature/members
 // Author : Gerrah
 // Purpose : The words on the Work groups settings page.
 
@@ -19,7 +19,17 @@ export const WorkGroupsViewText = {
   deleteGroup: "Delete group",
   membersHeading: "Members",
   membersNote:
-    "People join groups from their member page. Work groups say who does the work; roles say what people may do.",
+    "Work groups say who does the work. Roles say what people are allowed to do. Someone can be in any number of groups.",
+  addMembers: "Add members",
+  pickerTitle: (group: string) => `Add to ${group}`,
+  remove: "Remove",
+  removeLabel: (name: string, group: string) => `Take ${name} out of ${group}`,
+  added: (count: number, group: string) =>
+    count === 1
+      ? `1 member added to ${group}`
+      : `${count} members added to ${group}`,
+  removed: (name: string, group: string) => `${name} taken out of ${group}`,
+  failed: "That didn't work",
   noMembers: "Nobody is in this group yet.",
   discard: {
     title: "Discard your changes?",

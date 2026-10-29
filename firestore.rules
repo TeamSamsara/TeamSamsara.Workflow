@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/firestore.rules
-// Version : 1.5.0
-// Latest commit: feature/work-groups
+// Version : 1.6.0
+// Latest commit: feature/members
 // Author : Gerrah
 // Purpose : Who may read and write what in Firestore. Everything is denied until
 // a rule below allows it; each PR opens exactly what its feature needs, with a
@@ -53,10 +53,24 @@ service cloud.firestore {
      * many roles there are. Administrator allows everything.
      */
     function can(permission) {
-      let grants = get(/databases/$(database)/documents/config/roles).data.grants;
+      let grants = rolesGrants();
       return isActiveMember()
         && (grants.get("administrator", []).hasAny(heldRoleIds())
           || grants.get(permission, []).hasAny(heldRoleIds()));
+    }
+
+    /** The permission index (permission → role ids) as it is before this write. */
+    function rolesGrants() {
+      return get(/databases/$(database)/documents/config/roles).data.grants;
+    }
+
+    /**
+     * The same check as can(), from values worked out once. Rules that check
+     * every permission use this: Firestore stops after 1,000 steps per request.
+     */
+    function holds(grants, held, permission) {
+      return grants.get("administrator", []).hasAny(held)
+        || grants.get(permission, []).hasAny(held);
     }
     // #endregion
 
@@ -92,7 +106,7 @@ service cloud.firestore {
       // Administrator. Which roles sit above whose is kept by the app.
       allow update: if can("manageRoles")
         && isValidRoles(request.resource.data)
-        && onlyHeldGrantsChange();
+        && onlyHeldGrantsChange(rolesGrants(), heldRoleIds());
     }
 
     /** The shape every save keeps: Everyone exists and is never Administrator, someone still is. */
@@ -111,26 +125,27 @@ service cloud.firestore {
     }
 
     /** A permission's list of roles is unchanged, or the editor holds that permission. */
-    function grantUnchangedOrHeld(permission) {
+    function grantUnchangedOrHeld(grants, held, permission) {
       return request.resource.data.grants.get(permission, [])
-          == resource.data.grants.get(permission, [])
-        || can(permission);
+          == grants.get(permission, [])
+        || holds(grants, held, permission);
     }
 
-    function onlyHeldGrantsChange() {
-      return grantUnchangedOrHeld("administrator")
-        && grantUnchangedOrHeld("manageSettings")
-        && grantUnchangedOrHeld("manageMembers")
-        && grantUnchangedOrHeld("manageRoles")
-        && grantUnchangedOrHeld("manageWorkGroups")
-        && grantUnchangedOrHeld("editWorkflows")
-        && grantUnchangedOrHeld("planEvents")
-        && grantUnchangedOrHeld("createStandaloneTasks")
-        && grantUnchangedOrHeld("doAssignedTasks")
-        && grantUnchangedOrHeld("editAnyTask")
-        && grantUnchangedOrHeld("approveTasks")
-        && grantUnchangedOrHeld("reassignTasks")
-        && grantUnchangedOrHeld("viewAll");
+    function onlyHeldGrantsChange(grants, held) {
+      return grants.get("administrator", []).hasAny(held)
+        || (grantUnchangedOrHeld(grants, held, "manageSettings")
+          && grantUnchangedOrHeld(grants, held, "administrator")
+          && grantUnchangedOrHeld(grants, held, "manageMembers")
+          && grantUnchangedOrHeld(grants, held, "manageRoles")
+          && grantUnchangedOrHeld(grants, held, "manageWorkGroups")
+          && grantUnchangedOrHeld(grants, held, "editWorkflows")
+          && grantUnchangedOrHeld(grants, held, "planEvents")
+          && grantUnchangedOrHeld(grants, held, "createStandaloneTasks")
+          && grantUnchangedOrHeld(grants, held, "doAssignedTasks")
+          && grantUnchangedOrHeld(grants, held, "editAnyTask")
+          && grantUnchangedOrHeld(grants, held, "approveTasks")
+          && grantUnchangedOrHeld(grants, held, "reassignTasks")
+          && grantUnchangedOrHeld(grants, held, "viewAll"));
     }
 
     // Same lengths as TextLimits in app/src/shared/validation/textLimits.ts.
@@ -185,15 +200,131 @@ service cloud.firestore {
       allow get: if isSelf(memberId);
       allow read: if isActiveMember();
 
-      // The only writes a member makes to their own record.
+      // A member's own writes: activating on first sign-in, and "last active".
       allow update: if isSelf(memberId)
         && (isActivatingSelf() || isRecordingLastActive());
 
-      // First-time setup: the person setting up becomes the first Admin.
-      allow create: if isSelf(memberId)
-        && isSetupBatch()
-        && isFirstAdminRecord(request.resource.data);
+      // Someone managing members, roles or groups changing another record.
+      allow update: if isManagedChange();
+
+      // First-time setup makes the first Admin; after that, invites.
+      allow create: if (isSelf(memberId)
+          && isSetupBatch()
+          && isFirstAdminRecord(request.resource.data))
+        || (can("manageMembers") && isInviteRecord(request.resource.data));
+
+      // Members are never deleted: removing one keeps the record as Removed.
     }
+
+    // #region Member changes made by others
+    function memberFields() {
+      return ["displayName", "email", "status", "roleIds", "workGroupIds",
+        "timeZone", "invitedBy", "invitedAt", "joinedAt", "lastActiveAt"];
+    }
+
+    /** A permission the member gains from the change, which the editor must hold. */
+    function gainIsHeld(grants, held, before, after, permission) {
+      return !after.hasAny(grants.get(permission, []))
+        || before.hasAny(grants.get(permission, []))
+        || holds(grants, held, permission);
+    }
+
+    /**
+     * Like Discord: you can't give anyone (yourself included) a permission you
+     * don't have, through any role. Administrator is only given by
+     * administrators, who may give anything.
+     */
+    function onlyHeldPermissionsGained(grants, held, before, after) {
+      return grants.get("administrator", []).hasAny(held)
+        || (gainIsHeld(grants, held, before, after, "administrator")
+          && gainIsHeld(grants, held, before, after, "manageSettings")
+          && gainIsHeld(grants, held, before, after, "manageMembers")
+          && gainIsHeld(grants, held, before, after, "manageRoles")
+          && gainIsHeld(grants, held, before, after, "manageWorkGroups")
+          && gainIsHeld(grants, held, before, after, "editWorkflows")
+          && gainIsHeld(grants, held, before, after, "planEvents")
+          && gainIsHeld(grants, held, before, after, "createStandaloneTasks")
+          && gainIsHeld(grants, held, before, after, "doAssignedTasks")
+          && gainIsHeld(grants, held, before, after, "editAnyTask")
+          && gainIsHeld(grants, held, before, after, "approveTasks")
+          && gainIsHeld(grants, held, before, after, "reassignTasks")
+          && gainIsHeld(grants, held, before, after, "viewAll"));
+    }
+
+    /** A new member from an invite: Invited, from the inviter, with the server's time. */
+    function isInviteRecord(data) {
+      return data.keys().hasOnly(memberFields())
+        && data.keys().hasAll(memberFields())
+        && data.displayName is string
+        && data.displayName.size() <= 80
+        && data.email is string
+        && data.email.size() > 0
+        && data.status == "invited"
+        && data.roleIds is list
+        && data.workGroupIds is list
+        && onlyHeldPermissionsGained(rolesGrants(), heldRoleIds(), [], data.roleIds)
+        && data.timeZone == null
+        && data.invitedBy == request.auth.uid
+        && data.invitedAt == request.time
+        && data.joinedAt == null
+        && data.lastActiveAt == null;
+    }
+
+    /**
+     * Name, roles, groups and access, each needing its own permission:
+     * names and access need Manage members; roles need Manage members or
+     * Manage roles; groups need Manage members or Manage work groups. Only an
+     * Administrator changes an Administrator's record.
+     */
+    function isManagedChange() {
+      let before = resource.data;
+      let after = request.resource.data;
+      let changed = changedFields();
+      let grants = rolesGrants();
+      let held = heldRoleIds();
+      let adminRoles = grants.get("administrator", []);
+      return isActiveMember()
+        && changed.hasOnly(["displayName", "roleIds", "workGroupIds",
+          "status", "invitedBy", "invitedAt"])
+        && (!changed.hasAny(["displayName", "status", "invitedBy", "invitedAt"])
+          || holds(grants, held, "manageMembers"))
+        && (!changed.hasAny(["roleIds"])
+          || holds(grants, held, "manageMembers")
+          || holds(grants, held, "manageRoles"))
+        && (!changed.hasAny(["workGroupIds"])
+          || holds(grants, held, "manageMembers")
+          || holds(grants, held, "manageWorkGroups"))
+        && after.displayName is string
+        && after.displayName.size() <= 80
+        && after.roleIds is list
+        && after.workGroupIds is list
+        && ((!before.roleIds.hasAny(adminRoles) && !after.roleIds.hasAny(adminRoles))
+          || adminRoles.hasAny(held))
+        && (!changed.hasAny(["roleIds"])
+          || onlyHeldPermissionsGained(grants, held, before.roleIds, after.roleIds))
+        && isAllowedStatusChange(before, after, changed);
+    }
+
+    function isAllowedStatusChange(before, after, changed) {
+      return !changed.hasAny(["status", "invitedBy", "invitedAt"])
+        // Turning access off, or back on (Active if they ever signed in, else Invited).
+        || (!changed.hasAny(["invitedBy", "invitedAt"])
+          && before.status in ["active", "invited", "disabled"]
+          && (after.status == "disabled"
+            || (after.status == "active" && before.joinedAt != null)
+            || (after.status == "invited" && before.joinedAt == null)))
+        // Removing: no roles and no groups left.
+        || (!changed.hasAny(["invitedBy", "invitedAt"])
+          && after.status == "removed"
+          && after.roleIds.size() == 0
+          && after.workGroupIds.size() == 0)
+        // Inviting a removed member again.
+        || (before.status == "removed"
+          && after.status == "invited"
+          && after.invitedBy == request.auth.uid
+          && after.invitedAt == request.time);
+    }
+    // #endregion
 
     function isFirstAdminRecord(data) {
       let fields = ["displayName", "email", "status", "roleIds", "workGroupIds",

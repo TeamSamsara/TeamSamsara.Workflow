@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/features/roles/ui/RolePicker.module.css
-   Version : 1.0.0
-   Latest commit: feature/roles
+   Version : 1.1.0
+   Latest commit: feature/members
    Author : Gerrah
    Purpose : Look of the role picker: a labelled group of checkboxes, each with the role's colour dot, and a muted hint below. */
 
@@ -12,6 +12,10 @@
   margin: 0;
   padding: 0;
   border: 0;
+}
+
+.hiddenLegend {
+  composes: hidden from "../../../shared/components/VisuallyHidden/VisuallyHidden.module.css";
 }
 
 .legend {

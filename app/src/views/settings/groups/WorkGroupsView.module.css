@@ -1,8 +1,8 @@
 /* File : /TeamSamsara.Workflow/app/src/views/settings/groups/WorkGroupsView.module.css
-   Version : 1.0.0
-   Latest commit: feature/work-groups
+   Version : 1.1.0
+   Latest commit: feature/members
    Author : Gerrah
-   Purpose : Layout of Settings → Work groups: the heading with New group, the card grid, then the open group's editor card with its actions and member list. */
+   Purpose : Layout of Settings → Work groups: the heading with New group, the card grid, then the open group's editor card with its actions and member list (Add members, Remove per person). */
 
 .page {
   display: flex;
@@ -118,7 +118,15 @@
 
 .memberText {
   display: flex;
+  flex: 1;
   flex-direction: column;
   min-width: 0;
   font-size: var(--text-body);
+}
+
+.membersHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
 }

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/hooks/useWorkGroups.ts
-// Version : 1.0.0
-// Latest commit: feature/work-groups
+// Version : 1.1.0
+// Latest commit: feature/members
 // Author : Gerrah
 // Purpose : Every work group, by name, each with the members in it. Live:
 // changes by anyone show at once. Open-task counts join in with the tasks PR.
@@ -10,6 +10,7 @@ import { collection } from "firebase/firestore";
 import { usePermissions } from "@/core/access";
 import {
   Collections,
+  isCurrentMember,
   memberConverter,
   useLiveCollection,
   type DataErrorKind,
@@ -47,7 +48,10 @@ export function useWorkGroups(): WorkGroupList {
     if (groups.status !== "ready") {
       return { status: "loading", items: [], error: null };
     }
-    const memberList = members.status === "ready" ? (members.data ?? []) : null;
+    const memberList =
+      members.status === "ready"
+        ? (members.data ?? []).filter(isCurrentMember)
+        : null;
     const items = [...(groups.data ?? [])]
       .sort((a, b) => a.name.localeCompare(b.name))
       .map((group) => ({
