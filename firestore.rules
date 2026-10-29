@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/firestore.rules
-// Version : 1.1.0
-// Latest commit: core/session
+// Version : 1.2.0
+// Latest commit: core/access
 // Author : Gerrah
 // Purpose : Who may read and write what in Firestore. Everything is denied until
 // a rule below allows it; each PR opens exactly what its feature needs, with a
@@ -26,10 +26,52 @@ service cloud.firestore {
     }
     // #endregion
 
+    // #region Access: the same rules as core/access in the app
+    function memberPath() {
+      return /databases/$(database)/documents/members/$(request.auth.uid);
+    }
+
+    function memberRecord() {
+      return get(memberPath());
+    }
+
+    /** Signed in with a member record that lets them in (Invited members activate on first sign-in). */
+    function isActiveMember() {
+      return isSignedIn()
+        && exists(memberPath())
+        && memberRecord().data.status in ["active", "invited"];
+    }
+
+    /** The roles that apply: every member also has Everyone. */
+    function heldRoleIds() {
+      return memberRecord().data.roleIds.concat(["everyone"]);
+    }
+
+    /**
+     * Whether the signed-in member holds a permission, through any of their roles.
+     * Reads the permission index in config/roles, so it costs one read however
+     * many roles there are. Administrator allows everything.
+     */
+    function can(permission) {
+      let grants = get(/databases/$(database)/documents/config/roles).data.grants;
+      return isActiveMember()
+        && (grants.get("administrator", []).hasAny(heldRoleIds())
+          || grants.get(permission, []).hasAny(heldRoleIds()));
+    }
+    // #endregion
+
+    // #region Workspace settings and roles
+    match /config/{document} {
+      allow read: if isActiveMember();
+    }
+    // #endregion
+
     // #region Members
     match /members/{memberId} {
-      // A member reads their own record. Later rules let active members read everyone's.
+      // A member reads their own record (to learn whether they have access),
+      // and active members read everyone's (names, roles, groups).
       allow get: if isSelf(memberId);
+      allow read: if isActiveMember();
 
       // The only writes a member makes to their own record.
       allow update: if isSelf(memberId)

@@ -1,13 +1,15 @@
 // File : /TeamSamsara.Workflow/app/src/app/App.tsx
-// Version : 1.1.0
-// Latest commit: core/session
+// Version : 1.2.0
+// Latest commit: core/access
 // Author : Gerrah
 // Purpose : The provider stack every page sits in, outermost first: the crash
-// screen, server data, the theme, the session, toasts, then the router.
+// screen, server data, the theme, the session, permissions, toasts, then the
+// router.
 
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ErrorBoundary } from "react-error-boundary";
 import { RouterProvider } from "react-router-dom";
+import { AccessProvider } from "@/core/access";
 import { SessionProvider } from "@/core/session";
 import { ThemeProvider } from "@/core/theme";
 import { queryClient } from "@/lib/queryClient";
@@ -21,9 +23,11 @@ export function App() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <SessionProvider>
-            <ToastProvider>
-              <RouterProvider router={router} />
-            </ToastProvider>
+            <AccessProvider>
+              <ToastProvider>
+                <RouterProvider router={router} />
+              </ToastProvider>
+            </AccessProvider>
           </SessionProvider>
         </ThemeProvider>
       </QueryClientProvider>
