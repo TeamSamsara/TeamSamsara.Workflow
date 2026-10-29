@@ -1,18 +1,23 @@
 // File : /TeamSamsara.Workflow/app/src/features/platforms/ui/PlatformsTable.tsx
-// Version : 1.0.0
-// Latest commit: feature/workspace-settings
+// Version : 1.1.0
+// Latest commit: task/group-leads-and-x-premium
 // Author : Gerrah
 // Purpose : The platform catalogue as a table: each platform with the limits
-// Workflow checks, whether this workspace uses it, and a switch to change that
-// (saved straight away).
+// Workflow checks, whether this workspace uses it, and a switch to change that.
+// A platform with a paid tier (X Premium) also asks whether the account has
+// it, which changes its limits. Everything saves straight away.
 
 import { useMutation } from "@tanstack/react-query";
 import { dataErrorMessage } from "@/core/data";
+import { Checkbox } from "@/shared/components/Fields/Checkbox/Checkbox";
 import { Pill } from "@/shared/components/Pill/Pill";
 import { Table } from "@/shared/components/Table/Table";
 import { useToast } from "@/shared/components/Toast/useToast";
 import type { Platform, PlatformSetting } from "../catalogue/platformTypes";
-import { setPlatformEnabled } from "../service/platformSettingsService";
+import {
+  setPlatformEnabled,
+  setPlatformUpgraded,
+} from "../service/platformSettingsService";
 import { describeLimits } from "./describeLimits";
 import { PlatformMark } from "./PlatformMark";
 import { PlatformsTableText } from "./platformsContent";
@@ -52,6 +57,31 @@ export function PlatformsTable({ settings, canChange }: PlatformsTableProps) {
       }),
   });
 
+  const upgrade = useMutation({
+    mutationFn: ({
+      platform,
+      upgraded,
+    }: {
+      platform: Platform;
+      upgraded: boolean;
+    }) => setPlatformUpgraded(platform.id, upgraded),
+    onSuccess: (_result, { platform, upgraded }) => {
+      const tier = platform.upgrade?.name ?? platform.name;
+      toast.show({
+        tone: "success",
+        title: upgraded
+          ? PlatformsTableText.upgradeOn(tier)
+          : PlatformsTableText.upgradeOff(tier),
+      });
+    },
+    onError: (error) =>
+      toast.show({
+        tone: "error",
+        title: PlatformsTableText.failed,
+        detail: dataErrorMessage(error),
+      }),
+  });
+
   return (
     <Table caption={PlatformsTableText.caption} minWidth={tableMinWidth}>
       <thead>
@@ -65,7 +95,7 @@ export function PlatformsTable({ settings, canChange }: PlatformsTableProps) {
         </tr>
       </thead>
       <tbody>
-        {settings.map(({ platform, enabled }) => {
+        {settings.map(({ platform, enabled, upgraded, limits }) => {
           const isSaving =
             toggle.isPending && toggle.variables?.platform.id === platform.id;
           return (
@@ -76,7 +106,23 @@ export function PlatformsTable({ settings, canChange }: PlatformsTableProps) {
                   <b>{platform.name}</b>
                 </span>
               </td>
-              <td className={styles.limits}>{describeLimits(platform)}</td>
+              <td className={styles.limits}>
+                {describeLimits(limits)}
+                {platform.upgrade ? (
+                  <Checkbox
+                    className={styles.upgrade}
+                    label={PlatformsTableText.hasUpgrade(platform.upgrade.name)}
+                    checked={upgraded}
+                    disabled={!canChange || upgrade.isPending}
+                    onChange={(event) =>
+                      upgrade.mutate({
+                        platform,
+                        upgraded: event.target.checked,
+                      })
+                    }
+                  />
+                ) : null}
+              </td>
               <td>
                 <Pill tone={enabled ? "success" : "muted"}>
                   {enabled ? PlatformsTableText.on : PlatformsTableText.off}

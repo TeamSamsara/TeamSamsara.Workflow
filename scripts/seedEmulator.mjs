@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/scripts/seedEmulator.mjs
-// Version : 1.4.0
-// Latest commit: feature/workspace-settings
+// Version : 1.5.0
+// Latest commit: task/group-leads-and-x-premium
 // Author : Gerrah
 // Purpose : Fills the local emulators with a ready-made workspace and test
 // accounts, so the app can be tried without touching the real project. It wipes
@@ -195,7 +195,8 @@ async function main() {
         dateFormat: "weekdayMonthDay",
         timeFormat: "12h",
         defaultTheme: "device",
-        enabledPlatformIds: [],
+        enabledPlatformIds: ["x", "instagram", "youtube", "tiktok", "twitch"],
+        upgradedPlatformIds: [],
         createdAt: now,
       }),
       db.doc("config/roles").set({

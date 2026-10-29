@@ -1,0 +1,50 @@
+/* File : /TeamSamsara.Workflow/app/src/features/work-groups/ui/WorkGroupLinksEditor.module.css
+   Version : 1.0.0
+   Latest commit: task/group-leads-and-x-premium
+   Author : Gerrah
+   Purpose : Look of the links editor: name, address and the open/remove buttons on one row (stacked on phones), then Add link. */
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
+  gap: var(--space-2-5);
+  align-items: start;
+}
+
+.rowActions {
+  display: flex;
+  gap: var(--space-1);
+}
+
+/* The first row has labels above its fields; line the buttons up with the boxes. */
+.rowActions[data-first="true"] {
+  margin-top: calc(var(--text-field-label) * 1.3 + var(--space-1-5));
+}
+
+/* Breakpoints.small */
+@media (max-width: 640px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .label {
+    grid-column: 1 / -1;
+  }
+}
+
+.add {
+  align-self: flex-start;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}

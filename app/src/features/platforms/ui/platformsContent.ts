@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/platforms/ui/platformsContent.ts
-// Version : 1.0.0
-// Latest commit: feature/workspace-settings
+// Version : 1.1.0
+// Latest commit: task/group-leads-and-x-premium
 // Author : Gerrah
 // Purpose : The words for platform limits and the platforms table.
 
@@ -14,6 +14,7 @@ export const PlatformFieldText: Record<PlatformTextField, string> = {
   title: "Title",
   description: "Description",
   streamTitle: "Stream title",
+  article: "Article",
 };
 
 export const PlatformLimitText = {
@@ -25,6 +26,7 @@ export const PlatformLimitText = {
     count === 1 ? "1 video" : `up to ${count} videos`,
   hashtags: (count: number) => `${count} hashtags`,
   separator: " · ",
+  plural: (name: string) => `${name}s`,
 } as const;
 
 export const PlatformsTableText = {
@@ -39,4 +41,7 @@ export const PlatformsTableText = {
   turnedOn: (name: string) => `${name} switched on`,
   turnedOff: (name: string) => `${name} switched off`,
   failed: "That didn't save",
+  hasUpgrade: (tier: string) => `Our account has ${tier}`,
+  upgradeOn: (tier: string) => `Using ${tier} limits`,
+  upgradeOff: (tier: string) => `Back to the free limits (no ${tier})`,
 } as const;

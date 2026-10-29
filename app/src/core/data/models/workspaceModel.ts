@@ -1,10 +1,10 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/models/workspaceModel.ts
-// Version : 1.1.0
-// Latest commit: feature/workspace-settings
+// Version : 1.2.0
+// Latest commit: task/group-leads-and-x-premium
 // Author : Gerrah
 // Purpose : The workspace record (config/workspace): its name, the time zone
 // events are planned in, week start, date and time formats, the default theme for new
-// members, and which platforms are switched on.
+// members, which platforms are switched on, and which paid tiers it has.
 
 import type { DocumentData } from "firebase/firestore";
 import type { ThemeChoice } from "@/core/theme";
@@ -52,6 +52,8 @@ export interface WorkspaceRecord {
   defaultTheme: ThemeChoice;
   /** Ids from the built-in platform catalogue that this workspace uses. */
   enabledPlatformIds: string[];
+  /** Platforms whose paid tier the workspace's account has (e.g. X Premium). */
+  upgradedPlatformIds: string[];
   createdAt: Date | null;
 }
 
@@ -70,6 +72,7 @@ function parse(_id: string, data: DocumentData): WorkspaceRecord {
       "device",
     ),
     enabledPlatformIds: readStringList(data, "enabledPlatformIds"),
+    upgradedPlatformIds: readStringList(data, "upgradedPlatformIds"),
     createdAt: readDate(data, "createdAt"),
   };
 }
@@ -83,6 +86,7 @@ function serialize(workspace: WorkspaceRecord): DocumentData {
     timeFormat: workspace.timeFormat,
     defaultTheme: workspace.defaultTheme,
     enabledPlatformIds: workspace.enabledPlatformIds,
+    upgradedPlatformIds: workspace.upgradedPlatformIds,
     createdAt: fromDate(workspace.createdAt),
   };
 }

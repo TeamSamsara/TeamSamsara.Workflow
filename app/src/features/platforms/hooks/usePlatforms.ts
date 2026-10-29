@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/platforms/hooks/usePlatforms.ts
-// Version : 1.0.0
-// Latest commit: feature/workspace-settings
+// Version : 1.1.0
+// Latest commit: task/group-leads-and-x-premium
 // Author : Gerrah
 // Purpose : The platform catalogue joined with what this workspace has switched
 // on: every platform for the settings page, and only the switched-on ones for
@@ -8,28 +8,33 @@
 
 import { useMemo } from "react";
 import { useWorkspaceRecord } from "@/core/workspace";
-import { PlatformCatalogue } from "../catalogue/platformCatalogue";
+import { limitsFor, PlatformCatalogue } from "../catalogue/platformCatalogue";
 import type { Platform, PlatformSetting } from "../catalogue/platformTypes";
 
 export interface PlatformList {
-  /** Every platform in catalogue order, with whether it's on. */
+  /** Every platform in catalogue order, with whether it's on and the limits that apply. */
   settings: PlatformSetting[];
   /** Only the platforms this workspace uses. */
   enabled: Platform[];
 }
 
 export function usePlatforms(): PlatformList {
-  const { enabledPlatformIds } = useWorkspaceRecord();
+  const { enabledPlatformIds, upgradedPlatformIds } = useWorkspaceRecord();
   return useMemo(() => {
-    const settings = PlatformCatalogue.map((platform) => ({
-      platform,
-      enabled: enabledPlatformIds.includes(platform.id),
-    }));
+    const settings = PlatformCatalogue.map((platform) => {
+      const upgraded = upgradedPlatformIds.includes(platform.id);
+      return {
+        platform,
+        enabled: enabledPlatformIds.includes(platform.id),
+        upgraded,
+        limits: limitsFor(platform, upgraded),
+      };
+    });
     return {
       settings,
       enabled: settings
         .filter((entry) => entry.enabled)
         .map((entry) => entry.platform),
     };
-  }, [enabledPlatformIds]);
+  }, [enabledPlatformIds, upgradedPlatformIds]);
 }
