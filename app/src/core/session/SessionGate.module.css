@@ -1,0 +1,19 @@
+/* File : /TeamSamsara.Workflow/app/src/core/session/SessionGate.module.css
+   Version : 1.0.0
+   Latest commit: core/session
+   Author : Gerrah
+   Purpose : Layout of the screens shown while the session is being checked, or when it can't be: their content centred on the whole page. */
+
+.page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-10) var(--page-padding-x);
+  background-color: var(--color-page);
+}
+
+.panel {
+  width: 100%;
+  max-width: var(--auth-form-width);
+}
