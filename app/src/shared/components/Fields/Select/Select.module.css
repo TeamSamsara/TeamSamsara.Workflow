@@ -1,0 +1,30 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/components/Fields/Select/Select.module.css
+   Version : 1.0.0
+   Latest commit: core/ui-kit
+   Author : Gerrah
+   Purpose : Look of the select: the shared outlined box with the browser's arrow replaced by our chevron, which lets clicks through to the select under it. */
+
+.control {
+  composes: control from "../fieldControl.module.css";
+}
+
+.input {
+  composes: input from "../fieldControl.module.css";
+  padding-right: calc(var(--field-padding-x) * 2 + var(--icon-size-small));
+  appearance: none;
+  cursor: pointer;
+}
+
+/* The open list is drawn by the browser; this keeps its colours readable in dark mode. */
+.input option {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+.chevron {
+  --icon-size: var(--icon-size-small);
+  position: absolute;
+  right: var(--field-padding-x);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}

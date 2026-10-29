@@ -1,0 +1,29 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/components/Fields/FieldFrame/FieldFrame.module.css
+   Version : 1.0.0
+   Latest commit: core/ui-kit
+   Author : Gerrah
+   Purpose : Layout of a field: a bold 13px label, the control, then a muted hint and the error, 6px apart. The field shrinks inside rows so long labels never push it out of a card. */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+  min-width: 0;
+}
+
+.label {
+  color: var(--color-text);
+  font-size: var(--text-field-label);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-small);
+}
+
+.hiddenLabel {
+  composes: hidden from "../../VisuallyHidden/VisuallyHidden.module.css";
+}
+
+.hint {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}

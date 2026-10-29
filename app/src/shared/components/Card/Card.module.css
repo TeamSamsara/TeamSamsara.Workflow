@@ -1,0 +1,62 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/components/Card/Card.module.css
+   Version : 1.0.0
+   Latest commit: core/ui-kit
+   Author : Gerrah
+   Purpose : Look of a card: the surface colour with a thin divider border and 12px corners, children stacked 14px apart, and the header row with a Norwester heading and actions on the right. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3-5);
+  min-width: 0;
+  padding: var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+.card[data-padding="compact"] {
+  padding: var(--space-2) var(--card-padding);
+}
+
+.card[data-padding="none"] {
+  padding: 0;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-width: 0;
+}
+
+.title {
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-section-heading);
+  letter-spacing: var(--tracking-heading);
+}
+
+.description {
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}

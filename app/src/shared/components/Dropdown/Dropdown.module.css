@@ -1,0 +1,94 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/components/Dropdown/Dropdown.module.css
+   Version : 1.0.0
+   Latest commit: core/ui-kit
+   Author : Gerrah
+   Purpose : A dropdown: the panel floats next to its trigger on the side and edge chosen by data-placement, at --dropdown-offset, as a surface card with a shadow. Items are 40px rows that light up on hover and keyboard focus. */
+
+.root {
+  position: relative;
+  display: inline-block;
+}
+
+/* #region Panel */
+.panel {
+  position: absolute;
+  z-index: var(--layer-dropdown);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-width: calc(var(--sidebar-width) - var(--space-8));
+  padding: var(--space-1);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-dialog);
+}
+
+.panel[data-open="false"] {
+  visibility: hidden;
+}
+
+.panel[data-placement="bottom-start"] {
+  top: 100%;
+  left: 0;
+  margin-top: var(--dropdown-offset, 0);
+}
+
+.panel[data-placement="bottom-end"] {
+  top: 100%;
+  right: 0;
+  margin-top: var(--dropdown-offset, 0);
+}
+
+.panel[data-placement="top-start"] {
+  bottom: 100%;
+  left: 0;
+  margin-bottom: var(--dropdown-offset, 0);
+}
+
+.panel[data-placement="top-end"] {
+  bottom: 100%;
+  right: 0;
+  margin-bottom: var(--dropdown-offset, 0);
+}
+/* #endregion */
+
+/* #region Items */
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2-5);
+  width: 100%;
+  min-height: var(--control-height);
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--text-body);
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.item:hover,
+.item[data-highlighted] {
+  background-color: var(--color-surface-raised);
+}
+
+/* Inside the menu the row itself shows focus, so the outline sits inside it. */
+.item:focus-visible {
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
+
+.item[data-selected] {
+  font-weight: var(--weight-bold);
+}
+
+.item[data-disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+/* #endregion */

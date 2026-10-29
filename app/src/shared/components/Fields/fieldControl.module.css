@@ -1,0 +1,78 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/components/Fields/fieldControl.module.css
+   Version : 1.0.0
+   Latest commit: core/ui-kit
+   Author : Gerrah
+   Purpose : The outlined box every typing field shares (text field, text area, select): 42px tall, 10px corners, a focus ring while in use and a red outline when invalid. Fields reuse it with composes. */
+
+.control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: var(--field-height);
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-field);
+  background-color: var(--color-field-fill);
+  color: var(--color-text);
+  transition: border-color var(--motion-fast) ease;
+}
+
+.control:hover {
+  border-color: var(--color-text-muted);
+}
+
+/* The ring is drawn on the box, so the input inside does not draw its own. */
+.control:focus-within {
+  border-color: var(--color-focus-ring);
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: 0;
+}
+
+.control[data-invalid="true"] {
+  border-color: var(--color-error);
+}
+
+.control[data-invalid="true"]:focus-within {
+  outline-color: var(--color-error);
+}
+
+.control[data-disabled="true"] {
+  opacity: 0.6;
+}
+
+/* The bare input inside the box. */
+.input {
+  flex: 1;
+  min-width: 0;
+  min-height: calc(var(--field-height) - 2 * var(--border-width));
+  padding: 0 var(--field-padding-x);
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+}
+
+.input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
+.input:focus,
+.input:focus-visible {
+  outline: none;
+}
+
+.input:disabled {
+  cursor: not-allowed;
+}
+
+/* Chrome paints an autofilled field pale blue, and only the input part of the box. Pushing
+   that change back (about 11 days) keeps the box one colour. */
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus,
+.input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--color-text);
+  transition: background-color 999999s ease-in-out 0s;
+}

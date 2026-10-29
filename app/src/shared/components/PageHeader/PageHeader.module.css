@@ -1,0 +1,46 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/components/PageHeader/PageHeader.module.css
+   Version : 1.0.0
+   Latest commit: core/ui-kit
+   Author : Gerrah
+   Purpose : Look of the page header: the breadcrumb, a 32px Norwester title and a muted line on the left, actions lined up with the bottom on the right. The actions drop under the title on narrow screens. */
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3-5);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+  min-width: 0;
+}
+
+.title {
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: var(--text-page-title);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-page-title);
+  letter-spacing: var(--tracking-heading);
+}
+
+.description {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}

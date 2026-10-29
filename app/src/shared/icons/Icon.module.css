@@ -1,0 +1,11 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/icons/Icon.module.css
+   Version : 1.0.0
+   Latest commit: core/ui-kit
+   Author : Gerrah
+   Purpose : Size of an icon. It is --icon-size from the spacing tokens (18px), and a caller changes it by setting --icon-size on the icon's class. */
+
+.icon {
+  flex-shrink: 0;
+  width: var(--icon-size);
+  height: var(--icon-size);
+}
