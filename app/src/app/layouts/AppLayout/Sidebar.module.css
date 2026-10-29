@@ -1,0 +1,111 @@
+/* File : /TeamSamsara.Workflow/app/src/app/layouts/AppLayout/Sidebar.module.css
+   Version : 1.0.0
+   Latest commit: core/app-shell
+   Author : Gerrah
+   Purpose : Look of the sidebar: dark in both themes, the logo and Norwester app name on top, uppercase Agdasima menu links with a green marker on the current page, and the account row pinned to the bottom. */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-5) var(--space-3-5);
+  background-color: var(--color-nav);
+  color: var(--color-nav-text);
+}
+
+/* #region Brand */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-2-5) var(--space-5);
+}
+
+.logo {
+  width: var(--control-height);
+  height: var(--space-8);
+  object-fit: contain;
+}
+
+.appName {
+  font-family: var(--font-heading);
+  font-size: var(--text-brand);
+  line-height: var(--leading-brand);
+  letter-spacing: var(--tracking-heading);
+}
+/* #endregion */
+
+/* #region Menu */
+.menu {
+  flex: 1;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: 0;
+  list-style: none;
+}
+
+.link,
+.account {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--nav-link-height);
+  padding: 0 var(--space-3-5);
+  border-radius: var(--radius-control);
+  color: var(--color-nav-muted);
+  text-decoration: none;
+  transition:
+    background-color var(--motion-fast) ease,
+    color var(--motion-fast) ease;
+}
+
+.link {
+  font-family: var(--font-ui);
+  font-size: var(--text-nav-link);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-ui);
+  text-transform: uppercase;
+}
+
+.link:hover,
+.account:hover {
+  background-color: var(--color-nav-active);
+  color: var(--color-nav-text);
+}
+
+.link[aria-current="page"],
+.account[aria-current="page"] {
+  background-color: var(--color-nav-active);
+  color: var(--color-nav-text);
+  box-shadow: inset var(--nav-marker-width) 0 0 var(--color-accent);
+}
+
+/* The sidebar is dark in both themes, so its focus ring is always the bright green. */
+.link:focus-visible,
+.account:focus-visible {
+  outline-color: var(--color-accent);
+}
+/* #endregion */
+
+/* #region Footer */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: var(--border-width) solid
+    color-mix(in srgb, var(--color-nav-text) 12%, transparent);
+}
+
+.account {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+}
+/* #endregion */

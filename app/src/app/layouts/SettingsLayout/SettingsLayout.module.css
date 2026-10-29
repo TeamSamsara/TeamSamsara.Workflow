@@ -1,0 +1,80 @@
+/* File : /TeamSamsara.Workflow/app/src/app/layouts/SettingsLayout/SettingsLayout.module.css
+   Version : 1.0.0
+   Latest commit: core/app-shell
+   Author : Gerrah
+   Purpose : Layout of the settings frame: a 190px menu of 40px links beside the page, the current link on a raised fill. At 900px and below the menu becomes a row above the page. */
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--content-gap);
+}
+
+.body {
+  display: grid;
+  grid-template-columns: var(--settings-nav-width) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-6);
+}
+
+.menu {
+  min-width: 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  min-height: var(--control-height);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-control);
+  color: var(--color-text-muted);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+  transition:
+    background-color var(--motion-fast) ease,
+    color var(--motion-fast) ease;
+}
+
+.link:hover {
+  color: var(--color-text);
+}
+
+.link[aria-current="page"] {
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+  font-weight: var(--weight-bold);
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--content-gap);
+  min-width: 0;
+}
+
+/* Breakpoints.medium: the menu becomes a row of links above the page, scrolling sideways if needed. */
+@media (max-width: 900px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .menu {
+    overflow-x: auto;
+  }
+
+  .list {
+    flex-direction: row;
+  }
+
+  .link {
+    white-space: nowrap;
+  }
+}

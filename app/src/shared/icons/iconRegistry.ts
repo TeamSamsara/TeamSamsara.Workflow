@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/icons/iconRegistry.ts
-// Version : 1.0.0
-// Latest commit: core/ui-kit
+// Version : 1.1.0
+// Latest commit: core/app-shell
 // Author : Gerrah
 // Purpose : The only file that knows where each icon comes from; screens use the names.
 
@@ -30,6 +30,7 @@ import {
   Lock,
   LogOut,
   Mail,
+  Menu,
   Monitor,
   Moon,
   Pencil,
@@ -95,6 +96,7 @@ export const iconRegistry = {
   invite: UserPlus,
   more: Ellipsis,
   dragHandle: GripVertical,
+  menu: Menu,
   logOut: LogOut,
 
   // Navigation

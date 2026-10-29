@@ -1,0 +1,84 @@
+/* File : /TeamSamsara.Workflow/app/src/app/layouts/AppLayout/AppLayout.module.css
+   Version : 1.0.0
+   Latest commit: core/app-shell
+   Author : Gerrah
+   Purpose : Layout of the signed-in frame: a sidebar that stays put beside a scrolling page area. At 900px and below (Breakpoints.medium) the sidebar slides in over the page, behind a dimmed backdrop. */
+
+.shell {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--color-page);
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  flex: 0 0 var(--sidebar-width);
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--content-gap);
+  min-width: 0;
+  padding: var(--page-padding-y) var(--page-padding-x);
+}
+
+.main:focus {
+  outline: none;
+}
+
+/* Hidden until a keyboard user tabs to it, then it sits over the top left corner. */
+.skipLink {
+  position: fixed;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: var(--layer-toast);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-control);
+  background-color: var(--color-accent);
+  color: var(--color-text-on-accent);
+  font-weight: var(--weight-bold);
+  text-decoration: none;
+  transform: translateY(calc(-100% - var(--space-4)));
+}
+
+.skipLink:focus {
+  transform: none;
+}
+
+.backdrop {
+  display: none;
+}
+
+/* Breakpoints.medium */
+@media (max-width: 900px) {
+  .shell {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: var(--layer-dialog);
+    width: var(--sidebar-width);
+    transform: translateX(-100%);
+    transition: transform var(--motion-base) var(--ease-out);
+  }
+
+  .sidebar[data-open="true"] {
+    box-shadow: var(--shadow-dialog);
+    transform: none;
+  }
+
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--layer-dialog) - 1);
+    display: block;
+    background-color: var(--color-overlay);
+  }
+}
