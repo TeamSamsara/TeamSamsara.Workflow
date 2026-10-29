@@ -29,6 +29,7 @@ const roles = {
   roles: {
     everyone: { name: "Everyone", position: 0, permissions: ["viewAll"] },
     planner: { name: "Planner", position: 1, permissions: ["planEvents"] },
+    helper: { name: "Helper", position: 1, permissions: [] },
     people: {
       name: "People",
       position: 2,
@@ -150,8 +151,12 @@ describe("changing names, roles and groups", () => {
   });
 
   it("opens roles to Manage roles and groups to Manage work groups, nothing more", async () => {
+    // Helper grants nothing, so Riley may give it; Planner grants Plan events, which Riley lacks.
     await assertSucceeds(
-      updateDoc(member("riley", "sam"), { roleIds: ["planner"] }),
+      updateDoc(member("riley", "sam"), { roleIds: ["helper"] }),
+    );
+    await assertFails(
+      updateDoc(member("riley", "mika"), { roleIds: ["planner"] }),
     );
     await assertFails(
       updateDoc(member("riley", "sam"), { workGroupIds: ["video"] }),
@@ -160,7 +165,7 @@ describe("changing names, roles and groups", () => {
       updateDoc(member("gwen", "sam"), { workGroupIds: ["video"] }),
     );
     await assertFails(
-      updateDoc(member("gwen", "sam"), { roleIds: ["planner"] }),
+      updateDoc(member("gwen", "sam"), { roleIds: ["helper"] }),
     );
     await assertFails(updateDoc(member("gwen", "sam"), { displayName: "Sam" }));
   });
