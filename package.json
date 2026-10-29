@@ -4,10 +4,15 @@
   "private": true,
   "description": "Workflow - planning and task tool",
   "scripts": {
-    "prepare": "husky"
+    "prepare": "husky",
+    "emulators": "firebase emulators:start",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-workflow-rules \"vitest run --config tests/rules/vitest.config.ts\""
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "firebase-tools": "^15.34.2",
     "husky": "^9.1.7",
-    "lint-staged": "^17.5.1"
+    "lint-staged": "^17.5.1",
+    "vitest": "^5.0.5"
   }
 }

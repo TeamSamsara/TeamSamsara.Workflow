@@ -1,0 +1,29 @@
+// File : /TeamSamsara.Workflow/firestore.rules
+// Version : 1.0.0
+// Latest commit: core/data
+// Author : Gerrah
+// Purpose : Who may read and write what in Firestore. Everything is denied until
+// a rule below allows it; each PR opens exactly what its feature needs, with a
+// test in tests/rules for every rule.
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // #region Helpers (used by the rules later PRs add)
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    // #endregion
+
+    // Deny everything that no rule above allows.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
