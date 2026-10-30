@@ -1,0 +1,95 @@
+/* File : /TeamSamsara.Workflow/app/src/views/tasks/TaskView.module.css
+   Version : 1.0.0
+   Latest commit: feature/tasks
+   Author : Gerrah
+   Purpose : Layout of a task's page: the header with its status, who and when, the status steps, then the task's details beside the next step, approval and who it's given to (stacked on narrow screens); the edit form in one card. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--content-gap);
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-10) 0;
+}
+
+.missing {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.due {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  --icon-size: var(--icon-size-small);
+}
+
+.due[data-late="true"] {
+  color: var(--color-error-text);
+  font-weight: var(--weight-bold);
+}
+
+.columns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-5);
+}
+
+.main {
+  display: flex;
+  flex: 3 1 480px;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.side {
+  display: flex;
+  flex: 2 1 300px;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.noDetails {
+  margin: 0;
+  padding: var(--space-6) var(--card-padding);
+  border: var(--border-width) dashed var(--color-border-control);
+  border-radius: var(--radius-card);
+  color: var(--color-text-muted);
+  font-size: var(--text-body);
+}
+
+.editCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 820px;
+  padding: var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.text {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}

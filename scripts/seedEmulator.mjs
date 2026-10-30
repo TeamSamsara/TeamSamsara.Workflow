@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/scripts/seedEmulator.mjs
-// Version : 1.8.0
-// Latest commit: fix/general-wording
+// Version : 1.9.0
+// Latest commit: feature/tasks
 // Author : Gerrah
 // Purpose : Fills the local emulators with a ready-made workspace and test
 // accounts, so the app can be tried without touching the real project. It wipes
@@ -134,6 +134,96 @@ const sampleWorkflow = {
     }),
   ],
 };
+
+const hour = 60 * 60 * 1000;
+
+/** A few standalone tasks, so My tasks has something in each group. */
+function sampleTasks(now, uidOf) {
+  const task = (fields) => ({
+    title: "",
+    notes: "",
+    workGroupId: null,
+    memberId: null,
+    dueAt: null,
+    statusId: "status1",
+    needsApproval: false,
+    tagIds: [],
+    posts: null,
+    checklist: null,
+    links: null,
+    asksForLiveLink: false,
+    liveLink: null,
+    eventId: null,
+    workflowId: null,
+    stepId: null,
+    sentForReviewBy: null,
+    sentForReviewAt: null,
+    approvedBy: null,
+    approvedAt: null,
+    changesRequested: null,
+    createdBy: uidOf("alex"),
+    createdAt: now,
+    updatedAt: now,
+    doneAt: null,
+    ...fields,
+  });
+  const inHours = (hours) => new Date(now.getTime() + hours * hour);
+  return {
+    recap: task({
+      title: "Weekly recap post",
+      memberId: uidOf("alex"),
+      dueAt: inHours(-3),
+    }),
+    graphic: task({
+      title: "Matchday graphic",
+      notes: "Both team logos, the match time and where to watch.",
+      workGroupId: "design",
+      dueAt: inHours(4),
+      needsApproval: true,
+      checklist: [
+        { id: "c1", text: "Both team logos", done: true },
+        { id: "c2", text: "Match time in our time zone", done: false },
+      ],
+      links: [{ label: "Brand kit", url: "https://example.com/brand" }],
+    }),
+    sponsor: task({
+      title: "Sponsor post",
+      notes: "Use the sponsor's approved wording and tag their account.",
+      memberId: uidOf("sam"),
+      dueAt: inHours(48),
+      needsApproval: true,
+      asksForLiveLink: true,
+      statusId: "status2",
+      sentForReviewBy: uidOf("sam"),
+      sentForReviewAt: inHours(-1),
+      posts: [
+        {
+          platformId: "x",
+          formatId: null,
+          texts: {
+            post: "Big news: we're partnering with Nova Energy for the rest of the season.",
+          },
+        },
+      ],
+    }),
+    clip: task({
+      title: "Highlights clip",
+      workGroupId: "video",
+      dueAt: inHours(24 * 5),
+    }),
+    notes: task({
+      title: "Team meeting notes",
+      memberId: uidOf("alex"),
+    }),
+    done: task({
+      title: "Update the brand kit",
+      workGroupId: "design",
+      dueAt: inHours(-48),
+      statusId: "status4",
+      doneAt: inHours(-50),
+    }),
+  };
+}
 
 /** status null = an account with no member record (never invited). */
 const accounts = [
@@ -279,6 +369,10 @@ async function main() {
         grants: buildPermissionGrants(roles),
       }),
     ];
+    const uidOf = (key) => created.find((account) => account.key === key).uid;
+    for (const [id, task] of Object.entries(sampleTasks(now, uidOf))) {
+      writes.push(db.doc(`tasks/${id}`).set(task));
+    }
     for (const account of created) {
       if (account.status === null) continue;
       writes.push(

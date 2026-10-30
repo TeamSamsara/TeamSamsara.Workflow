@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/router.tsx
-// Version : 1.10.0
-// Latest commit: feature/workflow-guide
+// Version : 1.11.0
+// Latest commit: feature/tasks
 // Author : Gerrah
 // Purpose : Every route in the app. Layouts and the not-found page load with the
 // app; every other page loads only when it is first opened. Pages not built yet show ComingSoonView, and each
@@ -117,6 +117,16 @@ const platformsView = () =>
     Component: module.PlatformsView,
   }));
 
+const myTasksView = () =>
+  import("@/views/tasks/MyTasksView").then((module) => ({
+    Component: module.MyTasksView,
+  }));
+
+const taskView = () =>
+  import("@/views/tasks/TaskView").then((module) => ({
+    Component: module.TaskView,
+  }));
+
 const workflowsView = () =>
   import("@/views/workflows/WorkflowsView").then((module) => ({
     Component: module.WorkflowsView,
@@ -184,7 +194,8 @@ export const router = createBrowserRouter([
             element: <AppLayout />,
             children: [
               { path: RoutePaths.calendar, lazy: comingSoonView },
-              { path: RoutePaths.myTasks, lazy: comingSoonView },
+              { path: RoutePaths.myTasks, lazy: myTasksView },
+              { path: RoutePaths.task, lazy: taskView },
               { path: RoutePaths.workflows, lazy: workflowsView },
               { path: RoutePaths.workflowGuide, lazy: workflowGuideView },
               { path: RoutePaths.workflow, lazy: workflowEditView },
