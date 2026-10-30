@@ -1,0 +1,41 @@
+/* File : /TeamSamsara.Workflow/app/src/features/workflows/ui/DueOffsetField.module.css
+   Version : 1.0.0
+   Latest commit: feature/workflows
+   Author : Gerrah
+   Purpose : The due time picker: when, then the small number boxes on one row, the set-time choice, and the due time in words. */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2-5);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-2-5);
+}
+
+.when {
+  flex: 1 1 180px;
+}
+
+.number {
+  flex: 0 0 88px;
+}
+
+.time {
+  flex: 0 0 140px;
+}
+
+.summary {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}

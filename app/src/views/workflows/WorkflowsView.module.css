@@ -1,0 +1,35 @@
+/* File : /TeamSamsara.Workflow/app/src/views/workflows/WorkflowsView.module.css
+   Version : 1.0.0
+   Latest commit: feature/workflows
+   Author : Gerrah
+   Purpose : Layout of the Workflows page: the header with Import and New workflow, then the table in a card under the In use / Archived switch. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--content-gap);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.filter {
+  align-self: flex-start;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-10) 0;
+}
+
+.fileInput {
+  display: none;
+}

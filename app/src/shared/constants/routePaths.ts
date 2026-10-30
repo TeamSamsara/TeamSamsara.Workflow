@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/constants/routePaths.ts
-// Version : 1.5.0
-// Latest commit: feature/members
+// Version : 1.6.0
+// Latest commit: feature/workflows
 // Author : Gerrah
 // Purpose : Every address in the app, in one place, so links and routes can
 // never disagree about where a page lives.
@@ -10,6 +10,8 @@ export const RoutePaths = {
   calendar: "/",
   myTasks: "/my-tasks",
   workflows: "/workflows",
+  /** One workflow in the editor; "new" for a workflow not saved yet. */
+  workflow: "/workflows/:workflowId",
   account: "/account",
   // #endregion
 
@@ -70,4 +72,12 @@ export function workGroupPath(groupId: string): string {
 /** /settings/members/:memberId */
 export function memberPath(memberId: string): string {
   return `${RoutePaths.settingsMembers}/${encodeURIComponent(memberId)}`;
+}
+
+/** The id in a workflow's address while it hasn't been saved yet. */
+export const NewWorkflowId = "new";
+
+/** /workflows/:workflowId, or the editor for a new workflow. */
+export function workflowPath(workflowId: string = NewWorkflowId): string {
+  return `${RoutePaths.workflows}/${encodeURIComponent(workflowId)}`;
 }
