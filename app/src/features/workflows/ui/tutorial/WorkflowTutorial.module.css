@@ -1,0 +1,210 @@
+/* File : /TeamSamsara.Workflow/app/src/features/workflows/ui/tutorial/WorkflowTutorial.module.css
+   Version : 1.0.0
+   Latest commit: feature/workflow-guide
+   Author : Gerrah
+   Purpose : A tutorial slide: the drawn example in a soft panel beside (or above, on phones) the title and text; the dots and buttons along the bottom. */
+
+.slide {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-6);
+  min-height: 260px;
+}
+
+.picture {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  padding: var(--space-5);
+  border-radius: var(--radius-card);
+  background-color: var(--color-page);
+}
+
+.words {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-dialog-title);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-dialog-title);
+  text-transform: uppercase;
+}
+
+.body {
+  margin: 0;
+  font-size: var(--text-body-large);
+  line-height: var(--leading-body-large);
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}
+
+/* The drawn examples */
+.miniCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  max-width: 300px;
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-field);
+  background-color: var(--color-surface);
+  list-style: none;
+  font-size: var(--text-meta);
+}
+
+.miniTitle {
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  text-transform: uppercase;
+}
+
+.miniList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.miniTask {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.tick {
+  width: 14px;
+  height: 14px;
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-small);
+}
+
+.miniRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-bottom: var(--space-2);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.miniRow:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.rowMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.when {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-text-muted);
+  --icon-size: var(--icon-size-small);
+}
+
+.flow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.event {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-left: 4px solid var(--palette-blue);
+  border-radius: var(--radius-small);
+  background-color: var(--color-surface);
+  font-size: var(--text-meta);
+}
+
+.event > span {
+  display: flex;
+  flex-direction: column;
+}
+
+.arrow {
+  color: var(--color-text-muted);
+  transform: rotate(90deg);
+}
+
+.date {
+  min-width: 82px;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+  max-width: 300px;
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.dots {
+  display: flex;
+  gap: var(--space-1-5);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-border-control);
+}
+
+.dot[data-current="true"] {
+  width: 20px;
+  background-color: var(--color-accent);
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+/* Breakpoints.small */
+@media (max-width: 640px) {
+  .slide {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+  }
+
+  .picture {
+    min-height: 0;
+  }
+}

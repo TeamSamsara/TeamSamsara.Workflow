@@ -1,0 +1,45 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/components/StepProgress/StepProgress.module.css
+   Version : 1.0.0
+   Latest commit: feature/workflow-guide
+   Author : Gerrah
+   Purpose : The step count and name on one line, then a bar of equal segments, accent up to the current step. */
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.text {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.count {
+  color: var(--color-text-muted);
+}
+
+.label {
+  font-weight: var(--weight-bold);
+}
+
+.bar {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.segment {
+  flex: 1 1 0;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-border);
+  transition: background-color var(--motion-base) var(--ease-out);
+}
+
+.segment[data-done="true"] {
+  background-color: var(--color-accent);
+}

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/constants/routePaths.ts
-// Version : 1.6.0
-// Latest commit: feature/workflows
+// Version : 1.7.0
+// Latest commit: feature/workflow-guide
 // Author : Gerrah
 // Purpose : Every address in the app, in one place, so links and routes can
 // never disagree about where a page lives.
@@ -10,6 +10,8 @@ export const RoutePaths = {
   calendar: "/",
   myTasks: "/my-tasks",
   workflows: "/workflows",
+  /** Making a workflow one question at a time. */
+  workflowGuide: "/workflows/guide",
   /** One workflow in the editor; "new" for a workflow not saved yet. */
   workflow: "/workflows/:workflowId",
   account: "/account",
