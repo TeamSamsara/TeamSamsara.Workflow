@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/workflows/WorkflowsView.tsx
-// Version : 1.0.0
-// Latest commit: feature/workflows
+// Version : 1.1.0
+// Latest commit: fix/workflow-editor-simpler
 // Author : Gerrah
 // Purpose : The Workflows page: every workflow in a table, in use or archived,
 // with New workflow and Import. An import opens in the editor as a new,
@@ -21,6 +21,8 @@ import {
   WorkflowsTable,
 } from "@/features/workflows";
 import { Banner } from "@/shared/components/Banner/Banner";
+import { IntroCard } from "@/shared/components/IntroCard/IntroCard";
+import { IntroCardText } from "@/shared/components/IntroCard/introCardContent";
 import { Button } from "@/shared/components/Button/Button";
 import { LinkButton } from "@/shared/components/Button/LinkButton";
 import { PageHeader } from "@/shared/components/PageHeader/PageHeader";
@@ -28,6 +30,8 @@ import { SegmentedControl } from "@/shared/components/SegmentedControl/Segmented
 import { Spinner } from "@/shared/components/Spinner/Spinner";
 import { useToast } from "@/shared/components/Toast/useToast";
 import { workflowPath } from "@/shared/constants/routePaths";
+import { StorageKeys } from "@/shared/constants/storageKeys";
+import { useDismissed } from "@/shared/hooks/useDismissed";
 import type { ImportedWorkflow } from "./importedWorkflow";
 import { WorkflowsViewText as Text } from "./workflowsViewContent";
 import styles from "./WorkflowsView.module.css";
@@ -47,6 +51,7 @@ export function WorkflowsView() {
   const navigate = useNavigate();
   const fileInput = useRef<HTMLInputElement>(null);
   const [filter, setFilter] = useState<Filter>("active");
+  const intro = useDismissed(StorageKeys.workflowsIntroDismissed);
 
   const archived = workflows.items.filter((workflow) => workflow.archived);
   const active = workflows.items.filter((workflow) => !workflow.archived);
@@ -91,30 +96,49 @@ export function WorkflowsView() {
         title={Text.title}
         description={Text.description}
         actions={
-          canEdit ? (
-            <>
-              <Button
-                iconStart="upload"
-                onClick={() => fileInput.current?.click()}
-              >
-                {Text.import}
+          <>
+            {intro.dismissed ? (
+              <Button variant="ghost" iconStart="help" onClick={intro.show}>
+                {IntroCardText.reopen}
               </Button>
-              <LinkButton to={workflowPath()} variant="primary" iconStart="add">
-                {Text.new}
-              </LinkButton>
-              <input
-                ref={fileInput}
-                type="file"
-                accept="application/json,.json"
-                className={styles.fileInput}
-                aria-label={Text.importLabel}
-                tabIndex={-1}
-                onChange={(event) => void handleFile(event)}
-              />
-            </>
-          ) : null
+            ) : null}
+            {canEdit ? (
+              <>
+                <Button
+                  iconStart="upload"
+                  onClick={() => fileInput.current?.click()}
+                >
+                  {Text.import}
+                </Button>
+                <LinkButton
+                  to={workflowPath()}
+                  variant="primary"
+                  iconStart="add"
+                >
+                  {Text.new}
+                </LinkButton>
+                <input
+                  ref={fileInput}
+                  type="file"
+                  accept="application/json,.json"
+                  className={styles.fileInput}
+                  aria-label={Text.importLabel}
+                  tabIndex={-1}
+                  onChange={(event) => void handleFile(event)}
+                />
+              </>
+            ) : null}
+          </>
         }
       />
+
+      {intro.dismissed ? null : (
+        <IntroCard
+          title={Text.intro.title}
+          steps={Text.intro.steps}
+          onDismiss={intro.dismiss}
+        />
+      )}
 
       {!canEdit ? <Banner tone="info">{Text.readOnly}</Banner> : null}
 

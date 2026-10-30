@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/shared/components/Fields/Checkbox/Checkbox.module.css
-   Version : 1.0.0
-   Latest commit: core/ui-kit
+   Version : 1.1.0
+   Latest commit: fix/workflow-editor-simpler
    Author : Gerrah
    Purpose : Look of the checkbox: an 18px box with 4px corners that fills green with a dark tick when checked, next to a 14px label and a muted description. */
 
@@ -82,4 +82,10 @@
   color: var(--color-text-muted);
   font-size: var(--text-small);
   line-height: var(--leading-small);
+}
+
+.labelRow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
 }

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/model/dueOffset.ts
-// Version : 1.0.0
-// Latest commit: feature/workflows
+// Version : 1.1.0
+// Latest commit: fix/workflow-editor-simpler
 // Author : Gerrah
 // Purpose : Relative due times. Works out the moment a task is due from the
 // event's start in the workspace's time zone, following the calendar across
@@ -68,31 +68,27 @@ export function resolveDue(
   );
 }
 
-/** "At the start", "1 day 2 hours before", "Day before, 7:00 PM"… */
+/** "When the event starts", "1 hour before", "The day before at 7:00 PM"… */
 export function describeDue(offset: DueOffset, format: ClockFormat): string {
   if (offset.direction === "at") return Text.atStart;
+  const direction = offset.direction;
   if (offset.time) {
-    const time = formatClockTime(offset.time, format);
-    if (offset.days === 0) return Text.sameDay(time);
-    if (offset.days === 1) {
-      return offset.direction === "before"
-        ? Text.dayBefore(time)
-        : Text.nextDay(time);
-    }
-    return offset.direction === "before"
-      ? Text.daysBefore(offset.days, time)
-      : Text.daysAfter(offset.days, time);
+    const day =
+      offset.days === 0 ? Text.sameDay : Text.dayAmount(offset.days, direction);
+    return Text.atTime(day, formatClockTime(offset.time, format));
+  }
+  if (offset.hours === 0 && offset.minutes === 0) {
+    return offset.days === 0
+      ? Text.atStart
+      : Text.dayAmount(offset.days, direction);
   }
   const parts = [
     offset.days > 0 ? Text.days(offset.days) : null,
     offset.hours > 0 ? Text.hours(offset.hours) : null,
     offset.minutes > 0 ? Text.minutes(offset.minutes) : null,
   ].filter((part): part is string => part !== null);
-  if (parts.length === 0) return Text.atStart;
   const amount = parts.join(" ");
-  return offset.direction === "before"
-    ? Text.before(amount)
-    : Text.after(amount);
+  return direction === "before" ? Text.before(amount) : Text.after(amount);
 }
 
 /** Sorts steps by when they fall: the earliest due first. */

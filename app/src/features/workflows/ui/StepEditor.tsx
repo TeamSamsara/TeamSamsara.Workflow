@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/ui/StepEditor.tsx
-// Version : 1.0.0
-// Latest commit: feature/workflows
+// Version : 1.1.0
+// Latest commit: fix/workflow-editor-simpler
 // Author : Gerrah
 // Purpose : One task of a workflow, open for editing: the basics every task
 // has (title, who it's given to, when it's due, how to do it, tags, needs
@@ -20,6 +20,7 @@ import { ButtonContent } from "@/shared/components/Button/ButtonContent";
 import { buttonLook } from "@/shared/components/Button/buttonLook";
 import { IconButton } from "@/shared/components/Button/IconButton";
 import { Dropdown } from "@/shared/components/Dropdown/Dropdown";
+import { HelpTip } from "@/shared/components/HelpTip/HelpTip";
 import { DropdownItem } from "@/shared/components/Dropdown/DropdownItem";
 import { DropdownPanel } from "@/shared/components/Dropdown/DropdownPanel";
 import { DropdownTrigger } from "@/shared/components/Dropdown/DropdownTrigger";
@@ -68,12 +69,12 @@ type SectionKey = keyof typeof SectionText;
 
 function Section({
   name,
-  description,
+  help,
   onRemove,
   children,
 }: {
   name: string;
-  description: string;
+  help: string;
   /** Null when it can't be removed. */
   onRemove: (() => void) | null;
   children?: ReactNode;
@@ -81,9 +82,9 @@ function Section({
   return (
     <section className={styles.section} aria-label={name}>
       <header className={styles.sectionHeader}>
-        <div>
+        <div className={styles.sectionHeading}>
           <h4 className={styles.sectionTitle}>{name}</h4>
-          <p className={styles.muted}>{description}</p>
+          <HelpTip topic={name}>{help}</HelpTip>
         </div>
         {onRemove ? (
           <IconButton
@@ -112,21 +113,43 @@ export function StepEditor({
   readOnly = false,
 }: StepEditorProps) {
   const removable = (remove: () => void) => (readOnly ? null : remove);
-  const groupMembers = step.workGroupId
-    ? options.members.filter((member) =>
-        member.workGroupIds.includes(step.workGroupId ?? ""),
-      )
-    : options.members;
-  const memberOptions = [
+  const group = options.groups.find((entry) => entry.id === step.workGroupId);
+  const byName = (a: MemberRecord, b: MemberRecord) =>
+    memberName(a).localeCompare(memberName(b));
+  const giveToOptions = [
     { value: "", label: Text.nobody },
-    ...[...groupMembers]
-      .sort((a, b) => memberName(a).localeCompare(memberName(b)))
-      .map((member) => ({ value: member.id, label: memberName(member) })),
+    ...options.groups.map((entry) => ({
+      value: `group:${entry.id}`,
+      label: entry.name,
+      group: Text.groups,
+    })),
+    ...[...options.members].sort(byName).map((member) => ({
+      value: `member:${member.id}`,
+      label: memberName(member),
+      group: Text.people,
+    })),
   ];
-  const groupOptions = [
-    { value: "", label: Text.noGroup },
-    ...options.groups.map((group) => ({ value: group.id, label: group.name })),
-  ];
+  const giveToValue = step.workGroupId
+    ? `group:${step.workGroupId}`
+    : step.memberId
+      ? `member:${step.memberId}`
+      : "";
+  const inGroup = group
+    ? options.members
+        .filter(
+          (member) =>
+            member.workGroupIds.includes(group.id) ||
+            member.id === step.memberId,
+        )
+        .sort(byName)
+    : [];
+
+  function giveTo(value: string) {
+    const [kind, id] = value.split(":");
+    if (kind === "group") onChange({ workGroupId: id, memberId: null });
+    else if (kind === "member") onChange({ workGroupId: null, memberId: id });
+    else onChange({ workGroupId: null, memberId: null });
+  }
 
   const has: Record<SectionKey, boolean> = {
     posts: step.posts !== null,
@@ -158,37 +181,33 @@ export function StepEditor({
 
       <div className={styles.assign}>
         <Select
-          label={Text.workGroup}
-          options={groupOptions}
-          value={step.workGroupId ?? ""}
-          onChange={(event) => {
-            const workGroupId = event.target.value || null;
-            const keepsMember =
-              !workGroupId ||
-              options.members.some(
-                (member) =>
-                  member.id === step.memberId &&
-                  member.workGroupIds.includes(workGroupId),
-              );
-            onChange({
-              workGroupId,
-              memberId: keepsMember ? step.memberId : null,
-            });
-          }}
+          label={Text.giveTo}
+          help={Text.giveToHelp}
+          options={giveToOptions}
+          value={giveToValue}
+          onChange={(event) => giveTo(event.target.value)}
         />
-        <Select
-          label={Text.member}
-          options={memberOptions}
-          value={step.memberId ?? ""}
-          onChange={(event) =>
-            onChange({ memberId: event.target.value || null })
-          }
-        />
-        <p className={styles.assignHint}>{Text.assignHint}</p>
+        {group ? (
+          <Select
+            label={Text.whoInGroup(group.name)}
+            options={[
+              { value: "", label: Text.anyoneInGroup(group.name) },
+              ...inGroup.map((member) => ({
+                value: member.id,
+                label: memberName(member),
+              })),
+            ]}
+            value={step.memberId ?? ""}
+            onChange={(event) =>
+              onChange({ memberId: event.target.value || null })
+            }
+          />
+        ) : null}
       </div>
 
       <DueOffsetField
         label={Text.due}
+        help={Text.dueHelp}
         value={step.due}
         onChange={(due) => onChange({ due })}
         clockFormat={options.clockFormat}
@@ -214,7 +233,7 @@ export function StepEditor({
       {step.posts !== null ? (
         <Section
           name={SectionText.posts.name}
-          description={SectionText.posts.description}
+          help={SectionText.posts.help}
           onRemove={removable(() => onChange({ posts: null }))}
         >
           <PostTextEditor
@@ -228,7 +247,7 @@ export function StepEditor({
       {step.checklist !== null ? (
         <Section
           name={SectionText.checklist.name}
-          description={SectionText.checklist.description}
+          help={SectionText.checklist.help}
           onRemove={removable(() => onChange({ checklist: null }))}
         >
           <ChecklistEditor
@@ -241,7 +260,7 @@ export function StepEditor({
       {step.links !== null ? (
         <Section
           name={SectionText.links.name}
-          description={SectionText.links.description}
+          help={SectionText.links.help}
           onRemove={removable(() => onChange({ links: null }))}
         >
           <WorkGroupLinksEditor
@@ -258,7 +277,7 @@ export function StepEditor({
       {step.asksForLiveLink ? (
         <Section
           name={SectionText.liveLink.name}
-          description={SectionText.liveLink.description}
+          help={SectionText.liveLink.help}
           onRemove={removable(() => onChange({ asksForLiveLink: false }))}
         />
       ) : null}
@@ -291,7 +310,7 @@ export function StepEditor({
 
       <Checkbox
         label={Text.needsApproval}
-        description={Text.needsApprovalHint}
+        help={Text.needsApprovalHelp}
         checked={step.needsApproval}
         onChange={(event) => onChange({ needsApproval: event.target.checked })}
       />

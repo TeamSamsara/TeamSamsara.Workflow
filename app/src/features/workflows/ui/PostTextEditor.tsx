@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/ui/PostTextEditor.tsx
-// Version : 1.0.0
-// Latest commit: feature/workflows
+// Version : 1.1.0
+// Latest commit: fix/workflow-editor-simpler
 // Author : Gerrah
 // Purpose : A task's post text: a tab per platform it goes on, with a box per
 // text the platform has (YouTube has a title and a description) and a count
@@ -30,7 +30,7 @@ import { TabList } from "@/shared/components/Tabs/TabList";
 import { TabPanel } from "@/shared/components/Tabs/TabPanel";
 import { Tabs } from "@/shared/components/Tabs/Tabs";
 import { WorkflowLimits, type PlatformPost } from "../types/workflowTypes";
-import { PostTextEditorText as Text, StepEditorText } from "./workflowsContent";
+import { PostTextEditorText as Text } from "./workflowsContent";
 import styles from "./PostTextEditor.module.css";
 
 interface PostTextEditorProps {
@@ -193,12 +193,7 @@ export function PostTextEditor({
                       },
                     })
                   }
-                  footer={
-                    <>
-                      <span>{StepEditorText.gapsHint}</span>
-                      <TextCount text={text} limit={limit} />
-                    </>
-                  }
+                  footer={<TextCount text={text} limit={limit} />}
                 />
               );
             })}

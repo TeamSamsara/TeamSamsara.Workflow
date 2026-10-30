@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/model/dueOffset.test.ts
-// Version : 1.0.0
-// Latest commit: feature/workflows
+// Version : 1.1.0
+// Latest commit: fix/workflow-editor-simpler
 // Author : Gerrah
 // Purpose : Tests relative due times: the moment they land on (including the
 // days Toronto's clocks change) and how they read.
@@ -80,8 +80,8 @@ describe("resolveDue", () => {
 });
 
 describe("describeDue", () => {
-  it("says it in words", () => {
-    expect(describeDue(atTheStart, "12h")).toBe("At the start");
+  it("says it in everyday words", () => {
+    expect(describeDue(atTheStart, "12h")).toBe("When the event starts");
     expect(describeDue(due({ hours: 1 }), "12h")).toBe("1 hour before");
     expect(describeDue(due({ days: 1, hours: 2 }), "12h")).toBe(
       "1 day 2 hours before",
@@ -89,19 +89,22 @@ describe("describeDue", () => {
     expect(describeDue(due({ direction: "after", minutes: 30 }), "12h")).toBe(
       "30 minutes after",
     );
+    expect(describeDue(due({ days: 1 }), "12h")).toBe("The day before");
+    expect(describeDue(due({ days: 7 }), "12h")).toBe("A week before");
+    expect(describeDue(due({ days: 3 }), "12h")).toBe("3 days before");
     expect(describeDue(due({ days: 2, time: "19:00" }), "12h")).toBe(
-      "2 days before, 7:00 PM",
+      "2 days before at 7:00 PM",
     );
     expect(describeDue(due({ days: 1, time: "19:00" }), "24h")).toBe(
-      "Day before, 19:00",
+      "The day before at 19:00",
     );
     expect(
       describeDue(due({ direction: "after", days: 1, time: "09:00" }), "12h"),
-    ).toBe("Next day, 9:00 AM");
+    ).toBe("The day after at 9:00 AM");
     expect(describeDue(due({ time: "00:30" }), "12h")).toBe(
-      "Same day, 12:30 AM",
+      "The same day at 12:30 AM",
     );
-    expect(describeDue(due({}), "12h")).toBe("At the start");
+    expect(describeDue(due({}), "12h")).toBe("When the event starts");
   });
 
   it("formats clock times both ways", () => {
@@ -121,11 +124,11 @@ describe("dueOrder", () => {
     ];
     const sorted = [...offsets].sort((a, b) => dueOrder(a) - dueOrder(b));
     expect(sorted.map((offset) => describeDue(offset, "12h"))).toEqual([
-      "2 days before, 7:00 PM",
-      "1 day before",
+      "2 days before at 7:00 PM",
+      "The day before",
       "1 hour before",
-      "At the start",
-      "Next day, 9:00 AM",
+      "When the event starts",
+      "The day after at 9:00 AM",
     ]);
   });
 });

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/components/Fields/Checkbox/Checkbox.tsx
-// Version : 1.0.0
-// Latest commit: core/ui-kit
+// Version : 1.1.0
+// Latest commit: fix/workflow-editor-simpler
 // Author : Gerrah
 // Purpose : A checkbox with its label and an optional line of description. It is the
 // browser's own checkbox, restyled, so clicking the label and the keyboard work as usual.
@@ -8,6 +8,7 @@
 import { useId, type ComponentProps, type ReactNode } from "react";
 import { classNames } from "@/lib/classNames";
 import { Icon } from "@/shared/icons/Icon";
+import { HelpTip } from "../../HelpTip/HelpTip";
 import styles from "./Checkbox.module.css";
 
 interface CheckboxProps extends Omit<
@@ -18,6 +19,10 @@ interface CheckboxProps extends Omit<
   /** Hides the label on screen (a row checkbox in a table); screen readers still read it. */
   hideLabel?: boolean;
   description?: ReactNode;
+  /** A longer explanation behind a "?" beside the label. */
+  help?: ReactNode;
+  /** What the help is about, for screen readers; the label when it's text. */
+  helpTopic?: string;
   className?: string;
 }
 
@@ -25,6 +30,8 @@ export function Checkbox({
   label,
   hideLabel = false,
   description,
+  help,
+  helpTopic,
   id,
   className,
   ...rest
@@ -46,9 +53,18 @@ export function Checkbox({
         <Icon name="check" className={styles.mark} strokeWidth={3} />
       </span>
       <span className={hideLabel ? styles.hiddenText : styles.text}>
-        <label htmlFor={inputId} className={styles.label}>
-          {label}
-        </label>
+        <span className={styles.labelRow}>
+          <label htmlFor={inputId} className={styles.label}>
+            {label}
+          </label>
+          {help ? (
+            <HelpTip
+              topic={helpTopic ?? (typeof label === "string" ? label : "")}
+            >
+              {help}
+            </HelpTip>
+          ) : null}
+        </span>
         {description ? (
           <span id={descriptionId} className={styles.description}>
             {description}
