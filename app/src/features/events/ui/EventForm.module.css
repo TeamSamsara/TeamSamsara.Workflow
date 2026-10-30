@@ -1,0 +1,62 @@
+/* File : /TeamSamsara.Workflow/app/src/features/events/ui/EventForm.module.css
+   Version : 1.0.0
+   Latest commit: feature/calendar-events
+   Author : Gerrah
+   Purpose : The event form: fields stacked, type, date and time on one row (wrapping on phones), and the gap boxes in a soft panel, two to a row. */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.type {
+  flex: 2 1 200px;
+}
+
+.date {
+  flex: 1 1 160px;
+}
+
+.time {
+  flex: 1 1 120px;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-field);
+  background-color: var(--color-page);
+}
+
+.legend {
+  float: left;
+  width: 100%;
+  padding: 0;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.gapGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-3);
+}

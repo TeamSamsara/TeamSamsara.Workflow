@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/index.ts
-// Version : 1.0.0
-// Latest commit: feature/tasks
+// Version : 1.1.0
+// Latest commit: feature/calendar-events
 // Author : Gerrah
 // Purpose : What other layers may use from the tasks feature.
 
@@ -9,7 +9,7 @@ export type { TaskPermissions } from "./hooks/useTaskAbilities";
 export { useOpenTasksFor, useTask, useTasksInStatuses } from "./hooks/useTasks";
 export type { TaskList } from "./hooks/useTasks";
 export { isAssignedTo, isGivenToMe } from "./model/assignment";
-export { formatDue } from "./model/formatDue";
+export { formatDue, fromDateAndTime, toDateAndTime } from "./model/formatDue";
 export { DueGroups, groupByDue } from "./model/groupByDue";
 export type { DueGroup } from "./model/groupByDue";
 export {
@@ -19,7 +19,13 @@ export {
 } from "./model/taskDraft";
 export type { TaskDraft } from "./model/taskDraft";
 export { categoryOf, statusOf } from "./model/taskStatusFlow";
-export { deleteTask, saveTaskFields } from "./service/taskService";
+export {
+  createTask,
+  deleteTask,
+  newTaskData,
+  saveTaskFields,
+} from "./service/taskService";
+export type { TaskOrigin } from "./service/taskService";
 export { taskConverter, TaskLimits } from "./types/taskTypes";
 export type { TaskFields, TaskRecord } from "./types/taskTypes";
 export { ApprovalCard } from "./ui/ApprovalCard";

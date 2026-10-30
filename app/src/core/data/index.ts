@@ -1,10 +1,10 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/index.ts
-// Version : 1.5.0
-// Latest commit: feature/tasks
+// Version : 1.6.0
+// Latest commit: feature/calendar-events
 // Author : Gerrah
 // Purpose : What other layers may use from the data module.
 
-export { commitWrites, maxWritesPerBatch } from "./batchWrite";
+export { commitWrites, maxWritesPerBatch, splitIntoChunks } from "./batchWrite";
 export type { BatchWrite } from "./batchWrite";
 export { Collections, ConfigDocuments } from "./collections";
 export type { CollectionName, ConfigDocumentName } from "./collections";

@@ -1,0 +1,72 @@
+/* File : /TeamSamsara.Workflow/app/src/views/calendar/CalendarView.module.css
+   Version : 1.0.0
+   Latest commit: feature/calendar-events
+   Author : Gerrah
+   Purpose : Layout of the calendar page: the month title with previous, next and Today; the view switch, group filter and New buttons; then the grid or list and a short legend. On phones the grid scrolls sideways. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+.title {
+  margin: 0 var(--space-2) 0 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-page-title);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-page-title);
+  text-transform: uppercase;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.groupFilter {
+  flex: 0 1 220px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-10) 0;
+}
+
+.legend {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}
+
+/* The grid keeps its seven columns readable; narrow screens scroll it. */
+.scroll {
+  overflow-x: auto;
+}
+
+.scroll > * {
+  min-width: 760px;
+}

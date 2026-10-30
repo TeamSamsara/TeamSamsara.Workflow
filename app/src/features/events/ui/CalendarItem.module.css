@@ -1,0 +1,59 @@
+/* File : /TeamSamsara.Workflow/app/src/features/events/ui/CalendarItem.module.css
+   Version : 1.0.0
+   Latest commit: feature/calendar-events
+   Author : Gerrah
+   Purpose : Calendar items: an event is a filled block with a coloured left edge; a one-off task is a dashed block. Both show a bold title and a muted time line. */
+
+.event,
+.task {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-0-5);
+  min-width: 0;
+  padding: var(--space-1-5) var(--space-2);
+  border-radius: var(--radius-small);
+  color: var(--color-text);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  text-decoration: none;
+}
+
+.event {
+  --item-color: var(--color-accent);
+  border-left: 3px solid var(--item-color);
+  background-color: var(--color-surface-raised);
+}
+
+.task {
+  border: var(--border-width) dashed var(--color-border-control);
+}
+
+.task[data-late="true"] {
+  border-color: var(--color-error);
+}
+
+.event:hover .title,
+.task:hover .title {
+  text-decoration: underline;
+}
+
+.event:focus-visible,
+.task:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+.title {
+  max-width: 100%;
+  font-weight: var(--weight-bold);
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  color: var(--color-text-muted);
+}
+
+.task[data-late="true"] .meta {
+  color: var(--color-error-text);
+}

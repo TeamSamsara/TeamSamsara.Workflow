@@ -1,0 +1,68 @@
+/* File : /TeamSamsara.Workflow/app/src/features/events/ui/CalendarList.module.css
+   Version : 1.0.0
+   Latest commit: feature/calendar-events
+   Author : Gerrah
+   Purpose : The list view: one card with a block per day (its date as a heading, today tagged), items stacked under it. */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+  list-style: none;
+}
+
+.day {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: var(--space-3);
+  padding: var(--space-3) var(--card-padding);
+}
+
+.day + .day {
+  border-top: var(--border-width) solid var(--color-border);
+}
+
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+}
+
+.today {
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-accent);
+  color: var(--color-text-on-accent);
+  font-size: var(--text-small);
+}
+
+.items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-2);
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-10) var(--card-padding);
+  border: var(--border-width) dashed var(--color-border-control);
+  border-radius: var(--radius-card);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* Breakpoints.small */
+@media (max-width: 640px) {
+  .day {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+}

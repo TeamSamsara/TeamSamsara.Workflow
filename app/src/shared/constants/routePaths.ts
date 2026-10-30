@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/constants/routePaths.ts
-// Version : 1.8.0
-// Latest commit: feature/tasks
+// Version : 1.9.0
+// Latest commit: feature/calendar-events
 // Author : Gerrah
 // Purpose : Every address in the app, in one place, so links and routes can
 // never disagree about where a page lives.
@@ -9,6 +9,10 @@ export const RoutePaths = {
   // #region Main menu
   calendar: "/",
   myTasks: "/my-tasks",
+  /** Planning an event; ?date=2026-11-09 starts it on that day. */
+  newEvent: "/events/new",
+  /** One event's page. */
+  event: "/events/:eventId",
   /** One task's page. */
   task: "/tasks/:taskId",
   workflows: "/workflows",
@@ -89,4 +93,14 @@ export function workflowPath(workflowId: string = NewWorkflowId): string {
 /** /tasks/:taskId */
 export function taskPath(taskId: string): string {
   return `/tasks/${encodeURIComponent(taskId)}`;
+}
+
+/** /events/:eventId */
+export function eventPath(eventId: string): string {
+  return `/events/${encodeURIComponent(eventId)}`;
+}
+
+/** /events/new, starting on a day when one is given ("2026-11-09"). */
+export function newEventPath(date?: string): string {
+  return date ? `/events/new?date=${encodeURIComponent(date)}` : "/events/new";
 }
