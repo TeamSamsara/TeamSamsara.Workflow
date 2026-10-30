@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/scripts/seedEmulator.mjs
-// Version : 1.5.0
-// Latest commit: task/group-leads-and-x-premium
+// Version : 1.6.0
+// Latest commit: feature/task-setup
 // Author : Gerrah
 // Purpose : Fills the local emulators with a ready-made workspace and test
 // accounts, so the app can be tried without touching the real project. It wipes
@@ -16,6 +16,7 @@ import {
   AdminRoleId,
   defaultRoles,
 } from "../app/src/core/workspace/seed/defaultRoles.ts";
+import { defaultStatuses } from "../app/src/core/workspace/seed/defaultStatuses.ts";
 
 // #region Settings
 const repoRoot = path.resolve(
@@ -185,6 +186,10 @@ async function main() {
     const db = context.firestore();
     const roles = [...startingRoles, peopleManagerRole];
     const writes = [
+      // The same starting statuses as a real setup; event types and tags start empty.
+      ...defaultStatuses.map((status, index) =>
+        db.doc(`statuses/status${index + 1}`).set(status),
+      ),
       ...workGroups.map(({ id, ...group }) =>
         db.doc(`workGroups/${id}`).set({ ...group, createdAt: now }),
       ),

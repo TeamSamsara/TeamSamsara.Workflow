@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/index.ts
-// Version : 1.2.0
-// Latest commit: feature/work-groups
+// Version : 1.4.0
+// Latest commit: feature/task-setup
 // Author : Gerrah
 // Purpose : What other layers may use from the data module.
 
@@ -22,4 +22,5 @@ export { useLiveSubscription } from "./useLiveSubscription";
 export type { LiveListener } from "./useLiveSubscription";
 export * from "./models/memberModel";
 export * from "./models/rolesModel";
+export * from "./models/taskSetupModels";
 export * from "./models/workspaceModel";

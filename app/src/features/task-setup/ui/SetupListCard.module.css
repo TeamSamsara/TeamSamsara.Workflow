@@ -1,0 +1,143 @@
+/* File : /TeamSamsara.Workflow/app/src/features/task-setup/ui/SetupListCard.module.css
+   Version : 1.0.0
+   Latest commit: feature/task-setup
+   Author : Gerrah
+   Purpose : Look of a list card: the heading with its Add button, 52px rows divided by lines with the drag handle, label, muted detail and edit button, a dashed line where a dragged row will land, and the empty state. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.headerText {
+  display: flex;
+  flex: 1 1 260px;
+  flex-direction: column;
+  gap: var(--space-0-5);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-section-heading);
+  text-transform: uppercase;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  /* Tall enough for a pill or chip with room around it. */
+  --setup-row-height: 52px;
+
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--setup-row-height);
+  border-top: 2px dashed transparent;
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.row:last-child {
+  border-bottom-color: transparent;
+}
+
+.row[data-dragging="true"] {
+  opacity: 0.5;
+}
+
+.row[data-drop-target="true"] {
+  border-top-color: var(--color-accent);
+}
+
+.handle {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-6);
+  height: var(--space-8);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-small);
+  background: none;
+  color: var(--color-text-muted);
+  cursor: grab;
+  --icon-size: var(--space-4);
+}
+
+.handle:hover {
+  color: var(--color-text);
+}
+
+.handle:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -2px;
+}
+
+.label {
+  display: flex;
+  flex: 1 1 160px;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+}
+
+.detail {
+  flex: 2 1 200px;
+  min-width: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+}
+
+.empty {
+  padding: var(--space-4);
+  border: var(--border-width) dashed var(--color-border-control);
+  border-radius: var(--radius-field);
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+/* Breakpoints.small: the detail drops under the label. */
+@media (max-width: 640px) {
+  .row {
+    flex-wrap: wrap;
+    padding: var(--space-2) 0;
+  }
+
+  .detail {
+    order: 3;
+    flex-basis: 100%;
+    padding-left: calc(var(--space-6) + var(--space-3));
+  }
+}
