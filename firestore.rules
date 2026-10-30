@@ -510,26 +510,39 @@ service cloud.firestore {
           || (request.resource.data.eventId != null && can("planEvents")
             && existsAfter(/databases/$(database)/documents/events/$(request.resource.data.eventId))));
 
+      // Firestore stops after 1,000 steps per request, so the permissions are
+      // worked out once and each kind of change checks its fields first.
       allow update: if isActiveMember()
-        && isValidTask(request.resource.data)
-        && keepsOrigin()
         && request.resource.data.updatedAt == request.time
-        && (canEditTask()
-          || isDoingTask()
-          || isApprovingTask()
-          || isReassigningTask()
-          || isMovingEventTask());
+        && keepsOrigin()
+        && isAllowedTaskChange(rolesGrants(), heldRoleIds())
+        && isValidTask(request.resource.data);
 
       allow delete: if can("editAnyTask")
         || (resource.data.createdBy == request.auth.uid && resource.data.eventId == null)
         || (resource.data.eventId != null && can("planEvents"));
     }
 
-    /** Plan events: when an event moves, its tasks' due times move with it. */
-    function isMovingEventTask() {
-      return can("planEvents")
-        && resource.data.eventId != null
-        && changedFields().hasOnly(["dueAt", "updatedAt"]);
+    /** One of the four kinds of change, or Plan events moving an event's task. */
+    function isAllowedTaskChange(grants, held) {
+      let changed = changedFields();
+      return holds(grants, held, "editAnyTask")
+        || (resource.data.createdBy == request.auth.uid && resource.data.eventId == null)
+        || (changed.hasOnly(["dueAt", "updatedAt"])
+          && resource.data.eventId != null
+          && holds(grants, held, "planEvents"))
+        || (changed.hasOnly(["workGroupId", "memberId", "updatedAt"])
+          && holds(grants, held, "reassignTasks"))
+        || (changed.hasOnly(["statusId", "approvedBy", "approvedAt",
+            "changesRequested", "doneAt", "updatedAt"])
+          && holds(grants, held, "approveTasks")
+          && isApprovingTask())
+        || (changed.hasOnly(["statusId", "checklist", "liveLink",
+            "sentForReviewBy", "sentForReviewAt", "changesRequested", "doneAt",
+            "approvedBy", "approvedAt", "updatedAt"])
+          && holds(grants, held, "doAssignedTasks")
+          && isGivenToMe(resource.data)
+          && isDoingTask());
     }
 
     function isNewTask(task) {
@@ -555,27 +568,16 @@ service cloud.firestore {
         && after.stepId == before.stepId;
     }
 
-    /** Edit any task, or a standalone task this member made: anything else. */
-    function canEditTask() {
-      return can("editAnyTask")
-        || (resource.data.createdBy == request.auth.uid && resource.data.eventId == null);
-    }
-
     /**
-     * Doing a task given to them or their group: its status, checklist, the
-     * published link, and sending it for review. A task that needs approval
-     * can't be finished before someone approves it, and they can't approve it
-     * themselves this way.
+     * Doing a task given to them or their group (fields and permission are
+     * checked by the caller): its status, checklist, the published link, and
+     * sending it for review. A task that needs approval can't be finished
+     * before someone approves it, and they can't approve it themselves.
      */
     function isDoingTask() {
       let before = resource.data;
       let after = request.resource.data;
-      return can("doAssignedTasks")
-        && isGivenToMe(before)
-        && changedFields().hasOnly(["statusId", "checklist", "liveLink",
-          "sentForReviewBy", "sentForReviewAt", "changesRequested", "doneAt",
-          "approvedBy", "approvedAt", "updatedAt"])
-        && (after.approvedAt == null || after.approvedAt == before.approvedAt)
+      return (after.approvedAt == null || after.approvedAt == before.approvedAt)
         && (after.approvedBy == null || after.approvedBy == before.approvedBy)
         && (after.sentForReviewBy == null || after.sentForReviewBy == request.auth.uid
           || after.sentForReviewBy == before.sentForReviewBy)
@@ -587,22 +589,13 @@ service cloud.firestore {
           || statusCategory(after.statusId) in ["open", "awaitingApproval"]);
     }
 
-    /** Approve tasks: approve, ask for changes, and move the status. */
+    /** Approve tasks (fields and permission checked by the caller): only in their own name. */
     function isApprovingTask() {
       let after = request.resource.data;
-      return can("approveTasks")
-        && changedFields().hasOnly(["statusId", "approvedBy", "approvedAt",
-          "changesRequested", "doneAt", "updatedAt"])
-        && (after.approvedBy == null || after.approvedBy == request.auth.uid
+      return (after.approvedBy == null || after.approvedBy == request.auth.uid
           || after.approvedBy == resource.data.approvedBy)
         && (after.approvedAt == null || after.approvedAt == request.time
           || after.approvedAt == resource.data.approvedAt);
-    }
-
-    /** Reassign tasks: who it's given to, nothing else. */
-    function isReassigningTask() {
-      return can("reassignTasks")
-        && changedFields().hasOnly(["workGroupId", "memberId", "updatedAt"]);
     }
 
     function isNullOr(value, type) {
