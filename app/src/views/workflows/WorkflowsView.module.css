@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/views/workflows/WorkflowsView.module.css
-   Version : 1.1.0
-   Latest commit: feature/workflow-guide
+   Version : 1.2.0
+   Latest commit: feature/tasks
    Author : Gerrah
    Purpose : Layout of the Workflows page: the header with Import and New workflow, then the table in a card under the In use / Archived switch, or a first-workflow prompt when there are none; the New workflow menu. */
 
@@ -70,7 +70,7 @@
   height: 56px;
   border-radius: var(--radius-card);
   background-color: var(--color-accent-soft);
-  color: var(--color-accent-text);
+  color: var(--color-text-on-accent);
   --icon-size: 28px;
 }
 

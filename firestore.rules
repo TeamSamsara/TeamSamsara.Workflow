@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/firestore.rules
-// Version : 1.10.0
-// Latest commit: feature/workflows
+// Version : 1.11.0
+// Latest commit: feature/tasks
 // Author : Gerrah
 // Purpose : Who may read and write what in Firestore. Everything is denied until
 // a rule below allows it; each PR opens exactly what its feature needs, with a
@@ -478,6 +478,163 @@ service cloud.firestore {
         && data.steps.size() <= 40
         && data.createdAt is timestamp
         && data.updatedAt is timestamp;
+    }
+    // #endregion
+
+    // #region Tasks
+    // Who may do what to a task. Anyone who sees everything (or approves, or
+    // edits any task) reads them all; others read what's given to them or
+    // their work groups, and what they made. Changes come in four kinds, each
+    // limited to its own fields: doing the task, approving it, giving it to
+    // someone else, and editing it (Edit any task, or whoever made it).
+    function statusCategory(statusId) {
+      return get(/databases/$(database)/documents/statuses/$(statusId)).data.category;
+    }
+
+    function isGivenToMe(task) {
+      return task.memberId == request.auth.uid
+        || (task.workGroupId != null
+          && task.workGroupId in memberRecord().data.get("workGroupIds", []));
+    }
+
+    match /tasks/{taskId} {
+      allow read: if isActiveMember()
+        && (can("viewAll") || can("approveTasks") || can("editAnyTask")
+          || isGivenToMe(resource.data)
+          || resource.data.createdBy == request.auth.uid);
+
+      allow create: if isActiveMember()
+        && isValidTask(request.resource.data)
+        && isNewTask(request.resource.data)
+        && ((request.resource.data.eventId == null && can("createStandaloneTasks"))
+          || (request.resource.data.eventId != null && can("planEvents")));
+
+      allow update: if isActiveMember()
+        && isValidTask(request.resource.data)
+        && keepsOrigin()
+        && request.resource.data.updatedAt == request.time
+        && (canEditTask()
+          || isDoingTask()
+          || isApprovingTask()
+          || isReassigningTask());
+
+      allow delete: if can("editAnyTask")
+        || (resource.data.createdBy == request.auth.uid && resource.data.eventId == null);
+    }
+
+    function isNewTask(task) {
+      return task.createdBy == request.auth.uid
+        && task.createdAt == request.time
+        && task.updatedAt == request.time
+        && exists(/databases/$(database)/documents/statuses/$(task.statusId))
+        && task.liveLink == null
+        && task.sentForReviewBy == null && task.sentForReviewAt == null
+        && task.approvedBy == null && task.approvedAt == null
+        && task.changesRequested == null
+        && task.doneAt == null;
+    }
+
+    /** Where a task came from and who made it never change. */
+    function keepsOrigin() {
+      let before = resource.data;
+      let after = request.resource.data;
+      return after.createdBy == before.createdBy
+        && after.createdAt == before.createdAt
+        && after.eventId == before.eventId
+        && after.workflowId == before.workflowId
+        && after.stepId == before.stepId;
+    }
+
+    /** Edit any task, or a standalone task this member made: anything else. */
+    function canEditTask() {
+      return can("editAnyTask")
+        || (resource.data.createdBy == request.auth.uid && resource.data.eventId == null);
+    }
+
+    /**
+     * Doing a task given to them or their group: its status, checklist, the
+     * published link, and sending it for review. A task that needs approval
+     * can't be finished before someone approves it, and they can't approve it
+     * themselves this way.
+     */
+    function isDoingTask() {
+      let before = resource.data;
+      let after = request.resource.data;
+      return can("doAssignedTasks")
+        && isGivenToMe(before)
+        && changedFields().hasOnly(["statusId", "checklist", "liveLink",
+          "sentForReviewBy", "sentForReviewAt", "changesRequested", "doneAt",
+          "approvedBy", "approvedAt", "updatedAt"])
+        && (after.approvedAt == null || after.approvedAt == before.approvedAt)
+        && (after.approvedBy == null || after.approvedBy == before.approvedBy)
+        && (after.sentForReviewBy == null || after.sentForReviewBy == request.auth.uid
+          || after.sentForReviewBy == before.sentForReviewBy)
+        && (after.changesRequested == null || after.changesRequested == before.changesRequested)
+        && (before.checklist == null || after.checklist.size() == before.checklist.size())
+        && (after.statusId == before.statusId
+          || !after.needsApproval
+          || after.approvedAt != null
+          || statusCategory(after.statusId) in ["open", "awaitingApproval"]);
+    }
+
+    /** Approve tasks: approve, ask for changes, and move the status. */
+    function isApprovingTask() {
+      let after = request.resource.data;
+      return can("approveTasks")
+        && changedFields().hasOnly(["statusId", "approvedBy", "approvedAt",
+          "changesRequested", "doneAt", "updatedAt"])
+        && (after.approvedBy == null || after.approvedBy == request.auth.uid
+          || after.approvedBy == resource.data.approvedBy)
+        && (after.approvedAt == null || after.approvedAt == request.time
+          || after.approvedAt == resource.data.approvedAt);
+    }
+
+    /** Reassign tasks: who it's given to, nothing else. */
+    function isReassigningTask() {
+      return can("reassignTasks")
+        && changedFields().hasOnly(["workGroupId", "memberId", "updatedAt"]);
+    }
+
+    function isNullOr(value, type) {
+      return value == null || (type == "string" && value is string)
+        || (type == "timestamp" && value is timestamp);
+    }
+
+    // Same sizes as TaskLimits and WorkflowLimits in the app.
+    function isValidTask(task) {
+      let fields = ["title", "notes", "workGroupId", "memberId", "dueAt",
+        "statusId", "needsApproval", "tagIds", "posts", "checklist", "links",
+        "asksForLiveLink", "liveLink", "eventId", "workflowId", "stepId",
+        "sentForReviewBy", "sentForReviewAt", "approvedBy", "approvedAt",
+        "changesRequested", "createdBy", "createdAt", "updatedAt", "doneAt"];
+      return task.keys().hasOnly(fields)
+        && task.keys().hasAll(fields)
+        && task.title is string && task.title.size() > 0 && task.title.size() <= 120
+        && task.notes is string && task.notes.size() <= 2000
+        && isNullOr(task.workGroupId, "string")
+        && isNullOr(task.memberId, "string")
+        && isNullOr(task.dueAt, "timestamp")
+        && task.statusId is string && task.statusId.size() > 0
+        && task.needsApproval is bool
+        && task.tagIds is list && task.tagIds.size() <= 10
+        && (task.posts == null || (task.posts is list && task.posts.size() <= 10))
+        && (task.checklist == null || (task.checklist is list && task.checklist.size() <= 30))
+        && (task.links == null || (task.links is list && task.links.size() <= 10))
+        && task.asksForLiveLink is bool
+        && (task.liveLink == null || (task.liveLink is string && task.liveLink.size() <= 500))
+        && isNullOr(task.eventId, "string")
+        && isNullOr(task.workflowId, "string")
+        && isNullOr(task.stepId, "string")
+        && isNullOr(task.sentForReviewBy, "string")
+        && isNullOr(task.sentForReviewAt, "timestamp")
+        && isNullOr(task.approvedBy, "string")
+        && isNullOr(task.approvedAt, "timestamp")
+        && (task.changesRequested == null
+          || (task.changesRequested is string && task.changesRequested.size() <= 500))
+        && task.createdBy is string
+        && task.createdAt is timestamp
+        && task.updatedAt is timestamp
+        && isNullOr(task.doneAt, "timestamp");
     }
     // #endregion
 

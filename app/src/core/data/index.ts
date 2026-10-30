@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/index.ts
-// Version : 1.4.0
-// Latest commit: feature/task-setup
+// Version : 1.5.0
+// Latest commit: feature/tasks
 // Author : Gerrah
 // Purpose : What other layers may use from the data module.
 
@@ -17,6 +17,7 @@ export type { ModelCodec } from "./firestoreConverter";
 export type { LiveResult, LiveStatus } from "./liveTypes";
 export { fromDate, serverTime, toDate } from "./timestamps";
 export { useLiveCollection } from "./useLiveCollection";
+export { useLiveQueries } from "./useLiveQueries";
 export { useLiveDocument } from "./useLiveDocument";
 export { useLiveSubscription } from "./useLiveSubscription";
 export type { LiveListener } from "./useLiveSubscription";

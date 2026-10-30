@@ -1,0 +1,90 @@
+/* File : /TeamSamsara.Workflow/app/src/views/tasks/MyTasksView.module.css
+   Version : 1.0.0
+   Latest commit: feature/tasks
+   Author : Gerrah
+   Purpose : Layout of My tasks: the groups of tasks stacked on the left, what's waiting for approval on the right (below on narrow screens), and the empty state. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--content-gap);
+}
+
+.columns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-5);
+}
+
+.main {
+  display: flex;
+  flex: 3 1 480px;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.side {
+  display: flex;
+  flex: 2 1 300px;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-10) 0;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-10) var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+  text-align: center;
+}
+
+.emptyIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-card);
+  background-color: var(--color-accent-soft);
+  color: var(--color-text-on-accent);
+  --icon-size: 28px;
+}
+
+.emptyTitle,
+.quietTitle {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-section-heading);
+  text-transform: uppercase;
+}
+
+.quiet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--card-padding);
+  border: var(--border-width) dashed var(--color-border-control);
+  border-radius: var(--radius-card);
+}
