@@ -1,8 +1,8 @@
 /* File : /TeamSamsara.Workflow/app/src/shared/components/Fields/TextArea/TextArea.module.css
-   Version : 1.0.0
-   Latest commit: core/ui-kit
+   Version : 1.1.0
+   Latest commit: fix/workflow-editor-simpler
    Author : Gerrah
-   Purpose : Look of the multi-line field: the shared outlined box, growing with its rows and resizable up and down, with an optional footer row under it. */
+   Purpose : Look of the multi-line field: the shared outlined box, growing with its text (no drag handle) up to a height, then scrolling; an optional footer row with a count near the limit. */
 
 .control {
   composes: control from "../fieldControl.module.css";
@@ -13,7 +13,20 @@
   composes: input from "../fieldControl.module.css";
   padding: var(--space-3) var(--field-padding-x);
   line-height: var(--leading-body);
-  resize: vertical;
+  /* Grows with its text (see TextArea.tsx), up to a point, then scrolls. */
+  max-height: 24rem;
+  overflow-y: auto;
+  resize: none;
+}
+
+.count {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.count[data-full="true"] {
+  color: var(--color-error-text);
+  font-weight: var(--weight-bold);
 }
 
 .footer {

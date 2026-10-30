@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/components/Fields/Select/Select.tsx
-// Version : 1.0.0
-// Latest commit: core/ui-kit
+// Version : 1.1.0
+// Latest commit: fix/workflow-editor-simpler
 // Author : Gerrah
 // Purpose : A choice from a list, built on the browser's own select so the keyboard, screen
 // readers and phones all work as people expect. Looks like TextField, with a chevron.
@@ -15,6 +15,27 @@ export interface SelectOption {
   value: string;
   label: string;
   disabled?: boolean;
+  /** Options with the same group are listed together under that heading. */
+  group?: string;
+}
+
+function OptionList({ options }: { options: readonly SelectOption[] }) {
+  return options.map((option) => (
+    <option key={option.value} value={option.value} disabled={option.disabled}>
+      {option.label}
+    </option>
+  ));
+}
+
+/** Ungrouped options first, then each group in the order it first appears. */
+function groupOptions(options: readonly SelectOption[]) {
+  const loose = options.filter((option) => !option.group);
+  const groups = new Map<string, SelectOption[]>();
+  for (const option of options) {
+    if (option.group)
+      groups.set(option.group, [...(groups.get(option.group) ?? []), option]);
+  }
+  return { loose, groups: [...groups] };
 }
 
 interface SelectProps extends Omit<ComponentProps<"select">, "children"> {
@@ -24,6 +45,8 @@ interface SelectProps extends Omit<ComponentProps<"select">, "children"> {
   /** A first, empty choice that asks the person to pick (e.g. "Choose a group"). */
   placeholder?: string;
   hint?: ReactNode;
+  /** A longer explanation behind a "?" beside the label. */
+  help?: ReactNode;
   error?: string | null;
   className?: string;
 }
@@ -34,6 +57,7 @@ export function Select({
   options,
   placeholder,
   hint,
+  help,
   error,
   id,
   className,
@@ -41,6 +65,7 @@ export function Select({
   ...rest
 }: SelectProps) {
   const hasError = Boolean(error);
+  const grouped = groupOptions(options);
   const ids = useFieldIds(id, Boolean(hint), hasError);
 
   return (
@@ -49,6 +74,7 @@ export function Select({
       label={label}
       hideLabel={hideLabel}
       hint={hint}
+      help={help}
       error={error}
       className={className}
     >
@@ -70,14 +96,11 @@ export function Select({
               {placeholder}
             </option>
           ) : null}
-          {options.map((option) => (
-            <option
-              key={option.value}
-              value={option.value}
-              disabled={option.disabled}
-            >
-              {option.label}
-            </option>
+          <OptionList options={grouped.loose} />
+          {grouped.groups.map(([group, groupOptionsList]) => (
+            <optgroup key={group} label={group}>
+              <OptionList options={groupOptionsList} />
+            </optgroup>
           ))}
         </select>
         <Icon name="chevronDown" className={styles.chevron} />

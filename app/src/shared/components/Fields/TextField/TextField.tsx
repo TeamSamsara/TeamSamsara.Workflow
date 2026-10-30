@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/components/Fields/TextField/TextField.tsx
-// Version : 1.0.0
-// Latest commit: core/ui-kit
+// Version : 1.1.0
+// Latest commit: fix/workflow-editor-simpler
 // Author : Gerrah
 // Purpose : The generic single-line input, with its label, hint and error tied to it for
 // screen readers. An icon can sit at the start and any content (a button) at the end. What
@@ -22,6 +22,8 @@ export interface TextFieldProps extends Omit<
   hideLabel?: boolean;
   /** Help under the field, always shown. */
   hint?: ReactNode;
+  /** A longer explanation behind a "?" beside the label. */
+  help?: ReactNode;
   /** The message under the field. Leave empty when the value is fine. */
   error?: string | null;
   /** Icon inside the start of the box, like the magnifier of a search field. */
@@ -36,6 +38,7 @@ export function TextField({
   label,
   hideLabel,
   hint,
+  help,
   error,
   leadingIcon,
   trailing,
@@ -53,6 +56,7 @@ export function TextField({
       label={label}
       hideLabel={hideLabel}
       hint={hint}
+      help={help}
       error={error}
       className={className}
     >

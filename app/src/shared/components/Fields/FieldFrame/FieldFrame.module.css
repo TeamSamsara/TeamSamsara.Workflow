@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/shared/components/Fields/FieldFrame/FieldFrame.module.css
-   Version : 1.0.0
-   Latest commit: core/ui-kit
+   Version : 1.1.0
+   Latest commit: fix/workflow-editor-simpler
    Author : Gerrah
    Purpose : Layout of a field: a bold 13px label, the control, then a muted hint and the error, 6px apart. The field shrinks inside rows so long labels never push it out of a card. */
 
@@ -16,6 +16,12 @@
   font-size: var(--text-field-label);
   font-weight: var(--weight-bold);
   line-height: var(--leading-small);
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
 }
 
 .hiddenLabel {

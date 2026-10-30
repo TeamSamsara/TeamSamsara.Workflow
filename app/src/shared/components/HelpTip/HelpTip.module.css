@@ -1,0 +1,56 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/components/HelpTip/HelpTip.module.css
+   Version : 1.0.0
+   Latest commit: fix/workflow-editor-simpler
+   Author : Gerrah
+   Purpose : The "?" button (small, muted, inline with a label) and the note it opens below it. */
+
+.root {
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  --icon-size: 15px;
+}
+
+.button:hover,
+.button[aria-expanded="true"] {
+  color: var(--color-text);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+.panel {
+  position: absolute;
+  top: calc(100% + var(--space-1-5));
+  left: -8px;
+  z-index: var(--layer-dropdown);
+  width: max-content;
+  max-width: min(320px, 80vw);
+  padding: var(--space-2-5) var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-field);
+  background-color: var(--color-surface-raised);
+  box-shadow: var(--shadow-dialog);
+  color: var(--color-text);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-meta);
+  text-transform: none;
+  white-space: normal;
+}

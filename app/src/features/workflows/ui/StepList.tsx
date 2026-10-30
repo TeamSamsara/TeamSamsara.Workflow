@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/ui/StepList.tsx
-// Version : 1.0.0
-// Latest commit: feature/workflows
+// Version : 1.1.0
+// Latest commit: fix/workflow-editor-simpler
 // Author : Gerrah
 // Purpose : A workflow's tasks in order: each row shows its number, title, who
 // it's given to and when it's due, and opens in place to edit. Rows reorder by
@@ -8,6 +8,7 @@
 
 import { Button } from "@/shared/components/Button/Button";
 import { Chip } from "@/shared/components/Chip/Chip";
+import { HelpTip } from "@/shared/components/HelpTip/HelpTip";
 import { Pill } from "@/shared/components/Pill/Pill";
 import { useSortableList } from "@/shared/hooks/useSortableList";
 import { Icon } from "@/shared/icons/Icon";
@@ -63,11 +64,11 @@ export function StepList({
   return (
     <section className={styles.card} aria-labelledby="workflow-steps-title">
       <header className={styles.header}>
-        <div>
+        <div className={styles.heading}>
           <h2 id="workflow-steps-title" className={styles.title}>
             {Text.title}
           </h2>
-          <p className={styles.muted}>{Text.description}</p>
+          <HelpTip topic={Text.title}>{Text.help}</HelpTip>
         </div>
         {readOnly ? null : (
           <Button

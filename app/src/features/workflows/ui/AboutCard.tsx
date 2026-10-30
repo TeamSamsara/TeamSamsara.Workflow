@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/ui/AboutCard.tsx
-// Version : 1.0.0
-// Latest commit: feature/workflows
+// Version : 1.1.0
+// Latest commit: fix/workflow-editor-simpler
 // Author : Gerrah
 // Purpose : A workflow's name, what it's for, and the event type it's
 // suggested for when planning.
@@ -52,7 +52,7 @@ export function AboutCard({
           label={Text.description}
           placeholder={Text.descriptionPlaceholder}
           value={fields.description}
-          rows={3}
+          rows={2}
           maxLength={WorkflowLimits.description}
           onChange={(event) => onChange({ description: event.target.value })}
           error={descriptionError}
@@ -64,9 +64,8 @@ export function AboutCard({
           onChange={(event) =>
             onChange({ eventTypeId: event.target.value || null })
           }
-          hint={
-            eventTypes.length === 0 ? Text.noEventTypes : Text.eventTypeHint
-          }
+          help={Text.eventTypeHelp}
+          hint={eventTypes.length === 0 ? Text.noEventTypes : undefined}
         />
       </div>
     </section>

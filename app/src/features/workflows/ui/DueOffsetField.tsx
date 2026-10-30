@@ -1,22 +1,27 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/ui/DueOffsetField.tsx
-// Version : 1.0.0
-// Latest commit: feature/workflows
+// Version : 1.1.0
+// Latest commit: fix/workflow-editor-simpler
 // Author : Gerrah
-// Purpose : Picks when a task is due, counted from the event's start: before,
-// at or after it, by days and hours, or days and a set clock time.
+// Purpose : Picks when a task is due, in everyday words: one list of the
+// usual choices ("When the event starts", "1 hour before", "The day before"…),
+// a time of day for the day ones, and Custom for anything else.
 
-import { Checkbox } from "@/shared/components/Fields/Checkbox/Checkbox";
+import { useState } from "react";
 import { Select } from "@/shared/components/Fields/Select/Select";
 import { TextField } from "@/shared/components/Fields/TextField/TextField";
 import type { ClockFormat } from "@/shared/time/dates";
-import { describeDue } from "../model/dueOffset";
+import { describeDue, formatClockTime } from "../model/dueOffset";
 import {
-  atTheStart,
-  DueDirections,
-  WorkflowLimits,
-  type DueDirection,
-  type DueOffset,
-} from "../types/workflowTypes";
+  DuePresets,
+  DueUnits,
+  fromAmount,
+  halfHours,
+  matchPreset,
+  maxAmount,
+  toAmount,
+  type DueUnit,
+} from "../model/duePresets";
+import type { DueOffset } from "../types/workflowTypes";
 import { DueFieldText as Text } from "./workflowsContent";
 import styles from "./DueOffsetField.module.css";
 
@@ -24,130 +29,150 @@ interface DueOffsetFieldProps {
   value: DueOffset;
   onChange: (value: DueOffset) => void;
   clockFormat: ClockFormat;
-  /** Names the group of fields, e.g. "Due". */
   label: string;
+  /** The explanation behind the "?" beside the label. */
+  help?: string;
 }
 
-const directionOptions = DueDirections.map((direction) => ({
-  value: direction,
-  label: Text.directions[direction],
-}));
-
-function whole(text: string, max: number): number {
-  const value = Math.trunc(Number(text));
-  return Number.isFinite(value) ? Math.min(Math.max(value, 0), max) : 0;
-}
+const custom = "custom";
+const eventTime = "";
 
 export function DueOffsetField({
   value,
   onChange,
   clockFormat,
   label,
+  help,
 }: DueOffsetFieldProps) {
-  const counting = value.direction !== "at";
+  const preset = matchPreset(value);
+  const [choseCustom, setChoseCustom] = useState(preset === null);
+  const isCustom = choseCustom || preset === null;
+  const amount = toAmount(value);
+  const direction = value.direction === "after" ? "after" : "before";
+  const inDays = isCustom
+    ? value.direction !== "at" && amount.unit === "days"
+    : Boolean(preset?.inDays);
 
-  function changeDirection(direction: DueDirection) {
-    if (direction === "at") onChange(atTheStart);
-    else if (value.direction === "at")
-      onChange({ ...atTheStart, direction, days: 1 });
-    else onChange({ ...value, direction });
+  const presetOptions = [
+    ...DuePresets.map((entry) => ({
+      value: entry.id,
+      label: describeDue(entry.offset, clockFormat),
+    })),
+    { value: custom, label: Text.custom },
+  ];
+
+  const times = halfHours();
+  if (value.time && !times.includes(value.time)) times.push(value.time);
+  const timeOptions = [
+    { value: eventTime, label: Text.eventTime },
+    ...times.sort().map((time) => ({
+      value: time,
+      label: formatClockTime(time, clockFormat),
+    })),
+  ];
+
+  function choosePreset(id: string) {
+    if (id === custom) {
+      setChoseCustom(true);
+      // Start custom from what's chosen, as an amount people can change.
+      if (value.direction === "at")
+        onChange(fromAmount({ amount: 2, unit: "hours" }, "before", null));
+      return;
+    }
+    const next = DuePresets.find((entry) => entry.id === id);
+    if (!next) return;
+    setChoseCustom(false);
+    // Keep the time of day when moving between day choices.
+    onChange(next.inDays ? { ...next.offset, time: value.time } : next.offset);
+  }
+
+  function changeAmount(changes: {
+    amount?: number;
+    unit?: DueUnit;
+    direction?: "before" | "after";
+  }) {
+    const unit = changes.unit ?? amount.unit;
+    onChange(
+      fromAmount(
+        { amount: changes.amount ?? amount.amount, unit },
+        changes.direction ?? direction,
+        unit === "days" ? value.time : null,
+      ),
+    );
   }
 
   return (
-    <fieldset className={styles.field} aria-label={label}>
+    <div className={styles.field} role="group" aria-label={label}>
       <div className={styles.row}>
         <Select
           label={label}
-          options={directionOptions}
-          value={value.direction}
-          onChange={(event) =>
-            changeDirection(event.target.value as DueDirection)
-          }
-          className={styles.when}
+          help={help}
+          options={presetOptions}
+          value={isCustom ? custom : (preset?.id ?? custom)}
+          onChange={(event) => choosePreset(event.target.value)}
+          className={styles.preset}
         />
-        {counting ? (
-          <TextField
-            label={Text.days}
-            type="number"
-            inputMode="numeric"
-            min={0}
-            max={WorkflowLimits.dueDays}
-            value={value.days}
+        {inDays ? (
+          <Select
+            label={Text.at}
+            options={timeOptions}
+            value={value.time ?? eventTime}
             onChange={(event) =>
-              onChange({
-                ...value,
-                days: whole(event.target.value, WorkflowLimits.dueDays),
-              })
-            }
-            className={styles.number}
-          />
-        ) : null}
-        {counting && value.time !== null ? (
-          <TextField
-            label={Text.time}
-            type="time"
-            value={value.time}
-            onChange={(event) =>
-              onChange({ ...value, time: event.target.value || "09:00" })
+              onChange({ ...value, time: event.target.value || null })
             }
             className={styles.time}
           />
         ) : null}
-        {counting && value.time === null ? (
-          <>
-            <TextField
-              label={Text.hours}
-              type="number"
-              inputMode="numeric"
-              min={0}
-              max={WorkflowLimits.dueHours}
-              value={value.hours}
-              onChange={(event) =>
-                onChange({
-                  ...value,
-                  hours: whole(event.target.value, WorkflowLimits.dueHours),
-                })
-              }
-              className={styles.number}
-            />
-            <TextField
-              label={Text.minutes}
-              type="number"
-              inputMode="numeric"
-              min={0}
-              max={WorkflowLimits.dueMinutes}
-              step={5}
-              value={value.minutes}
-              onChange={(event) =>
-                onChange({
-                  ...value,
-                  minutes: whole(event.target.value, WorkflowLimits.dueMinutes),
-                })
-              }
-              className={styles.number}
-            />
-          </>
-        ) : null}
       </div>
-      {counting ? (
-        <Checkbox
-          label={Text.atTime}
-          checked={value.time !== null}
-          onChange={(event) =>
-            onChange({
-              ...value,
-              hours: 0,
-              minutes: 0,
-              time: event.target.checked ? "19:00" : null,
-            })
-          }
-        />
+
+      {isCustom ? (
+        <div className={styles.row}>
+          <TextField
+            label={Text.amount}
+            type="number"
+            inputMode="numeric"
+            min={0}
+            max={maxAmount[amount.unit]}
+            value={amount.amount}
+            onChange={(event) =>
+              changeAmount({ amount: Number(event.target.value) })
+            }
+            className={styles.amount}
+          />
+          <Select
+            label={Text.unit}
+            options={DueUnits.map((unit) => ({
+              value: unit,
+              label: Text.units[unit],
+            }))}
+            value={amount.unit}
+            onChange={(event) =>
+              changeAmount({ unit: event.target.value as DueUnit })
+            }
+            className={styles.unit}
+          />
+          <Select
+            label={Text.direction}
+            options={[
+              { value: "before", label: Text.directions.before },
+              { value: "after", label: Text.directions.after },
+            ]}
+            value={direction}
+            onChange={(event) =>
+              changeAmount({
+                direction: event.target.value as "before" | "after",
+              })
+            }
+            className={styles.direction}
+          />
+        </div>
       ) : null}
-      {counting ? (
+
+      {isCustom ? (
         <p className={styles.summary} aria-live="polite">
-          {describeDue(value, clockFormat)}
+          {Text.summary(describeDue(value, clockFormat))}
         </p>
       ) : null}
-    </fieldset>
+    </div>
   );
 }

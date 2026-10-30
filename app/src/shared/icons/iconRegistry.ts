@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/icons/iconRegistry.ts
-// Version : 1.1.0
-// Latest commit: core/app-shell
+// Version : 1.2.0
+// Latest commit: fix/workflow-editor-simpler
 // Author : Gerrah
 // Purpose : The only file that knows where each icon comes from; screens use the names.
 
@@ -13,6 +13,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  CircleHelp,
   CircleAlert,
   Clock,
   Copy,
@@ -109,6 +110,7 @@ export const iconRegistry = {
 
   // State and messages
   info: Info,
+  help: CircleHelp,
   warning: TriangleAlert,
   error: CircleAlert,
   time: Clock,

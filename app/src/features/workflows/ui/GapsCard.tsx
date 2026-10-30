@@ -1,11 +1,12 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/ui/GapsCard.tsx
-// Version : 1.0.0
-// Latest commit: feature/workflows
+// Version : 1.1.0
+// Latest commit: fix/workflow-editor-simpler
 // Author : Gerrah
 // Purpose : The event details a workflow uses: the {gaps} in its tasks' text,
 // split into those the event fills itself and those asked for when planning.
 
 import { Chip } from "@/shared/components/Chip/Chip";
+import { HelpTip } from "@/shared/components/HelpTip/HelpTip";
 import { workflowGaps } from "../model/placeholders";
 import type { WorkflowStep } from "../types/workflowTypes";
 import { GapsCardText as Text } from "./workflowsContent";
@@ -17,10 +18,12 @@ export function GapsCard({ steps }: { steps: readonly WorkflowStep[] }) {
 
   return (
     <section className={styles.card} aria-labelledby="workflow-gaps-title">
-      <h2 id="workflow-gaps-title" className={styles.title}>
-        {Text.title}
-      </h2>
-      <p className={styles.muted}>{Text.description}</p>
+      <div className={styles.heading}>
+        <h2 id="workflow-gaps-title" className={styles.title}>
+          {Text.title}
+        </h2>
+        <HelpTip topic={Text.title}>{Text.help}</HelpTip>
+      </div>
       {none ? <p className={styles.muted}>{Text.none}</p> : null}
       {gaps.fromEvent.length > 0 ? (
         <div className={styles.group}>

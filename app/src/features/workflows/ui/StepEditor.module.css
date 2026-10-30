@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/features/workflows/ui/StepEditor.module.css
-   Version : 1.0.0
-   Latest commit: feature/workflows
+   Version : 1.1.0
+   Latest commit: fix/workflow-editor-simpler
    Author : Gerrah
    Purpose : An open task in the workflow editor: its fields stacked, group and person side by side, each section in a soft box, and Duplicate/Delete at the foot. Also the tag chips and checklist rows. */
 
@@ -14,11 +14,6 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-2) var(--space-3);
-}
-
-.assignHint {
-  composes: muted;
-  grid-column: 1 / -1;
 }
 
 .group {
@@ -62,12 +57,14 @@
   gap: var(--space-3);
 }
 
-.section > .sectionHeader:last-child {
-  margin-bottom: calc(-1 * var(--space-1));
+.sectionHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
 }
 
 .sectionTitle {
-  margin: 0 0 var(--space-0-5);
+  margin: 0;
   font-size: var(--text-body);
   font-weight: var(--weight-bold);
   line-height: var(--leading-body);
