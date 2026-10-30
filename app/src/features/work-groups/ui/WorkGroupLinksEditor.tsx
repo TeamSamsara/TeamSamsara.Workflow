@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/ui/WorkGroupLinksEditor.tsx
-// Version : 1.0.0
-// Latest commit: task/group-leads-and-x-premium
+// Version : 1.1.0
+// Latest commit: feature/workflows
 // Author : Gerrah
 // Purpose : Edits a work group's links: a name and an address per row (e.g.
 // Shared drive → https://drive.google.com/…), with Open, Remove and Add link.
@@ -11,7 +11,7 @@ import { Button } from "@/shared/components/Button/Button";
 import { TextField } from "@/shared/components/Fields/TextField/TextField";
 import { TextLimits } from "@/shared/validation/textLimits";
 import { WorkGroupLimits, type WorkGroupLink } from "../types/workGroupTypes";
-import { WorkGroupLinksText as Text } from "./workGroupsContent";
+import { WorkGroupLinksText } from "./workGroupsContent";
 import styles from "./WorkGroupLinksEditor.module.css";
 
 interface WorkGroupLinksEditorProps {
@@ -21,7 +21,19 @@ interface WorkGroupLinksEditorProps {
   /** Show the problems (once the person has tried to save). */
   showErrors: boolean;
   disabled?: boolean;
+  /** Other words, for links that aren't a group's (e.g. a task's examples). */
+  text?: Partial<LinksEditorText>;
+  /** The most links allowed. */
+  max?: number;
 }
+
+type LinksEditorText = {
+  [
+    Key in keyof typeof WorkGroupLinksText
+  ]: (typeof WorkGroupLinksText)[Key] extends string
+    ? string
+    : (typeof WorkGroupLinksText)[Key];
+};
 
 export function WorkGroupLinksEditor({
   links,
@@ -29,7 +41,10 @@ export function WorkGroupLinksEditor({
   onChange,
   showErrors,
   disabled = false,
+  text,
+  max = WorkGroupLimits.links,
 }: WorkGroupLinksEditorProps) {
+  const Text = { ...WorkGroupLinksText, ...text };
   function update(index: number, changes: Partial<WorkGroupLink>) {
     onChange(
       links.map((link, at) => (at === index ? { ...link, ...changes } : link)),
@@ -89,7 +104,7 @@ export function WorkGroupLinksEditor({
         size="small"
         iconStart="add"
         onClick={() => onChange([...links, { label: "", url: "" }])}
-        disabled={disabled || links.length >= WorkGroupLimits.links}
+        disabled={disabled || links.length >= max}
         className={styles.add}
       >
         {Text.add}

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/scripts/seedEmulator.mjs
-// Version : 1.6.0
-// Latest commit: feature/task-setup
+// Version : 1.7.0
+// Latest commit: feature/workflows
 // Author : Gerrah
 // Purpose : Fills the local emulators with a ready-made workspace and test
 // accounts, so the app can be tried without touching the real project. It wipes
@@ -69,6 +69,71 @@ const workGroups = [
     description: "Edits highlights, thumbnails and VODs.",
   },
 ];
+
+const due = (direction, days, hours, time = null) => ({
+  direction,
+  days,
+  hours,
+  minutes: 0,
+  time,
+});
+const step = (id, fields) => ({
+  id,
+  title: "",
+  notes: "",
+  workGroupId: null,
+  memberId: null,
+  due: due("before", 1, 0),
+  needsApproval: false,
+  tagIds: [],
+  posts: null,
+  checklist: null,
+  links: null,
+  asksForLiveLink: false,
+  ...fields,
+});
+
+/** One workflow with a task of each kind, to try the editor on. */
+const sampleWorkflow = {
+  name: "Livestream",
+  description: "Before, during and after a stream.",
+  eventTypeId: null,
+  archived: false,
+  steps: [
+    step("thumb", {
+      title: "Thumbnail",
+      notes: "1280×720, the guest's face on the left.",
+      workGroupId: "design",
+      due: due("before", 2, 0, "19:00"),
+      needsApproval: true,
+      checklist: [
+        { id: "c1", text: "Logo in the corner" },
+        { id: "c2", text: "Readable at phone size" },
+      ],
+      links: [{ label: "Brand folder", url: "https://example.com/brand" }],
+    }),
+    step("golive", {
+      title: "Go-live post",
+      notes: "Post the moment the stream starts.",
+      due: due("at", 0, 0),
+      posts: [
+        {
+          platformId: "x",
+          formatId: null,
+          texts: {
+            post: "We're live! {title} with {guest}. Come hang out: {link}",
+          },
+        },
+      ],
+      asksForLiveLink: true,
+    }),
+    step("vod", {
+      title: "Save the VOD",
+      workGroupId: "video",
+      due: due("after", 0, 1),
+    }),
+  ],
+};
 
 /** status null = an account with no member record (never invited). */
 const accounts = [
@@ -190,6 +255,11 @@ async function main() {
       ...defaultStatuses.map((status, index) =>
         db.doc(`statuses/status${index + 1}`).set(status),
       ),
+      db.doc("workflows/livestream").set({
+        ...sampleWorkflow,
+        createdAt: now,
+        updatedAt: now,
+      }),
       ...workGroups.map(({ id, ...group }) =>
         db.doc(`workGroups/${id}`).set({ ...group, createdAt: now }),
       ),

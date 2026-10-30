@@ -1,0 +1,67 @@
+/* File : /TeamSamsara.Workflow/app/src/features/workflows/ui/WorkflowsTable.module.css
+   Version : 1.0.0
+   Latest commit: feature/workflows
+   Author : Gerrah
+   Purpose : The workflows table: bold names that open the editor, muted details, group chips and an open arrow at the end of each row. */
+
+.name {
+  color: var(--color-text);
+  font-weight: var(--weight-bold);
+  text-decoration: none;
+}
+
+.name:hover {
+  text-decoration: underline;
+}
+
+.description {
+  max-width: 320px;
+}
+
+.number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.muted,
+.empty {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-6) 0;
+  text-align: center;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1-5);
+}
+
+.openCell {
+  width: var(--control-height);
+  text-align: right;
+}
+
+.open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-height-small);
+  height: var(--control-height-small);
+  border-radius: var(--radius-control);
+  color: var(--color-text-muted);
+}
+
+.row:hover .open {
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+}
+
+.hidden {
+  composes: hidden from "../../../shared/components/VisuallyHidden/VisuallyHidden.module.css";
+}

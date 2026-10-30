@@ -1,0 +1,64 @@
+/* File : /TeamSamsara.Workflow/app/src/views/workflows/WorkflowEditView.module.css
+   Version : 1.0.0
+   Latest commit: feature/workflows
+   Author : Gerrah
+   Purpose : Layout of the workflow editor: the header, notes, then the tasks beside the About and event details cards (stacked on narrow screens). */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--content-gap);
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-10) 0;
+}
+
+.missing {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.columns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-5);
+}
+
+.main {
+  display: flex;
+  flex: 3 1 480px;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.side {
+  display: flex;
+  flex: 1 1 280px;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* Breakpoints.large: the side cards stay in view while scrolling the tasks. */
+@media (min-width: 1100px) {
+  .side {
+    position: sticky;
+    top: var(--space-5);
+  }
+}
+
+.text {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
