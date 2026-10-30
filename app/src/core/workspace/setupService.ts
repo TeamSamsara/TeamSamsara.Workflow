@@ -1,14 +1,14 @@
 // File : /TeamSamsara.Workflow/app/src/core/workspace/setupService.ts
-// Version : 1.0.0
-// Latest commit: core/workspace
+// Version : 1.2.0
+// Latest commit: feature/task-setup
 // Author : Gerrah
 // Purpose : First-time setup. Gets a sign-in account (the one already signed in,
 // a new one, or an existing one with the right password), then writes the
-// workspace, the default roles and the person as its first Admin in one batch,
+// workspace, the default roles and statuses, and the person as its first Admin in one batch,
 // so a half-made workspace can never exist. The security rules allow this batch
 // only while there is no workspace.
 
-import { doc, writeBatch } from "firebase/firestore";
+import { collection, doc, writeBatch } from "firebase/firestore";
 import {
   Collections,
   ConfigDocuments,
@@ -24,6 +24,7 @@ import {
 } from "@/core/session";
 import { db } from "@/lib/firebase";
 import { AdminRoleId, defaultRoles } from "./seed/defaultRoles";
+import { defaultStatuses } from "./seed/defaultStatuses";
 import { workspaceRef } from "./workspaceService";
 import type { WorkspaceSettings } from "./workspaceTypes";
 
@@ -87,6 +88,10 @@ export async function setUpWorkspace(details: SetupDetails): Promise<void> {
     joinedAt: serverTime(),
     lastActiveAt: serverTime(),
   });
+
+  for (const status of defaultStatuses) {
+    batch.set(doc(collection(db, Collections.statuses)), status);
+  }
 
   await batch.commit();
 }

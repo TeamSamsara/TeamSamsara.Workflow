@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/workspace.rules.test.ts
-// Version : 1.0.0
-// Latest commit: core/workspace
+// Version : 1.1.0
+// Latest commit: feature/task-setup
 // Author : Gerrah
 // Purpose : Tests first-time setup and the workspace record: anyone can see
 // whether a workspace exists; the first one is created once, in one batch with
@@ -83,6 +83,8 @@ interface SetupParts {
   workspace?: Record<string, unknown> | null;
   roles?: Record<string, unknown> | null;
   member?: Record<string, unknown> | null;
+  /** The starting statuses written with the rest; none by default. */
+  statuses?: Record<string, unknown>[];
 }
 
 /** The setup batch; leave a part out (null) or change it to test the rules. */
@@ -100,6 +102,9 @@ function setupBatch(db: Firestore, userId: string, parts: SetupParts = {}) {
   if (workspace) batch.set(doc(db, "config/workspace"), workspace);
   if (roles) batch.set(doc(db, "config/roles"), roles);
   if (member) batch.set(doc(db, "members", userId), member);
+  for (const [index, status] of (parts.statuses ?? []).entries()) {
+    batch.set(doc(db, "statuses", `status${index}`), status);
+  }
   return batch.commit();
 }
 
@@ -134,6 +139,35 @@ describe("seeing whether a workspace exists", () => {
 describe("first-time setup", () => {
   it("creates the workspace, roles and first Admin in one batch", async () => {
     await assertSucceeds(setupBatch(signedInWithEmail("alex"), "alex"));
+  });
+
+  it("also writes the starting statuses", async () => {
+    const statuses = [
+      { name: "To do", tone: "neutral", category: "open", position: 0 },
+      {
+        name: "In review",
+        tone: "info",
+        category: "awaitingApproval",
+        position: 1,
+      },
+      { name: "Approved", tone: "alert", category: "open", position: 2 },
+      { name: "Done", tone: "success", category: "finished", position: 3 },
+      { name: "Skipped", tone: "muted", category: "closed", position: 4 },
+    ];
+    await assertSucceeds(
+      setupBatch(signedInWithEmail("alex"), "alex", { statuses }),
+    );
+  });
+
+  it("can't write statuses without the workspace", async () => {
+    await assertFails(
+      setDoc(doc(signedInWithEmail("alex"), "statuses/todo"), {
+        name: "To do",
+        tone: "neutral",
+        category: "open",
+        position: 0,
+      }),
+    );
   });
 
   it("needs someone signed in", async () => {

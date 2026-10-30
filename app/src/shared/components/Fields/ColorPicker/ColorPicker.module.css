@@ -1,6 +1,6 @@
-/* File : /TeamSamsara.Workflow/app/src/features/roles/ui/RoleColorPicker.module.css
-   Version : 1.0.0
-   Latest commit: feature/roles
+/* File : /TeamSamsara.Workflow/app/src/shared/components/Fields/ColorPicker/ColorPicker.module.css
+   Version : 1.1.0
+   Latest commit: feature/task-setup
    Author : Gerrah
    Purpose : Look of the colour picker: round 32px swatches with a ring around the picked one, and the Custom button showing the custom colour when one is picked. */
 
@@ -15,7 +15,7 @@
 }
 
 .legend {
-  composes: label from "../../../shared/components/Fields/FieldFrame/FieldFrame.module.css";
+  composes: label from "../FieldFrame/FieldFrame.module.css";
   margin-bottom: var(--space-2);
   padding: 0;
 }

@@ -1,8 +1,8 @@
 // File : /TeamSamsara.Workflow/app/src/features/roles/ui/roleDisplayFormContent.ts
-// Version : 1.0.0
-// Latest commit: feature/roles
+// Version : 1.1.0
+// Latest commit: feature/task-setup
 // Author : Gerrah
-// Purpose : The words on a role's Display tab and in its colour picker.
+// Purpose : The words on a role's Display tab.
 
 export const RoleDisplayFormText = {
   name: "Role name",
@@ -13,10 +13,4 @@ export const RoleDisplayFormText = {
   preview: "Preview",
   previewName: "Sam Rivera",
   previewDetail: "Planned Livestream · Thu, Dec 17",
-} as const;
-
-export const RoleColorPickerText = {
-  swatch: (name: string) => `Colour: ${name}`,
-  custom: "Custom",
-  customLabel: "Pick a custom colour",
 } as const;

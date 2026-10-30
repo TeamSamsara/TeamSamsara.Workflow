@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/roles/ui/NewRoleDialog.tsx
-// Version : 1.0.0
-// Latest commit: feature/roles
+// Version : 1.1.0
+// Latest commit: feature/task-setup
 // Author : Gerrah
 // Purpose : Creates a role from a name and a colour. It lands just above
 // Everyone with no permissions, and the caller opens it straight after.
@@ -10,6 +10,7 @@ import { useId, useState, type FormEvent } from "react";
 import { dataErrorMessage } from "@/core/data";
 import { Banner } from "@/shared/components/Banner/Banner";
 import { Button } from "@/shared/components/Button/Button";
+import { ColorPicker } from "@/shared/components/Fields/ColorPicker/ColorPicker";
 import { TextField } from "@/shared/components/Fields/TextField/TextField";
 import { Modal } from "@/shared/components/Modal/Modal";
 import { useToast } from "@/shared/components/Toast/useToast";
@@ -18,7 +19,6 @@ import { checkName } from "@/shared/validation/nameRules";
 import { TextLimits } from "@/shared/validation/textLimits";
 import { createRole } from "../service/roleService";
 import { NewRoleDialogText } from "./roleDialogsContent";
-import { RoleColorPicker } from "./RoleColorPicker";
 import styles from "./RoleDialogs.module.css";
 
 interface NewRoleDialogProps {
@@ -94,7 +94,7 @@ export function NewRoleDialog({ onClose, onCreated }: NewRoleDialogProps) {
           error={nameError}
           autoFocus
         />
-        <RoleColorPicker value={color} onChange={setColor} />
+        <ColorPicker value={color} onChange={setColor} />
       </form>
     </Modal>
   );

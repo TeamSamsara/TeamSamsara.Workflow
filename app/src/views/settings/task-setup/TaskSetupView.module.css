@@ -1,0 +1,45 @@
+/* File : /TeamSamsara.Workflow/app/src/views/settings/task-setup/TaskSetupView.module.css
+   Version : 1.0.0
+   Latest commit: feature/task-setup
+   Author : Gerrah
+   Purpose : Layout of Settings → Tasks and events: the heading, then the three list cards stacked. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--content-gap);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-dialog-title);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-dialog-title);
+  text-transform: uppercase;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.starts {
+  composes: muted;
+  font-style: italic;
+}

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/router.tsx
-// Version : 1.7.0
-// Latest commit: feature/workspace-settings
+// Version : 1.8.0
+// Latest commit: feature/task-setup
 // Author : Gerrah
 // Purpose : Every route in the app. Layouts and the not-found page load with the
 // app; every other page loads only when it is first opened. Pages not built yet show ComingSoonView, and each
@@ -117,6 +117,11 @@ const platformsView = () =>
     Component: module.PlatformsView,
   }));
 
+const taskSetupView = () =>
+  import("@/views/settings/task-setup/TaskSetupView").then((module) => ({
+    Component: module.TaskSetupView,
+  }));
+
 const comingSoonView = () =>
   import("@/views/system/ComingSoonView").then((module) => ({
     Component: module.ComingSoonView,
@@ -214,10 +219,7 @@ export const router = createBrowserRouter([
                         children: [{ path: RoutePaths.settingsGroup }],
                       }),
                       settingsPage(RoutePaths.settingsPlatforms, platformsView),
-                      settingsPage(
-                        RoutePaths.settingsTaskSetup,
-                        comingSoonView,
-                      ),
+                      settingsPage(RoutePaths.settingsTaskSetup, taskSetupView),
                     ],
                   },
                 ],

@@ -1,22 +1,23 @@
-// File : /TeamSamsara.Workflow/app/src/features/roles/ui/RoleColorPicker.tsx
-// Version : 1.0.0
-// Latest commit: feature/roles
+// File : /TeamSamsara.Workflow/app/src/shared/components/Fields/ColorPicker/ColorPicker.tsx
+// Version : 1.1.0
+// Latest commit: feature/task-setup
 // Author : Gerrah
-// Purpose : Picks a role's colour: the preset swatches as a radio group, plus a
-// Custom swatch that opens the browser's colour picker and shows the picked
-// colour when it isn't one of the presets.
+// Purpose : Picks a colour (roles, task kinds, event types): the preset
+// swatches as a radio group, plus a Custom swatch that opens the browser's
+// colour picker and shows the picked colour when it isn't one of the presets.
 
-import { useId, type CSSProperties } from "react";
+import { useId, type CSSProperties, type ReactNode } from "react";
 import { ColorPresets } from "@/shared/constants/colorPresets";
-import {
-  RoleColorPickerText,
-  RoleDisplayFormText,
-} from "./roleDisplayFormContent";
-import styles from "./RoleColorPicker.module.css";
+import { ColorPickerText } from "./colorPickerContent";
+import styles from "./ColorPicker.module.css";
 
-interface RoleColorPickerProps {
+interface ColorPickerProps {
   value: string;
   onChange: (color: string) => void;
+  /** Defaults to "Colour". */
+  label?: string;
+  /** Help under the swatches (what the colour is used for). */
+  hint?: ReactNode;
   disabled?: boolean;
 }
 
@@ -30,11 +31,13 @@ const rainbowStyle = {
     .join(", ")})`,
 } as CSSProperties;
 
-export function RoleColorPicker({
+export function ColorPicker({
   value,
   onChange,
+  label = ColorPickerText.label,
+  hint,
   disabled = false,
-}: RoleColorPickerProps) {
+}: ColorPickerProps) {
   const name = useId();
   const hintId = useId();
   const isPreset = ColorPresets.some(
@@ -45,9 +48,9 @@ export function RoleColorPicker({
     <fieldset
       className={styles.picker}
       disabled={disabled}
-      aria-describedby={hintId}
+      aria-describedby={hint ? hintId : undefined}
     >
-      <legend className={styles.legend}>{RoleDisplayFormText.color}</legend>
+      <legend className={styles.legend}>{label}</legend>
       <div className={styles.swatches}>
         {ColorPresets.map((preset) => (
           <label
@@ -63,7 +66,7 @@ export function RoleColorPicker({
               checked={preset.value.toLowerCase() === value.toLowerCase()}
               onChange={() => onChange(preset.value)}
               className={styles.input}
-              aria-label={RoleColorPickerText.swatch(preset.name)}
+              aria-label={ColorPickerText.swatch(preset.name)}
             />
           </label>
         ))}
@@ -77,15 +80,17 @@ export function RoleColorPicker({
             value={value}
             onChange={(event) => onChange(event.target.value)}
             className={styles.colorInput}
-            aria-label={RoleColorPickerText.customLabel}
+            aria-label={ColorPickerText.customLabel}
           />
           <span className={styles.customDot} aria-hidden="true" />
-          {RoleColorPickerText.custom}
+          {ColorPickerText.custom}
         </label>
       </div>
-      <p id={hintId} className={styles.hint}>
-        {RoleDisplayFormText.colorHint}
-      </p>
+      {hint ? (
+        <p id={hintId} className={styles.hint}>
+          {hint}
+        </p>
+      ) : null}
     </fieldset>
   );
 }

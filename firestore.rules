@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/firestore.rules
-// Version : 1.8.0
-// Latest commit: task/group-leads-and-x-premium
+// Version : 1.9.0
+// Latest commit: feature/task-setup
 // Author : Gerrah
 // Purpose : Who may read and write what in Firestore. Everything is denied until
 // a rule below allows it; each PR opens exactly what its feature needs, with a
@@ -395,6 +395,54 @@ service cloud.firestore {
         && data.get("links", []) is list
         && data.get("links", []).size() <= 10
         && data.createdAt is timestamp;
+    }
+    // #endregion
+
+    // #region Task setup
+    // The workspace's lists: statuses (a starting set is written by the setup
+    // batch), event types and tags. Keeping one open and one finished status
+    // is checked by the app.
+    match /statuses/{statusId} {
+      allow read: if isActiveMember();
+      allow create: if (can("manageSettings") || isSetupBatch())
+        && isValidStatus(request.resource.data);
+      allow update: if can("manageSettings")
+        && isValidStatus(request.resource.data);
+      allow delete: if can("manageSettings");
+    }
+
+    match /eventTypes/{eventTypeId} {
+      allow read: if isActiveMember();
+      allow create, update: if can("manageSettings")
+        && isValidColouredItem(request.resource.data);
+      allow delete: if can("manageSettings");
+    }
+
+    match /tags/{tagId} {
+      allow read: if isActiveMember();
+      allow create, update: if can("manageSettings")
+        && isValidColouredItem(request.resource.data);
+      allow delete: if can("manageSettings");
+    }
+
+    // The same lists as StatusTones and StatusCategories in
+    // app/src/core/data/models/taskSetupModels.ts.
+    function isValidStatus(data) {
+      return data.keys().hasOnly(["name", "tone", "category", "position"])
+        && data.keys().hasAll(["name", "tone", "category", "position"])
+        && isValidName(data.name)
+        && data.tone in ["neutral", "info", "alert", "success", "error", "muted"]
+        && data.category in ["open", "awaitingApproval", "finished", "closed"]
+        && data.position is number;
+    }
+
+    function isValidColouredItem(data) {
+      return data.keys().hasOnly(["name", "color", "position"])
+        && data.keys().hasAll(["name", "color", "position"])
+        && isValidName(data.name)
+        && data.color is string
+        && data.color.matches("^#[0-9a-fA-F]{6}$")
+        && data.position is number;
     }
     // #endregion
 

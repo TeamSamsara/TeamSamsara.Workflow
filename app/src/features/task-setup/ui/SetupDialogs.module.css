@@ -1,0 +1,112 @@
+/* File : /TeamSamsara.Workflow/app/src/features/task-setup/ui/SetupDialogs.module.css
+   Version : 1.0.0
+   Latest commit: feature/task-setup
+   Author : Gerrah
+   Purpose : Inside the list dialogs: fields stacked 20px apart, the status colour choices as pills you pick, the counts-as options, and Delete pushed to the left of the footer. */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.text {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.deleteButton {
+  margin-right: auto;
+}
+
+.fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  composes: label from "../../../shared/components/Fields/FieldFrame/FieldFrame.module.css";
+  margin-bottom: var(--space-2);
+  padding: 0;
+}
+
+.tones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.tone {
+  position: relative;
+  display: inline-flex;
+  padding: var(--space-1);
+  border: 2px solid transparent;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.tone:has(:checked) {
+  border-color: var(--color-text);
+}
+
+.tone:has(:focus-visible) {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.radio {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.categories {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.category {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2-5);
+  padding: var(--space-2-5) var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-field);
+  cursor: pointer;
+}
+
+.category:has(:checked) {
+  border-color: var(--color-accent);
+}
+
+.category:has(:disabled) {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.categoryInput {
+  margin-top: var(--space-1);
+  accent-color: var(--color-accent);
+}
+
+.categoryText {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--text-body);
+}
