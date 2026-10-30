@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/ui/guide/WorkflowGuide.tsx
-// Version : 1.0.0
-// Latest commit: feature/workflow-guide
+// Version : 1.1.0
+// Latest commit: fix/general-wording
 // Author : Gerrah
 // Purpose : Making a workflow one question at a time: its name, its tasks,
 // who does each, when each is due, then a last look before creating it. Each
@@ -27,7 +27,6 @@ import { giveToValue, parseGiveTo } from "../../model/giveTo";
 import {
   guideTask,
   guideToWorkflow,
-  SuggestedNames,
   SuggestedTasks,
   type GuideAnswers,
 } from "../../model/guide";
@@ -150,26 +149,6 @@ export function WorkflowGuide({
               }
               autoFocus
             />
-            <div
-              className={styles.suggestions}
-              role="group"
-              aria-label={Text.steps.name.suggestions}
-            >
-              <span className={styles.muted}>
-                {Text.steps.name.suggestions}
-              </span>
-              {SuggestedNames.map((name) => (
-                <button
-                  key={name}
-                  type="button"
-                  className={styles.suggestion}
-                  data-picked={answers.name === name}
-                  onClick={() => onChange({ ...answers, name })}
-                >
-                  {name}
-                </button>
-              ))}
-            </div>
             <TextArea
               label={Text.steps.name.description}
               placeholder={Text.steps.name.descriptionPlaceholder}

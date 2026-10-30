@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/ui/tutorial/tutorialContent.ts
-// Version : 1.0.0
-// Latest commit: feature/workflow-guide
+// Version : 1.1.0
+// Latest commit: fix/general-wording
 // Author : Gerrah
 // Purpose : The words of the workflows tutorial: what a workflow is, who and
 // when, using one on an event, and adding details; plus the examples drawn in it.
@@ -10,7 +10,7 @@ export const TutorialText = {
   slides: [
     {
       title: "What's a workflow?",
-      body: "A workflow is the list of tasks that happen every time you run a certain kind of event. Make it once, then reuse it for every stream, release or collab.",
+      body: "A workflow is the list of tasks that happen every time you run a certain kind of event. It could be a match, a content drop, a sponsor activation or a meeting. Make it once, then reuse it every time.",
     },
     {
       title: "Each task says who and when",
@@ -33,19 +33,28 @@ export const TutorialText = {
   startAnother: "Make one with the guide",
   slideLabel: (index: number, total: number) => `${index + 1} of ${total}`,
   example: {
-    workflow: "Livestream",
-    tasks: ["Announcement post", "Thumbnail", "Go-live post", "Save the VOD"],
-    rows: [
-      { title: "Thumbnail", who: "Design", when: "The day before" },
-      { title: "Go-live post", who: "Social", when: "When the event starts" },
-      { title: "Save the VOD", who: "Sam Rivera", when: "1 hour after" },
+    workflow: "Match day",
+    tasks: [
+      "Announcement post",
+      "Matchday graphic",
+      "Co-streamer brief",
+      "Results post",
     ],
-    event: "Sat 7:00 PM · Ranked night",
-    eventType: "Livestream",
+    rows: [
+      { title: "Matchday graphic", who: "Design", when: "The day before" },
+      {
+        title: "Co-streamer brief",
+        who: "Partnerships",
+        when: "3 hours before",
+      },
+      { title: "Results post", who: "Sam Rivera", when: "1 hour after" },
+    ],
+    event: "Mon 7:00 PM · vs. Team Nova",
+    eventType: "Match",
     dated: [
-      { when: "Fri 7:00 PM", title: "Thumbnail" },
-      { when: "Sat 7:00 PM", title: "Go-live post" },
-      { when: "Sat 8:00 PM", title: "Save the VOD" },
+      { when: "Sun 7:00 PM", title: "Matchday graphic" },
+      { when: "Mon 4:00 PM", title: "Co-streamer brief" },
+      { when: "Mon 8:00 PM", title: "Results post" },
     ],
     sections: [
       "Post text",

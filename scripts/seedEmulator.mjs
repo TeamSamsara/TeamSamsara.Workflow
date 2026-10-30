@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/scripts/seedEmulator.mjs
-// Version : 1.7.0
-// Latest commit: feature/workflows
+// Version : 1.8.0
+// Latest commit: fix/general-wording
 // Author : Gerrah
 // Purpose : Fills the local emulators with a ready-made workspace and test
 // accounts, so the app can be tried without touching the real project. It wipes
@@ -61,12 +61,12 @@ const workGroups = [
   {
     id: "design",
     name: "Design",
-    description: "Thumbnails, overlays and brand assets.",
+    description: "Graphics, overlays and brand assets.",
   },
   {
     id: "video",
     name: "Video",
-    description: "Edits highlights, thumbnails and VODs.",
+    description: "Edits highlights and clips.",
   },
 ];
 
@@ -95,42 +95,42 @@ const step = (id, fields) => ({
 
 /** One workflow with a task of each kind, to try the editor on. */
 const sampleWorkflow = {
-  name: "Livestream",
-  description: "Before, during and after a stream.",
+  name: "Match day",
+  description: "Graphics, posts and clips around each match.",
   eventTypeId: null,
   archived: false,
   steps: [
-    step("thumb", {
-      title: "Thumbnail",
-      notes: "1280×720, the guest's face on the left.",
+    step("graphic", {
+      title: "Matchday graphic",
+      notes: "Both team logos, the match time and where to watch.",
       workGroupId: "design",
       due: due("before", 2, 0, "19:00"),
       needsApproval: true,
       checklist: [
-        { id: "c1", text: "Logo in the corner" },
-        { id: "c2", text: "Readable at phone size" },
+        { id: "c1", text: "Both team logos" },
+        { id: "c2", text: "Match time in our time zone" },
       ],
-      links: [{ label: "Brand folder", url: "https://example.com/brand" }],
+      links: [{ label: "Brand kit", url: "https://example.com/brand" }],
     }),
-    step("golive", {
-      title: "Go-live post",
-      notes: "Post the moment the stream starts.",
-      due: due("at", 0, 0),
+    step("announce", {
+      title: "Announcement post",
+      notes: "Post with the graphic once it's approved.",
+      due: due("before", 1, 0),
       posts: [
         {
           platformId: "x",
           formatId: null,
           texts: {
-            post: "We're live! {title} with {guest}. Come hang out: {link}",
+            post: "Matchday! {title} vs {opponent} at {time}. Watch: {link}",
           },
         },
       ],
       asksForLiveLink: true,
     }),
-    step("vod", {
-      title: "Save the VOD",
+    step("clip", {
+      title: "Highlights clip",
       workGroupId: "video",
-      due: due("after", 0, 1),
+      due: due("after", 1, 0),
     }),
   ],
 };
@@ -255,7 +255,7 @@ async function main() {
       ...defaultStatuses.map((status, index) =>
         db.doc(`statuses/status${index + 1}`).set(status),
       ),
-      db.doc("workflows/livestream").set({
+      db.doc("workflows/match-day").set({
         ...sampleWorkflow,
         createdAt: now,
         updatedAt: now,
