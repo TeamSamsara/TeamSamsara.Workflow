@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/index.ts
-// Version : 1.0.0
-// Latest commit: feature/workflows
+// Version : 1.1.0
+// Latest commit: feature/workflow-guide
 // Author : Gerrah
 // Purpose : What other layers may use from the workflows feature.
 
@@ -15,6 +15,7 @@ export {
   importWorkflow,
 } from "./model/importExport";
 export type { ImportContext, ImportResult } from "./model/importExport";
+export type { GuideAnswers } from "./model/guide";
 export {
   EventGaps,
   fillGaps,
@@ -41,6 +42,8 @@ export type {
 } from "./types/workflowTypes";
 export { AboutCard } from "./ui/AboutCard";
 export { GapsCard } from "./ui/GapsCard";
+export { WorkflowGuide } from "./ui/guide/WorkflowGuide";
+export { WorkflowTutorial } from "./ui/tutorial/WorkflowTutorial";
 export { StepList } from "./ui/StepList";
 export type { StepEditorOptions } from "./ui/StepEditor";
 export { WorkflowsTable } from "./ui/WorkflowsTable";

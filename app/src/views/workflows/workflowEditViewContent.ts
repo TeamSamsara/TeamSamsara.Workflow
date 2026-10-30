@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/workflows/workflowEditViewContent.ts
-// Version : 1.0.0
-// Latest commit: feature/workflows
+// Version : 1.1.0
+// Latest commit: feature/workflow-guide
 // Author : Gerrah
 // Purpose : The words on the workflow editor page.
 
@@ -36,6 +36,11 @@ export const WorkflowEditViewText = {
       ? "Imported. Check it over, then create it."
       : `Imported. ${dropped} ${dropped === 1 ? "thing that points" : "things that point"} at groups, people, tags, event types or platforms this workspace doesn't have ${dropped === 1 ? "was" : "were"} left out.`,
   exportFirst: "Save your changes to export them.",
+  nextSteps: {
+    title: "Your workflow is ready.",
+    body: "Open any task to add what to post, a checklist, links, or to ask for approval. Save when you're done.",
+    dismiss: "Got it",
+  },
   discard: {
     title: "Discard your changes?",
     body: "This workflow has changes you haven't saved. Leaving now throws them away.",

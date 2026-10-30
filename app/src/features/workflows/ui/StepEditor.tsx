@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/ui/StepEditor.tsx
-// Version : 1.1.0
-// Latest commit: fix/workflow-editor-simpler
+// Version : 1.2.0
+// Latest commit: feature/workflow-guide
 // Author : Gerrah
 // Purpose : One task of a workflow, open for editing: the basics every task
 // has (title, who it's given to, when it's due, how to do it, tags, needs
@@ -31,8 +31,10 @@ import { TextField } from "@/shared/components/Fields/TextField/TextField";
 import type { ClockFormat } from "@/shared/time/dates";
 import type { StepProblems } from "../model/workflowChecks";
 import { WorkflowLimits, type WorkflowStep } from "../types/workflowTypes";
+import { giveToValue, parseGiveTo } from "../model/giveTo";
 import { ChecklistEditor } from "./ChecklistEditor";
 import { DueOffsetField } from "./DueOffsetField";
+import { byMemberName, giveToOptions } from "./giveToOptions";
 import { PostTextEditor } from "./PostTextEditor";
 import { TagPicker } from "./TagPicker";
 import {
@@ -114,26 +116,7 @@ export function StepEditor({
 }: StepEditorProps) {
   const removable = (remove: () => void) => (readOnly ? null : remove);
   const group = options.groups.find((entry) => entry.id === step.workGroupId);
-  const byName = (a: MemberRecord, b: MemberRecord) =>
-    memberName(a).localeCompare(memberName(b));
-  const giveToOptions = [
-    { value: "", label: Text.nobody },
-    ...options.groups.map((entry) => ({
-      value: `group:${entry.id}`,
-      label: entry.name,
-      group: Text.groups,
-    })),
-    ...[...options.members].sort(byName).map((member) => ({
-      value: `member:${member.id}`,
-      label: memberName(member),
-      group: Text.people,
-    })),
-  ];
-  const giveToValue = step.workGroupId
-    ? `group:${step.workGroupId}`
-    : step.memberId
-      ? `member:${step.memberId}`
-      : "";
+  const giveToChoices = giveToOptions(options.groups, options.members);
   const inGroup = group
     ? options.members
         .filter(
@@ -141,15 +124,8 @@ export function StepEditor({
             member.workGroupIds.includes(group.id) ||
             member.id === step.memberId,
         )
-        .sort(byName)
+        .sort(byMemberName)
     : [];
-
-  function giveTo(value: string) {
-    const [kind, id] = value.split(":");
-    if (kind === "group") onChange({ workGroupId: id, memberId: null });
-    else if (kind === "member") onChange({ workGroupId: null, memberId: id });
-    else onChange({ workGroupId: null, memberId: null });
-  }
 
   const has: Record<SectionKey, boolean> = {
     posts: step.posts !== null,
@@ -183,9 +159,9 @@ export function StepEditor({
         <Select
           label={Text.giveTo}
           help={Text.giveToHelp}
-          options={giveToOptions}
-          value={giveToValue}
-          onChange={(event) => giveTo(event.target.value)}
+          options={giveToChoices}
+          value={giveToValue(step)}
+          onChange={(event) => onChange(parseGiveTo(event.target.value))}
         />
         {group ? (
           <Select

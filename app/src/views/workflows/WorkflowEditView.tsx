@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/workflows/WorkflowEditView.tsx
-// Version : 1.0.0
-// Latest commit: feature/workflows
+// Version : 1.1.0
+// Latest commit: feature/workflow-guide
 // Author : Gerrah
 // Purpose : The workflow editor: its tasks on the left (open one in place to
 // edit it), About and the event details it uses on the right; Save, Export,
@@ -54,7 +54,7 @@ import {
   RoutePaths,
   workflowPath,
 } from "@/shared/constants/routePaths";
-import { readImportedWorkflow } from "./importedWorkflow";
+import { cameFromGuide, readImportedWorkflow } from "./importedWorkflow";
 import { WorkflowEditViewText as Text } from "./workflowEditViewContent";
 import styles from "./WorkflowEditView.module.css";
 
@@ -91,6 +91,9 @@ function WorkflowEditor({ workflow }: { workflow: WorkflowRecord | null }) {
   const [openStepId, setOpenStepId] = useState<string | null>(null);
   const [triedToSave, setTriedToSave] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [showNextSteps, setShowNextSteps] = useState(() =>
+    cameFromGuide(location.state),
+  );
   // Set just before leaving on purpose (after a save or delete), so the
   // unsaved-changes check lets the page go.
   const leaving = useRef(false);
@@ -249,6 +252,23 @@ function WorkflowEditor({ workflow }: { workflow: WorkflowRecord | null }) {
       />
 
       {!canEdit ? <Banner tone="info">{Text.readOnly}</Banner> : null}
+      {showNextSteps && workflow ? (
+        <Banner
+          tone="success"
+          icon="check"
+          action={
+            <Button
+              size="small"
+              variant="ghost"
+              onClick={() => setShowNextSteps(false)}
+            >
+              {Text.nextSteps.dismiss}
+            </Button>
+          }
+        >
+          <b>{Text.nextSteps.title}</b> {Text.nextSteps.body}
+        </Banner>
+      ) : null}
       {workflow?.archived ? (
         <Banner tone="info" icon="archive">
           {Text.archivedNote}

@@ -1,8 +1,8 @@
 /* File : /TeamSamsara.Workflow/app/src/views/workflows/WorkflowsView.module.css
-   Version : 1.0.0
-   Latest commit: feature/workflows
+   Version : 1.1.0
+   Latest commit: feature/workflow-guide
    Author : Gerrah
-   Purpose : Layout of the Workflows page: the header with Import and New workflow, then the table in a card under the In use / Archived switch. */
+   Purpose : Layout of the Workflows page: the header with Import and New workflow, then the table in a card under the In use / Archived switch, or a first-workflow prompt when there are none; the New workflow menu. */
 
 .page {
   display: flex;
@@ -32,4 +32,61 @@
 
 .fileInput {
   display: none;
+}
+
+.menuItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-0-5);
+  min-width: 240px;
+  white-space: normal;
+  text-align: left;
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.first {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-10) var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+  text-align: center;
+}
+
+.firstIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-card);
+  background-color: var(--color-accent-soft);
+  color: var(--color-accent-text);
+  --icon-size: 28px;
+}
+
+.firstTitle {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-dialog-title);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-dialog-title);
+  text-transform: uppercase;
+}
+
+.firstBody {
+  max-width: 460px;
+  margin: 0 0 var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
 }

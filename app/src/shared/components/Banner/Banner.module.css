@@ -1,8 +1,8 @@
 /* File : /TeamSamsara.Workflow/app/src/shared/components/Banner/Banner.module.css
-   Version : 1.0.0
-   Latest commit: core/ui-kit
+   Version : 1.1.0
+   Latest commit: feature/workflow-guide
    Author : Gerrah
-   Purpose : Look of a banner: a filled box with 10px corners, an icon and 14px text, in the colour of its tone. */
+   Purpose : Look of a banner: a filled box with 10px corners, an icon, 14px text and an optional button at the end, in the colour of its tone. */
 
 .banner {
   display: flex;
@@ -39,7 +39,15 @@
 }
 
 .text {
+  flex: 1 1 auto;
   min-width: 0;
+}
+
+.action {
+  flex: none;
+  margin: calc(-1 * var(--space-1)) calc(-1 * var(--space-1))
+    calc(-1 * var(--space-1)) 0;
+  color: inherit;
 }
 
 .text a {
