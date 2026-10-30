@@ -1,8 +1,8 @@
 // File : /TeamSamsara.Workflow/app/src/shared/components/Breadcrumbs/Breadcrumbs.tsx
-// Version : 1.0.0
-// Latest commit: core/ui-kit
+// Version : 1.1.0
+// Latest commit: fix/general-wording
 // Author : Gerrah
-// Purpose : The trail above a page title ("Calendar / Livestream / Go-live post"). Every step
+// Purpose : The trail above a page title ("Calendar / Match day / Results post"). Every step
 // with a link goes back up; the last one is the current page.
 
 import { Fragment } from "react";

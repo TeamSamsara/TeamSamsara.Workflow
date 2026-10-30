@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/task-setup/taskSetupViewContent.ts
-// Version : 1.0.0
-// Latest commit: feature/task-setup
+// Version : 1.1.0
+// Latest commit: fix/general-wording
 // Author : Gerrah
 // Purpose : The words on Settings → Tasks and events.
 
@@ -26,7 +26,7 @@ export const TaskSetupViewText = {
   eventTypes: {
     title: "Event types",
     description:
-      "Kinds of events on the calendar, like a livestream or a release. Each has a colour.",
+      "Kinds of events on the calendar, like a match, a content drop or a meeting. Each has a colour.",
     add: "Add event type",
     empty: "No event types yet. Add the kinds of events your team plans.",
   },

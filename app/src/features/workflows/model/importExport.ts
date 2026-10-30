@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/model/importExport.ts
-// Version : 1.0.0
-// Latest commit: feature/workflows
+// Version : 1.1.0
+// Latest commit: fix/general-wording
 // Author : Gerrah
 // Purpose : A workflow as a JSON file and back, to keep a copy or move one to
 // another workspace. An import is read as carefully as a stored workflow, and
@@ -37,7 +37,7 @@ export function exportWorkflow(workflow: WorkflowRecord): string {
   );
 }
 
-/** A file name from the workflow's name: "livestream.workflow.json". */
+/** A file name from the workflow's name: "match-day.workflow.json". */
 export function exportFileName(name: string): string {
   const slug = name
     .toLowerCase()

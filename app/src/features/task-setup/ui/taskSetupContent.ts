@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/task-setup/ui/taskSetupContent.ts
-// Version : 1.0.0
-// Latest commit: feature/task-setup
+// Version : 1.1.0
+// Latest commit: fix/general-wording
 // Author : Gerrah
 // Purpose : The words for the workspace's lists: what each status counts as,
 // the list cards, and the dialogs for statuses, event types and tags.
@@ -64,7 +64,7 @@ export const ColouredItemDialogText = {
   eventType: {
     newTitle: "New event type",
     editTitle: (name: string) => `Edit ${name}`,
-    namePlaceholder: "Livestream",
+    namePlaceholder: "Match",
     colorHint: "Colours the event on the calendar.",
     deleteNote:
       "Events of this type keep their details; they just lose the type.",

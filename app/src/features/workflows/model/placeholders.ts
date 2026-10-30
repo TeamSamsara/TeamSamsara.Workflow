@@ -1,8 +1,8 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/model/placeholders.ts
-// Version : 1.0.0
-// Latest commit: feature/workflows
+// Version : 1.1.0
+// Latest commit: fix/general-wording
 // Author : Gerrah
-// Purpose : Gaps in a workflow's text, like {title} or {guest}, filled from the
+// Purpose : Gaps in a workflow's text, like {title} or {opponent}, filled from the
 // event's details when its tasks are made. {title}, {date}, {time} and {link}
 // come from the event itself; any other gap is asked for when planning it.
 
@@ -47,7 +47,7 @@ function stepTexts(step: WorkflowStep): string[] {
 export interface WorkflowGaps {
   /** Filled by the event itself. */
   fromEvent: EventGap[];
-  /** Asked for when the event is planned, e.g. "guest". */
+  /** Asked for when the event is planned, e.g. "opponent". */
   asked: string[];
 }
 

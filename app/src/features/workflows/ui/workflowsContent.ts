@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/ui/workflowsContent.ts
-// Version : 1.1.0
-// Latest commit: fix/workflow-editor-simpler
+// Version : 1.2.0
+// Latest commit: fix/general-wording
 // Author : Gerrah
 // Purpose : The words for the workflows list and editor: the table, the task
 // list, each task's fields and sections, due times, and the gaps card.
@@ -38,7 +38,7 @@ export const StepListText = {
 
 export const StepEditorText = {
   title: "Title",
-  titlePlaceholder: "Go-live post",
+  titlePlaceholder: "Matchday graphic",
   notes: "How to do it",
   notesPlaceholder: "What to do, where to find things, what good looks like.",
   giveTo: "Give to",
@@ -51,7 +51,7 @@ export const StepEditorText = {
   anyoneInGroup: (group: string) => `Anyone in ${group}`,
   due: "Due",
   dueHelp:
-    'Counted from when the event starts. On a Saturday 7:00 PM stream, "The day before" is Friday at 7:00 PM.',
+    'Counted from when the event starts. For a match on Monday at 7:00 PM, "The day before" is Sunday at 7:00 PM.',
   tags: "Tags",
   addTag: "Add tag",
   noTags: "No tags yet. Make them in Settings → Tasks and events.",
@@ -70,7 +70,7 @@ export const SectionText = {
   posts: {
     name: "Post text",
     description: "What to post on each platform.",
-    help: "Write the text for each platform. The count uses that platform's limit. Gaps like {title} or {guest} fill in from the event's details.",
+    help: "Write the text for each platform. The count uses that platform's limit. Gaps like {title} or {sponsor} fill in from the event's details.",
   },
   checklist: {
     name: "Checklist",
@@ -107,7 +107,7 @@ export const PostTextEditorText = {
 
 export const ChecklistEditorText = {
   item: (index: number) => `Item ${index + 1}`,
-  placeholder: "Add the stream link to the description",
+  placeholder: "Tag the sponsor's account",
   add: "Add item",
   remove: (index: number) => `Remove item ${index + 1}`,
   none: "No items yet.",
@@ -115,7 +115,7 @@ export const ChecklistEditorText = {
 
 export const ReferenceLinksText = {
   none: "No links yet.",
-  labelPlaceholder: "Example thumbnail",
+  labelPlaceholder: "Brand kit",
 } as const;
 
 export const DueFieldText = {
@@ -135,19 +135,19 @@ export const DueFieldText = {
 
 export const GapsCardText = {
   title: "Event details it uses",
-  help: "Type a gap like {guest} in a task's title, notes, checklist or post text. When the workflow is used on an event, the gap is filled in from that event.",
+  help: "Type a gap like {opponent} in a task's title, notes, checklist or post text. When the workflow is used on an event, the gap is filled in from that event.",
   fromEvent: "From the event",
   asked: "Asked when the event is planned",
-  none: "No gaps yet. Type one like {title} or {guest} in a task's text.",
+  none: "No gaps yet. Type one like {title} or {opponent} in a task's text.",
   builtIn: "{title}, {date}, {time} and {link} come from the event itself.",
 } as const;
 
 export const AboutCardText = {
   title: "About",
   name: "Name",
-  namePlaceholder: "Livestream",
+  namePlaceholder: "Content drop",
   description: "What it's for",
-  descriptionPlaceholder: "Before, during and after a stream.",
+  descriptionPlaceholder: "Everything around a new video or post.",
   eventType: "Suggest for event type",
   anyEvent: "Any event",
   eventTypeHelp:

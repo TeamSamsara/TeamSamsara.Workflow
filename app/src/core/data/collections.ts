@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/collections.ts
-// Version : 1.2.0
-// Latest commit: feature/task-setup
+// Version : 1.3.0
+// Latest commit: fix/general-wording
 // Author : Gerrah
 // Purpose : The name of every Firestore collection and settings document, in one
 // place. One Firebase project holds one workspace, so everything sits at the top.
@@ -11,7 +11,7 @@ export const Collections = {
   workGroups: "workGroups",
   /** The steps a task moves through. */
   statuses: "statuses",
-  /** What goes on the calendar (Livestream, Meeting…), each with a colour. */
+  /** What goes on the calendar (Match, Content drop, Meeting…), each with a colour. */
   eventTypes: "eventTypes",
   /** Labels a workspace makes for its tasks, like Trello's. */
   tags: "tags",
