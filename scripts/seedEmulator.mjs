@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/scripts/seedEmulator.mjs
-// Version : 1.9.0
-// Latest commit: feature/tasks
+// Version : 1.10.0
+// Latest commit: feature/calendar-events
 // Author : Gerrah
 // Purpose : Fills the local emulators with a ready-made workspace and test
 // accounts, so the app can be tried without touching the real project. It wipes
@@ -94,10 +94,13 @@ const step = (id, fields) => ({
 });
 
 /** One workflow with a task of each kind, to try the editor on. */
+/** One event type, so the calendar has a colour to show (real workspaces start with none). */
+const matchType = { name: "Match", color: "#E5484D", position: 0 };
+
 const sampleWorkflow = {
   name: "Match day",
   description: "Graphics, posts and clips around each match.",
-  eventTypeId: null,
+  eventTypeId: "match",
   archived: false,
   steps: [
     step("graphic", {
@@ -225,6 +228,59 @@ function sampleTasks(now, uidOf) {
   };
 }
 
+/** A match in three days with two of its tasks, as if planned with Match day. */
+function sampleEvent(now, uidOf) {
+  const startsAt = new Date(
+    Math.ceil((now.getTime() + 72 * hour) / hour) * hour,
+  );
+  const event = {
+    title: "vs. Team Nova",
+    eventTypeId: "match",
+    startsAt,
+    link: "https://twitch.tv/teamsamsara",
+    details: { opponent: "Team Nova" },
+    workflowIds: ["match-day"],
+    notes: "",
+    repeatId: null,
+    createdBy: uidOf("alex"),
+    createdAt: now,
+    updatedAt: now,
+  };
+  const eventTask = (stepId, fields) => ({
+    ...sampleTasks(now, uidOf).recap,
+    memberId: null,
+    eventId: "nova",
+    workflowId: "match-day",
+    stepId,
+    ...fields,
+  });
+  return {
+    event,
+    tasks: {
+      novaGraphic: eventTask("graphic", {
+        title: "Matchday graphic",
+        workGroupId: "design",
+        dueAt: new Date(startsAt.getTime() - 48 * hour),
+        needsApproval: true,
+      }),
+      novaAnnounce: eventTask("announce", {
+        title: "Announcement post",
+        dueAt: new Date(startsAt.getTime() - 24 * hour),
+        posts: [
+          {
+            platformId: "x",
+            formatId: null,
+            texts: {
+              post: "Matchday! We play Team Nova tonight. Watch: https://twitch.tv/teamsamsara",
+            },
+          },
+        ],
+        asksForLiveLink: true,
+      }),
+    },
+  };
+}
+
 /** status null = an account with no member record (never invited). */
 const accounts = [
   {
@@ -341,7 +397,7 @@ async function main() {
     const db = context.firestore();
     const roles = [...startingRoles, peopleManagerRole];
     const writes = [
-      // The same starting statuses as a real setup; event types and tags start empty.
+      // The same starting statuses as a real setup; tags start empty.
       ...defaultStatuses.map((status, index) =>
         db.doc(`statuses/status${index + 1}`).set(status),
       ),
@@ -371,6 +427,12 @@ async function main() {
     ];
     const uidOf = (key) => created.find((account) => account.key === key).uid;
     for (const [id, task] of Object.entries(sampleTasks(now, uidOf))) {
+      writes.push(db.doc(`tasks/${id}`).set(task));
+    }
+    const nova = sampleEvent(now, uidOf);
+    writes.push(db.doc("eventTypes/match").set(matchType));
+    writes.push(db.doc("events/nova").set(nova.event));
+    for (const [id, task] of Object.entries(nova.tasks)) {
       writes.push(db.doc(`tasks/${id}`).set(task));
     }
     for (const account of created) {

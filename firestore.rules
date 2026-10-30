@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/firestore.rules
-// Version : 1.11.0
-// Latest commit: feature/tasks
+// Version : 1.12.0
+// Latest commit: feature/calendar-events
 // Author : Gerrah
 // Purpose : Who may read and write what in Firestore. Everything is denied until
 // a rule below allows it; each PR opens exactly what its feature needs, with a
@@ -507,7 +507,8 @@ service cloud.firestore {
         && isValidTask(request.resource.data)
         && isNewTask(request.resource.data)
         && ((request.resource.data.eventId == null && can("createStandaloneTasks"))
-          || (request.resource.data.eventId != null && can("planEvents")));
+          || (request.resource.data.eventId != null && can("planEvents")
+            && existsAfter(/databases/$(database)/documents/events/$(request.resource.data.eventId))));
 
       allow update: if isActiveMember()
         && isValidTask(request.resource.data)
@@ -516,10 +517,19 @@ service cloud.firestore {
         && (canEditTask()
           || isDoingTask()
           || isApprovingTask()
-          || isReassigningTask());
+          || isReassigningTask()
+          || isMovingEventTask());
 
       allow delete: if can("editAnyTask")
-        || (resource.data.createdBy == request.auth.uid && resource.data.eventId == null);
+        || (resource.data.createdBy == request.auth.uid && resource.data.eventId == null)
+        || (resource.data.eventId != null && can("planEvents"));
+    }
+
+    /** Plan events: when an event moves, its tasks' due times move with it. */
+    function isMovingEventTask() {
+      return can("planEvents")
+        && resource.data.eventId != null
+        && changedFields().hasOnly(["dueAt", "updatedAt"]);
     }
 
     function isNewTask(task) {
@@ -635,6 +645,44 @@ service cloud.firestore {
         && task.createdAt is timestamp
         && task.updatedAt is timestamp
         && isNullOr(task.doneAt, "timestamp");
+    }
+    // #endregion
+
+    // #region Events
+    // What's on the calendar. Every member sees events (their tasks follow the
+    // task rules); Plan events makes, changes and deletes them.
+    match /events/{eventId} {
+      allow read: if isActiveMember();
+      allow create: if can("planEvents")
+        && isValidEvent(request.resource.data)
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if can("planEvents")
+        && isValidEvent(request.resource.data)
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if can("planEvents");
+    }
+
+    // Same sizes as EventLimits in app/src/features/events.
+    function isValidEvent(event) {
+      let fields = ["title", "eventTypeId", "startsAt", "link", "details",
+        "workflowIds", "notes", "repeatId", "createdBy", "createdAt", "updatedAt"];
+      return event.keys().hasOnly(fields)
+        && event.keys().hasAll(fields)
+        && event.title is string && event.title.size() > 0 && event.title.size() <= 120
+        && isNullOr(event.eventTypeId, "string")
+        && event.startsAt is timestamp
+        && (event.link == null || (event.link is string && event.link.size() <= 500))
+        && event.details is map && event.details.size() <= 20
+        && event.workflowIds is list && event.workflowIds.size() <= 5
+        && event.notes is string && event.notes.size() <= 2000
+        && isNullOr(event.repeatId, "string")
+        && event.createdBy is string
+        && event.createdAt is timestamp
+        && event.updatedAt is timestamp;
     }
     // #endregion
 

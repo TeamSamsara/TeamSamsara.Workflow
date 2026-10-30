@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/ui/NewTaskDialog.tsx
-// Version : 1.0.0
-// Latest commit: feature/tasks
+// Version : 1.1.0
+// Latest commit: feature/calendar-events
 // Author : Gerrah
 // Purpose : Makes a one-off task (not from an event): the basics in a dialog.
 // It starts in the workspace's first open status; post text, a checklist and
@@ -18,7 +18,7 @@ import {
   fieldsFromDraft,
   type TaskDraft,
 } from "../model/taskDraft";
-import { createTask } from "../service/taskService";
+import { createTask, type TaskOrigin } from "../service/taskService";
 import { TaskForm, type TaskFormOptions } from "./TaskForm";
 import { NewTaskText as Text } from "./tasksContent";
 
@@ -30,6 +30,8 @@ interface NewTaskDialogProps {
   createdBy: string;
   /** Who it's given to at first (the person making it). */
   start?: Partial<TaskDraft>;
+  /** The event it belongs to; left out for a one-off task. */
+  origin?: TaskOrigin;
   onCreated: (taskId: string, title: string) => void;
   onClose: () => void;
 }
@@ -40,6 +42,7 @@ export function NewTaskDialog({
   startingStatusId,
   createdBy,
   start,
+  origin,
   onCreated,
   onClose,
 }: NewTaskDialogProps) {
@@ -54,6 +57,7 @@ export function NewTaskDialog({
         fieldsFromDraft(draft, timeZone),
         startingStatusId ?? "",
         createdBy,
+        origin,
       ),
     onSuccess: (taskId) => onCreated(taskId, draft.title.trim()),
   });

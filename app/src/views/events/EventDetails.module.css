@@ -1,0 +1,80 @@
+/* File : /TeamSamsara.Workflow/app/src/views/events/EventDetails.module.css
+   Version : 1.0.0
+   Latest commit: feature/calendar-events
+   Author : Gerrah
+   Purpose : The event page's details card (label and value pairs, notes), its link in the header, and the note shown when it has no tasks. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-section-heading);
+  text-transform: uppercase;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+}
+
+.details {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  font-size: var(--text-body);
+}
+
+.details dt {
+  color: var(--color-text-muted);
+}
+
+.details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.details a {
+  color: var(--color-text);
+}
+
+.pair {
+  display: contents;
+}
+
+.notes {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  white-space: pre-wrap;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-text);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+  --icon-size: var(--icon-size-small);
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-6) var(--card-padding);
+  border: var(--border-width) dashed var(--color-border-control);
+  border-radius: var(--radius-card);
+  color: var(--color-text-muted);
+}

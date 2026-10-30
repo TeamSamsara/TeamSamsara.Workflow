@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/service/taskService.ts
-// Version : 1.0.0
-// Latest commit: feature/tasks
+// Version : 1.1.0
+// Latest commit: feature/calendar-events
 // Author : Gerrah
 // Purpose : Every change to a task: make one, edit it, move it on (send for
 // review, approve, ask for changes, mark done, reopen, set a status), tick its
@@ -46,19 +46,31 @@ function tidy(fields: TaskFields) {
   };
 }
 
-/** Makes a task on its own (not from an event) and gives back its id. */
-export async function createTask(
+/** Where a task came from; all null for a task made on its own. */
+export interface TaskOrigin {
+  eventId: string | null;
+  workflowId: string | null;
+  stepId: string | null;
+}
+
+const standalone: TaskOrigin = {
+  eventId: null,
+  workflowId: null,
+  stepId: null,
+};
+
+/** Everything a new task's document holds, for a write or a batch. */
+export function newTaskData(
   fields: TaskFields,
   startingStatusId: string,
   createdBy: string,
-): Promise<string> {
-  const created = await addDoc(tasks(), {
+  origin: TaskOrigin = standalone,
+) {
+  return {
     ...tidy(fields),
     statusId: startingStatusId,
     liveLink: null,
-    eventId: null,
-    workflowId: null,
-    stepId: null,
+    ...origin,
     sentForReviewBy: null,
     sentForReviewAt: null,
     approvedBy: null,
@@ -68,7 +80,20 @@ export async function createTask(
     createdAt: serverTime(),
     updatedAt: serverTime(),
     doneAt: null,
-  });
+  };
+}
+
+/** Makes a task and gives back its id; on its own unless an origin is given. */
+export async function createTask(
+  fields: TaskFields,
+  startingStatusId: string,
+  createdBy: string,
+  origin: TaskOrigin = standalone,
+): Promise<string> {
+  const created = await addDoc(
+    tasks(),
+    newTaskData(fields, startingStatusId, createdBy, origin),
+  );
   return created.id;
 }
 

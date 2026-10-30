@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/router.tsx
-// Version : 1.11.0
-// Latest commit: feature/tasks
+// Version : 1.12.0
+// Latest commit: feature/calendar-events
 // Author : Gerrah
 // Purpose : Every route in the app. Layouts and the not-found page load with the
 // app; every other page loads only when it is first opened. Pages not built yet show ComingSoonView, and each
@@ -117,6 +117,21 @@ const platformsView = () =>
     Component: module.PlatformsView,
   }));
 
+const calendarView = () =>
+  import("@/views/calendar/CalendarView").then((module) => ({
+    Component: module.CalendarView,
+  }));
+
+const newEventView = () =>
+  import("@/views/events/NewEventView").then((module) => ({
+    Component: module.NewEventView,
+  }));
+
+const eventView = () =>
+  import("@/views/events/EventView").then((module) => ({
+    Component: module.EventView,
+  }));
+
 const myTasksView = () =>
   import("@/views/tasks/MyTasksView").then((module) => ({
     Component: module.MyTasksView,
@@ -193,7 +208,9 @@ export const router = createBrowserRouter([
           {
             element: <AppLayout />,
             children: [
-              { path: RoutePaths.calendar, lazy: comingSoonView },
+              { path: RoutePaths.calendar, lazy: calendarView },
+              { path: RoutePaths.newEvent, lazy: newEventView },
+              { path: RoutePaths.event, lazy: eventView },
               { path: RoutePaths.myTasks, lazy: myTasksView },
               { path: RoutePaths.task, lazy: taskView },
               { path: RoutePaths.workflows, lazy: workflowsView },
