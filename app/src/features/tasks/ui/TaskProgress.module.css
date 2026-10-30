@@ -1,13 +1,14 @@
 /* File : /TeamSamsara.Workflow/app/src/features/tasks/ui/TaskProgress.module.css
-   Version : 1.0.0
-   Latest commit: feature/tasks
+   Version : 1.1.0
+   Latest commit: fix/task-progress-contrast
    Author : Gerrah
-   Purpose : The status steps in a row joined by lines: past ones ticked in accent, the current one filled, the rest muted. Wraps on narrow screens. */
+   Purpose : The status stepper: circles joined by a line. Passed steps are accent-filled with a tick and an accent line after them; the current step is solid in the text colour (dark in light mode, light in dark mode) with a bold name; steps still to come are outlined and muted. Wraps on narrow screens. */
 
 .steps {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2) var(--space-4);
+  align-items: center;
+  gap: var(--space-2) 0;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -18,35 +19,78 @@
   align-items: center;
   gap: var(--space-2);
   color: var(--color-text-muted);
-  font-family: var(--font-heading);
-  font-size: var(--text-tab);
-  text-transform: uppercase;
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
 }
 
-.number {
+/* The line joining a step to the next one. */
+.step:not(:last-child)::after {
+  content: "";
+  width: 32px;
+  height: 2px;
+  margin: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-border-control);
+}
+
+.marker {
   display: inline-flex;
+  flex: none;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border: var(--border-width) solid var(--color-border-control);
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--color-border-control);
   border-radius: var(--radius-pill);
-  font-family: var(--font-body);
-  font-size: var(--text-small);
+  background-color: var(--color-surface);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  --icon-size: 16px;
 }
 
-.step[data-state="past"] .number {
+.name {
+  white-space: nowrap;
+}
+
+.step[data-state="past"] {
+  color: var(--color-text);
+}
+
+.step[data-state="past"] .marker {
   border-color: var(--color-accent);
-  color: var(--color-accent-text);
+  background-color: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+
+.step[data-state="past"]::after {
+  background-color: var(--color-accent);
 }
 
 .step[data-state="current"] {
   color: var(--color-text);
+  font-weight: var(--weight-bold);
 }
 
-.step[data-state="current"] .number {
+.step[data-state="current"] .marker {
+  border-color: var(--color-text);
+  background-color: var(--color-text);
+  color: var(--color-page);
+}
+
+/* Finished: the last step is done too, filled like the ones before it. */
+.step[data-finished="true"] .marker {
   border-color: var(--color-accent);
   background-color: var(--color-accent);
   color: var(--color-text-on-accent);
-  font-weight: var(--weight-bold);
+}
+
+/* Breakpoints.small: the steps wrap, so they're spaced instead of joined. */
+@media (max-width: 640px) {
+  .steps {
+    gap: var(--space-2) var(--space-4);
+  }
+
+  .step:not(:last-child)::after {
+    display: none;
+  }
 }
