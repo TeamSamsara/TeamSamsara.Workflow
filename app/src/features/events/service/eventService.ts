@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/service/eventService.ts
-// Version : 1.0.0
-// Latest commit: feature/calendar-events
+// Version : 1.1.0
+// Latest commit: feature/repeats
 // Author : Gerrah
 // Purpose : Makes an event together with the tasks of its workflows (one batch,
 // so it's all or nothing), saves changes (moving its tasks by the same amount
@@ -35,19 +35,29 @@ function tidy(fields: EventFields) {
   };
 }
 
-interface CreateOptions {
+export interface CreateOptions {
   workflows: readonly WorkflowRecord[];
   formats: Formats;
   startingStatusId: string;
   createdBy: string;
 }
 
-/** Makes the event and its workflows' tasks; gives back the event's id. */
-export async function createEvent(
+/** A task's id for an event: the same whoever makes it, so it's never made twice. */
+export function eventTaskId(
+  eventId: string,
+  workflowId: string,
+  stepId: string,
+): string {
+  return `${eventId}_${workflowId}_${stepId}`;
+}
+
+/** The writes that make an event and its workflows' tasks. */
+export function eventWrites(
+  eventId: string,
   fields: EventFields,
+  repeatId: string | null,
   { workflows, formats, startingStatusId, createdBy }: CreateOptions,
-): Promise<string> {
-  const eventRef = doc(collection(db, Collections.events));
+): BatchWrite[] {
   const planned = applyWorkflows(
     {
       title: fields.title,
@@ -58,12 +68,12 @@ export async function createEvent(
     workflows,
     formats,
   );
-  const writes: BatchWrite[] = [
+  return [
     (batch) =>
-      batch.set(eventRef, {
+      batch.set(doc(db, Collections.events, eventId), {
         ...tidy(fields),
         workflowIds: workflows.map((workflow) => workflow.id),
-        repeatId: null,
+        repeatId,
         createdBy,
         createdAt: serverTime(),
         updatedAt: serverTime(),
@@ -72,17 +82,29 @@ export async function createEvent(
       ({ workflowId, stepId, ...task }): BatchWrite =>
         (batch) =>
           batch.set(
-            doc(collection(db, Collections.tasks)),
+            doc(
+              db,
+              Collections.tasks,
+              eventTaskId(eventId, workflowId, stepId),
+            ),
             newTaskData(task, startingStatusId, createdBy, {
-              eventId: eventRef.id,
+              eventId,
               workflowId,
               stepId,
             }),
           ),
     ),
   ];
-  await commitWrites(db, writes);
-  return eventRef.id;
+}
+
+/** Makes the event and its workflows' tasks; gives back the event's id. */
+export async function createEvent(
+  fields: EventFields,
+  options: CreateOptions,
+): Promise<string> {
+  const eventId = doc(collection(db, Collections.events)).id;
+  await commitWrites(db, eventWrites(eventId, fields, null, options));
+  return eventId;
 }
 
 /**
@@ -118,17 +140,47 @@ export function saveEvent(
   return commitWrites(db, writes);
 }
 
-/** Deletes the event and the tasks it made. */
-export function deleteEvent(
+/** The writes that delete an event and the tasks it made. */
+export function deleteEventWrites(
   id: string,
   taskIds: readonly string[],
-): Promise<void> {
-  return commitWrites(db, [
+): BatchWrite[] {
+  return [
     ...taskIds.map(
       (taskId): BatchWrite =>
         (batch) =>
           batch.delete(doc(db, Collections.tasks, taskId)),
     ),
     (batch) => batch.delete(doc(db, Collections.events, id)),
-  ]);
+  ];
+}
+
+/** Deletes the event and the tasks it made. */
+export function deleteEvent(
+  id: string,
+  taskIds: readonly string[],
+): Promise<void> {
+  return commitWrites(db, deleteEventWrites(id, taskIds));
+}
+
+/** Changes an event's details (and its start, when given) without touching its tasks. */
+export function eventDetailsWrite(
+  id: string,
+  fields: Omit<EventFields, "startsAt">,
+  startsAt?: Date,
+): BatchWrite {
+  const { title, eventTypeId, link, details, notes } = tidy({
+    ...fields,
+    startsAt: new Date(),
+  });
+  return (batch) =>
+    batch.update(doc(db, Collections.events, id), {
+      title,
+      eventTypeId,
+      link,
+      details,
+      notes,
+      ...(startsAt ? { startsAt: fromDate(startsAt) } : {}),
+      updatedAt: serverTime(),
+    });
 }

@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/views/events/EventViews.module.css
-   Version : 1.0.0
-   Latest commit: feature/calendar-events
+   Version : 1.1.0
+   Latest commit: feature/repeats
    Author : Gerrah
    Purpose : Layout of the New event and event pages: the header, then the main card (the event form, or its tasks) beside the side panels, stacked on narrow screens. */
 
@@ -73,6 +73,13 @@
   color: var(--color-text-muted);
   font-size: var(--text-meta);
   --icon-size: var(--icon-size-small);
+}
+
+.repeatAdd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
 }
 
 .text {

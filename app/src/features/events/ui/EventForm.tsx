@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/EventForm.tsx
-// Version : 1.0.0
-// Latest commit: feature/calendar-events
+// Version : 1.1.0
+// Latest commit: feature/repeats
 // Author : Gerrah
 // Purpose : An event's details as a form: title, type, date and time, link,
 // a box per {gap} its workflows ask for, and notes.
@@ -22,6 +22,10 @@ interface EventFormProps {
   /** The gaps to ask for, e.g. ["opponent"]. */
   gaps: readonly string[];
   problems: EventDraftProblems | null;
+  /** Leaves the date out, for changing a repeat (its days are set apart). */
+  hideDate?: boolean;
+  /** Focuses the title when the form opens. */
+  autoFocus?: boolean;
 }
 
 export function EventForm({
@@ -30,6 +34,8 @@ export function EventForm({
   eventTypes,
   gaps,
   problems,
+  hideDate = false,
+  autoFocus = true,
 }: EventFormProps) {
   return (
     <div className={styles.form}>
@@ -40,7 +46,7 @@ export function EventForm({
         maxLength={EventLimits.title}
         onChange={(event) => onChange({ title: event.target.value })}
         error={problems?.title}
-        autoFocus
+        autoFocus={autoFocus}
       />
       <div className={styles.row}>
         <Select
@@ -56,14 +62,16 @@ export function EventForm({
           }
           className={styles.type}
         />
-        <TextField
-          label={Text.date}
-          type="date"
-          value={draft.date}
-          onChange={(event) => onChange({ date: event.target.value })}
-          error={problems?.date}
-          className={styles.date}
-        />
+        {hideDate ? null : (
+          <TextField
+            label={Text.date}
+            type="date"
+            value={draft.date}
+            onChange={(event) => onChange({ date: event.target.value })}
+            error={problems?.date}
+            className={styles.date}
+          />
+        )}
         <TextField
           label={Text.time}
           type="time"
