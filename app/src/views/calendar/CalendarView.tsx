@@ -1,11 +1,12 @@
 // File : /TeamSamsara.Workflow/app/src/views/calendar/CalendarView.tsx
-// Version : 1.0.0
-// Latest commit: feature/calendar-events
+// Version : 1.1.0
+// Latest commit: feature/repeats
 // Author : Gerrah
 // Purpose : The calendar: a month of events (and one-off tasks) as a grid or a
 // list, with the month, view and work group kept in the address so a link
-// opens the same view. Planners add events from here; New task makes a
-// one-off task.
+// opens the same view. Planners add events from here and change them from
+// each event's ⋯ menu; opening it also makes the coming weeks' events of each
+// repeat. New task makes a one-off task.
 
 import { useMemo, useState, type ReactNode } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -17,10 +18,15 @@ import {
   CalendarList,
   CalendarMonth,
   CalendarText as Text,
+  EventActions,
   EventItem,
+  occurrenceStart,
+  SkippedItem,
   TaskItem,
   useEventProgress,
   useEventsInRange,
+  useRepeats,
+  useRepeatTopUp,
   useSeesAllTasks,
   useStandaloneTasksInRange,
 } from "@/features/events";
@@ -34,6 +40,7 @@ import {
 } from "@/features/task-setup";
 import { NewTaskDialog } from "@/features/tasks";
 import { useWorkGroups } from "@/features/work-groups";
+import { useWorkflows } from "@/features/workflows";
 import { Banner } from "@/shared/components/Banner/Banner";
 import { Button } from "@/shared/components/Button/Button";
 import { IconButton } from "@/shared/components/Button/IconButton";
@@ -75,6 +82,8 @@ export function CalendarView() {
   const tags = useTags();
   const platforms = usePlatforms();
   const seesAll = useSeesAllTasks();
+  const repeats = useRepeats();
+  const workflows = useWorkflows();
   const toast = useToast();
   const navigate = useNavigate();
   const now = useNow();
@@ -94,6 +103,21 @@ export function CalendarView() {
     [shown.year, shown.month, workspace.weekStartsOn, tz, now],
   );
 
+  const today = dayKey(now, tz);
+  useRepeatTopUp({
+    repeats,
+    workflows: workflows.items,
+    workflowsReady: workflows.status === "ready",
+    formats: {
+      timeZone: tz,
+      clock: workspace.timeFormat,
+      dateFormat: workspace.dateFormat,
+    },
+    startingStatusId: startingStatus(statuses.items)?.id ?? null,
+    memberId: member?.id ?? null,
+    today,
+  });
+
   const events = useEventsInRange(grid.start, grid.end);
   const progress = useEventProgress(events.items.map((event) => event.id));
   const tasks = useStandaloneTasksInRange(grid.start, grid.end);
@@ -107,7 +131,9 @@ export function CalendarView() {
     setParams(next, { replace: true });
   }
 
+  const canPlan = access.can("planEvents");
   const itemsByDay = useMemo(() => {
+    const repeatOf = new Map(repeats.map((repeat) => [repeat.id, repeat]));
     const byDay = new Map<string, { at: number; node: ReactNode }[]>();
     const add = (key: string, at: number, node: ReactNode) =>
       byDay.set(key, [...(byDay.get(key) ?? []), { at, node }]);
@@ -122,6 +148,9 @@ export function CalendarView() {
       const type = eventTypes.items.find(
         (entry) => entry.id === event.eventTypeId,
       );
+      const repeat = event.repeatId
+        ? (repeatOf.get(event.repeatId) ?? null)
+        : null;
       add(
         dayKey(event.startsAt, tz),
         event.startsAt.getTime(),
@@ -132,8 +161,32 @@ export function CalendarView() {
           time={formatTime(event.startsAt, tz, workspace.timeFormat)}
           progress={eventProgress}
           href={eventPath(event.id)}
+          isRepeat={event.repeatId !== null}
+          isPast={event.startsAt.getTime() < now.getTime()}
+          actions={
+            canPlan ? (
+              <EventActions event={event} repeat={repeat} look="item" />
+            ) : null
+          }
         />,
       );
+    }
+    // Dates a repeat skips, so it's clear they were left out on purpose.
+    for (const repeat of repeats) {
+      if (groupFilter) break;
+      for (const date of repeat.skipDates) {
+        const startsAt = occurrenceStart(date, repeat.time, tz);
+        if (startsAt < grid.start || startsAt >= grid.end) continue;
+        add(
+          date,
+          startsAt.getTime(),
+          <SkippedItem
+            key={`${repeat.id}_${date}`}
+            title={repeat.title}
+            time={formatTime(startsAt, tz, workspace.timeFormat)}
+          />,
+        );
+      }
     }
     for (const task of tasks.items) {
       if (!task.dueAt) continue;
@@ -159,6 +212,10 @@ export function CalendarView() {
     );
   }, [
     events.items,
+    repeats,
+    canPlan,
+    grid.start,
+    grid.end,
     tasks.items,
     progress,
     groupFilter,
@@ -172,7 +229,6 @@ export function CalendarView() {
   const itemsFor = (key: string) => itemsByDay.get(key) ?? [];
   const dayLabel = (key: string) =>
     formatDate(dayKeyToDate(key), "UTC", workspace.dateFormat);
-  const canPlan = access.can("planEvents");
   const previous = addMonths(shown.year, shown.month, -1);
   const next = addMonths(shown.year, shown.month, 1);
 
@@ -277,7 +333,7 @@ export function CalendarView() {
             .map((day) => day.key)}
           itemsFor={itemsFor}
           dayLabel={dayLabel}
-          todayKey={dayKey(now, tz)}
+          todayKey={today}
         />
       )}
       <p className={styles.legend}>{Text.legend}</p>

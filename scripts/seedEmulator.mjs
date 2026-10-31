@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/scripts/seedEmulator.mjs
-// Version : 1.10.0
-// Latest commit: feature/calendar-events
+// Version : 1.11.0
+// Latest commit: feature/repeats
 // Author : Gerrah
 // Purpose : Fills the local emulators with a ready-made workspace and test
 // accounts, so the app can be tried without touching the real project. It wipes
@@ -95,7 +95,35 @@ const step = (id, fields) => ({
 
 /** One workflow with a task of each kind, to try the editor on. */
 /** One event type, so the calendar has a colour to show (real workspaces start with none). */
+const seedTimeZone = "America/Toronto";
 const matchType = { name: "Match", color: "#E5484D", position: 0 };
+const meetingType = { name: "Meeting", color: "#3E8EF7", position: 1 };
+
+/**
+ * A weekly meeting every Monday and Thursday. Only the repeat is written: the
+ * calendar makes its events the first time a planner opens it.
+ */
+function sampleRepeat(now, uidOf, timeZone) {
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone }).format(now);
+  return {
+    title: "Weekly content meeting",
+    eventTypeId: "meeting",
+    weekdays: [1, 4],
+    time: "10:00",
+    startDate: today,
+    endKind: "never",
+    endDate: null,
+    endCount: null,
+    skipDates: [],
+    link: null,
+    details: {},
+    notes: "Plan the week's posts and clips.",
+    workflowIds: [],
+    createdBy: uidOf("alex"),
+    createdAt: now,
+    updatedAt: now,
+  };
+}
 
 const sampleWorkflow = {
   name: "Match day",
@@ -411,7 +439,7 @@ async function main() {
       ),
       db.doc("config/workspace").set({
         name: "Team Samsara (dev)",
-        timeZone: "America/Toronto",
+        timeZone: seedTimeZone,
         weekStartsOn: "monday",
         dateFormat: "weekdayMonthDay",
         timeFormat: "12h",
@@ -431,6 +459,12 @@ async function main() {
     }
     const nova = sampleEvent(now, uidOf);
     writes.push(db.doc("eventTypes/match").set(matchType));
+    writes.push(db.doc("eventTypes/meeting").set(meetingType));
+    writes.push(
+      db
+        .doc("repeats/weekly-meeting")
+        .set(sampleRepeat(now, uidOf, seedTimeZone)),
+    );
     writes.push(db.doc("events/nova").set(nova.event));
     for (const [id, task] of Object.entries(nova.tasks)) {
       writes.push(db.doc(`tasks/${id}`).set(task));

@@ -1,16 +1,14 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/eventViewContent.ts
-// Version : 1.0.0
-// Latest commit: feature/calendar-events
+// Version : 1.1.0
+// Latest commit: feature/repeats
 // Author : Gerrah
-// Purpose : The words on an event's page and its edit and delete dialogs.
+// Purpose : The words on an event's page.
 
 export const EventViewText = {
   calendar: "Calendar",
   loading: "Loading event",
   notFound: "This event doesn't exist any more.",
   back: "Back to the calendar",
-  edit: "Edit event",
-  delete: "Delete",
   addTask: "Add task",
   openLink: "Open link",
   tasks: "Tasks",
@@ -25,22 +23,7 @@ export const EventViewText = {
   noWorkflows: "None",
   notes: "Notes",
   taskAdded: (title: string) => `${title} added`,
-  saved: (title: string) => `${title} saved`,
-  deleted: (title: string) => `${title} deleted`,
-  editDialog: {
-    title: "Edit event",
-    moveTasks: "Move its tasks too",
-    moveTasksHelp: "Its tasks keep the same time before or after the event.",
-    cancel: "Cancel",
-    save: "Save",
-  },
-  deleteDialog: {
-    title: (title: string) => `Delete ${title}?`,
-    body: (tasks: number) =>
-      tasks === 0
-        ? "This can't be undone."
-        : `Its ${tasks === 1 ? "task" : `${tasks} tasks`} will be deleted too. This can't be undone.`,
-    cancel: "Cancel",
-    confirm: "Delete event",
-  },
+  repeat: "Repeats",
+  repeatHelp:
+    "Change this one or the upcoming ones, skip a date or end the repeat from the ⋯ menu.",
 } as const;

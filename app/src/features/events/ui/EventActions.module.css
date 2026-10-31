@@ -1,0 +1,38 @@
+/* File : /TeamSamsara.Workflow/app/src/features/events/ui/EventActions.module.css
+   Version : 1.0.0
+   Latest commit: feature/repeats
+   Author : Gerrah
+   Purpose : The ⋯ button and its menu: a square icon button, menu rows with an icon, the deleting ones in the error colour. */
+
+.root {
+  flex: none;
+}
+
+/* Square, like an icon button; the attribute beats the button's own padding. */
+.trigger[data-look] {
+  width: var(--control-height);
+  padding: 0;
+}
+
+.trigger[data-look="item"] {
+  width: 28px;
+  min-height: 28px;
+  height: 28px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+
+.item[data-danger] {
+  color: var(--color-error-text);
+}
+
+.icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}

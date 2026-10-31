@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/hooks/useEvents.ts
-// Version : 1.0.0
-// Latest commit: feature/calendar-events
+// Version : 1.1.0
+// Latest commit: feature/repeats
 // Author : Gerrah
 // Purpose : Live events for the dates on screen, one event by id, an event's
 // tasks, how far each shown event's tasks are, and the one-off tasks due in
@@ -81,12 +81,22 @@ export function useEvent(
 }
 
 /** The event's tasks: all of them, or for others only theirs and their groups'. */
+/**
+ * Whether this member may read every event's tasks: those who see every task,
+ * and planners (who move, skip and delete events with their tasks).
+ */
+export function useSeesEventTasks(): boolean {
+  const seesAll = useSeesAllTasks();
+  const canPlan = usePermissions().can("planEvents");
+  return seesAll || canPlan;
+}
+
 export function useEventTasks(
   eventId: string | undefined,
   viewer: Pick<MemberRecord, "id" | "workGroupIds"> | null,
 ): Live<TaskRecord> {
   const isReady = usePermissions().status === "ready";
-  const seesAll = useSeesAllTasks();
+  const seesAll = useSeesEventTasks();
   const groups = [...(viewer?.workGroupIds ?? [])].sort();
   const key =
     isReady && eventId && viewer
@@ -127,12 +137,12 @@ export interface Progress {
   groupIds: Set<string>;
 }
 
-/** How many of each event's tasks are done (for members who see every task). */
+/** How many of each event's tasks are done (for members who see every event's tasks). */
 export function useEventProgress(
   eventIds: readonly string[],
 ): Map<string, Progress> {
   const isReady = usePermissions().status === "ready";
-  const seesAll = useSeesAllTasks();
+  const seesAll = useSeesEventTasks();
   const ids = [...eventIds].sort();
   const key =
     isReady && seesAll && ids.length > 0

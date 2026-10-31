@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/icons/iconRegistry.ts
-// Version : 1.2.0
-// Latest commit: fix/workflow-editor-simpler
+// Version : 1.3.0
+// Latest commit: feature/repeats
 // Author : Gerrah
 // Purpose : The only file that knows where each icon comes from; screens use the names.
 
@@ -9,6 +9,7 @@ import {
   Archive,
   ArrowLeft,
   Calendar,
+  CalendarX,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -35,6 +36,7 @@ import {
   Monitor,
   Moon,
   Pencil,
+  Repeat,
   Plus,
   RotateCcw,
   Search,
@@ -96,6 +98,8 @@ export const iconRegistry = {
   reset: RotateCcw,
   invite: UserPlus,
   more: Ellipsis,
+  repeat: Repeat,
+  skip: CalendarX,
   dragHandle: GripVertical,
   menu: Menu,
   logOut: LogOut,

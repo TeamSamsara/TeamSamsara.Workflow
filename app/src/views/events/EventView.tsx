@@ -1,31 +1,25 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/EventView.tsx
-// Version : 1.0.0
-// Latest commit: feature/calendar-events
+// Version : 1.1.0
+// Latest commit: feature/repeats
 // Author : Gerrah
 // Purpose : An event's page: when and what it is, its tasks and how far along
-// they are, and its details. Planners edit it (moving its tasks when its time
-// changes), add tasks to it, and delete it with its tasks.
+// they are, its details and the repeat it's part of. Planners change it from
+// its ⋯ menu (the same as on the calendar) and add tasks to it.
 
-import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { usePermissions } from "@/core/access";
-import { DataErrorText, dataErrorMessage, isCurrentMember } from "@/core/data";
+import { DataErrorText, isCurrentMember } from "@/core/data";
 import { useSession } from "@/core/session";
 import { useWorkspaceRecord } from "@/core/workspace";
 import {
-  askedGaps,
-  checkEventDraft,
-  deleteEvent,
-  draftFromEvent,
-  EventForm,
-  fieldsFromDraft,
+  describeRepeat,
+  EventActions,
   gapLabel,
-  saveEvent,
   useEvent,
   useEventTasks,
-  useSeesAllTasks,
-  type EventDraft,
+  useRepeats,
+  useSeesEventTasks,
   type EventRecord,
 } from "@/features/events";
 import { useMembers } from "@/features/members";
@@ -47,9 +41,7 @@ import { useWorkflows } from "@/features/workflows";
 import { Banner } from "@/shared/components/Banner/Banner";
 import { Button } from "@/shared/components/Button/Button";
 import { Chip } from "@/shared/components/Chip/Chip";
-import { Checkbox } from "@/shared/components/Fields/Checkbox/Checkbox";
 import { LinkButton } from "@/shared/components/Button/LinkButton";
-import { Modal } from "@/shared/components/Modal/Modal";
 import { PageHeader } from "@/shared/components/PageHeader/PageHeader";
 import { Spinner } from "@/shared/components/Spinner/Spinner";
 import { useToast } from "@/shared/components/Toast/useToast";
@@ -73,18 +65,20 @@ function EventPage({ event }: { event: EventRecord }) {
   const tags = useTags();
   const platforms = usePlatforms();
   const workflows = useWorkflows();
-  const seesAll = useSeesAllTasks();
+  const seesAll = useSeesEventTasks();
+  const repeats = useRepeats();
   const tasks = useEventTasks(event.id, member);
   const toast = useToast();
   const navigate = useNavigate();
   const now = useNow();
-  const [isEditing, setIsEditing] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [isAddingTask, setIsAddingTask] = useState(false);
 
   const tz = workspace.timeZone;
   const canPlan = access.can("planEvents");
   const type = eventTypes.items.find((entry) => entry.id === event.eventTypeId);
+  const repeat = event.repeatId
+    ? (repeats.find((entry) => entry.id === event.repeatId) ?? null)
+    : null;
   const done = tasks.items.filter((task) => task.doneAt).length;
   const usedWorkflows = workflows.items.filter((workflow) =>
     event.workflowIds.includes(workflow.id),
@@ -98,18 +92,6 @@ function EventPage({ event }: { event: EventRecord }) {
     hrefFor: taskPath,
     now,
   };
-
-  const remove = useMutation({
-    mutationFn: () =>
-      deleteEvent(
-        event.id,
-        tasks.items.map((task) => task.id),
-      ),
-    onSuccess: () => {
-      toast.show({ tone: "success", title: Text.deleted(event.title) });
-      navigate(RoutePaths.calendar, { replace: true });
-    },
-  });
 
   return (
     <>
@@ -143,16 +125,12 @@ function EventPage({ event }: { event: EventRecord }) {
         actions={
           canPlan ? (
             <>
-              <Button
-                variant="ghost"
-                iconStart="trash"
-                onClick={() => setIsDeleting(true)}
-              >
-                {Text.delete}
-              </Button>
-              <Button iconStart="edit" onClick={() => setIsEditing(true)}>
-                {Text.edit}
-              </Button>
+              <EventActions
+                event={event}
+                repeat={repeat}
+                look="header"
+                onGone={() => navigate(RoutePaths.calendar, { replace: true })}
+              />
               <Button
                 variant="primary"
                 iconStart="add"
@@ -229,55 +207,26 @@ function EventPage({ event }: { event: EventRecord }) {
               </>
             ) : null}
           </section>
+          {repeat ? (
+            <section className={panels.card} aria-labelledby="event-repeat">
+              <h2 id="event-repeat" className={panels.title}>
+                <Icon name="repeat" /> {Text.repeat}
+              </h2>
+              <p className={styles.text}>
+                {describeRepeat(
+                  repeat,
+                  workspace.timeFormat,
+                  workspace.dateFormat,
+                  workspace.weekStartsOn,
+                )}
+              </p>
+              {canPlan ? (
+                <p className={panels.muted}>{Text.repeatHelp}</p>
+              ) : null}
+            </section>
+          ) : null}
         </aside>
       </div>
-
-      {isEditing ? (
-        <EditEventDialog
-          event={event}
-          gaps={[
-            ...new Set([
-              ...Object.keys(event.details),
-              ...askedGaps(usedWorkflows),
-            ]),
-          ].sort()}
-          tasksToMove={tasks.items}
-          onClose={() => setIsEditing(false)}
-        />
-      ) : null}
-
-      {isDeleting ? (
-        <Modal
-          title={Text.deleteDialog.title(event.title)}
-          onClose={remove.isPending ? undefined : () => setIsDeleting(false)}
-          footer={
-            <>
-              <Button
-                variant="ghost"
-                onClick={() => setIsDeleting(false)}
-                disabled={remove.isPending}
-              >
-                {Text.deleteDialog.cancel}
-              </Button>
-              <Button
-                variant="danger"
-                iconStart="trash"
-                isLoading={remove.isPending}
-                onClick={() => remove.mutate()}
-              >
-                {Text.deleteDialog.confirm}
-              </Button>
-            </>
-          }
-        >
-          {remove.error ? (
-            <Banner tone="error">{dataErrorMessage(remove.error)}</Banner>
-          ) : null}
-          <p className={styles.text}>
-            {Text.deleteDialog.body(tasks.items.length)}
-          </p>
-        </Modal>
-      ) : null}
 
       {isAddingTask && member ? (
         <NewTaskDialog
@@ -299,93 +248,6 @@ function EventPage({ event }: { event: EventRecord }) {
         />
       ) : null}
     </>
-  );
-}
-
-function EditEventDialog({
-  event,
-  gaps,
-  tasksToMove,
-  onClose,
-}: {
-  event: EventRecord;
-  gaps: string[];
-  tasksToMove: Parameters<typeof saveEvent>[3];
-  onClose: () => void;
-}) {
-  const workspace = useWorkspaceRecord();
-  const eventTypes = useEventTypes();
-  const toast = useToast();
-  const [draft, setDraft] = useState<EventDraft>(() =>
-    draftFromEvent(event, workspace.timeZone),
-  );
-  const [moveTasks, setMoveTasks] = useState(true);
-  const [tried, setTried] = useState(false);
-  const problems = checkEventDraft(draft);
-  const fields = fieldsFromDraft(draft, workspace.timeZone);
-  const moved =
-    fields !== null && fields.startsAt.getTime() !== event.startsAt.getTime();
-
-  const save = useMutation({
-    mutationFn: () => {
-      if (!fields) throw new Error("Missing date");
-      return saveEvent(
-        event.id,
-        fields,
-        event.startsAt,
-        moveTasks ? tasksToMove : [],
-      );
-    },
-    onSuccess: () => {
-      toast.show({ tone: "success", title: Text.saved(draft.title.trim()) });
-      onClose();
-    },
-  });
-
-  return (
-    <Modal
-      title={Text.editDialog.title}
-      size="wide"
-      onClose={save.isPending ? undefined : onClose}
-      footer={
-        <>
-          <Button variant="ghost" onClick={onClose} disabled={save.isPending}>
-            {Text.editDialog.cancel}
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => {
-              setTried(true);
-              if (problems.count === 0) save.mutate();
-            }}
-            isLoading={save.isPending}
-          >
-            {Text.editDialog.save}
-          </Button>
-        </>
-      }
-    >
-      {save.error ? (
-        <Banner tone="error">{dataErrorMessage(save.error)}</Banner>
-      ) : null}
-      <EventForm
-        draft={draft}
-        onChange={(changes) =>
-          setDraft((current) => ({ ...current, ...changes }))
-        }
-        eventTypes={eventTypes.items}
-        gaps={gaps}
-        problems={tried ? problems : null}
-      />
-      {moved && tasksToMove.length > 0 ? (
-        <Checkbox
-          label={Text.editDialog.moveTasks}
-          help={Text.editDialog.moveTasksHelp}
-          checked={moveTasks}
-          onChange={(change) => setMoveTasks(change.target.checked)}
-        />
-      ) : null}
-    </Modal>
   );
 }
 

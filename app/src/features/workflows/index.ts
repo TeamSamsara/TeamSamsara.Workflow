@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/index.ts
-// Version : 1.2.0
-// Latest commit: feature/tasks
+// Version : 1.3.0
+// Latest commit: feature/repeats
 // Author : Gerrah
 // Purpose : What other layers may use from the workflows feature.
 
@@ -8,7 +8,7 @@ export { useWorkflowDraft } from "./hooks/useWorkflowDraft";
 export type { WorkflowDraft } from "./hooks/useWorkflowDraft";
 export { useWorkflow, useWorkflows } from "./hooks/useWorkflows";
 export type { WorkflowList } from "./hooks/useWorkflows";
-export { describeDue, resolveDue } from "./model/dueOffset";
+export { describeDue, formatClockTime, resolveDue } from "./model/dueOffset";
 export { giveToValue, parseGiveTo } from "./model/giveTo";
 export {
   exportFileName,

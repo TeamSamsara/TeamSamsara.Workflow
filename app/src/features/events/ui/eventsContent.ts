@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/eventsContent.ts
-// Version : 1.0.0
-// Latest commit: feature/calendar-events
+// Version : 1.1.0
+// Latest commit: feature/repeats
 // Author : Gerrah
 // Purpose : The words for the calendar, its items, the event form, the
 // workflows to apply and the tasks they add.
@@ -21,7 +21,7 @@ export const CalendarText = {
   },
   addOn: (day: string) => `New event on ${day}`,
   legend:
-    "Events have a solid coloured edge; one-off tasks are dashed. Times are in the workspace's time zone.",
+    "Events have a solid coloured edge; one-off tasks are dashed. Past events fade, with a ✓ when every task got done. Times are in the workspace's time zone.",
   emptyList: "Nothing planned this month.",
   loading: "Loading the calendar",
 } as const;
@@ -29,7 +29,10 @@ export const CalendarText = {
 export const CalendarItemText = {
   progress: (done: number, total: number) => `${done}/${total} done`,
   allDone: "All done",
+  left: (count: number) => `${count} left`,
   late: "Late",
+  repeats: "Repeats",
+  skipped: "Skipped",
 } as const;
 
 export const EventFormText = {
