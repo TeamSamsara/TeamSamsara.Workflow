@@ -643,13 +643,32 @@ service cloud.firestore {
     // #endregion
 
     // #region Events
-    // What's on the calendar. Every member sees events (their tasks follow the
-    // task rules); Plan events makes, changes and deletes them.
+    // What's on the calendar. An event is seen by the people and work groups
+    // in it, by everyone when it's for Everyone, by whoever made it, and by
+    // View all. Plan events makes, changes and deletes them. A repeat's events
+    // are made by any planner's browser but belong to whoever made the repeat.
+    function canSeeAudience(data) {
+      return data.createdBy == request.auth.uid
+        || data.everyone == true
+        || request.auth.uid in data.memberIds
+        || data.groupIds.hasAny(memberRecord().data.get("workGroupIds", []))
+        || can("viewAll");
+    }
+
+    function isEventMaker(event) {
+      return event.createdBy == request.auth.uid
+        || (event.repeatId != null
+          && get(/databases/$(database)/documents/repeats/$(event.repeatId)).data.createdBy == event.createdBy);
+    }
+
     match /events/{eventId} {
-      allow read: if isActiveMember();
+      // Asking for one that doesn't exist is allowed, so a repeat can check
+      // which of its dates are made already.
+      allow get: if isActiveMember() && (resource == null || canSeeAudience(resource.data));
+      allow list: if isActiveMember() && canSeeAudience(resource.data);
       allow create: if can("planEvents")
         && isValidEvent(request.resource.data)
-        && request.resource.data.createdBy == request.auth.uid
+        && isEventMaker(request.resource.data)
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
       allow update: if can("planEvents")
@@ -660,29 +679,40 @@ service cloud.firestore {
       allow delete: if can("planEvents");
     }
 
+    // Who's in an event or a repeat: Everyone, work groups and people.
+    function isValidAudience(data) {
+      return data.everyone is bool
+        && data.groupIds is list && data.groupIds.size() <= 20
+        && data.memberIds is list && data.memberIds.size() <= 50;
+    }
+
     // Same sizes as EventLimits in app/src/features/events.
     function isValidEvent(event) {
-      let fields = ["title", "eventTypeId", "startsAt", "link", "details",
-        "workflowIds", "notes", "repeatId", "createdBy", "createdAt", "updatedAt"];
+      let fields = ["title", "eventTypeId", "startsAt", "endsAt", "link",
+        "details", "workflowIds", "notes", "repeatId", "everyone", "groupIds",
+        "memberIds", "createdBy", "createdAt", "updatedAt"];
       return event.keys().hasOnly(fields)
         && event.keys().hasAll(fields)
         && event.title is string && event.title.size() > 0 && event.title.size() <= 120
         && isNullOr(event.eventTypeId, "string")
         && event.startsAt is timestamp
+        && event.endsAt is timestamp && event.endsAt >= event.startsAt
         && (event.link == null || (event.link is string && event.link.size() <= 500))
         && event.details is map && event.details.size() <= 20
         && event.workflowIds is list && event.workflowIds.size() <= 5
         && event.notes is string && event.notes.size() <= 2000
         && isNullOr(event.repeatId, "string")
+        && isValidAudience(event)
         && event.createdBy is string
         && event.createdAt is timestamp
         && event.updatedAt is timestamp;
     }
 
     // Repeats: an event on set weekdays that the app makes a few weeks ahead.
-    // Every member sees them; Plan events makes, changes and ends them.
+    // Seen by the same people as its events; Plan events makes, changes and
+    // ends them.
     match /repeats/{repeatId} {
-      allow read: if isActiveMember();
+      allow read: if isActiveMember() && canSeeAudience(resource.data);
       allow create: if can("planEvents")
         && isValidRepeat(request.resource.data)
         && request.resource.data.createdBy == request.auth.uid
@@ -698,15 +728,17 @@ service cloud.firestore {
 
     // Same sizes as RepeatLimits and EventLimits in app/src/features/events.
     function isValidRepeat(repeat) {
-      let fields = ["title", "eventTypeId", "weekdays", "time", "startDate",
-        "endKind", "endDate", "endCount", "skipDates", "link", "details",
-        "notes", "workflowIds", "createdBy", "createdAt", "updatedAt"];
+      let fields = ["title", "eventTypeId", "weekdays", "time", "minutes",
+        "startDate", "endKind", "endDate", "endCount", "skipDates", "link",
+        "details", "notes", "workflowIds", "everyone", "groupIds", "memberIds",
+        "createdBy", "createdAt", "updatedAt"];
       return repeat.keys().hasOnly(fields)
         && repeat.keys().hasAll(fields)
         && repeat.title is string && repeat.title.size() > 0 && repeat.title.size() <= 120
         && isNullOr(repeat.eventTypeId, "string")
         && repeat.weekdays is list && repeat.weekdays.size() > 0 && repeat.weekdays.size() <= 7
         && repeat.time is string && repeat.time.matches("^[0-2][0-9]:[0-5][0-9]$")
+        && repeat.minutes is int && repeat.minutes >= 5 && repeat.minutes <= 1440
         && repeat.startDate is string && repeat.startDate.size() == 10
         && repeat.endKind in ["never", "onDate", "afterCount"]
         && (repeat.endDate == null || (repeat.endDate is string && repeat.endDate.size() == 10))
@@ -717,6 +749,7 @@ service cloud.firestore {
         && repeat.details is map && repeat.details.size() <= 20
         && repeat.notes is string && repeat.notes.size() <= 2000
         && repeat.workflowIds is list && repeat.workflowIds.size() <= 5
+        && isValidAudience(repeat)
         && repeat.createdBy is string
         && repeat.createdAt is timestamp
         && repeat.updatedAt is timestamp;
