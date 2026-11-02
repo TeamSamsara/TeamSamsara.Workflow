@@ -1,10 +1,19 @@
 // File : /TeamSamsara.Workflow/app/src/views/calendar/calendarViewContent.ts
-// Version : 1.2.0
-// Latest commit: feature/people-time
+// Version : 1.3.0
+// Latest commit: feature/event-sets
 // Author : Gerrah
 // Purpose : The words on the calendar page.
 
 export const CalendarViewText = {
+  menu: {
+    event: "Event",
+    eventDetail: "One event, or one that repeats.",
+    several: "Several events",
+    severalDetail: "A split, a month of content: one row per event.",
+    personal: "Personal appointment",
+    personalDetail: "Only you and managers see what it is.",
+    personalOnly: "Personal appointment",
+  },
   taskCreated: (title: string) => `${title} created`,
   unavailable: "Unavailable",
   mineLegend:

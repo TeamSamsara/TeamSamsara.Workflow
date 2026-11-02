@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/ui/availabilityContent.ts
-// Version : 1.0.0
-// Latest commit: feature/people-time
+// Version : 1.1.0
+// Latest commit: feature/event-sets
 // Author : Gerrah
 // Purpose : The words for availability, personal appointments and who can
 // make an event.
@@ -102,6 +102,7 @@ export const TeamText = {
   bestNote: "Pick one to plan an event at that time.",
   noBest: "No two-hour stretch this week when everyone is free.",
   legend: {
+    topic: "the colours",
     available: "Available",
     unavailable: "Unavailable (usual week or exception)",
     busy: "Personal appointment",

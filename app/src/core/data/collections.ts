@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/collections.ts
-// Version : 1.4.0
-// Latest commit: feature/people-time
+// Version : 1.5.0
+// Latest commit: feature/event-sets
 // Author : Gerrah
 // Purpose : The name of every Firestore collection and settings document, in one
 // place. One Firebase project holds one workspace, so everything sits at the top.
@@ -18,6 +18,7 @@ export const Collections = {
   workflows: "workflows",
   events: "events",
   repeats: "repeats",
+  eventSets: "eventSets",
   availability: "availability",
   personal: "personal",
   busy: "busy",

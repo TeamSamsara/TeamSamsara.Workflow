@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/router.tsx
-// Version : 1.13.0
-// Latest commit: feature/people-time
+// Version : 1.14.0
+// Latest commit: feature/event-sets
 // Author : Gerrah
 // Purpose : Every route in the app. Layouts and the not-found page load with the
 // app; every other page loads only when it is first opened. Pages not built yet show ComingSoonView, and each
@@ -132,6 +132,18 @@ const calendarView = () =>
     Component: module.CalendarView,
   }));
 
+const planSeveralView = () =>
+  import("@/views/events/PlanSeveralView").then((module) => ({
+    Component: module.PlanSeveralView,
+  }));
+const eventSetsView = () =>
+  import("@/views/events/EventSetsView").then((module) => ({
+    Component: module.EventSetsView,
+  }));
+const eventSetView = () =>
+  import("@/views/events/EventSetView").then((module) => ({
+    Component: module.EventSetView,
+  }));
 const newEventView = () =>
   import("@/views/events/NewEventView").then((module) => ({
     Component: module.NewEventView,
@@ -220,6 +232,19 @@ export const router = createBrowserRouter([
             children: [
               { path: RoutePaths.calendar, lazy: calendarView },
               { path: RoutePaths.newEvent, lazy: newEventView },
+              { path: RoutePaths.planSeveral, lazy: planSeveralView },
+              {
+                element: (
+                  <RequirePermission
+                    anyOf={["planEvents", "viewAll"]}
+                    fallback={<ForbiddenView />}
+                  />
+                ),
+                children: [
+                  { path: RoutePaths.eventSets, lazy: eventSetsView },
+                  { path: RoutePaths.eventSet, lazy: eventSetView },
+                ],
+              },
               { path: RoutePaths.event, lazy: eventView },
               { path: RoutePaths.availability, lazy: myAvailabilityView },
               {

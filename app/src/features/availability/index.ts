@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/index.ts
-// Version : 1.0.0
-// Latest commit: feature/people-time
+// Version : 1.1.0
+// Latest commit: feature/event-sets
 // Author : Gerrah
 // Purpose : What other layers may use from the availability feature.
 
@@ -10,6 +10,8 @@ export {
   useBusyInRange,
   usePersonalInRange,
 } from "./hooks/useAvailability";
+export { useWhoCanMake } from "./hooks/useWhoCanMake";
+export type { Span, WhoCanMake } from "./hooks/useWhoCanMake";
 export { checkPerson, isAvailableAt, stretches } from "./model/freeBusy";
 export type { PersonTime } from "./model/freeBusy";
 export { saveAvailability } from "./service/availabilityService";

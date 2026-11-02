@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/index.ts
-// Version : 1.3.0
-// Latest commit: feature/people-time
+// Version : 1.4.0
+// Latest commit: feature/event-sets
 // Author : Gerrah
 // Purpose : What other layers may use from the events feature.
 
@@ -16,6 +16,7 @@ export {
 } from "./hooks/useEvents";
 export type { Progress } from "./hooks/useEvents";
 export { useRepeat, useRepeats, useRepeatTopUp } from "./hooks/useRepeats";
+export { useEventSet, useEventSets, useSetEvents } from "./hooks/useEventSets";
 export { useAudienceOptions } from "./hooks/useAudienceOptions";
 export type { AudienceOptions } from "./hooks/useAudienceOptions";
 export { applyWorkflows, askedGaps, gapLabel } from "./model/applyWorkflows";
@@ -29,6 +30,20 @@ export {
   fieldsFromDraft,
 } from "./model/eventDraft";
 export type { EventDraft, EventDraftProblems } from "./model/eventDraft";
+export {
+  checkPlan,
+  emptyGaps,
+  emptyPlan,
+  nextRow,
+  planForSet,
+  planGaps,
+  planMinutes,
+  rowFields,
+  rowStart,
+  rowTitle,
+  sortRows,
+} from "./model/planDraft";
+export type { PlanDraft, PlanRow } from "./model/planDraft";
 export {
   checkRepeatDraft,
   draftFromRepeat,
@@ -53,6 +68,20 @@ export {
   skipOccurrence,
 } from "./service/repeatService";
 export type { SeriesFields } from "./service/repeatService";
+export {
+  addToEventSet,
+  createEventSet,
+  deleteEvents,
+  deleteEventSet,
+  moveEvents,
+  renameEventSet,
+} from "./service/setService";
+export type { EventMove } from "./service/setService";
+export { EventSetLimits } from "./types/setTypes";
+export type { EventSetRecord } from "./types/setTypes";
+export { PasteDialog, PatternDialog } from "./ui/PlanDialogs";
+export { PlanTable } from "./ui/PlanTable";
+export { PlanText, SetText } from "./ui/planContent";
 export { readScope, scopeValue } from "./model/calendarScope";
 export type { CalendarScope, Viewer } from "./model/calendarScope";
 export { involves } from "./types/audience";
@@ -69,6 +98,7 @@ export type { WeekEntry } from "./ui/CalendarWeek";
 export { EventItem, SkippedItem, TaskItem } from "./ui/CalendarItem";
 export { EventActions } from "./ui/EventActions";
 export { EventActionsText } from "./ui/eventActionsContent";
+export { AudiencePicker } from "./ui/AudiencePicker";
 export { EventForm } from "./ui/EventForm";
 export { RepeatFields } from "./ui/RepeatFields";
 export { RepeatFieldsText } from "./ui/repeatFieldsContent";

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/types/eventTypes.ts
-// Version : 1.1.0
-// Latest commit: feature/calendar-people
+// Version : 1.2.0
+// Latest commit: feature/event-sets
 // Author : Gerrah
 // Purpose : An event on the calendar: a match, a content drop, a sponsor
 // activation, a meeting. It has a start and an end, who's in it, an optional
@@ -33,6 +33,8 @@ export interface EventRecord extends Audience {
   notes: string;
   /** The repeat it belongs to; null for a one-time event. */
   repeatId: string | null;
+  /** The set it was planned in, if any. */
+  setId: string | null;
   createdBy: string;
   createdAt: Date | null;
   updatedAt: Date | null;
@@ -83,6 +85,7 @@ export const eventConverter = createConverter<EventRecord>({
       workflowIds: readStringList(data, "workflowIds"),
       notes: readString(data, "notes"),
       repeatId: readOptionalString(data, "repeatId"),
+      setId: readOptionalString(data, "setId"),
       createdBy: readString(data, "createdBy"),
       createdAt: readDate(data, "createdAt"),
       updatedAt: readDate(data, "updatedAt"),
@@ -98,6 +101,7 @@ export const eventConverter = createConverter<EventRecord>({
     workflowIds: event.workflowIds,
     notes: event.notes,
     repeatId: event.repeatId,
+    setId: event.setId,
     everyone: event.everyone,
     groupIds: event.groupIds,
     memberIds: event.memberIds,

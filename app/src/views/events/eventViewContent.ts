@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/eventViewContent.ts
-// Version : 1.2.0
-// Latest commit: feature/calendar-people
+// Version : 1.3.0
+// Latest commit: feature/event-sets
 // Author : Gerrah
 // Purpose : The words on an event's page.
 
@@ -24,6 +24,7 @@ export const EventViewText = {
   noWorkflows: "None",
   notes: "Notes",
   taskAdded: (title: string) => `${title} added`,
+  partOf: "Part of",
   repeat: "Repeats",
   repeatHelp:
     "Change this one or the upcoming ones, skip a date or end the repeat from the ⋯ menu.",

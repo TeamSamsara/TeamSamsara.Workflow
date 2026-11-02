@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/EventForm.tsx
-// Version : 1.3.0
-// Latest commit: feature/people-time
+// Version : 1.4.0
+// Latest commit: feature/event-sets
 // Author : Gerrah
 // Purpose : An event's details as a form: title, type, date, start and end,
 // who's in it (and who of them can make it), link, a box per {gap} its
@@ -18,6 +18,7 @@ import { TextField } from "@/shared/components/Fields/TextField/TextField";
 import { gapLabel } from "../model/applyWorkflows";
 import {
   fieldsFromDraft,
+  titleGaps,
   withStartTime,
   type EventDraft,
   type EventDraftProblems,
@@ -57,6 +58,8 @@ export function EventForm({
   const now = useNow();
   const tz = workspace.timeZone;
   const fields = hideDate ? null : fieldsFromDraft(draft, tz);
+  // The workflows' gaps and any written in the title ("vs. {opponent}").
+  const asked = [...new Set([...titleGaps(draft.title), ...gaps])];
   // Who's in it, as people: everyone in its groups and the people added.
   const checked = draft.audience.everyone
     ? []
@@ -174,12 +177,12 @@ export function EventForm({
         onChange={(event) => onChange({ link: event.target.value })}
         error={problems?.link}
       />
-      {gaps.length > 0 ? (
+      {asked.length > 0 ? (
         <fieldset className={styles.details}>
           <legend className={styles.legend}>{Text.details}</legend>
           <p className={styles.muted}>{Text.detailsHelp}</p>
           <div className={styles.gapGrid}>
-            {gaps.map((gap) => (
+            {asked.map((gap) => (
               <TextField
                 key={gap}
                 label={gapLabel(gap)}

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/scripts/seedEmulator.mjs
-// Version : 1.13.0
-// Latest commit: feature/people-time
+// Version : 1.14.0
+// Latest commit: feature/event-sets
 // Author : Gerrah
 // Purpose : Fills the local emulators with a ready-made workspace and test
 // accounts, so the app can be tried without touching the real project. It wipes
@@ -541,6 +541,50 @@ async function main() {
         .doc("repeats/weekly-meeting")
         .set(sampleRepeat(now, uidOf, seedTimeZone)),
     );
+    // A set: four Bloom matches on Saturdays, the last opponent still TBD.
+    const firstMatch = new Date(now);
+    firstMatch.setUTCDate(
+      firstMatch.getUTCDate() + ((6 - firstMatch.getUTCDay() + 7) % 7 || 7),
+    );
+    firstMatch.setUTCHours(22, 0, 0, 0);
+    writes.push(
+      db.doc("eventSets/fall-split").set({
+        name: "Fall Split",
+        eventTypeId: "match",
+        titlePattern: "vs. {opponent}",
+        minutes: 120,
+        workflowIds: [],
+        everyone: false,
+        groupIds: ["bloom"],
+        memberIds: [],
+        createdBy: uidOf("jordan"),
+        createdAt: now,
+        updatedAt: now,
+      }),
+    );
+    ["Kitsune", "Ironclad", "Polar Fox", ""].forEach((opponent, week) => {
+      const startsAt = new Date(firstMatch.getTime() + week * 7 * 24 * hour);
+      writes.push(
+        db.doc(`events/fall-split-${week + 1}`).set({
+          title: opponent ? `vs. ${opponent}` : "vs. {opponent}",
+          eventTypeId: "match",
+          startsAt,
+          endsAt: new Date(startsAt.getTime() + 2 * hour),
+          link: null,
+          details: opponent ? { opponent } : {},
+          workflowIds: [],
+          notes: "",
+          repeatId: null,
+          setId: "fall-split",
+          everyone: false,
+          groupIds: ["bloom"],
+          memberIds: [],
+          createdBy: uidOf("jordan"),
+          createdAt: now,
+          updatedAt: now,
+        }),
+      );
+    });
     writes.push(db.doc("events/nova").set(nova.event));
     for (const [id, task] of Object.entries(nova.tasks)) {
       writes.push(db.doc(`tasks/${id}`).set(task));

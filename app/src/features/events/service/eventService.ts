@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/service/eventService.ts
-// Version : 1.2.0
-// Latest commit: feature/calendar-people
+// Version : 1.3.0
+// Latest commit: feature/event-sets
 // Author : Gerrah
 // Purpose : Makes an event together with the tasks of its workflows (one batch,
 // so it's all or nothing), saves changes (moving its tasks by the same amount
@@ -56,6 +56,8 @@ export interface CreateOptions {
   createdBy: string;
   /** Who the event belongs to, when not who makes it (a repeat's maker). */
   eventMaker?: string;
+  /** The set it's planned in. */
+  setId?: string;
 }
 
 /** A task's id for an event: the same whoever makes it, so it's never made twice. */
@@ -78,6 +80,7 @@ export function eventWrites(
     startingStatusId,
     createdBy,
     eventMaker,
+    setId,
   }: CreateOptions,
 ): BatchWrite[] {
   const planned = applyWorkflows(
@@ -96,6 +99,7 @@ export function eventWrites(
         ...tidy(fields),
         workflowIds: workflows.map((workflow) => workflow.id),
         repeatId,
+        setId: setId ?? null,
         createdBy: eventMaker ?? createdBy,
         createdAt: serverTime(),
         updatedAt: serverTime(),

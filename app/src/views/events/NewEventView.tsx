@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/NewEventView.tsx
-// Version : 1.3.0
-// Latest commit: feature/people-time
+// Version : 1.4.0
+// Latest commit: feature/event-sets
 // Author : Gerrah
 // Purpose : Planning an event: its details on the left; on the right the
 // workflows to apply (the ones made for its type ticked to start with) and
@@ -121,7 +121,7 @@ export function NewEventView() {
   const fields = fieldsFromDraft(draft, workspace.timeZone);
   const planned = applyWorkflows(
     {
-      title: draft.title,
+      title: fields?.title ?? draft.title,
       startsAt: fields?.startsAt ?? new Date(),
       link: draft.link || null,
       details: draft.details,
@@ -180,8 +180,8 @@ export function NewEventView() {
       toast.show({
         tone: "success",
         title: schedule
-          ? Text.createdRepeat(draft.title.trim())
-          : Text.created(draft.title.trim()),
+          ? Text.createdRepeat(fields?.title ?? draft.title.trim())
+          : Text.created(fields?.title ?? draft.title.trim()),
       });
       leaving.current = true;
       navigate(path, { replace: true });
