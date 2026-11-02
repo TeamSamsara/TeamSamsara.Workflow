@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/general/generalSettingsViewContent.ts
-// Version : 1.1.0
-// Latest commit: feature/your-account
+// Version : 1.2.0
+// Latest commit: feature/remember-me
 // Author : Gerrah
 // Purpose : The words on Settings → General.
 
@@ -51,6 +51,12 @@ export const GeneralSettingsFormText = {
     device: "Match device",
   } satisfies Record<ThemeChoice, string>,
   themeHint: "Each person can still pick their own with the theme button.",
+  signInHeading: "Signing in",
+  sessionDays: "Ask for the password again after",
+  sessionDayOptions: (days: number) =>
+    days === 0 ? "Never: until they sign out" : `${days} days`,
+  sessionHint:
+    "Counted from when someone last typed their password. Unticking Keep me signed in ends it sooner, when the browser closes.",
   dateFormatNames: {
     weekdayMonthDay: "Weekday, month and day",
     monthDay: "Month and day",

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/auth/ui/SignInForm.tsx
-// Version : 1.0.0
-// Latest commit: feature/auth-screens
+// Version : 1.1.0
+// Latest commit: feature/remember-me
 // Author : Gerrah
 // Purpose : Email, password and Sign in. Field problems show once the person has
 // tried to send; a refused sign-in shows above the fields without saying whether
@@ -10,6 +10,7 @@ import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { Banner } from "@/shared/components/Banner/Banner";
 import { Button } from "@/shared/components/Button/Button";
+import { Checkbox } from "@/shared/components/Fields/Checkbox/Checkbox";
 import { PasswordField } from "@/shared/components/Fields/PasswordField/PasswordField";
 import { TextField } from "@/shared/components/Fields/TextField/TextField";
 import { RoutePaths } from "@/shared/constants/routePaths";
@@ -21,6 +22,7 @@ import styles from "./AuthForm.module.css";
 export function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [keep, setKeep] = useState(true);
   const [triedToSend, setTriedToSend] = useState(false);
   const { submit, isSubmitting, errorMessage } = useSignIn();
 
@@ -30,7 +32,7 @@ export function SignInForm() {
     event.preventDefault();
     setTriedToSend(true);
     if (hasFieldErrors(checkSignIn({ email, password }))) return;
-    submit({ email, password });
+    submit({ email, password, keep });
   }
 
   return (
@@ -53,13 +55,20 @@ export function SignInForm() {
         onChange={(event) => setPassword(event.target.value)}
         error={errors.password}
       />
-      <Link
-        to={RoutePaths.forgotPassword}
-        state={{ email }}
-        className={styles.inlineLink}
-      >
-        {SignInFormText.forgotPassword}
-      </Link>
+      <div className={styles.row}>
+        <Checkbox
+          label={SignInFormText.keep}
+          checked={keep}
+          onChange={(event) => setKeep(event.target.checked)}
+        />
+        <Link
+          to={RoutePaths.forgotPassword}
+          state={{ email }}
+          className={styles.inlineLink}
+        >
+          {SignInFormText.forgotPassword}
+        </Link>
+      </div>
       <Button
         type="submit"
         variant="primary"

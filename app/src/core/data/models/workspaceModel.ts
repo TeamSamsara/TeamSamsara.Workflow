@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/models/workspaceModel.ts
-// Version : 1.2.0
-// Latest commit: task/group-leads-and-x-premium
+// Version : 1.3.0
+// Latest commit: feature/remember-me
 // Author : Gerrah
 // Purpose : The workspace record (config/workspace): its name, the time zone
 // events are planned in, week start, date and time formats, the default theme for new
@@ -54,7 +54,21 @@ export interface WorkspaceRecord {
   enabledPlatformIds: string[];
   /** Platforms whose paid tier the workspace's account has (e.g. X Premium). */
   upgradedPlatformIds: string[];
+  /** Days a sign-in lasts before the password is asked again; 0 is never. */
+  sessionDays: SessionDays;
   createdAt: Date | null;
+}
+
+/** How long a sign-in can last; 0 means until they sign out. */
+export const SessionDayOptions = [7, 14, 30, 90, 0] as const;
+export type SessionDays = (typeof SessionDayOptions)[number];
+export const defaultSessionDays: SessionDays = 30;
+
+function readSessionDays(data: DocumentData): SessionDays {
+  const value: unknown = data.sessionDays;
+  return (
+    SessionDayOptions.find((option) => option === value) ?? defaultSessionDays
+  );
 }
 
 function parse(_id: string, data: DocumentData): WorkspaceRecord {
@@ -73,6 +87,8 @@ function parse(_id: string, data: DocumentData): WorkspaceRecord {
     ),
     enabledPlatformIds: readStringList(data, "enabledPlatformIds"),
     upgradedPlatformIds: readStringList(data, "upgradedPlatformIds"),
+    // Workspaces made before this setting existed last 30 days.
+    sessionDays: readSessionDays(data),
     createdAt: readDate(data, "createdAt"),
   };
 }
@@ -87,6 +103,7 @@ function serialize(workspace: WorkspaceRecord): DocumentData {
     defaultTheme: workspace.defaultTheme,
     enabledPlatformIds: workspace.enabledPlatformIds,
     upgradedPlatformIds: workspace.upgradedPlatformIds,
+    sessionDays: workspace.sessionDays,
     createdAt: fromDate(workspace.createdAt),
   };
 }

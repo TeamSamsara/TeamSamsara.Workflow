@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/models/models.test.ts
-// Version : 1.4.0
-// Latest commit: feature/onboarding
+// Version : 1.5.0
+// Latest commit: feature/remember-me
 // Author : Gerrah
 // Purpose : Tests that the workspace, member and roles records survive a save and
 // load unchanged, fill in safe defaults for missing fields, and that the roles
@@ -32,6 +32,7 @@ describe("workspace record", () => {
     defaultTheme: "dark",
     enabledPlatformIds: ["x", "youtube"],
     upgradedPlatformIds: ["x"],
+    sessionDays: 14,
     createdAt: new Date("2026-10-01T12:00:00Z"),
   };
 
@@ -51,6 +52,7 @@ describe("workspace record", () => {
       defaultTheme: "device",
       enabledPlatformIds: [],
       upgradedPlatformIds: [],
+      sessionDays: 30,
       createdAt: null,
     });
   });

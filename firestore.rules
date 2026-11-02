@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/firestore.rules
-// Version : 1.19.0
-// Latest commit: feature/event-fields
+// Version : 1.20.0
+// Latest commit: feature/remember-me
 // Author : Gerrah
 // Purpose : Who may read and write what in Firestore. Everything is denied until
 // a rule below allows it; each PR opens exactly what its feature needs, with a
@@ -158,8 +158,10 @@ service cloud.firestore {
     function isValidWorkspace(data) {
       let required = ["name", "timeZone", "weekStartsOn", "timeFormat",
         "defaultTheme", "enabledPlatformIds", "createdAt"];
-      // dateFormat and upgradedPlatformIds came later, so older workspaces may not have them.
-      return data.keys().hasOnly(required.concat(["dateFormat", "upgradedPlatformIds"]))
+      // dateFormat, upgradedPlatformIds and sessionDays came later, so older
+      // workspaces may not have them.
+      return data.keys().hasOnly(required.concat(["dateFormat",
+          "upgradedPlatformIds", "sessionDays"]))
         && data.keys().hasAll(required)
         && isValidName(data.name)
         && data.timeZone is string && data.timeZone.size() > 0
@@ -174,6 +176,8 @@ service cloud.firestore {
         // Platforms with a paid tier (UpgradablePlatformIds in the app).
         && data.get("upgradedPlatformIds", []) is list
         && data.get("upgradedPlatformIds", []).hasOnly(["x"])
+        // Days a sign-in lasts (SessionDayOptions in the app); 0 is never.
+        && data.get("sessionDays", 30) in [7, 14, 30, 90, 0]
         && data.createdAt is timestamp;
     }
 
