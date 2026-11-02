@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/hooks/useAvailability.ts
-// Version : 1.0.0
-// Latest commit: feature/people-time
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : Live availability, appointments and busy times: one member's
 // usual week, everyone's, personal appointments in some dates (a member's own,
@@ -9,6 +9,7 @@
 import { useMemo } from "react";
 import { collection, orderBy, query, where } from "firebase/firestore";
 import { usePermissions } from "@/core/access";
+import { useWorkspaceRecord } from "@/core/workspace";
 import {
   Collections,
   useLiveCollection,
@@ -32,18 +33,22 @@ export function useAvailability(
   memberId: string | null,
 ): AvailabilityRecord | null | undefined {
   const isReady = usePermissions().status === "ready";
+  const workspaceZone = useWorkspaceRecord().timeZone;
   const result = useLiveDocument(
     isReady && memberId ? `${Collections.availability}/${memberId}` : null,
     availabilityConverter,
   );
   if (result.status === "error") return null;
   if (result.status !== "ready") return undefined;
-  return result.data ?? null;
+  return result.data
+    ? { ...result.data, timeZone: result.data.timeZone ?? workspaceZone }
+    : null;
 }
 
 /** Everyone's usual week, by member id. */
 export function useAllAvailability(): Map<string, AvailabilityRecord> {
   const isReady = usePermissions().status === "ready";
+  const workspaceZone = useWorkspaceRecord().timeZone;
   const result = useLiveCollection(
     isReady ? "availability:all" : null,
     (database) =>
@@ -53,8 +58,13 @@ export function useAllAvailability(): Map<string, AvailabilityRecord> {
   );
   return useMemo(
     () =>
-      new Map((result.data ?? []).map((record) => [record.memberId, record])),
-    [result],
+      new Map(
+        (result.data ?? []).map((record) => [
+          record.memberId,
+          { ...record, timeZone: record.timeZone ?? workspaceZone },
+        ]),
+      ),
+    [result, workspaceZone],
   );
 }
 

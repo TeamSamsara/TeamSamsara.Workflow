@@ -1,13 +1,16 @@
 // File : /TeamSamsara.Workflow/app/src/core/session/authService.ts
-// Version : 1.2.0
-// Latest commit: core/workspace
+// Version : 1.3.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : Everything the app asks Firebase Auth to do: sign in and out, send
 // the password link, check a link's code, and set the new password from it.
 // Invites and resets use the same password link.
 
 import {
+  EmailAuthProvider,
   confirmPasswordReset,
+  reauthenticateWithCredential,
+  updatePassword,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
@@ -18,6 +21,7 @@ import {
 import { auth } from "@/lib/firebase";
 import { RoutePaths } from "@/shared/constants/routePaths";
 import { inviteMarkerParameter, type PasswordLinkPurpose } from "./actionLink";
+import { WrongCurrentPassword } from "./authErrors";
 import type { SessionUser } from "./sessionTypes";
 
 function toSessionUser(user: User): SessionUser {
@@ -83,4 +87,25 @@ export async function setPasswordFromLink(
 ): Promise<void> {
   await confirmPasswordReset(auth, code, newPassword);
   await signIn(email, newPassword);
+}
+
+/**
+ * Changes the signed-in person's password. Firebase wants proof it's them, so
+ * the current password is checked first; a wrong one fails as such.
+ */
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  const user = auth.currentUser;
+  if (!user?.email) throw new Error("Not signed in");
+  try {
+    await reauthenticateWithCredential(
+      user,
+      EmailAuthProvider.credential(user.email, currentPassword),
+    );
+  } catch (error) {
+    throw new WrongCurrentPassword(error);
+  }
+  await updatePassword(user, newPassword);
 }

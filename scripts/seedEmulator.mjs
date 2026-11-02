@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/scripts/seedEmulator.mjs
-// Version : 1.14.0
-// Latest commit: feature/event-sets
+// Version : 1.15.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : Fills the local emulators with a ready-made workspace and test
 // accounts, so the app can be tried without touching the real project. It wipes
@@ -360,6 +360,7 @@ const accounts = [
   {
     key: "sam",
     name: "Sam Rivera",
+    gameName: "Rivi",
     status: "active",
     roleIds: [],
     workGroupIds: ["design", "video", "bloom"],
@@ -598,6 +599,7 @@ async function main() {
           status: account.status,
           roleIds: account.roleIds,
           workGroupIds: account.workGroupIds ?? [],
+          gameName: account.gameName ?? null,
           timeZone: null,
           invitedBy: null,
           invitedAt: now,

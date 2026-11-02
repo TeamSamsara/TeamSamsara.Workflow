@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/members/index.ts
-// Version : 1.0.0
-// Latest commit: feature/members
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : What other layers may use from the members feature.
 
@@ -15,7 +15,7 @@ export {
   StatusFilters,
 } from "./service/memberFilters";
 export type { StatusFilter } from "./service/memberFilters";
-export { memberName } from "./types/memberTypes";
+export { memberName, memberRealName, memberSubName } from "./types/memberTypes";
 export type { MemberDetails, MemberListItem } from "./types/memberTypes";
 export { InviteDialog } from "./ui/InviteDialog";
 export { MemberAccessCard } from "./ui/MemberAccessCard";

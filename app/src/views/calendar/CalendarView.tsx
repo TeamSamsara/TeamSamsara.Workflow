@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/calendar/CalendarView.tsx
-// Version : 1.4.0
-// Latest commit: feature/event-sets
+// Version : 1.5.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : The calendar: a month, a week (8 AM to midnight) or a list, of the
 // calendar picked: My calendar (what involves me), my work groups, one group,
@@ -23,7 +23,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { usePermissions } from "@/core/access";
 import { DataErrorText, isCurrentMember } from "@/core/data";
 import { useSession } from "@/core/session";
-import { useWorkspaceRecord } from "@/core/workspace";
+import { useDisplayTime, useWorkspaceRecord } from "@/core/workspace";
 import {
   CalendarList,
   CalendarMonth,
@@ -166,7 +166,9 @@ export function CalendarView() {
   // A personal appointment being added (true) or changed.
   const [personal, setPersonal] = useState<PersonalEntry | true | null>(null);
 
-  const tz = workspace.timeZone;
+  // Shown in the person's own time zone and formats; planned in the workspace's.
+  const time = useDisplayTime();
+  const tz = time.timeZone;
   const today = dayKey(now, tz);
   const viewer = useMemo(
     () =>
@@ -223,13 +225,13 @@ export function CalendarView() {
     workflows: workflows.items,
     workflowsReady: workflows.status === "ready",
     formats: {
-      timeZone: tz,
+      timeZone: workspace.timeZone,
       clock: workspace.timeFormat,
       dateFormat: workspace.dateFormat,
     },
     startingStatusId: startingStatus(statuses.items)?.id ?? null,
     memberId: member?.id ?? null,
-    today,
+    today: dayKey(now, workspace.timeZone),
   });
   const events = useEventsInRange(range.start, range.end, scope, viewer);
   const progress = useEventProgress(events.items.map((event) => event.id));
@@ -261,7 +263,7 @@ export function CalendarView() {
   const entries = (() => {
     const list: Entry[] = [];
     const repeatOf = new Map(repeats.map((repeat) => [repeat.id, repeat]));
-    const timeOf = (date: Date) => formatTime(date, tz, workspace.timeFormat);
+    const timeOf = (date: Date) => formatTime(date, tz, time.timeFormat);
     const span = (start: Date, end: Date) =>
       `${timeOf(start)} – ${timeOf(end)}`;
 
@@ -413,7 +415,7 @@ export function CalendarView() {
 
   const itemsFor = (key: string) => byStartDay.get(key) ?? [];
   const dayLabel = (key: string) =>
-    formatDate(dayKeyToDate(key), "UTC", workspace.dateFormat);
+    formatDate(dayKeyToDate(key), "UTC", time.dateFormat);
   const previous = addMonths(shownMonth.year, shownMonth.month, -1);
   const next = addMonths(shownMonth.year, shownMonth.month, 1);
 
@@ -594,7 +596,7 @@ export function CalendarView() {
             hourLabel={(hour) =>
               formatClockTime(
                 `${String(hour).padStart(2, "0")}:00`,
-                workspace.timeFormat,
+                time.timeFormat,
               ).replace(":00", "")
             }
             shadesFor={
@@ -659,7 +661,7 @@ export function CalendarView() {
             tags: tags.items,
             platforms: platforms.settings,
           }}
-          timeZone={tz}
+          timeZone={workspace.timeZone}
           startingStatusId={startingStatus(statuses.items)?.id ?? null}
           createdBy={member.id}
           start={{ memberId: member.id }}

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/model/freeBusy.test.ts
-// Version : 1.0.0
-// Latest commit: feature/people-time
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : Tests who's free when: the usual week, exceptions that override
 // it, personal appointments, a day in stretches, and finding free times.
@@ -20,6 +20,7 @@ const kai: AvailabilityRecord = {
     { date: "2026-11-03", from: null, to: null, available: true },
     { date: "2026-11-04", from: "18:00", to: "20:00", available: false },
   ],
+  timeZone: null,
   updatedAt: null,
 };
 
@@ -28,6 +29,14 @@ describe("availability", () => {
     expect(isAvailableAt(kai, at("2026-11-02T09:00"), tz)).toBe(false);
     expect(isAvailableAt(kai, at("2026-11-02T15:00"), tz)).toBe(true);
     expect(isAvailableAt(null, at("2026-11-02T09:00"), tz)).toBe(true);
+  });
+
+  it("reads the hours in the zone they were painted in", () => {
+    const inParis = { ...kai, timeZone: "Europe/Paris" };
+    // 9:00 UTC is 10:00 in Paris: school. 14:30 UTC is 15:30: free.
+    expect(isAvailableAt(inParis, at("2026-11-02T09:00"), tz)).toBe(false);
+    expect(isAvailableAt(inParis, at("2026-11-02T14:30"), tz)).toBe(true);
+    expect(isAvailableAt(kai, at("2026-11-02T14:30"), tz)).toBe(false);
   });
 
   it("lets exceptions override it", () => {

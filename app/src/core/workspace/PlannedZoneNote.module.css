@@ -1,0 +1,15 @@
+/* File : /TeamSamsara.Workflow/app/src/core/workspace/PlannedZoneNote.module.css
+   Version : 1.0.0
+   Latest commit: feature/your-account
+   Author : Gerrah
+   Purpose : The "times here are in Toronto time" note on forms: small and muted on a raised background. */
+
+.note {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+  background-color: var(--color-surface-raised);
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/ui/availabilityContent.ts
-// Version : 1.1.0
-// Latest commit: feature/event-sets
+// Version : 1.2.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : The words for availability, personal appointments and who can
 // make an event.
@@ -118,6 +118,8 @@ export const MyAvailabilityText = {
     "Your usual week. Your personal appointments count as busy on their own, so you don't need to mark them here.",
   save: "Save",
   saved: "Availability saved",
+  zoneNote: (zone: string) =>
+    `Hours are in your time zone (${zone}). Change it on Your account.`,
   whoSees: "Who sees it",
   whoSeesBody:
     "Everyone can see when you're free or not, so events land when you can make them. Only you and managers see what your personal appointments are.",

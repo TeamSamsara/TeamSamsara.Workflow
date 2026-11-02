@@ -1,13 +1,13 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/EventSetsView.tsx
-// Version : 1.0.0
-// Latest commit: feature/event-sets
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : Every set of events (a split, a month of content), newest first,
 // each opening its page; planners start a new one from here.
 
 import { usePermissions } from "@/core/access";
 import { DataErrorText } from "@/core/data";
-import { useWorkspaceRecord } from "@/core/workspace";
+import { useDisplayTime } from "@/core/workspace";
 import { SetText as Text, useEventSets } from "@/features/events";
 import { memberName, useMembers } from "@/features/members";
 import { useEventTypes } from "@/features/task-setup";
@@ -29,7 +29,7 @@ import plan from "./PlanViews.module.css";
 
 export function EventSetsView() {
   const access = usePermissions();
-  const workspace = useWorkspaceRecord();
+  const time = useDisplayTime();
   const sets = useEventSets();
   const members = useMembers();
   const eventTypes = useEventTypes();
@@ -101,8 +101,8 @@ export function EventSetsView() {
                       {set.createdAt
                         ? formatDate(
                             set.createdAt,
-                            workspace.timeZone,
-                            workspace.dateFormat,
+                            time.timeZone,
+                            time.dateFormat,
                           )
                         : ""}
                     </td>

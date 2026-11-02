@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/types/availabilityTypes.ts
-// Version : 1.0.0
-// Latest commit: feature/people-time
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : When people are free. Availability is a member's usual week (the
 // hours they're unavailable, per weekday) and the dates that differ. A
@@ -31,6 +31,11 @@ export interface AvailabilityRecord {
   /** Weekday (0 = Sunday) → hours (0-23) usually unavailable. */
   weekly: Record<number, number[]>;
   exceptions: AvailabilityException[];
+  /**
+   * The time zone the hours are in: the member's own. Older ones have none
+   * and are in the workspace's (the hooks fill that in).
+   */
+  timeZone: string | null;
   updatedAt: Date | null;
 }
 
@@ -108,6 +113,7 @@ export const availabilityConverter = createConverter<AvailabilityRecord>({
     memberId: id,
     weekly: readWeekly(data),
     exceptions: readExceptions(data),
+    timeZone: readOptionalString(data, "timeZone"),
     updatedAt: readDate(data, "updatedAt"),
   }),
   serialize: (record) => ({
@@ -115,6 +121,7 @@ export const availabilityConverter = createConverter<AvailabilityRecord>({
       Object.entries(record.weekly).map(([day, hours]) => [day, hours]),
     ),
     exceptions: record.exceptions,
+    timeZone: record.timeZone,
   }),
 });
 

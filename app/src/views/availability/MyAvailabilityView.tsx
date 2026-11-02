@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/availability/MyAvailabilityView.tsx
-// Version : 1.0.0
-// Latest commit: feature/people-time
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : A member's availability: their usual week to paint, the dates that
 // differ, and who sees it. Saved together with one button; leaving with
@@ -12,7 +12,7 @@ import { useBlocker } from "react-router-dom";
 import { usePermissions } from "@/core/access";
 import { dataErrorMessage } from "@/core/data";
 import { useSession } from "@/core/session";
-import { useWorkspaceRecord } from "@/core/workspace";
+import { useDisplayTime, useWorkspaceRecord } from "@/core/workspace";
 import {
   ExceptionsCard,
   MyAvailabilityText as Text,
@@ -34,6 +34,7 @@ import { useToast } from "@/shared/components/Toast/useToast";
 import { RoutePaths } from "@/shared/constants/routePaths";
 import { useNow } from "@/shared/hooks/useNow";
 import { dayKey, formatDate } from "@/shared/time/dates";
+import { timeZoneLabel } from "@/shared/time/timeZones";
 import { dayKeyToDate } from "@/shared/time/monthGrid";
 import { AvailabilityViewText } from "./availabilityViewContent";
 import styles from "./AvailabilityViews.module.css";
@@ -46,9 +47,11 @@ function Editor({
   saved: AvailabilityRecord | null;
 }) {
   const workspace = useWorkspaceRecord();
+  const time = useDisplayTime();
   const access = usePermissions();
   const toast = useToast();
-  const today = dayKey(useNow(), workspace.timeZone);
+  const now = useNow();
+  const today = dayKey(now, time.timeZone);
   const [weekly, setWeekly] = useState<Record<number, number[]>>(
     saved?.weekly ?? {},
   );
@@ -63,6 +66,7 @@ function Editor({
         memberId,
         weekly,
         exceptions.filter((exception) => exception.date >= today),
+        time.timeZone,
       ),
     onSuccess: () => {
       setIsDirty(false);
@@ -83,7 +87,7 @@ function Editor({
   const hourLabel = (hour: number) =>
     formatClockTime(
       `${String(hour).padStart(2, "0")}:00`,
-      workspace.timeFormat,
+      time.timeFormat,
     ).replace(":00", "");
 
   return (
@@ -127,6 +131,9 @@ function Editor({
             days={days}
             hourLabel={hourLabel}
           />
+          <p className={styles.muted}>
+            {Text.zoneNote(timeZoneLabel(time.timeZone, now))}
+          </p>
         </section>
         <div className={styles.side}>
           <ExceptionsCard
@@ -136,9 +143,9 @@ function Editor({
               setIsDirty(true);
             }}
             dayLabel={(key) =>
-              formatDate(dayKeyToDate(key), "UTC", workspace.dateFormat)
+              formatDate(dayKeyToDate(key), "UTC", time.dateFormat)
             }
-            timeLabel={(clock) => formatClockTime(clock, workspace.timeFormat)}
+            timeLabel={(clock) => formatClockTime(clock, time.timeFormat)}
             today={today}
           />
           <section className={styles.card} aria-labelledby="who-sees">

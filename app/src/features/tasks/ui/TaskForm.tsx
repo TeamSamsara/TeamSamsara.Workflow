@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/ui/TaskForm.tsx
-// Version : 1.0.0
-// Latest commit: feature/tasks
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : A task's details as a form: title, who it's given to, when it's
 // due, how to do it, tags and needs approval; with all sections, also post
@@ -9,6 +9,7 @@
 
 import type { ReactNode } from "react";
 import type { ColouredItem, MemberRecord } from "@/core/data";
+import { PlannedZoneNote } from "@/core/workspace";
 import type { PlatformSetting } from "@/features/platforms";
 import {
   WorkGroupLinksEditor,
@@ -146,6 +147,7 @@ export function TaskForm({
           placeholder={Text.noTime}
         />
       </div>
+      <PlannedZoneNote />
       <TextArea
         label={Text.notes}
         placeholder={Text.notesPlaceholder}

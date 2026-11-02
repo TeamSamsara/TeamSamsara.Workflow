@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/tasks/MyTasksView.tsx
-// Version : 1.0.0
-// Latest commit: feature/tasks
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : My tasks: what's given to me (and my work groups) and still to do,
 // grouped Late, Today, This week, Later and No due date; beside it, for
@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { usePermissions } from "@/core/access";
 import { DataErrorText, isCurrentMember } from "@/core/data";
 import { useSession } from "@/core/session";
-import { useWorkspaceRecord } from "@/core/workspace";
+import { useDisplayTime, useWorkspaceRecord } from "@/core/workspace";
 import { useMembers } from "@/features/members";
 import { usePlatforms } from "@/features/platforms";
 import { startingStatus, useStatuses, useTags } from "@/features/task-setup";
@@ -46,6 +46,7 @@ export function MyTasksView() {
   const member = session.status === "active" ? session.member : null;
   const access = usePermissions();
   const workspace = useWorkspaceRecord();
+  const time = useDisplayTime();
   const statuses = useStatuses();
   const groups = useWorkGroups();
   const members = useMembers();
@@ -78,20 +79,14 @@ export function MyTasksView() {
     groups: groups.items.map((item) => item.group),
     members: members.records,
     formatDue: (dueAt) =>
-      formatDue(
-        dueAt,
-        workspace.timeZone,
-        workspace.timeFormat,
-        workspace.dateFormat,
-        now,
-      ),
+      formatDue(dueAt, time.timeZone, time.timeFormat, time.dateFormat, now),
     hrefFor: taskPath,
     now,
   };
   const grouped = groupByDue(
     open.items,
     now,
-    workspace.timeZone,
+    time.timeZone,
     workspace.weekStartsOn,
   );
   const isEmpty = open.status === "ready" && open.items.length === 0;

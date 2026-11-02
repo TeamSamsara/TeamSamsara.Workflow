@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/NewEventView.tsx
-// Version : 1.4.0
-// Latest commit: feature/event-sets
+// Version : 1.5.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : Planning an event: its details on the left; on the right the
 // workflows to apply (the ones made for its type ticked to start with) and
@@ -19,7 +19,7 @@ import {
 import { usePermissions } from "@/core/access";
 import { dataErrorMessage } from "@/core/data";
 import { useSession } from "@/core/session";
-import { useWorkspaceRecord } from "@/core/workspace";
+import { useDisplayTime, useWorkspaceRecord } from "@/core/workspace";
 import {
   applyWorkflows,
   askedGaps,
@@ -71,6 +71,7 @@ export function NewEventView() {
   const session = useSession();
   const member = session.status === "active" ? session.member : null;
   const workspace = useWorkspaceRecord();
+  const time = useDisplayTime();
   const statuses = useStatuses();
   const eventTypes = useEventTypes();
   const groups = useWorkGroups();
@@ -142,7 +143,7 @@ export function NewEventView() {
       ? previewRepeat(schedule, today)
       : null;
   const dayLabel = (key: string) =>
-    formatDate(dayKeyToDate(key), "UTC", workspace.dateFormat);
+    formatDate(dayKeyToDate(key), "UTC", time.dateFormat);
 
   function changeDraft(changes: Partial<EventDraft>) {
     // A repeat on the first date's weekday follows the date when it changes.
@@ -301,12 +302,7 @@ export function NewEventView() {
             groups={groups.items.map((item) => item.group)}
             members={members.records}
             formatDue={(dueAt) =>
-              formatDue(
-                dueAt,
-                workspace.timeZone,
-                workspace.timeFormat,
-                workspace.dateFormat,
-              )
+              formatDue(dueAt, time.timeZone, time.timeFormat, time.dateFormat)
             }
           />
         </div>

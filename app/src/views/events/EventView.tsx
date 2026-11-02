@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/EventView.tsx
-// Version : 1.3.0
-// Latest commit: feature/event-sets
+// Version : 1.4.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : An event's page: when and what it is, its tasks and how far along
 // they are, its details, and the repeat or set it's part of. Planners change it from
@@ -11,7 +11,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { usePermissions } from "@/core/access";
 import { DataErrorText, isCurrentMember } from "@/core/data";
 import { useSession } from "@/core/session";
-import { useWorkspaceRecord } from "@/core/workspace";
+import { useDisplayTime, useWorkspaceRecord } from "@/core/workspace";
 import {
   describeRepeat,
   EventActions,
@@ -56,6 +56,7 @@ import {
 import { useNow } from "@/shared/hooks/useNow";
 import { Icon } from "@/shared/icons/Icon";
 import { formatLongDate, formatTime } from "@/shared/time/dates";
+import { zoneCity } from "@/shared/time/timeZones";
 import { EventViewText as Text } from "./eventViewContent";
 import styles from "./EventViews.module.css";
 import panels from "./EventDetails.module.css";
@@ -80,7 +81,8 @@ function EventPage({ event }: { event: EventRecord }) {
   const now = useNow();
   const [isAddingTask, setIsAddingTask] = useState(false);
 
-  const tz = workspace.timeZone;
+  const time = useDisplayTime();
+  const tz = time.timeZone;
   const canPlan = access.can("planEvents");
   const type = eventTypes.items.find((entry) => entry.id === event.eventTypeId);
   const repeat = useRepeat(event.repeatId);
@@ -104,7 +106,7 @@ function EventPage({ event }: { event: EventRecord }) {
     groups: groups.items.map((item) => item.group),
     members: members.records,
     formatDue: (dueAt) =>
-      formatDue(dueAt, tz, workspace.timeFormat, workspace.dateFormat, now),
+      formatDue(dueAt, tz, time.timeFormat, time.dateFormat, now),
     hrefFor: taskPath,
     now,
   };
@@ -123,9 +125,17 @@ function EventPage({ event }: { event: EventRecord }) {
             <span className={styles.when}>
               <Icon name="calendar" />
               {formatLongDate(event.startsAt, tz)},{" "}
-              {formatTime(event.startsAt, tz, workspace.timeFormat)} –{" "}
-              {formatTime(event.endsAt, tz, workspace.timeFormat)}
+              {formatTime(event.startsAt, tz, time.timeFormat)} –{" "}
+              {formatTime(event.endsAt, tz, time.timeFormat)}
             </span>
+            {time.isOwnZone ? (
+              <span className={styles.when}>
+                {Text.plannedAs(
+                  `${formatTime(event.startsAt, workspace.timeZone, time.timeFormat)} – ${formatTime(event.endsAt, workspace.timeZone, time.timeFormat)}`,
+                  zoneCity(workspace.timeZone),
+                )}
+              </span>
+            ) : null}
             {event.link ? (
               <a
                 href={event.link}
@@ -250,8 +260,8 @@ function EventPage({ event }: { event: EventRecord }) {
               <p className={styles.text}>
                 {describeRepeat(
                   repeat,
-                  workspace.timeFormat,
-                  workspace.dateFormat,
+                  time.timeFormat,
+                  time.dateFormat,
                   workspace.weekStartsOn,
                 )}
               </p>
@@ -271,7 +281,7 @@ function EventPage({ event }: { event: EventRecord }) {
             tags: tags.items,
             platforms: platforms.settings,
           }}
-          timeZone={tz}
+          timeZone={workspace.timeZone}
           startingStatusId={startingStatus(statuses.items)?.id ?? null}
           createdBy={member.id}
           origin={{ eventId: event.id, workflowId: null, stepId: null }}

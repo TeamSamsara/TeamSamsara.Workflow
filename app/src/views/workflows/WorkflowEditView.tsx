@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/workflows/WorkflowEditView.tsx
-// Version : 1.1.0
-// Latest commit: feature/workflow-guide
+// Version : 1.2.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : The workflow editor: its tasks on the left (open one in place to
 // edit it), About and the event details it uses on the right; Save, Export,
@@ -17,7 +17,7 @@ import {
 } from "react-router-dom";
 import { usePermissions } from "@/core/access";
 import { dataErrorMessage, isCurrentMember } from "@/core/data";
-import { useWorkspaceRecord } from "@/core/workspace";
+import { useDisplayTime } from "@/core/workspace";
 import { useMembers } from "@/features/members";
 import { usePlatforms } from "@/features/platforms";
 import { useEventTypes, useTags } from "@/features/task-setup";
@@ -73,7 +73,7 @@ function downloadFile(name: string, contents: string) {
 
 function WorkflowEditor({ workflow }: { workflow: WorkflowRecord | null }) {
   const canEdit = usePermissions().can("editWorkflows");
-  const workspace = useWorkspaceRecord();
+  const time = useDisplayTime();
   const groups = useWorkGroups();
   const members = useMembers();
   const tags = useTags();
@@ -137,7 +137,7 @@ function WorkflowEditor({ workflow }: { workflow: WorkflowRecord | null }) {
     members: members.records.filter(isCurrentMember),
     tags: tags.items,
     platforms: platforms.settings,
-    clockFormat: workspace.timeFormat,
+    clockFormat: time.timeFormat,
   };
 
   const { fields, problems } = draft;

@@ -1,10 +1,11 @@
 // File : /TeamSamsara.Workflow/app/src/core/session/index.ts
-// Version : 1.2.0
-// Latest commit: core/workspace
+// Version : 1.3.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : What other layers may use from the session module.
 
 export {
+  changePassword,
   checkPasswordLink,
   createAccount,
   sendPasswordLink,

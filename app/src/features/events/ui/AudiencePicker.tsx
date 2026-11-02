@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/AudiencePicker.tsx
-// Version : 1.0.0
-// Latest commit: feature/calendar-people
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : "Who's in it": one search box that finds Everyone, work groups and
 // people. A group stays one chip ("Bloom · 6 people") and follows its roster.
@@ -18,7 +18,10 @@ import styles from "./AudiencePicker.module.css";
 
 export interface AudienceOption {
   id: string;
+  /** In-game name, else name. */
   name: string;
+  /** Their real name, under an in-game name; also found by search. */
+  subName?: string | null;
 }
 
 export interface AudienceGroupOption extends AudienceOption {
@@ -36,7 +39,7 @@ interface AudiencePickerProps {
 type Choice =
   | { kind: "everyone"; id: "everyone"; name: string }
   | { kind: "group"; id: string; name: string; size: number }
-  | { kind: "member"; id: string; name: string };
+  | { kind: "member"; id: string; name: string; subName?: string | null };
 
 const matches = (name: string, search: string) =>
   name.toLowerCase().includes(search.trim().toLowerCase());
@@ -73,7 +76,9 @@ export function AudiencePicker({
     ...members
       .filter(
         (member) =>
-          !value.memberIds.includes(member.id) && matches(member.name, search),
+          !value.memberIds.includes(member.id) &&
+          (matches(member.name, search) ||
+            matches(member.subName ?? "", search)),
       )
       .map((member) => ({ kind: "member" as const, ...member })),
   ].slice(0, 8);
@@ -231,7 +236,7 @@ export function AudiencePicker({
                     ? Text.everyoneHint
                     : choice.kind === "group"
                       ? `${Text.group} · ${Text.people(choice.size)}`
-                      : Text.person}
+                      : choice.subName || Text.person}
                 </span>
               </li>
             ))}

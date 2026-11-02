@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/availability.rules.test.ts
-// Version : 1.0.0
-// Latest commit: feature/people-time
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : Tests availability and personal appointments against the rules:
 // every member reads availability and busy times, only the member changes
@@ -135,6 +135,13 @@ describe("availability", () => {
     await assertFails(
       setDoc(doc(signedInAs(env, "lara"), "availability/kai"), week()),
     );
+  });
+
+  it("keeps the time zone its hours are in", async () => {
+    const ref = doc(signedInAs(env, "kai"), "availability/kai");
+    await assertSucceeds(setDoc(ref, week({ timeZone: "Europe/Paris" })));
+    await assertSucceeds(setDoc(ref, week({ timeZone: null })));
+    await assertFails(setDoc(ref, week({ timeZone: 5 })));
   });
 
   it("needs a valid week", async () => {

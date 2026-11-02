@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/members/ui/MembersTable.tsx
-// Version : 1.0.0
-// Latest commit: feature/members
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : The members table: who they are, their roles and work groups,
 // status, and when they were last active (or when the invite went out). Each
@@ -13,7 +13,11 @@ import { Chip } from "@/shared/components/Chip/Chip";
 import { Table } from "@/shared/components/Table/Table";
 import { Icon } from "@/shared/icons/Icon";
 import { formatRecentDay, formatShortDate } from "@/shared/time/dates";
-import { memberName, type MemberListItem } from "../types/memberTypes";
+import {
+  memberName,
+  memberSubName,
+  type MemberListItem,
+} from "../types/memberTypes";
 import { MembersTableText } from "./membersContent";
 import { MemberStatusPill } from "./MemberStatusPill";
 import styles from "./MembersTable.module.css";
@@ -68,6 +72,11 @@ export function MembersTable({ items, hrefFor, timeZone }: MembersTableProps) {
                   <Avatar name={name} />
                   <span className={styles.personText}>
                     <b className={styles.name}>{name}</b>
+                    {memberSubName(item.member) ? (
+                      <span className={styles.muted}>
+                        {memberSubName(item.member)}
+                      </span>
+                    ) : null}
                     {item.member.displayName.trim() ? (
                       <span className={styles.muted}>{item.member.email}</span>
                     ) : null}

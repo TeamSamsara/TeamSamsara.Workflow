@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/workflows/WorkflowsView.tsx
-// Version : 1.2.0
-// Latest commit: feature/workflow-guide
+// Version : 1.3.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : The Workflows page: every workflow in a table, in use or archived,
 // with New workflow (with the guide, or blank) and Import. The first visit
@@ -11,7 +11,7 @@ import { useRef, useState, type ChangeEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { usePermissions } from "@/core/access";
 import { DataErrorText } from "@/core/data";
-import { useWorkspaceRecord } from "@/core/workspace";
+import { useDisplayTime } from "@/core/workspace";
 import { useMembers } from "@/features/members";
 import { usePlatforms } from "@/features/platforms";
 import { useEventTypes, useTags } from "@/features/task-setup";
@@ -47,7 +47,7 @@ type Filter = "active" | "archived";
 
 export function WorkflowsView() {
   const canEdit = usePermissions().can("editWorkflows");
-  const workspace = useWorkspaceRecord();
+  const time = useDisplayTime();
   const workflows = useWorkflows();
   const groups = useWorkGroups();
   const members = useMembers();
@@ -222,7 +222,7 @@ export function WorkflowsView() {
               workflows={filter === "active" ? active : archived}
               groups={groups.items.map((item) => item.group)}
               hrefFor={workflowPath}
-              timeZone={workspace.timeZone}
+              timeZone={time.timeZone}
             />
           )}
         </section>

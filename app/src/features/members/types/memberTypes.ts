@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/members/types/memberTypes.ts
-// Version : 1.0.0
-// Latest commit: feature/members
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : Members as the member screens use them: each with their roles and
 // work groups joined in, the details a manager edits, and how each invite went.
@@ -43,9 +43,28 @@ export interface InviteResult {
   outcome: InviteOutcome;
 }
 
-/** A member's name, or their email until a name is set. */
-export function memberName(
+type Named = Pick<MemberRecord, "displayName" | "email"> &
+  Partial<Pick<MemberRecord, "gameName">>;
+
+/**
+ * What a member is called where there's room for one name: their in-game name
+ * when they have one, else their name, else their email.
+ */
+export function memberName(member: Named): string {
+  return member.gameName?.trim() || memberRealName(member);
+}
+
+/** Their real name (or email until a name is set). */
+export function memberRealName(
   member: Pick<MemberRecord, "displayName" | "email">,
 ): string {
   return member.displayName.trim() || member.email;
+}
+
+/**
+ * The second line under memberName: the real name when the first line is an
+ * in-game name; null when there's nothing more to say.
+ */
+export function memberSubName(member: Named): string | null {
+  return member.gameName?.trim() ? memberRealName(member) : null;
 }

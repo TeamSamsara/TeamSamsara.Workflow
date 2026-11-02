@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/members/MemberView.tsx
-// Version : 1.0.0
-// Latest commit: feature/members
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : One member's page: their name, roles and work groups (saved
 // together with Save changes), what their roles let them do, and their access.
@@ -10,7 +10,7 @@ import { Navigate, useBlocker, useNavigate, useParams } from "react-router-dom";
 import { resolvePermissions, usePermissions } from "@/core/access";
 import { EveryoneRoleId } from "@/core/data";
 import { useSession } from "@/core/session";
-import { useWorkspaceRecord } from "@/core/workspace";
+import { useDisplayTime } from "@/core/workspace";
 import {
   MemberAccessCard,
   MemberGroupsCard,
@@ -38,7 +38,7 @@ function MemberEditor({ item }: { item: MemberListItem }) {
   const { member } = item;
   const access = usePermissions();
   const session = useSession();
-  const workspace = useWorkspaceRecord();
+  const time = useDisplayTime();
   const groups = useWorkGroups();
   const draft = useMemberDraft(member);
   const toast = useToast();
@@ -83,7 +83,7 @@ function MemberEditor({ item }: { item: MemberListItem }) {
         onNameChange={(displayName) => draft.change({ displayName })}
         nameError={draft.nameError}
         canEditName={!locked}
-        timeZone={workspace.timeZone}
+        timeZone={time.timeZone}
         actions={
           locked ? null : (
             <>
