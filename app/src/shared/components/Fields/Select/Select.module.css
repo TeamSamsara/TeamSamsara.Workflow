@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/shared/components/Fields/Select/Select.module.css
-   Version : 1.0.0
-   Latest commit: core/ui-kit
+   Version : 1.1.0
+   Latest commit: fix/invite-and-fields
    Author : Gerrah
    Purpose : Look of the select: the shared outlined box with the browser's arrow replaced by our chevron, which lets clicks through to the select under it. */
 
@@ -10,9 +10,13 @@
 
 .input {
   composes: input from "../fieldControl.module.css";
-  padding-right: calc(var(--field-padding-x) * 2 + var(--icon-size-small));
   appearance: none;
   cursor: pointer;
+}
+
+/* Room for the arrow; against the box so it beats the shared input's padding. */
+.control > .input {
+  padding-right: calc(var(--field-padding-x) * 2 + var(--icon-size-small));
 }
 
 /* The open list is drawn by the browser; this keeps its colours readable in dark mode. */

@@ -1,16 +1,19 @@
 // File : /TeamSamsara.Workflow/app/src/features/members/ui/MemberGroupsCard.tsx
-// Version : 1.0.0
-// Latest commit: feature/members
+// Version : 1.1.0
+// Latest commit: fix/invite-and-fields
 // Author : Gerrah
-// Purpose : A member's work groups, picked as pills.
+// Purpose : A member's work groups, picked with the work group search.
 
-import { WorkGroupPicker, type WorkGroupRecord } from "@/features/work-groups";
+import {
+  WorkGroupPicker,
+  type WorkGroupListItem,
+} from "@/features/work-groups";
 import { MemberCardsText } from "./membersContent";
 import styles from "./MemberCards.module.css";
 
 interface MemberGroupsCardProps {
   workGroupIds: readonly string[];
-  groups: readonly WorkGroupRecord[];
+  groups: readonly WorkGroupListItem[];
   onChange: (workGroupIds: string[]) => void;
   disabled?: boolean;
 }

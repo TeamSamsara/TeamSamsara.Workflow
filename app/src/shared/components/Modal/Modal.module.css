@@ -1,8 +1,8 @@
 /* File : /TeamSamsara.Workflow/app/src/shared/components/Modal/Modal.module.css
-   Version : 1.1.0
-   Latest commit: task/visual-fixes
+   Version : 1.2.0
+   Latest commit: fix/invite-and-fields
    Author : Gerrah
-   Purpose : Look of the dialog: a centred surface card with 16px corners and a deep shadow over the dim overlay, a 24px Norwester title with the close button beside it, and the buttons along the bottom on the right. */
+   Purpose : Look of the dialog: a centred surface card with 16px corners and a deep shadow over the dim overlay, a 24px Norwester title with the close button beside it, and the buttons along the bottom on the right, with quiet ones outlined. */
 
 .dialog {
   width: min(var(--dialog-width), calc(100vw - 2 * var(--space-4)));
@@ -67,7 +67,15 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
+  align-items: center;
   gap: var(--space-2-5);
+  margin-top: var(--space-1);
+}
+
+/* A bare-text Cancel beside a filled button reads like a heading, not a button:
+   in the footer, quiet buttons get an outline so the pair look like a pair. */
+.footer > button[data-variant="ghost"] {
+  border-color: var(--color-border-control);
 }
 
 @keyframes dialog-in {

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/members/MemberView.tsx
-// Version : 1.1.0
-// Latest commit: feature/your-account
+// Version : 1.2.0
+// Latest commit: fix/invite-and-fields
 // Author : Gerrah
 // Purpose : One member's page: their name, roles and work groups (saved
 // together with Save changes), what their roles let them do, and their access.
@@ -127,7 +127,7 @@ function MemberEditor({ item }: { item: MemberListItem }) {
           />
           <MemberGroupsCard
             workGroupIds={draft.details.workGroupIds}
-            groups={groups.items.map((entry) => entry.group)}
+            groups={groups.items}
             onChange={(workGroupIds) => draft.change({ workGroupIds })}
             disabled={locked || draft.isSaving}
           />

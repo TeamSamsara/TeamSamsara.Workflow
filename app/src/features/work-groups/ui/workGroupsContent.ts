@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/ui/workGroupsContent.ts
-// Version : 1.1.0
-// Latest commit: task/group-leads-and-x-premium
+// Version : 1.2.0
+// Latest commit: fix/invite-and-fields
 // Author : Gerrah
 // Purpose : The words on the work group cards, form, picker and dialogs.
 
@@ -23,6 +23,11 @@ export const WorkGroupPickerText = {
   legend: "Work groups",
   hint: "Someone can be in any number of groups.",
   none: "There are no work groups yet.",
+  placeholder: "Search work groups…",
+  people: (count: number) => (count === 1 ? "1 person" : `${count} people`),
+  remove: (name: string) => `Remove ${name}`,
+  noMatch: "No other work groups match.",
+  allPicked: "They're in every work group.",
 } as const;
 
 export const NewWorkGroupDialogText = {

@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/shared/components/Fields/TextArea/TextArea.module.css
-   Version : 1.1.0
-   Latest commit: fix/workflow-editor-simpler
+   Version : 1.2.0
+   Latest commit: fix/invite-and-fields
    Author : Gerrah
    Purpose : Look of the multi-line field: the shared outlined box, growing with its text (no drag handle) up to a height, then scrolling; an optional footer row with a count near the limit. */
 
@@ -11,12 +11,17 @@
 
 .input {
   composes: input from "../fieldControl.module.css";
-  padding: var(--space-3) var(--field-padding-x);
   line-height: var(--leading-body);
   /* Grows with its text (see TextArea.tsx), up to a point, then scrolls. */
   max-height: 24rem;
   overflow-y: auto;
   resize: none;
+}
+
+/* Room above and below the text. Written against the box so it beats the shared
+   input's "no padding above and below", whichever order the CSS loads in. */
+.control > .input {
+  padding: var(--space-3) var(--field-padding-x);
 }
 
 .count {
