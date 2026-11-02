@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/calendar/calendarViewContent.ts
-// Version : 1.3.0
-// Latest commit: feature/event-sets
+// Version : 1.4.0
+// Latest commit: fix/sets-polish
 // Author : Gerrah
 // Purpose : The words on the calendar page.
 
@@ -9,7 +9,7 @@ export const CalendarViewText = {
     event: "Event",
     eventDetail: "One event, or one that repeats.",
     several: "Several events",
-    severalDetail: "A split, a month of content: one row per event.",
+    severalDetail: "Many dates at once, one row per event.",
     personal: "Personal appointment",
     personalDetail: "Only you and managers see what it is.",
     personalOnly: "Personal appointment",

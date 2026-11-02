@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/planContent.ts
-// Version : 1.0.0
-// Latest commit: feature/event-sets
+// Version : 1.1.0
+// Latest commit: fix/sets-polish
 // Author : Gerrah
 // Purpose : The words for planning several events at once and for sets.
 
@@ -67,7 +67,7 @@ export const PlanText = {
   calendar: "Calendar",
   sets: "Sets",
   intro:
-    "For anything with many dates that aren't all the same: a split, a month of content, a sponsor's deliverables. Set what they share once, then one row per event.",
+    "For anything with many dates that aren't all the same. Set what they share once, then add one row per event.",
   introAdd:
     "The new events join the set. They start with what its events were made with; change anything for these ones.",
   cancel: "Cancel",
@@ -139,7 +139,7 @@ export const PlanText = {
 export const SetText = {
   sets: "Sets",
   setsDescription:
-    "Events planned together: a split, a month of content, a sponsor's deliverables.",
+    "Groups of events planned together, so they can be found, moved or changed as one.",
   calendar: "Calendar",
   newSet: "Plan several events",
   noSets:

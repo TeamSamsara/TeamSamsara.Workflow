@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/shared/components/HelpTip/HelpTip.module.css
-   Version : 1.0.0
-   Latest commit: fix/workflow-editor-simpler
+   Version : 1.1.0
+   Latest commit: fix/sets-polish
    Author : Gerrah
    Purpose : The "?" button (small, muted, inline with a label) and the note it opens below it. */
 
@@ -45,7 +45,7 @@
   padding: var(--space-2-5) var(--space-3);
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-field);
-  background-color: var(--color-surface-raised);
+  background-color: var(--color-surface);
   box-shadow: var(--shadow-dialog);
   color: var(--color-text);
   font-size: var(--text-meta);

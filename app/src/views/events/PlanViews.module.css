@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/views/events/PlanViews.module.css
-   Version : 1.0.0
-   Latest commit: feature/event-sets
+   Version : 1.1.0
+   Latest commit: fix/sets-polish
    Author : Gerrah
    Purpose : Planning several events and a set's page: the numbered cards, the shared fields in a wrapping row, the dark "This creates" summary, a set's stat tiles, and the bar of actions for the ticked events. */
 
@@ -117,6 +117,7 @@
   font-size: var(--text-page-title);
   font-weight: var(--weight-regular);
   line-height: 1;
+  text-transform: uppercase;
 }
 
 .summaryHelp {
@@ -166,6 +167,7 @@
   font-size: var(--text-page-title);
   font-weight: var(--weight-regular);
   line-height: 1;
+  text-transform: uppercase;
 }
 
 .stat[data-tone="alert"] {
