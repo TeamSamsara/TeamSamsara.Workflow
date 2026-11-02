@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/availability/TeamAvailabilityView.tsx
-// Version : 1.0.0
-// Latest commit: feature/people-time
+// Version : 1.1.0
+// Latest commit: feature/event-sets
 // Author : Gerrah
 // Purpose : A work group's week of availability, for See everyone's
 // availability: who's free when, their personal appointments, clashes with the
@@ -25,6 +25,7 @@ import {
 import { CalendarText, useEventsInRange } from "@/features/events";
 import { memberName } from "@/features/members";
 import { useWorkGroups } from "@/features/work-groups";
+import { HelpTip } from "@/shared/components/HelpTip/HelpTip";
 import { Button } from "@/shared/components/Button/Button";
 import { IconButton } from "@/shared/components/Button/IconButton";
 import { LinkButton } from "@/shared/components/Button/LinkButton";
@@ -43,6 +44,9 @@ import { toWallTime } from "@/shared/time/zonedTime";
 import { dayKey } from "@/shared/time/dates";
 import { AvailabilityViewText as ViewText } from "./availabilityViewContent";
 import styles from "./AvailabilityViews.module.css";
+
+/** The colours of the grid, explained behind the "?" by the week. */
+const LegendKinds = ["available", "unavailable", "busy", "clash"] as const;
 
 const initialsOf = (name: string) =>
   name
@@ -155,6 +159,16 @@ export function TeamAvailabilityView() {
           <div className={styles.toolbar}>
             <div className={styles.weekNav}>
               <h2 className={styles.weekTitle}>{formatWeek(week)}</h2>
+              <HelpTip topic={Text.legend.topic}>
+                <span className={styles.legend}>
+                  {LegendKinds.map((kind) => (
+                    <span key={kind} className={styles.legendItem}>
+                      <span className={styles.swatch} data-kind={kind} />
+                      {Text.legend[kind]}
+                    </span>
+                  ))}
+                </span>
+              </HelpTip>
               <IconButton
                 icon="previous"
                 variant="ghost"
@@ -186,25 +200,6 @@ export function TeamAvailabilityView() {
               className={styles.picker}
             />
           </div>
-
-          <ul className={styles.legend} aria-label="Legend">
-            <li>
-              <span className={styles.swatch} data-kind="available" />
-              {Text.legend.available}
-            </li>
-            <li>
-              <span className={styles.swatch} data-kind="unavailable" />
-              {Text.legend.unavailable}
-            </li>
-            <li>
-              <span className={styles.swatch} data-kind="busy" />
-              {Text.legend.busy}
-            </li>
-            <li>
-              <span className={styles.swatch} data-kind="clash" />
-              {Text.legend.clash}
-            </li>
-          </ul>
 
           <TeamAvailabilityGrid
             days={week.days}

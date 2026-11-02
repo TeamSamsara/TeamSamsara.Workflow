@@ -1,0 +1,286 @@
+/* File : /TeamSamsara.Workflow/app/src/views/events/PlanViews.module.css
+   Version : 1.0.0
+   Latest commit: feature/event-sets
+   Author : Gerrah
+   Purpose : Planning several events and a set's page: the numbered cards, the shared fields in a wrapping row, the dark "This creates" summary, a set's stat tiles, and the bar of actions for the ticked events. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  text-transform: uppercase;
+}
+
+.fieldRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.name {
+  flex: 2 1 240px;
+}
+
+.type {
+  flex: 1 1 160px;
+}
+
+.title {
+  flex: 3 1 260px;
+}
+
+.time {
+  flex: 0 1 140px;
+}
+
+.rowsHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.rowsHead > h2 {
+  margin-right: auto;
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-6) var(--space-4);
+  border: var(--border-width) dashed var(--color-border-control);
+  border-radius: var(--radius-field);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.empty[data-invalid] {
+  border-color: var(--color-error);
+  color: var(--color-error-text);
+}
+
+.note,
+.error {
+  margin: 0;
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.note {
+  color: var(--color-text-muted);
+}
+
+.error {
+  color: var(--color-error-text);
+  font-weight: var(--weight-bold);
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2-5);
+  padding: var(--card-padding);
+  border-radius: var(--radius-card);
+  background-color: var(--color-nav);
+  color: var(--color-nav-text);
+}
+
+.summaryTitle {
+  margin: 0;
+  color: var(--color-accent);
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  text-transform: uppercase;
+}
+
+.counts {
+  display: flex;
+  gap: var(--space-6);
+}
+
+.counts b {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: var(--text-page-title);
+  font-weight: var(--weight-regular);
+  line-height: 1;
+}
+
+.summaryHelp {
+  color: var(--color-nav-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.summaryWarn {
+  color: var(--palette-amber);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+}
+
+/* #region A set's page */
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-3-5);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+}
+
+.stat b {
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: var(--text-page-title);
+  font-weight: var(--weight-regular);
+  line-height: 1;
+}
+
+.stat[data-tone="alert"] {
+  border-color: var(--color-alert);
+  background-color: color-mix(
+    in srgb,
+    var(--color-alert) 18%,
+    var(--color-surface)
+  );
+  color: var(--color-text);
+}
+
+.selectionBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  min-height: 44px;
+}
+
+.selectionBar > span {
+  margin-right: auto;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+}
+
+.tableCard {
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.check {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--color-text);
+}
+
+.eventLink {
+  color: var(--color-text);
+  font-weight: var(--weight-bold);
+  text-decoration: none;
+}
+
+.eventLink:hover {
+  text-decoration: underline;
+}
+
+.past {
+  opacity: 0.65;
+}
+
+.next {
+  background-color: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+.pill {
+  display: inline-block;
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-pill);
+  background-color: color-mix(in srgb, var(--color-alert) 35%, transparent);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+}
+
+.done {
+  color: var(--color-accent-text);
+  font-weight: var(--weight-bold);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.setLink {
+  color: var(--color-text);
+  font-weight: var(--weight-bold);
+}
+/* #endregion */
+
+.moreTrigger {
+  width: var(--control-height);
+  padding: 0;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+
+.menuItem[data-danger] {
+  color: var(--color-error-text);
+}
+
+.menuIcon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+
+.moveFields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.moveFields > * {
+  flex: 1 1 160px;
+}
+
+.dialogText {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}

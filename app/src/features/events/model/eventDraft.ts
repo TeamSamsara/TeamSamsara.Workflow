@@ -1,11 +1,12 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/model/eventDraft.ts
-// Version : 1.1.0
-// Latest commit: feature/calendar-people
+// Version : 1.2.0
+// Latest commit: feature/event-sets
 // Author : Gerrah
 // Purpose : An event as its form holds it (a date box, start and end time
 // boxes, who's in it), what's wrong with it, and back to an event's fields.
 
 import { checkLink } from "@/features/work-groups";
+import { EventGaps, fillGaps, findGaps } from "@/features/workflows";
 import { fromDateAndTime, toDateAndTime } from "@/features/tasks";
 import { EventFormText } from "../ui/eventsContent";
 import { nobody, type Audience } from "../types/audience";
@@ -77,6 +78,7 @@ export function emptyEventDraft(date = "", time = "19:00"): EventDraft {
 export function draftFromEvent(
   event: EventRecord,
   timeZone: string,
+  titlePattern: string | null = null,
 ): EventDraft {
   const { date, time } = toDateAndTime(event.startsAt, timeZone);
   const minutes = Math.max(
@@ -84,7 +86,7 @@ export function draftFromEvent(
     Math.round((event.endsAt.getTime() - event.startsAt.getTime()) / 60_000),
   );
   return {
-    title: event.title,
+    title: editableTitle(event, titlePattern),
     eventTypeId: event.eventTypeId,
     date,
     time,
@@ -122,6 +124,32 @@ export function checkEventDraft(draft: EventDraft): EventDraftProblems {
   };
 }
 
+function filledDetails(details: Readonly<Record<string, string>>) {
+  return Object.fromEntries(
+    Object.entries(details).filter(([, value]) => value.trim() !== ""),
+  );
+}
+
+/** The {gaps} written in a title, which its form asks for like the workflows' ones. */
+export function titleGaps(title: string): string[] {
+  const own = new Set<string>(EventGaps);
+  return findGaps(title).filter((gap) => !own.has(gap));
+}
+
+/**
+ * The title to edit: an event of a set whose title still matches the set's
+ * pattern is edited as the pattern ("vs. {opponent}"), so changing the
+ * opponent changes the title too.
+ */
+export function editableTitle(
+  event: Pick<EventRecord, "title" | "details">,
+  titlePattern: string | null,
+): string {
+  if (!titlePattern) return event.title;
+  const filled = fillGaps(titlePattern, filledDetails(event.details));
+  return filled === event.title ? titlePattern : event.title;
+}
+
 /** The event's fields; null while the date is missing. */
 export function fieldsFromDraft(
   draft: EventDraft,
@@ -130,7 +158,8 @@ export function fieldsFromDraft(
   const startsAt = fromDateAndTime(draft.date, draft.time, timeZone);
   if (!startsAt) return null;
   return {
-    title: draft.title,
+    // Gaps in the title fill from the details; empty ones stay to fill later.
+    title: fillGaps(draft.title.trim(), filledDetails(draft.details)),
     eventTypeId: draft.eventTypeId,
     startsAt,
     endsAt: new Date(startsAt.getTime() + draftMinutes(draft) * 60_000),

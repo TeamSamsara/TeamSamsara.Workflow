@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/firestore.rules
-// Version : 1.15.0
-// Latest commit: feature/people-time
+// Version : 1.16.0
+// Latest commit: feature/event-sets
 // Author : Gerrah
 // Purpose : Who may read and write what in Firestore. Everything is denied until
 // a rule below allows it; each PR opens exactly what its feature needs, with a
@@ -672,6 +672,7 @@ service cloud.firestore {
       allow create: if can("planEvents")
         && isValidEvent(request.resource.data)
         && isEventMaker(request.resource.data)
+        && isInRealSet(request.resource.data)
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
       allow update: if can("planEvents")
@@ -680,6 +681,12 @@ service cloud.firestore {
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.updatedAt == request.time;
       allow delete: if can("planEvents");
+    }
+
+    // An event planned in a set is made with (or after) its set.
+    function isInRealSet(event) {
+      return event.get("setId", null) == null
+        || existsAfter(/databases/$(database)/documents/eventSets/$(event.setId));
     }
 
     // Who's in an event or a repeat: Everyone, work groups and people.
@@ -694,7 +701,8 @@ service cloud.firestore {
       let fields = ["title", "eventTypeId", "startsAt", "endsAt", "link",
         "details", "workflowIds", "notes", "repeatId", "everyone", "groupIds",
         "memberIds", "createdBy", "createdAt", "updatedAt"];
-      return event.keys().hasOnly(fields)
+      // setId came later, so events saved before it may not have one.
+      return event.keys().hasOnly(fields.concat(["setId"]))
         && event.keys().hasAll(fields)
         && event.title is string && event.title.size() > 0 && event.title.size() <= 120
         && isNullOr(event.eventTypeId, "string")
@@ -705,6 +713,7 @@ service cloud.firestore {
         && event.workflowIds is list && event.workflowIds.size() <= 5
         && event.notes is string && event.notes.size() <= 2000
         && isNullOr(event.repeatId, "string")
+        && isNullOr(event.get("setId", null), "string")
         && isValidAudience(event)
         && event.createdBy is string
         && event.createdAt is timestamp
@@ -756,6 +765,44 @@ service cloud.firestore {
         && repeat.createdBy is string
         && repeat.createdAt is timestamp
         && repeat.updatedAt is timestamp;
+    }
+    // #endregion
+
+    // #region Event sets
+    // Events planned together (a split, a month of content). Every member can
+    // read a set's name and what its events share, since an event's page says
+    // which set it's part of; Plan events makes, renames and deletes them.
+    match /eventSets/{setId} {
+      allow read: if isActiveMember();
+      allow create: if can("planEvents")
+        && isValidEventSet(request.resource.data)
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if can("planEvents")
+        && isValidEventSet(request.resource.data)
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if can("planEvents");
+    }
+
+    // Same sizes as EventSetLimits and EventLimits in app/src/features/events.
+    function isValidEventSet(set) {
+      let fields = ["name", "eventTypeId", "titlePattern", "minutes",
+        "workflowIds", "everyone", "groupIds", "memberIds", "createdBy",
+        "createdAt", "updatedAt"];
+      return set.keys().hasOnly(fields)
+        && set.keys().hasAll(fields)
+        && set.name is string && set.name.size() > 0 && set.name.size() <= 80
+        && isNullOr(set.eventTypeId, "string")
+        && set.titlePattern is string && set.titlePattern.size() > 0 && set.titlePattern.size() <= 120
+        && set.minutes is int && set.minutes >= 5 && set.minutes <= 1440
+        && set.workflowIds is list && set.workflowIds.size() <= 5
+        && isValidAudience(set)
+        && set.createdBy is string
+        && set.createdAt is timestamp
+        && set.updatedAt is timestamp;
     }
     // #endregion
 

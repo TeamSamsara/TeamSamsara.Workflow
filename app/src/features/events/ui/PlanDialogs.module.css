@@ -1,0 +1,102 @@
+/* File : /TeamSamsara.Workflow/app/src/features/events/ui/PlanDialogs.module.css
+   Version : 1.0.0
+   Latest commit: feature/event-sets
+   Author : Gerrah
+   Purpose : The pattern and paste dialogs: fields in rows, the pasted text in a monospace box, one card per column with a sample of what it holds, and green or amber notes about what was read. */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.label {
+  font-size: var(--text-field-label);
+  font-weight: var(--weight-bold);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.row > * {
+  flex: 1 1 140px;
+}
+
+.every {
+  flex: 0 1 140px;
+}
+
+.note {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+}
+
+.paste textarea {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--text-small);
+  white-space: pre;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--space-2-5);
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-2-5);
+  border-radius: var(--radius-field);
+  background-color: var(--color-surface-raised);
+}
+
+.sample {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.good,
+.warn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: var(--space-3) var(--space-3-5);
+  border-radius: var(--radius-field);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.good {
+  border: var(--border-width) solid var(--color-accent);
+  background-color: color-mix(
+    in srgb,
+    var(--color-accent) 16%,
+    var(--color-surface)
+  );
+}
+
+.warn {
+  border: var(--border-width) solid var(--color-alert);
+  background-color: color-mix(
+    in srgb,
+    var(--color-alert) 18%,
+    var(--color-surface)
+  );
+}

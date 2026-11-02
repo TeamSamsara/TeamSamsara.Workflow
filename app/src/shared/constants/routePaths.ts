@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/constants/routePaths.ts
-// Version : 1.10.0
-// Latest commit: feature/people-time
+// Version : 1.11.0
+// Latest commit: feature/event-sets
 // Author : Gerrah
 // Purpose : Every address in the app, in one place, so links and routes can
 // never disagree about where a page lives.
@@ -11,6 +11,12 @@ export const RoutePaths = {
   myTasks: "/my-tasks",
   /** Planning an event; ?date=2026-11-09 starts it on that day. */
   newEvent: "/events/new",
+  /** Planning several events at once, as a set; ?set=<id> adds to one. */
+  planSeveral: "/events/new/several",
+  /** Every set of events. */
+  eventSets: "/events/sets",
+  /** One set's page. */
+  eventSet: "/events/sets/:setId",
   /** One event's page. */
   event: "/events/:eventId",
   /** One task's page. */
@@ -105,4 +111,16 @@ export function eventPath(eventId: string): string {
 /** /events/new, starting on a day when one is given ("2026-11-09"). */
 export function newEventPath(date?: string): string {
   return date ? `/events/new?date=${encodeURIComponent(date)}` : "/events/new";
+}
+
+/** /events/sets/:setId */
+export function eventSetPath(setId: string): string {
+  return `/events/sets/${encodeURIComponent(setId)}`;
+}
+
+/** /events/new/several, adding to a set when one is given. */
+export function planSeveralPath(setId?: string): string {
+  return setId
+    ? `/events/new/several?set=${encodeURIComponent(setId)}`
+    : "/events/new/several";
 }

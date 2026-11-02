@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/icons/iconRegistry.ts
-// Version : 1.3.0
-// Latest commit: feature/repeats
+// Version : 1.4.0
+// Latest commit: feature/event-sets
 // Author : Gerrah
 // Purpose : The only file that knows where each icon comes from; screens use the names.
 
@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleHelp,
+  ClipboardPaste,
   CircleAlert,
   Clock,
   Copy,
@@ -28,6 +29,7 @@ import {
   Info,
   Link,
   ListChecks,
+  Layers,
   LoaderCircle,
   Lock,
   LogOut,
@@ -80,6 +82,7 @@ export const iconRegistry = {
   // Main menu
   calendar: Calendar,
   myTasks: ListChecks,
+  eventSets: Layers,
   workflows: Workflow,
   settings: Settings,
 
@@ -92,6 +95,7 @@ export const iconRegistry = {
   trash: Trash2,
   archive: Archive,
   upload: Upload,
+  paste: ClipboardPaste,
   download: Download,
   send: Send,
   search: Search,

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/EventDialogs.tsx
-// Version : 1.1.0
-// Latest commit: feature/calendar-people
+// Version : 1.2.0
+// Latest commit: feature/event-sets
 // Author : Gerrah
 // Purpose : The dialogs behind an event's ⋯ menu: edit it (moving its tasks
 // when its time changes), edit a repeat from this date on, delete it, skip one
@@ -27,6 +27,7 @@ import { useNow } from "@/shared/hooks/useNow";
 import { dayKey, formatDate } from "@/shared/time/dates";
 import { dayKeyToDate } from "@/shared/time/monthGrid";
 import { useAudienceOptions } from "../hooks/useAudienceOptions";
+import { useEventSet } from "../hooks/useEventSets";
 import { useEventTasks } from "../hooks/useEvents";
 import { askedGaps } from "../model/applyWorkflows";
 import {
@@ -141,11 +142,19 @@ interface EditEventDialogProps {
   onClose: () => void;
 }
 
-export function EditEventDialog({
+/** Waits for the event's set (if any), to edit its title as the set's pattern. */
+export function EditEventDialog(props: EditEventDialogProps) {
+  const set = useEventSet(props.event.setId);
+  if (set === undefined) return null;
+  return <EditEventForm {...props} titlePattern={set?.titlePattern ?? null} />;
+}
+
+function EditEventForm({
   event,
   isOccurrence,
   onClose,
-}: EditEventDialogProps) {
+  titlePattern,
+}: EditEventDialogProps & { titlePattern: string | null }) {
   const workspace = useWorkspaceRecord();
   const eventTypes = useEventTypes();
   const tasks = useTasksOf(event);
@@ -153,7 +162,7 @@ export function EditEventDialog({
   const people = useAudienceOptions();
   const toast = useToast();
   const [draft, setDraft] = useState<EventDraft>(() =>
-    draftFromEvent(event, workspace.timeZone),
+    draftFromEvent(event, workspace.timeZone, titlePattern),
   );
   const [moveTasks, setMoveTasks] = useState(true);
   const [tried, setTried] = useState(false);
@@ -173,7 +182,10 @@ export function EditEventDialog({
       );
     },
     onSuccess: () => {
-      toast.show({ tone: "success", title: Text.saved(draft.title.trim()) });
+      toast.show({
+        tone: "success",
+        title: Text.saved(fields?.title ?? draft.title.trim()),
+      });
       onClose();
     },
   });

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/calendar/CalendarView.tsx
-// Version : 1.3.0
-// Latest commit: feature/people-time
+// Version : 1.4.0
+// Latest commit: feature/event-sets
 // Author : Gerrah
 // Purpose : The calendar: a month, a week (8 AM to midnight) or a list, of the
 // calendar picked: My calendar (what involves me), my work groups, one group,
@@ -9,8 +9,8 @@
 // last view and calendar. Planners add events from here and change them from
 // each event's ⋯ menu; opening it also makes the coming weeks' events of each
 // repeat. My calendar also shows personal appointments and the hours the
-// member is usually unavailable. New task makes a one-off task; Personal adds
-// a personal appointment.
+// member is usually unavailable. New task makes a one-off task; the New event
+// menu plans one event, several at once, or adds a personal appointment.
 
 import {
   useEffect,
@@ -19,7 +19,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { usePermissions } from "@/core/access";
 import { DataErrorText, isCurrentMember } from "@/core/data";
 import { useSession } from "@/core/session";
@@ -51,7 +51,6 @@ import {
 import {
   PersonalDialog,
   PersonalItem,
-  PersonalText,
   stretches,
   useAvailability,
   usePersonalInRange,
@@ -74,8 +73,13 @@ import { useWorkGroups } from "@/features/work-groups";
 import { formatClockTime, useWorkflows } from "@/features/workflows";
 import { Banner } from "@/shared/components/Banner/Banner";
 import { Button } from "@/shared/components/Button/Button";
+import { ButtonContent } from "@/shared/components/Button/ButtonContent";
+import { buttonLook } from "@/shared/components/Button/buttonLook";
 import { IconButton } from "@/shared/components/Button/IconButton";
-import { LinkButton } from "@/shared/components/Button/LinkButton";
+import { Dropdown } from "@/shared/components/Dropdown/Dropdown";
+import { DropdownItem } from "@/shared/components/Dropdown/DropdownItem";
+import { DropdownPanel } from "@/shared/components/Dropdown/DropdownPanel";
+import { DropdownTrigger } from "@/shared/components/Dropdown/DropdownTrigger";
 import { Select } from "@/shared/components/Fields/Select/Select";
 import { SegmentedControl } from "@/shared/components/SegmentedControl/SegmentedControl";
 import { Spinner } from "@/shared/components/Spinner/Spinner";
@@ -83,6 +87,7 @@ import { useToast } from "@/shared/components/Toast/useToast";
 import {
   eventPath,
   newEventPath,
+  RoutePaths,
   taskPath,
 } from "@/shared/constants/routePaths";
 import { useNow } from "@/shared/hooks/useNow";
@@ -496,20 +501,64 @@ export function CalendarView() {
             onChange={(value) => setParam({ view: value })}
           />
           <span className={styles.actions}>
-            {member ? (
-              <Button iconStart="lock" onClick={() => setPersonal(true)}>
-                {PersonalText.add}
-              </Button>
-            ) : null}
             {access.can("createStandaloneTasks") ? (
               <Button iconStart="add" onClick={() => setIsCreatingTask(true)}>
                 {Text.newTask}
               </Button>
             ) : null}
             {canPlan ? (
-              <LinkButton to={newEventPath()} variant="primary" iconStart="add">
-                {Text.newEvent}
-              </LinkButton>
+              <Dropdown>
+                <DropdownTrigger
+                  popup="menu"
+                  {...buttonLook("primary", "medium", false)}
+                >
+                  <ButtonContent iconStart="add" iconEnd="chevronDown">
+                    {Text.newEvent}
+                  </ButtonContent>
+                </DropdownTrigger>
+                <DropdownPanel
+                  role="menu"
+                  placement="bottom-end"
+                  aria-label={Text.newEvent}
+                >
+                  <DropdownItem
+                    as={Link}
+                    to={newEventPath()}
+                    role="menuitem"
+                    className={styles.menuItem}
+                  >
+                    <b>{CalendarViewText.menu.event}</b>
+                    <span>{CalendarViewText.menu.eventDetail}</span>
+                  </DropdownItem>
+                  <DropdownItem
+                    as={Link}
+                    to={RoutePaths.planSeveral}
+                    role="menuitem"
+                    className={styles.menuItem}
+                  >
+                    <b>{CalendarViewText.menu.several}</b>
+                    <span>{CalendarViewText.menu.severalDetail}</span>
+                  </DropdownItem>
+                  {member ? (
+                    <DropdownItem
+                      role="menuitem"
+                      className={styles.menuItem}
+                      onSelect={() => setPersonal(true)}
+                    >
+                      <b>{CalendarViewText.menu.personal}</b>
+                      <span>{CalendarViewText.menu.personalDetail}</span>
+                    </DropdownItem>
+                  ) : null}
+                </DropdownPanel>
+              </Dropdown>
+            ) : member ? (
+              <Button
+                variant="primary"
+                iconStart="lock"
+                onClick={() => setPersonal(true)}
+              >
+                {CalendarViewText.menu.personalOnly}
+              </Button>
             ) : null}
           </span>
         </div>

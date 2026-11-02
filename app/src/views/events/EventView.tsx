@@ -1,13 +1,13 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/EventView.tsx
-// Version : 1.2.0
-// Latest commit: feature/calendar-people
+// Version : 1.3.0
+// Latest commit: feature/event-sets
 // Author : Gerrah
 // Purpose : An event's page: when and what it is, its tasks and how far along
-// they are, its details and the repeat it's part of. Planners change it from
+// they are, its details, and the repeat or set it's part of. Planners change it from
 // its ⋯ menu (the same as on the calendar) and add tasks to it.
 
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { usePermissions } from "@/core/access";
 import { DataErrorText, isCurrentMember } from "@/core/data";
 import { useSession } from "@/core/session";
@@ -17,6 +17,7 @@ import {
   EventActions,
   gapLabel,
   useEvent,
+  useEventSet,
   useEventTasks,
   useAudienceOptions,
   useRepeat,
@@ -47,7 +48,11 @@ import { LinkButton } from "@/shared/components/Button/LinkButton";
 import { PageHeader } from "@/shared/components/PageHeader/PageHeader";
 import { Spinner } from "@/shared/components/Spinner/Spinner";
 import { useToast } from "@/shared/components/Toast/useToast";
-import { RoutePaths, taskPath } from "@/shared/constants/routePaths";
+import {
+  eventSetPath,
+  RoutePaths,
+  taskPath,
+} from "@/shared/constants/routePaths";
 import { useNow } from "@/shared/hooks/useNow";
 import { Icon } from "@/shared/icons/Icon";
 import { formatLongDate, formatTime } from "@/shared/time/dates";
@@ -79,6 +84,8 @@ function EventPage({ event }: { event: EventRecord }) {
   const canPlan = access.can("planEvents");
   const type = eventTypes.items.find((entry) => entry.id === event.eventTypeId);
   const repeat = useRepeat(event.repeatId);
+  const set = useEventSet(event.setId);
+  const opensSets = canPlan || access.can("viewAll");
   const audience = [
     ...(event.everyone ? [AudienceText.everyone] : []),
     ...event.groupIds.map(
@@ -189,6 +196,18 @@ function EventPage({ event }: { event: EventRecord }) {
               </dd>
               <dt>{Text.type}</dt>
               <dd>{type?.name ?? Text.noType}</dd>
+              {set ? (
+                <>
+                  <dt>{Text.partOf}</dt>
+                  <dd>
+                    {opensSets ? (
+                      <Link to={eventSetPath(set.id)}>{set.name}</Link>
+                    ) : (
+                      set.name
+                    )}
+                  </dd>
+                </>
+              ) : null}
               {event.link ? (
                 <>
                   <dt>{Text.link}</dt>

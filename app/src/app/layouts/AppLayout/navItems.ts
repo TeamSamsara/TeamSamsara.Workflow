@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/layouts/AppLayout/navItems.ts
-// Version : 1.2.0
-// Latest commit: feature/people-time
+// Version : 1.3.0
+// Latest commit: feature/event-sets
 // Author : Gerrah
 // Purpose : The main menu, in order: where each item goes, its label, its icon,
 // and the permissions it needs to show.
@@ -34,6 +34,13 @@ export const navItems: readonly NavItem[] = [
     label: SidebarText.availability,
     icon: "time",
     sub: true,
+  },
+  {
+    to: RoutePaths.eventSets,
+    label: SidebarText.eventSets,
+    icon: "eventSets",
+    sub: true,
+    requiresAnyOf: ["planEvents", "viewAll"],
   },
   { to: RoutePaths.myTasks, label: SidebarText.myTasks, icon: "myTasks" },
   { to: RoutePaths.workflows, label: SidebarText.workflows, icon: "workflows" },
