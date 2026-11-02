@@ -1,8 +1,8 @@
 /* File : /TeamSamsara.Workflow/app/src/views/docs/DocsView.module.css
-   Version : 1.0.0
-   Latest commit: feature/onboarding
+   Version : 1.1.0
+   Latest commit: fix/docs-and-brush
    Author : Gerrah
-   Purpose : Documentation: search and "view as" in a row, then the article list (groups with their permission badge) beside the open article; stacked on narrow screens. */
+   Purpose : Documentation: search and "view as" in a row, then the article list (grouped by feature) beside the open article; stacked on narrow screens. */
 
 .page {
   display: flex;
@@ -65,16 +65,6 @@
   font-size: var(--text-tab);
   font-weight: var(--weight-regular);
   text-transform: uppercase;
-}
-
-.badge {
-  padding: 1px var(--space-2);
-  border-radius: var(--radius-pill);
-  background-color: var(--color-nav);
-  color: var(--color-accent);
-  font-size: var(--text-small);
-  font-weight: var(--weight-bold);
-  white-space: nowrap;
 }
 
 .links {

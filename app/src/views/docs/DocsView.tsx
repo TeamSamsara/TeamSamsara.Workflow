@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/docs/DocsView.tsx
-// Version : 1.0.0
-// Latest commit: feature/onboarding
+// Version : 1.1.0
+// Latest commit: fix/docs-and-brush
 // Author : Gerrah
 // Purpose : Documentation: the articles for what your roles let you do, in
 // groups, with a search; one article open beside the list, with "Show me in
@@ -82,8 +82,6 @@ export function DocsView() {
   const nextEntry = open ? all[all.indexOf(open) + 1] : undefined;
   const myChapters = new Set(walkthrough.chapters.map((chapter) => chapter.id));
 
-  const label = (group: DocGroup) => group.requiresLabel ?? null;
-
   return (
     <div className={styles.page}>
       <PageHeader
@@ -132,9 +130,6 @@ export function DocsView() {
             <div key={group.id} className={styles.group}>
               <div className={styles.groupHead}>
                 <h2 className={styles.groupTitle}>{group.title}</h2>
-                {label(group) ? (
-                  <span className={styles.badge}>{label(group)}</span>
-                ) : null}
               </div>
               <ul className={styles.links}>
                 {group.articles.map((article) => (
