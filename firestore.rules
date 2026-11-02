@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/firestore.rules
-// Version : 1.18.0
-// Latest commit: feature/onboarding
+// Version : 1.19.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : Who may read and write what in Firestore. Everything is denied until
 // a rule below allows it; each PR opens exactly what its feature needs, with a
@@ -447,6 +447,39 @@ service cloud.firestore {
       allow delete: if can("manageSettings");
     }
 
+    // Fields: the details events can have, keyed by how text writes them
+    // ({opponent} is fields/opponent). Edit workflows makes them; only admins
+    // change or delete them.
+    match /fields/{fieldKey} {
+      allow read: if isActiveMember();
+      allow create: if can("editWorkflows")
+        && fieldKey.matches("^[a-z][a-z0-9_]{0,29}$")
+        && !(fieldKey in ["title", "date", "time", "end_time", "link", "event_type"])
+        && isValidField(request.resource.data)
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if can("administrator")
+        && isValidField(request.resource.data)
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if can("administrator");
+    }
+
+    function isValidField(field) {
+      return field.keys().hasOnly(["name", "type", "choices", "help",
+          "createdBy", "createdAt", "updatedAt"])
+        && field.keys().hasAll(["name", "type", "choices", "help",
+          "createdBy", "createdAt", "updatedAt"])
+        && field.name is string && field.name.size() > 0 && field.name.size() <= 40
+        && field.type in ["text", "link", "number", "choice", "datetime", "person"]
+        && field.choices is list && field.choices.size() <= 20
+        && (field.type == "choice" || field.choices.size() == 0)
+        && field.help is string && field.help.size() <= 120
+        && field.createdBy is string;
+    }
+
     match /eventTypes/{eventTypeId} {
       allow read: if isActiveMember();
       allow create, update: if can("manageSettings")
@@ -560,12 +593,14 @@ service cloud.firestore {
         || (resource.data.eventId != null && can("planEvents"));
     }
 
-    /** One of the four kinds of change, or Plan events moving an event's task. */
+    /** One of the four kinds of change, or Plan events moving an event's task
+        or filling its text again from the event's fields. */
     function isAllowedTaskChange(grants, held) {
       let changed = changedFields();
       return holds(grants, held, "editAnyTask")
         || (resource.data.createdBy == request.auth.uid && resource.data.eventId == null)
-        || (changed.hasOnly(["dueAt", "updatedAt"])
+        || (changed.hasOnly(["dueAt", "title", "notes", "posts", "checklist",
+            "updatedAt"])
           && resource.data.eventId != null
           && holds(grants, held, "planEvents"))
         || (changed.hasOnly(["workGroupId", "memberId", "updatedAt"])

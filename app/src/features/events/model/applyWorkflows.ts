@@ -1,12 +1,20 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/model/applyWorkflows.ts
-// Version : 1.0.0
-// Latest commit: feature/calendar-events
+// Version : 1.1.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : An event and its workflows → the tasks to make: each step with
 // its exact due time (counted from the event's start in the workspace's time
-// zone) and its {gaps} filled from the event. Gaps with no value stay as they
-// are, so they're easy to spot and fix.
+// zone) and its {fields} filled from the event, each the way its type reads
+// (a person by name, a date in the workspace's format). A field with no value
+// yet shows as its name in brackets, "[Match link]", easy to spot and filled
+// in when the event gets it (see refillTasks).
 
+import {
+  BuiltInFieldKeys,
+  fieldText,
+  nameFromKey,
+  type FieldRecord,
+} from "@/features/fields";
 import type { TaskFields } from "@/features/tasks";
 import {
   fillGaps,
@@ -25,6 +33,10 @@ import {
 export interface EventForTasks {
   title: string;
   startsAt: Date;
+  /** For {end_time}; left out where there's none yet. */
+  endsAt?: Date;
+  /** For {event_type}. */
+  eventTypeId?: string | null;
   link: string | null;
   details: Record<string, string>;
 }
@@ -33,6 +45,12 @@ export interface Formats {
   timeZone: string;
   clock: ClockFormat;
   dateFormat: DateFormat;
+  /** The workspace's fields, so each value reads the way its type does. */
+  fields?: readonly FieldRecord[];
+  /** A member's name, for person fields. */
+  memberName?: (memberId: string) => string | null;
+  /** An event type's name, for {event_type}. */
+  eventTypeName?: (eventTypeId: string) => string | null;
 }
 
 /** A task to make for an event, with where it came from. */
@@ -41,14 +59,17 @@ export interface PlannedTask extends TaskFields {
   stepId: string;
 }
 
-/** The values gaps fill with: the event's own, then the ones asked for. */
+/** The values fields fill with: the ones asked for, then the event's own. */
 export function gapValues(
   event: EventForTasks,
   formats: Formats,
 ): Record<string, string> {
+  const byKey = new Map(formats.fields?.map((field) => [field.id, field]));
   const values: Record<string, string> = {};
   for (const [gap, value] of Object.entries(event.details)) {
-    if (value.trim()) values[gap.toLowerCase()] = value.trim();
+    const key = gap.toLowerCase();
+    const text = fieldText(byKey.get(key), value, formats);
+    if (text) values[key] = text;
   }
   if (event.title.trim()) values.title = event.title.trim();
   values.date = formatDate(
@@ -57,8 +78,43 @@ export function gapValues(
     formats.dateFormat,
   );
   values.time = formatTime(event.startsAt, formats.timeZone, formats.clock);
+  if (event.endsAt)
+    values.end_time = formatTime(event.endsAt, formats.timeZone, formats.clock);
   if (event.link?.trim()) values.link = event.link.trim();
+  const type = event.eventTypeId
+    ? formats.eventTypeName?.(event.eventTypeId)
+    : null;
+  if (type) values.event_type = type;
   return values;
+}
+
+/** How a value reads in a title or a task: a person by name, a date in its format. */
+export type ValueText = (key: string, value: string) => string;
+
+export function valueText(formats: Formats): ValueText {
+  return (key, value) =>
+    fieldText(
+      formats.fields?.find((field) => field.id === key),
+      value,
+      formats,
+    ) || value;
+}
+
+/** Fills a text's fields; one with no value shows as "[Its name]". */
+export function fillText(
+  text: string,
+  values: Readonly<Record<string, string>>,
+  fields: readonly FieldRecord[] = [],
+): string {
+  const missing = findGaps(text).filter((gap) => values[gap] === undefined);
+  if (missing.length === 0) return fillGaps(text, values);
+  const names = Object.fromEntries(
+    missing.map((gap) => [
+      gap,
+      `[${fields.find((field) => field.id === gap)?.name ?? nameFromKey(gap)}]`,
+    ]),
+  );
+  return fillGaps(text, { ...names, ...values });
 }
 
 function taskFromStep(
@@ -68,7 +124,7 @@ function taskFromStep(
   values: Record<string, string>,
   formats: Formats,
 ): PlannedTask {
-  const fill = (text: string) => fillGaps(text, values);
+  const fill = (text: string) => fillText(text, values, formats.fields);
   return {
     workflowId,
     stepId: step.id,
@@ -118,7 +174,7 @@ export function applyWorkflows(
 
 /** The gaps these workflows ask the planner to fill (not the event's own). */
 export function askedGaps(workflows: readonly WorkflowRecord[]): string[] {
-  const own = new Set(["title", "date", "time", "link"]);
+  const own = new Set<string>(BuiltInFieldKeys);
   const found = new Set<string>();
   for (const workflow of workflows) {
     for (const step of workflow.steps) {
@@ -135,8 +191,10 @@ export function askedGaps(workflows: readonly WorkflowRecord[]): string[] {
   return [...found].sort();
 }
 
-/** "opponent" → "Opponent", "co_streamer" → "Co streamer". */
-export function gapLabel(gap: string): string {
-  const words = gap.replace(/[_-]+/g, " ");
-  return words.charAt(0).toUpperCase() + words.slice(1);
+/** A field's name: its own, or "Co streamer" from {co_streamer} when it has none. */
+export function gapLabel(
+  gap: string,
+  fields: readonly FieldRecord[] = [],
+): string {
+  return fields.find((field) => field.id === gap)?.name ?? nameFromKey(gap);
 }

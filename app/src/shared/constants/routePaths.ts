@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/constants/routePaths.ts
-// Version : 1.12.0
-// Latest commit: feature/onboarding
+// Version : 1.13.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : Every address in the app, in one place, so links and routes can
 // never disagree about where a page lives.
@@ -49,6 +49,7 @@ export const RoutePaths = {
   settingsGroup: "/settings/groups/:groupId",
   settingsPlatforms: "/settings/platforms",
   settingsTaskSetup: "/settings/tasks-and-events",
+  settingsFields: "/settings/fields",
   // #endregion
 
   // #region Sign-in

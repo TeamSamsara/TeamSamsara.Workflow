@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/eventActionsContent.ts
-// Version : 1.0.0
-// Latest commit: feature/repeats
+// Version : 1.1.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : The words for an event's ⋯ menu and the dialogs it opens.
 
@@ -29,6 +29,30 @@ export const EventActionsText = {
     moveTasks: "Move its tasks too",
     moveTasksHelp: "Its tasks keep the same time before or after the event.",
     save: "Save",
+  },
+  refillDialog: {
+    title: "Save the new details?",
+    description:
+      "Tasks made from this event's workflows use some of what changed.",
+    updates: "These tasks update",
+    kept: "These stay as they are",
+    editedParts: (parts: string) =>
+      `Its ${parts} were edited by hand and stay as they are.`,
+    parts: {
+      title: "title",
+      notes: "notes",
+      checklist: "checklist",
+      posts: "post text",
+    },
+    done: "Done, so it keeps what it said then.",
+    edited: "Edited by hand.",
+    cancel: "Back",
+    save: (count: number) =>
+      count === 0
+        ? "Save"
+        : count === 1
+          ? "Save and update 1 task"
+          : `Save and update ${count} tasks`,
   },
   seriesDialog: {
     title: "Edit this and upcoming",

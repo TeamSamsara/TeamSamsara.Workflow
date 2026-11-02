@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/index.ts
-// Version : 1.4.0
-// Latest commit: feature/event-sets
+// Version : 1.5.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : What other layers may use from the events feature.
 
@@ -19,7 +19,13 @@ export { useRepeat, useRepeats, useRepeatTopUp } from "./hooks/useRepeats";
 export { useEventSet, useEventSets, useSetEvents } from "./hooks/useEventSets";
 export { useAudienceOptions } from "./hooks/useAudienceOptions";
 export type { AudienceOptions } from "./hooks/useAudienceOptions";
-export { applyWorkflows, askedGaps, gapLabel } from "./model/applyWorkflows";
+export { useTaskFormats } from "./hooks/useTaskFormats";
+export {
+  applyWorkflows,
+  askedGaps,
+  gapLabel,
+  valueText,
+} from "./model/applyWorkflows";
 export type { Formats, PlannedTask } from "./model/applyWorkflows";
 export {
   checkEventDraft,

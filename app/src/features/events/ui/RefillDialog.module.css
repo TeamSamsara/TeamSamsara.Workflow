@@ -1,0 +1,68 @@
+/* File : /TeamSamsara.Workflow/app/src/features/events/ui/RefillDialog.module.css
+   Version : 1.0.0
+   Latest commit: feature/event-fields
+   Author : Gerrah
+   Purpose : Look of the refill dialog: two bordered lists, the tasks that update with a green tick and the ones that stay on a quieter fill with a dash and the reason. */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.heading {
+  margin: 0;
+  font-size: var(--text-field-label);
+  font-weight: var(--weight-bold);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+
+.list[data-kept] {
+  background-color: var(--color-page);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 52px;
+  padding: var(--space-2) var(--space-3-5, 14px);
+  box-sizing: border-box;
+  --icon-size: 18px;
+}
+
+.item + .item {
+  border-top: var(--border-width) solid var(--color-border);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.good {
+  flex: none;
+  color: var(--color-accent-text);
+}
+
+.muted {
+  flex: none;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}

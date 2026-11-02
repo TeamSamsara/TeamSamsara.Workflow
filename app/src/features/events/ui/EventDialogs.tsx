@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/EventDialogs.tsx
-// Version : 1.3.0
-// Latest commit: feature/your-account
+// Version : 1.4.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : The dialogs behind an event's ⋯ menu: edit it (moving its tasks
 // when its time changes), edit a repeat from this date on, delete it, skip one
@@ -29,7 +29,8 @@ import { dayKeyToDate } from "@/shared/time/monthGrid";
 import { useAudienceOptions } from "../hooks/useAudienceOptions";
 import { useEventSet } from "../hooks/useEventSets";
 import { useEventTasks } from "../hooks/useEvents";
-import { askedGaps } from "../model/applyWorkflows";
+import { useTaskFormats } from "../hooks/useTaskFormats";
+import { askedGaps, valueText } from "../model/applyWorkflows";
 import {
   checkEventDraft,
   draftFromEvent,
@@ -45,6 +46,7 @@ import {
   type RepeatDraft,
 } from "../model/repeatDraft";
 import { addDays, repeatDates } from "../model/repeatRule";
+import { planRefill, type RefillPlan } from "../model/refillTasks";
 import { deleteEvent, saveEvent } from "../service/eventService";
 import {
   editSeriesFrom,
@@ -56,6 +58,7 @@ import type { EventRecord } from "../types/eventTypes";
 import { RepeatLimits, type RepeatRecord } from "../types/repeatTypes";
 import { EventForm } from "./EventForm";
 import { EventActionsText as Text } from "./eventActionsContent";
+import { RefillDialog } from "./RefillDialog";
 import { RepeatFields } from "./RepeatFields";
 import styles from "./EventDialogs.module.css";
 
@@ -160,24 +163,41 @@ function EditEventForm({
   const gaps = useGaps(event.details, event.workflowIds);
   const people = useAudienceOptions();
   const toast = useToast();
+  const formats = useTaskFormats();
   const [draft, setDraft] = useState<EventDraft>(() =>
-    draftFromEvent(event, workspace.timeZone, titlePattern),
+    draftFromEvent(event, workspace.timeZone, titlePattern, valueText(formats)),
   );
   const [moveTasks, setMoveTasks] = useState(true);
   const [tried, setTried] = useState(false);
+  const [refill, setRefill] = useState<RefillPlan | null>(null);
+  const workflows = useWorkflows();
   const problems = checkEventDraft(draft);
-  const fields = fieldsFromDraft(draft, workspace.timeZone);
+  const fields = fieldsFromDraft(draft, workspace.timeZone, valueText(formats));
   const moved =
     fields !== null && fields.startsAt.getTime() !== event.startsAt.getTime();
 
+  /** What saving does to the tasks that use what changed. */
+  function refillPlan(): RefillPlan | null {
+    if (!fields || tasks.status !== "ready") return null;
+    const plan = planRefill(
+      tasks.items,
+      workflows.items,
+      event,
+      fields,
+      formats,
+    );
+    return plan.updates.length + plan.kept.length > 0 ? plan : null;
+  }
+
   const save = useMutation({
-    mutationFn: () => {
+    mutationFn: (plan: RefillPlan | null) => {
       if (!fields) throw new Error("Missing date");
       return saveEvent(
         event.id,
         fields,
         event.startsAt,
         moveTasks ? tasks.items : [],
+        plan?.updates ?? [],
       );
     },
     onSuccess: () => {
@@ -204,10 +224,15 @@ function EditEventForm({
             variant="primary"
             onClick={() => {
               setTried(true);
-              if (problems.count === 0) save.mutate();
+              if (problems.count > 0) return;
+              const plan = refillPlan();
+              if (plan) setRefill(plan);
+              else save.mutate(null);
             }}
-            isLoading={save.isPending}
-            disabled={moved && moveTasks && tasks.status === "loading"}
+            isLoading={save.isPending && !refill}
+            disabled={
+              tasks.status === "loading" || workflows.status === "loading"
+            }
           >
             {Text.editDialog.save}
           </Button>
@@ -235,6 +260,14 @@ function EditEventForm({
           onChange={(change) => setMoveTasks(change.target.checked)}
         />
       ) : null}
+      {refill ? (
+        <RefillDialog
+          plan={refill}
+          isSaving={save.isPending}
+          onBack={() => setRefill(null)}
+          onSave={() => save.mutate(refill)}
+        />
+      ) : null}
     </Modal>
   );
 }
@@ -252,6 +285,7 @@ export function EditSeriesDialog({
   onClose,
 }: SeriesDialogProps) {
   const workspace = useWorkspaceRecord();
+  const formats = useTaskFormats();
   const session = useSession();
   const member = session.status === "active" ? session.member : null;
   const eventTypes = useEventTypes();
@@ -304,11 +338,7 @@ export function EditSeriesDialog({
         next,
         {
           workflows: workflows.items,
-          formats: {
-            timeZone: workspace.timeZone,
-            clock: workspace.timeFormat,
-            dateFormat: workspace.dateFormat,
-          },
+          formats,
           startingStatusId: startId ?? "",
           createdBy: member.id,
           today,

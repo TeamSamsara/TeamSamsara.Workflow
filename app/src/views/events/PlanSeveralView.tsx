@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/PlanSeveralView.tsx
-// Version : 1.2.0
-// Latest commit: feature/onboarding
+// Version : 1.3.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : Planning several events at once, as a set: what they share (the
 // set's name, type, usual times, a title with {gaps}, who's in them), then
@@ -53,6 +53,8 @@ import {
   type EventSetRecord,
   type PlanDraft,
   type PlanRow,
+  useTaskFormats,
+  valueText,
 } from "@/features/events";
 import {
   startingStatus,
@@ -82,6 +84,7 @@ function PlanSeveral({ set }: { set: EventSetRecord | null }) {
   const session = useSession();
   const member = session.status === "active" ? session.member : null;
   const workspace = useWorkspaceRecord();
+  const formats = useTaskFormats();
   const time = useDisplayTime();
   const statuses = useStatuses();
   const eventTypes = useEventTypes();
@@ -122,7 +125,7 @@ function PlanSeveral({ set }: { set: EventSetRecord | null }) {
     0,
   );
   const events = draft.rows
-    .map((row) => rowFields(draft, row, tz))
+    .map((row) => rowFields(draft, row, tz, valueText(formats)))
     .filter((fields): fields is EventFields => fields !== null);
   const today = dayKey(now, tz);
 
@@ -143,7 +146,7 @@ function PlanSeveral({ set }: { set: EventSetRecord | null }) {
           Boolean(entry),
         );
   const spans = draft.rows.flatMap((row) => {
-    const fields = rowFields(draft, row, tz);
+    const fields = rowFields(draft, row, tz, valueText(formats));
     return fields
       ? [{ key: row.key, start: fields.startsAt, end: fields.endsAt }]
       : [];
@@ -173,11 +176,7 @@ function PlanSeveral({ set }: { set: EventSetRecord | null }) {
       if (!member) throw new Error("Not signed in");
       const options = {
         workflows: selected,
-        formats: {
-          timeZone: tz,
-          clock: workspace.timeFormat,
-          dateFormat: workspace.dateFormat,
-        },
+        formats,
         startingStatusId: startId ?? "",
         createdBy: member.id,
       };
@@ -437,6 +436,9 @@ function PlanSeveral({ set }: { set: EventSetRecord | null }) {
               draft.audience.everyone ? AudienceText.everyone : Text.whoNobody
             }
             onChange={(rows) => change({ rows })}
+            fields={formats.fields}
+            text={valueText(formats)}
+            people={people.members}
           />
         )}
         {tried && problems.rows && draft.rows.length > 0 ? (

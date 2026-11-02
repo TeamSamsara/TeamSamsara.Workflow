@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/EventForm.tsx
-// Version : 1.6.0
-// Latest commit: feature/onboarding
+// Version : 1.7.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : An event's details as a form: title, type, date, start and end,
 // who's in it (and who of them can make it), link, a box per {gap} its
@@ -9,6 +9,7 @@
 import type { ColouredItem } from "@/core/data";
 import { PlannedZoneNote, useWorkspaceRecord } from "@/core/workspace";
 import { AvailabilityCheck } from "@/features/availability";
+import { FieldInput, isBuiltInField, useFields } from "@/features/fields";
 import { TourTarget } from "@/features/onboarding";
 import { useNow } from "@/shared/hooks/useNow";
 import { dayKey, formatTime } from "@/shared/time/dates";
@@ -16,7 +17,6 @@ import { toWallTime } from "@/shared/time/zonedTime";
 import { Select } from "@/shared/components/Fields/Select/Select";
 import { TextArea } from "@/shared/components/Fields/TextArea/TextArea";
 import { TextField } from "@/shared/components/Fields/TextField/TextField";
-import { gapLabel } from "../model/applyWorkflows";
 import {
   fieldsFromDraft,
   titleGaps,
@@ -59,8 +59,15 @@ export function EventForm({
   const now = useNow();
   const tz = workspace.timeZone;
   const fields = hideDate ? null : fieldsFromDraft(draft, tz);
-  // The workflows' gaps and any written in the title ("vs. {opponent}").
-  const asked = [...new Set([...titleGaps(draft.title), ...gaps])];
+  const fieldList = useFields();
+  // The fields written in the title ("vs. {opponent}"), the workflows' ones,
+  // and any added by hand or saved before.
+  const inTitle = new Set(titleGaps(draft.title));
+  const asked = [
+    ...new Set([...inTitle, ...gaps, ...Object.keys(draft.details)]),
+  ].filter((key) => !isBuiltInField(key));
+  const addable = fieldList.items.filter((field) => !asked.includes(field.id));
+  const canAdd = asked.length < EventLimits.details && addable.length > 0;
   // Who's in it, as people: everyone in its groups and the people added.
   const checked = draft.audience.everyone
     ? []
@@ -181,26 +188,48 @@ export function EventForm({
         onChange={(event) => onChange({ link: event.target.value })}
         error={problems?.link}
       />
-      {asked.length > 0 ? (
+      {asked.length > 0 || canAdd ? (
         <fieldset className={styles.details}>
           <legend className={styles.legend}>{Text.details}</legend>
-          <p className={styles.muted}>{Text.detailsHelp}</p>
-          <div className={styles.gapGrid}>
-            {asked.map((gap) => (
-              <TextField
-                key={gap}
-                label={gapLabel(gap)}
-                placeholder={`{${gap}}`}
-                value={draft.details[gap] ?? ""}
-                maxLength={EventLimits.detail}
-                onChange={(event) =>
-                  onChange({
-                    details: { ...draft.details, [gap]: event.target.value },
-                  })
-                }
-              />
-            ))}
-          </div>
+          <p className={styles.muted}>
+            {asked.length > 0 ? Text.detailsHelp : Text.noDetails}
+          </p>
+          {asked.length > 0 ? (
+            <div className={styles.gapGrid}>
+              {asked.map((key) => (
+                <FieldInput
+                  key={key}
+                  fieldKey={key}
+                  field={fieldList.byKey(key)}
+                  value={draft.details[key] ?? ""}
+                  people={people.members}
+                  note={inTitle.has(key) ? Text.inTitle : undefined}
+                  onChange={(value) =>
+                    onChange({ details: { ...draft.details, [key]: value } })
+                  }
+                />
+              ))}
+            </div>
+          ) : null}
+          {canAdd ? (
+            <Select
+              label={Text.addField}
+              hideLabel
+              className={styles.addField}
+              options={[
+                { value: "", label: Text.addField },
+                ...addable.map((field) => ({
+                  value: field.id,
+                  label: field.name,
+                })),
+              ]}
+              value=""
+              onChange={(event) => {
+                const key = event.target.value;
+                if (key) onChange({ details: { ...draft.details, [key]: "" } });
+              }}
+            />
+          ) : null}
         </fieldset>
       ) : null}
       <TextArea

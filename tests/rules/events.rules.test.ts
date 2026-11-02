@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/events.rules.test.ts
-// Version : 1.1.0
-// Latest commit: feature/calendar-people
+// Version : 1.2.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : Tests events against the rules: every member reads them; Plan
 // events makes one together with its tasks in one batch, changes it, moves its
@@ -286,9 +286,17 @@ describe("changing an event", () => {
   });
 
   it("doesn't let Plan events change an event task's other details", async () => {
+    // Its text may be filled again from the event's fields (see
+    // fields.rules.test.ts); who it's given to and where it is may not.
     await assertFails(
       updateDoc(doc(signedInAs(env, "pat"), "tasks/graphic"), {
-        title: "Mine",
+        workGroupId: "video",
+        updatedAt: serverTimestamp(),
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(signedInAs(env, "pat"), "tasks/graphic"), {
+        statusId: "done",
         updatedAt: serverTimestamp(),
       }),
     );

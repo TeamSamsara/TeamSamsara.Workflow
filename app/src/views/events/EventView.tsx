@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/EventView.tsx
-// Version : 1.4.0
-// Latest commit: feature/your-account
+// Version : 1.5.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : An event's page: when and what it is, its tasks and how far along
 // they are, its details, and the repeat or set it's part of. Planners change it from
@@ -12,6 +12,7 @@ import { usePermissions } from "@/core/access";
 import { DataErrorText, isCurrentMember } from "@/core/data";
 import { useSession } from "@/core/session";
 import { useDisplayTime, useWorkspaceRecord } from "@/core/workspace";
+import { fieldText } from "@/features/fields";
 import {
   describeRepeat,
   EventActions,
@@ -24,6 +25,7 @@ import {
   useSeesEventTasks,
   AudienceText,
   type EventRecord,
+  useTaskFormats,
 } from "@/features/events";
 import { useMembers } from "@/features/members";
 import { usePlatforms } from "@/features/platforms";
@@ -82,6 +84,7 @@ function EventPage({ event }: { event: EventRecord }) {
   const [isAddingTask, setIsAddingTask] = useState(false);
 
   const time = useDisplayTime();
+  const taskFormats = useTaskFormats();
   const tz = time.timeZone;
   const canPlan = access.can("planEvents");
   const type = eventTypes.items.find((entry) => entry.id === event.eventTypeId);
@@ -232,12 +235,24 @@ function EventPage({ event }: { event: EventRecord }) {
                   </dd>
                 </>
               ) : null}
-              {Object.entries(event.details).map(([gap, value]) => (
-                <span key={gap} className={panels.pair}>
-                  <dt>{gapLabel(gap)}</dt>
-                  <dd>{value}</dd>
-                </span>
-              ))}
+              {Object.entries(event.details)
+                .filter(([, value]) => value.trim())
+                .map(([gap, value]) => (
+                  <span key={gap} className={panels.pair}>
+                    <dt>{gapLabel(gap, taskFormats.fields)}</dt>
+                    <dd>
+                      {fieldText(
+                        taskFormats.fields?.find((field) => field.id === gap),
+                        value,
+                        {
+                          ...taskFormats,
+                          dateFormat: time.dateFormat,
+                          clock: time.timeFormat,
+                        },
+                      )}
+                    </dd>
+                  </span>
+                ))}
               <dt>{Text.workflows}</dt>
               <dd>
                 {usedWorkflows.length > 0

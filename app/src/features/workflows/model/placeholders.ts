@@ -1,16 +1,18 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/model/placeholders.ts
-// Version : 1.1.0
-// Latest commit: fix/general-wording
+// Version : 1.2.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
-// Purpose : Gaps in a workflow's text, like {title} or {opponent}, filled from the
-// event's details when its tasks are made. {title}, {date}, {time} and {link}
-// come from the event itself; any other gap is asked for when planning it.
+// Purpose : Fields written in a workflow's text, like {title} or {opponent},
+// filled from the event when its tasks are made. The built-in ones ({title},
+// {date}, {time}, {end_time}, {link}, {event_type}) come from the event
+// itself; any other is asked for when planning it.
 
+import { BuiltInFieldKeys, type BuiltInFieldKey } from "@/features/fields";
 import type { WorkflowStep } from "../types/workflowTypes";
 
-/** Gaps every event fills on its own. */
-export const EventGaps = ["title", "date", "time", "link"] as const;
-export type EventGap = (typeof EventGaps)[number];
+/** Fields every event fills on its own. */
+export const EventGaps = BuiltInFieldKeys;
+export type EventGap = BuiltInFieldKey;
 
 const gapPattern = /\{([A-Za-z][A-Za-z0-9_-]{0,29})\}/g;
 

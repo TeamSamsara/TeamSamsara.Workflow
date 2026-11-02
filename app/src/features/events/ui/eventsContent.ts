@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/eventsContent.ts
-// Version : 1.2.0
-// Latest commit: feature/calendar-people
+// Version : 1.3.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : The words for the calendar, its items, the event form, the
 // workflows to apply and the tasks they add.
@@ -65,9 +65,13 @@ export const EventFormText = {
   linkInvalid: "That doesn't look like a web address.",
   notes: "Notes",
   notesPlaceholder: "Anything the team should know.",
-  details: "Details for the tasks",
+  details: "Details",
   detailsHelp:
-    "The workflows you picked have gaps like {opponent} in their text. What you type here fills them in.",
+    "Asked for because the title or the workflows you picked use them. Leave one empty to fill it in later: tasks show its name in brackets until then.",
+  noDetails:
+    "Add any field the event should keep, even if nothing uses it yet.",
+  inTitle: "In the title.",
+  addField: "Add a field",
 } as const;
 
 export const WorkflowPickerText = {
