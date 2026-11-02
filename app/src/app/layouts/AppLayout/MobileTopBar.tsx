@@ -1,10 +1,11 @@
 // File : /TeamSamsara.Workflow/app/src/app/layouts/AppLayout/MobileTopBar.tsx
-// Version : 1.0.0
-// Latest commit: core/app-shell
+// Version : 1.1.0
+// Latest commit: feature/notifications
 // Author : Gerrah
 // Purpose : The bar across the top on narrow screens: the logo and app name, and
 // the button that opens and closes the sidebar menu.
 
+import { NotificationBell } from "@/features/notifications";
 import { IconButton } from "@/shared/components/Button/IconButton";
 import { Branding } from "@/shared/constants/branding";
 import { AppLayoutText } from "./appLayoutContent";
@@ -28,14 +29,17 @@ export function MobileTopBar({
         <img src={Branding.logoSrc} alt="" className={styles.logo} />
         <span className={styles.appName}>{Branding.appName}</span>
       </div>
-      <IconButton
-        icon={isMenuOpen ? "close" : "menu"}
-        label={isMenuOpen ? AppLayoutText.closeMenu : AppLayoutText.openMenu}
-        variant="ghost"
-        aria-expanded={isMenuOpen}
-        aria-controls={sidebarId}
-        onClick={onToggleMenu}
-      />
+      <span className={styles.actions}>
+        <NotificationBell opens="page" />
+        <IconButton
+          icon={isMenuOpen ? "close" : "menu"}
+          label={isMenuOpen ? AppLayoutText.closeMenu : AppLayoutText.openMenu}
+          variant="ghost"
+          aria-expanded={isMenuOpen}
+          aria-controls={sidebarId}
+          onClick={onToggleMenu}
+        />
+      </span>
     </header>
   );
 }

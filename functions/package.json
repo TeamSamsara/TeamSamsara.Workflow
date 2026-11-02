@@ -1,0 +1,23 @@
+{
+  "name": "playbook-functions",
+  "private": true,
+  "description": "Playbook's server functions: notifications, reminders, email and signing out everywhere.",
+  "type": "module",
+  "main": "lib/index.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.0",
+    "firebase-functions": "^7.4.0"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.2",
+    "vitest": "^5.0.5"
+  }
+}

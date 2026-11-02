@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/layouts/AppLayout/Sidebar.tsx
-// Version : 1.6.0
-// Latest commit: feature/onboarding
+// Version : 1.7.0
+// Latest commit: feature/notifications
 // Author : Gerrah
 // Purpose : The dark sidebar: the logo with the workspace's name, the main menu
 // (only the items the member may use), and the account link with the theme
@@ -13,6 +13,7 @@ import { signOut, useSession } from "@/core/session";
 import { ThemeToggle } from "@/core/theme";
 import { useWorkspaceRecord } from "@/core/workspace";
 import { memberName } from "@/features/members";
+import { NotificationBell } from "@/features/notifications";
 import { classNames } from "@/lib/classNames";
 import { Avatar } from "@/shared/components/Avatar/Avatar";
 import { Branding } from "@/shared/constants/branding";
@@ -53,6 +54,7 @@ export function Sidebar({ id, isCompact, isOpen, className }: SidebarProps) {
           <span className={styles.appName}>{Branding.appName}</span>
           <span className={styles.workspaceName}>{workspace.name}</span>
         </span>
+        {isCompact ? null : <NotificationBell />}
       </div>
 
       <nav

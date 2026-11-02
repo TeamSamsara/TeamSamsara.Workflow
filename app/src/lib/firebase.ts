@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/lib/firebase.ts
-// Version : 1.2.0
-// Latest commit: feature/members
+// Version : 1.3.0
+// Latest commit: feature/notifications
 // Author : Gerrah
 // Purpose : Initializes Firebase once and exports the Auth and Firestore
 // clients, pointed at the local emulators when the env flag is on. Firestore keeps
@@ -15,6 +15,7 @@ import {
   persistentLocalCache,
   persistentMultipleTabManager,
 } from "firebase/firestore";
+import { connectFunctionsEmulator, getFunctions } from "firebase/functions";
 import { FirebaseEmulators, FirebaseEnvFlags } from "./firebaseConstants";
 
 export const firebaseConfig = {
@@ -32,6 +33,9 @@ export const db = initializeFirestore(firebaseApp, {
   }),
 });
 
+/** The server functions (notifications' test email, signing out everywhere). */
+export const functions = getFunctions(firebaseApp);
+
 export const usesEmulators =
   import.meta.env.VITE_USE_FIREBASE_EMULATORS === FirebaseEnvFlags.enabled;
 
@@ -44,5 +48,10 @@ if (usesEmulators) {
     db,
     FirebaseEmulators.host,
     FirebaseEmulators.firestorePort,
+  );
+  connectFunctionsEmulator(
+    functions,
+    FirebaseEmulators.host,
+    FirebaseEmulators.functionsPort,
   );
 }
