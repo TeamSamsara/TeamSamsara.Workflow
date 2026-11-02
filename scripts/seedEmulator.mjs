@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/scripts/seedEmulator.mjs
-// Version : 1.12.0
-// Latest commit: feature/calendar-people
+// Version : 1.13.0
+// Latest commit: feature/people-time
 // Author : Gerrah
 // Purpose : Fills the local emulators with a ready-made workspace and test
 // accounts, so the app can be tried without touching the real project. It wipes
@@ -41,9 +41,9 @@ const devPassword = "Workflow-dev-1";
 // #endregion
 
 // #region Seed data
-/** Admin moves up one place, so the extra role below sits between it and Everyone. */
+/** Admin moves up two places, so the extra roles below sit between it and Everyone. */
 const startingRoles = defaultRoles.map((role) =>
-  role.id === AdminRoleId ? { ...role, position: role.position + 1 } : role,
+  role.id === AdminRoleId ? { ...role, position: role.position + 2 } : role,
 );
 
 /** A role with only some workspace settings, to try a partial Settings area. */
@@ -54,6 +54,16 @@ const peopleManagerRole = {
   description: "Invites members and arranges work groups.",
   position: 1,
   permissions: ["manageMembers", "manageWorkGroups"],
+};
+
+/** A team manager: plans the team's events and sees everyone's availability. */
+const teamManagerRole = {
+  id: "teamManager",
+  name: "Team manager",
+  color: "#6F9954",
+  description: "Plans the team's events and sees everyone's availability.",
+  position: 2,
+  permissions: ["planEvents", "viewAvailability"],
 };
 
 /** Two work groups, so group pickers and cards have something to show. */
@@ -68,7 +78,20 @@ const workGroups = [
     name: "Video",
     description: "Edits highlights and clips.",
   },
+  {
+    id: "bloom",
+    name: "Bloom",
+    description: "Team Samsara Bloom: players and coach.",
+  },
 ];
+
+/** Sam's usual week: school on weekday mornings, so the availability pages have something to show. */
+const samAvailability = {
+  weekly: Object.fromEntries(
+    [1, 2, 3, 4, 5].map((day) => [String(day), [8, 9, 10, 11, 12, 13, 14]]),
+  ),
+  exceptions: [],
+};
 
 const due = (direction, days, hours, time = null) => ({
   direction,
@@ -330,16 +353,16 @@ const accounts = [
     key: "jordan",
     name: "Jordan Blake",
     status: "active",
-    roleIds: ["peopleManager"],
-    workGroupIds: ["video"],
-    note: "People manager: Members and Work groups settings only",
+    roleIds: ["peopleManager", "teamManager"],
+    workGroupIds: ["video", "bloom"],
+    note: "People and team manager: Members and Work groups settings, plans events, sees availability",
   },
   {
     key: "sam",
     name: "Sam Rivera",
     status: "active",
     roleIds: [],
-    workGroupIds: ["design", "video"],
+    workGroupIds: ["design", "video", "bloom"],
     note: "Member, Everyone role only",
   },
   {
@@ -431,7 +454,7 @@ async function main() {
   const now = new Date();
   await env.withSecurityRulesDisabled(async (context) => {
     const db = context.firestore();
-    const roles = [...startingRoles, peopleManagerRole];
+    const roles = [...startingRoles, peopleManagerRole, teamManagerRole];
     const writes = [
       // The same starting statuses as a real setup; tags start empty.
       ...defaultStatuses.map((status, index) =>
@@ -468,6 +491,51 @@ async function main() {
     const nova = sampleEvent(now, uidOf);
     writes.push(db.doc("eventTypes/match").set(matchType));
     writes.push(db.doc("eventTypes/meeting").set(meetingType));
+    writes.push(
+      db
+        .doc(`availability/${uidOf("sam")}`)
+        .set({ ...samAvailability, updatedAt: now }),
+    );
+    // A Bloom-only event: Bloom and View all see it, others don't.
+    const scrimStart = new Date(
+      Math.ceil((now.getTime() + 48 * hour) / (24 * hour)) * 24 * hour + hour,
+    );
+    writes.push(
+      db.doc("events/bloom-scrims").set({
+        title: "Bloom scrims",
+        eventTypeId: null,
+        startsAt: scrimStart,
+        endsAt: new Date(scrimStart.getTime() + 3 * hour),
+        link: null,
+        details: {},
+        workflowIds: [],
+        notes: "",
+        repeatId: null,
+        everyone: false,
+        groupIds: ["bloom"],
+        memberIds: [],
+        createdBy: uidOf("jordan"),
+        createdAt: now,
+        updatedAt: now,
+      }),
+    );
+    // Sam's dentist visit: Sam and managers see what it is; others see Busy.
+    const dentistStart = new Date(scrimStart.getTime() - 5 * hour);
+    const dentist = {
+      startsAt: dentistStart,
+      endsAt: new Date(dentistStart.getTime() + hour),
+    };
+    writes.push(
+      db.doc("personal/sam-dentist").set({
+        memberId: uidOf("sam"),
+        title: "Dentist",
+        notes: "",
+        ...dentist,
+        createdAt: now,
+        updatedAt: now,
+      }),
+      db.doc("busy/sam-dentist").set({ memberId: uidOf("sam"), ...dentist }),
+    );
     writes.push(
       db
         .doc("repeats/weekly-meeting")

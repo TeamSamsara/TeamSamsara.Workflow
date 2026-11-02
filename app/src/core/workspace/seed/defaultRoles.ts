@@ -1,9 +1,9 @@
 // File : /TeamSamsara.Workflow/app/src/core/workspace/seed/defaultRoles.ts
-// Version : 1.0.0
-// Latest commit: core/workspace
+// Version : 1.1.0
+// Latest commit: feature/people-time
 // Author : Gerrah
-// Purpose : The two roles every new workspace starts with: Everyone (see
-// everything, do the tasks assigned to you) and Admin (Administrator). Admins
+// Purpose : The two roles every new workspace starts with: Everyone (do the
+// tasks given to you; see the events you're in) and Admin (Administrator). Admins
 // rename, recolour or add to them afterwards. Data only, with type-only imports,
 // so scripts/seedEmulator.mjs can load this file as it is.
 
@@ -24,7 +24,7 @@ export const defaultRoles: readonly DefaultRole[] = [
     color: "#8A8F94",
     description: "Every member has this role.",
     position: 0,
-    permissions: ["viewAll", "doAssignedTasks"],
+    permissions: ["doAssignedTasks"],
   },
   {
     id: AdminRoleId,

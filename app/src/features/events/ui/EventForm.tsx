@@ -1,16 +1,23 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/EventForm.tsx
-// Version : 1.2.0
-// Latest commit: feature/calendar-people
+// Version : 1.3.0
+// Latest commit: feature/people-time
 // Author : Gerrah
 // Purpose : An event's details as a form: title, type, date, start and end,
-// who's in it, link, a box per {gap} its workflows ask for, and notes.
+// who's in it (and who of them can make it), link, a box per {gap} its
+// workflows ask for, and notes.
 
 import type { ColouredItem } from "@/core/data";
+import { useWorkspaceRecord } from "@/core/workspace";
+import { AvailabilityCheck } from "@/features/availability";
+import { useNow } from "@/shared/hooks/useNow";
+import { dayKey, formatTime } from "@/shared/time/dates";
+import { toWallTime } from "@/shared/time/zonedTime";
 import { Select } from "@/shared/components/Fields/Select/Select";
 import { TextArea } from "@/shared/components/Fields/TextArea/TextArea";
 import { TextField } from "@/shared/components/Fields/TextField/TextField";
 import { gapLabel } from "../model/applyWorkflows";
 import {
+  fieldsFromDraft,
   withStartTime,
   type EventDraft,
   type EventDraftProblems,
@@ -46,6 +53,33 @@ export function EventForm({
   hideDate = false,
   autoFocus = true,
 }: EventFormProps) {
+  const workspace = useWorkspaceRecord();
+  const now = useNow();
+  const tz = workspace.timeZone;
+  const fields = hideDate ? null : fieldsFromDraft(draft, tz);
+  // Who's in it, as people: everyone in its groups and the people added.
+  const checked = draft.audience.everyone
+    ? []
+    : [
+        ...new Set([
+          ...draft.audience.groupIds.flatMap(
+            (id) =>
+              people.groups.find((group) => group.id === id)?.memberIds ?? [],
+          ),
+          ...draft.audience.memberIds,
+        ]),
+      ]
+        .map((id) => people.members.find((member) => member.id === id))
+        .filter((member): member is { id: string; name: string } =>
+          Boolean(member),
+        );
+  const timeOf = (date: Date) => formatTime(date, tz, workspace.timeFormat);
+  const weekday = (date: Date) =>
+    new Date(`${dayKey(date, tz)}T12:00:00Z`).toLocaleString("en", {
+      weekday: "short",
+      timeZone: "UTC",
+    });
+
   return (
     <div className={styles.form}>
       <TextField
@@ -108,6 +142,27 @@ export function EventForm({
         groups={people.groups}
         members={people.members}
       />
+      {fields && checked.length > 0 ? (
+        <AvailabilityCheck
+          people={checked}
+          start={fields.startsAt}
+          end={fields.endsAt}
+          timeZone={tz}
+          now={now}
+          spanLabel={(start, end) => `${timeOf(start)} – ${timeOf(end)}`}
+          slotLabel={(start, end) =>
+            `${weekday(start)} ${timeOf(start)} – ${timeOf(end)}`
+          }
+          onPick={(start) => {
+            const wall = toWallTime(start, tz);
+            const time = `${String(wall.hour).padStart(2, "0")}:${String(wall.minute).padStart(2, "0")}`;
+            onChange({
+              ...withStartTime(draft, time),
+              date: dayKey(start, tz),
+            });
+          }}
+        />
+      ) : null}
       <TextField
         label={Text.link}
         help={Text.linkHelp}

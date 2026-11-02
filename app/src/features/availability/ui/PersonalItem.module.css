@@ -1,0 +1,56 @@
+/* File : /TeamSamsara.Workflow/app/src/features/availability/ui/PersonalItem.module.css
+   Version : 1.0.0
+   Latest commit: feature/people-time
+   Author : Gerrah
+   Purpose : A personal appointment on the calendar: a dashed white block with a lock, set apart from team events. */
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-0-5);
+  min-width: 0;
+  padding: var(--space-1-5) var(--space-2);
+  border: var(--border-width) dashed var(--color-text-muted);
+  border-radius: var(--radius-small);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  text-align: left;
+  cursor: pointer;
+}
+
+.item[data-block] {
+  z-index: 1;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.item:hover .title {
+  text-decoration: underline;
+}
+
+.item:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-width: 100%;
+  font-weight: var(--weight-bold);
+  overflow-wrap: anywhere;
+}
+
+.lock {
+  --icon-size: 12px;
+  flex: none;
+}
+
+.meta {
+  color: var(--color-text-muted);
+}

@@ -1,0 +1,162 @@
+/* File : /TeamSamsara.Workflow/app/src/views/availability/AvailabilityViews.module.css
+   Version : 1.0.0
+   Latest commit: feature/people-time
+   Author : Gerrah
+   Purpose : The availability pages: a header, then the week grid with cards beside it (stacked on phones), or the team grid with its controls and best times. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.columns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-5);
+}
+
+.main {
+  flex: 3 1 520px;
+  min-width: 0;
+  padding: var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.side {
+  display: flex;
+  flex: 1 1 280px;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.weekNav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.weekTitle {
+  margin: 0 var(--space-2) 0 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  text-transform: uppercase;
+}
+
+.picker {
+  flex: 0 1 220px;
+  margin-left: auto;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}
+
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+}
+
+.swatch {
+  width: 16px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.swatch[data-kind="available"] {
+  background-color: color-mix(
+    in srgb,
+    var(--color-accent) 45%,
+    var(--color-surface)
+  );
+}
+
+.swatch[data-kind="unavailable"] {
+  background-color: var(--color-surface-raised);
+  background-image: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-text) 16%, transparent) 0 3px,
+    transparent 3px 7px
+  );
+}
+
+.swatch[data-kind="busy"] {
+  background-color: var(--color-alert);
+}
+
+.swatch[data-kind="clash"] {
+  box-shadow: inset 0 0 0 2px var(--color-error);
+}
+
+.best {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.bestTitle {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  text-transform: uppercase;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-accent);
+  color: var(--color-text-on-accent);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+  text-decoration: none;
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-10) 0;
+}

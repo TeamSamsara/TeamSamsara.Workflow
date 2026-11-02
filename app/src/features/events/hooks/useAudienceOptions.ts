@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/hooks/useAudienceOptions.ts
-// Version : 1.0.0
-// Latest commit: feature/calendar-people
+// Version : 1.1.0
+// Latest commit: feature/people-time
 // Author : Gerrah
 // Purpose : The work groups and people that can be put in an event, by name,
 // with how many people each group has.
@@ -12,7 +12,7 @@ import { useWorkGroups } from "@/features/work-groups";
 import type { AudienceGroupOption, AudienceOption } from "../ui/AudiencePicker";
 
 export interface AudienceOptions {
-  groups: AudienceGroupOption[];
+  groups: (AudienceGroupOption & { memberIds: string[] })[];
   members: AudienceOption[];
 }
 
@@ -23,15 +23,20 @@ export function useAudienceOptions(): AudienceOptions {
     const current = members.records.filter(isCurrentMember);
     return {
       groups: groups.items
-        .map((item) => ({
-          id: item.group.id,
-          name: item.group.name,
-          size:
-            item.members?.filter(isCurrentMember).length ??
+        .map((item) => {
+          const memberIds = (
+            item.members?.filter(isCurrentMember) ??
             current.filter((member) =>
               member.workGroupIds.includes(item.group.id),
-            ).length,
-        }))
+            )
+          ).map((member) => member.id);
+          return {
+            id: item.group.id,
+            name: item.group.name,
+            size: memberIds.length,
+            memberIds,
+          };
+        })
         .sort((a, b) => a.name.localeCompare(b.name)),
       members: current
         .map((member) => ({ id: member.id, name: memberName(member) }))

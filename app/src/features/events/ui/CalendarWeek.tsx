@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/CalendarWeek.tsx
-// Version : 1.0.0
-// Latest commit: feature/calendar-people
+// Version : 1.1.0
+// Latest commit: feature/people-time
 // Author : Gerrah
 // Purpose : The week view: seven days side by side, 8 AM to midnight, each
 // item a block from its start to its end, overlapping ones side by side, a line
@@ -39,6 +39,8 @@ interface CalendarWeekProps {
   weekdayNames: readonly string[];
   /** "8 AM" for each hour shown. */
   hourLabel: (hour: number) => string;
+  /** Stretches to shade behind the items, like someone's unavailable hours. */
+  shadesFor?: (dayKey: string) => { start: Date; end: Date; label: string }[];
 }
 
 const minutesInto = (date: Date, day: WeekDay) =>
@@ -52,6 +54,7 @@ export function CalendarWeek({
   dayLabel,
   weekdayNames,
   hourLabel,
+  shadesFor,
 }: CalendarWeekProps) {
   const hours = Array.from(
     { length: WeekHours.to - WeekHours.from },
@@ -131,6 +134,31 @@ export function CalendarWeek({
               aria-label={dayLabel(day.key)}
               role="group"
             >
+              {(shadesFor?.(day.key) ?? []).map((shade) => {
+                const top = Math.max(
+                  0,
+                  minutesInto(shade.start, day) - WeekHours.from * 60,
+                );
+                const bottom = Math.min(
+                  (WeekHours.to - WeekHours.from) * 60,
+                  minutesInto(shade.end, day) - WeekHours.from * 60,
+                );
+                if (bottom <= top) return null;
+                return (
+                  <div
+                    key={shade.start.getTime()}
+                    className={styles.shade}
+                    style={{
+                      top: `${top * scale}px`,
+                      height: `${(bottom - top) * scale}px`,
+                    }}
+                  >
+                    {bottom - top >= 60 ? (
+                      <span className={styles.shadeLabel}>{shade.label}</span>
+                    ) : null}
+                  </div>
+                );
+              })}
               {placed.map((entry) => (
                 <div key={entry.item.id} className={styles.slot}>
                   {entry.item.render(

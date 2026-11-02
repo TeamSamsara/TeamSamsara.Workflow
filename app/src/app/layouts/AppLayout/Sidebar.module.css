@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/app/layouts/AppLayout/Sidebar.module.css
-   Version : 1.2.0
-   Latest commit: core/workspace
+   Version : 1.3.0
+   Latest commit: feature/people-time
    Author : Gerrah
    Purpose : Look of the sidebar: dark in both themes, the logo, Norwester app name and workspace name on top, uppercase Agdasima menu links with a green marker on the current page, and the account row pinned to the bottom. */
 
@@ -85,6 +85,15 @@
   font-weight: var(--weight-bold);
   letter-spacing: var(--tracking-ui);
   text-transform: uppercase;
+}
+
+/* A part of the item above (Availability under Calendar): smaller and indented. */
+.link[data-sub] {
+  min-height: calc(var(--nav-link-height) - 8px);
+  margin-left: var(--space-6);
+  padding-left: var(--space-3);
+  font-size: calc(var(--text-nav-link) - 3px);
+  --icon-size: 16px;
 }
 
 .link:hover,

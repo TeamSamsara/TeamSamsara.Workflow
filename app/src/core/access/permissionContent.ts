@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/access/permissionContent.ts
-// Version : 1.0.0
-// Latest commit: core/access
+// Version : 1.1.0
+// Latest commit: feature/people-time
 // Author : Gerrah
 // Purpose : The name and one-line description of every permission and group, as
 // the Roles page and member pages show them.
@@ -73,6 +73,11 @@ export const PermissionText: Record<
   viewAll: {
     label: "View all events and tasks",
     description:
-      "Without it, people only see what is given to them or their work groups.",
+      "Without it, people only see the events they're in and what is given to them or their work groups.",
+  },
+  viewAvailability: {
+    label: "See everyone's availability",
+    description:
+      "Open the team availability page and see what people's personal appointments are. Without it, others' appointments show as Busy.",
   },
 };

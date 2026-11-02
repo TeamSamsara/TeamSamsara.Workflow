@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/access/permissionKeys.ts
-// Version : 1.0.0
-// Latest commit: core/access
+// Version : 1.1.0
+// Latest commit: feature/people-time
 // Author : Gerrah
 // Purpose : The built-in permissions. Like the platform list, these live in code:
 // the security rules check them by name, so they can't be data. Roles (which
@@ -20,6 +20,7 @@ export const PermissionKeys = [
   "approveTasks",
   "reassignTasks",
   "viewAll",
+  "viewAvailability",
 ] as const;
 
 export type PermissionKey = (typeof PermissionKeys)[number];

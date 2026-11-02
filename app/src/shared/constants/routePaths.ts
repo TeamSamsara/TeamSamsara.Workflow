@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/constants/routePaths.ts
-// Version : 1.9.0
-// Latest commit: feature/calendar-events
+// Version : 1.10.0
+// Latest commit: feature/people-time
 // Author : Gerrah
 // Purpose : Every address in the app, in one place, so links and routes can
 // never disagree about where a page lives.
@@ -21,6 +21,8 @@ export const RoutePaths = {
   /** One workflow in the editor; "new" for a workflow not saved yet. */
   workflow: "/workflows/:workflowId",
   account: "/account",
+  availability: "/availability",
+  availabilityTeam: "/availability/team",
   // #endregion
 
   // #region Settings

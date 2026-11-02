@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/router.tsx
-// Version : 1.12.0
-// Latest commit: feature/calendar-events
+// Version : 1.13.0
+// Latest commit: feature/people-time
 // Author : Gerrah
 // Purpose : Every route in the app. Layouts and the not-found page load with the
 // app; every other page loads only when it is first opened. Pages not built yet show ComingSoonView, and each
@@ -117,6 +117,16 @@ const platformsView = () =>
     Component: module.PlatformsView,
   }));
 
+const myAvailabilityView = () =>
+  import("@/views/availability/MyAvailabilityView").then((module) => ({
+    Component: module.MyAvailabilityView,
+  }));
+
+const teamAvailabilityView = () =>
+  import("@/views/availability/TeamAvailabilityView").then((module) => ({
+    Component: module.TeamAvailabilityView,
+  }));
+
 const calendarView = () =>
   import("@/views/calendar/CalendarView").then((module) => ({
     Component: module.CalendarView,
@@ -211,6 +221,21 @@ export const router = createBrowserRouter([
               { path: RoutePaths.calendar, lazy: calendarView },
               { path: RoutePaths.newEvent, lazy: newEventView },
               { path: RoutePaths.event, lazy: eventView },
+              { path: RoutePaths.availability, lazy: myAvailabilityView },
+              {
+                element: (
+                  <RequirePermission
+                    anyOf={["viewAvailability"]}
+                    fallback={<ForbiddenView />}
+                  />
+                ),
+                children: [
+                  {
+                    path: RoutePaths.availabilityTeam,
+                    lazy: teamAvailabilityView,
+                  },
+                ],
+              },
               { path: RoutePaths.myTasks, lazy: myTasksView },
               { path: RoutePaths.task, lazy: taskView },
               { path: RoutePaths.workflows, lazy: workflowsView },

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/index.ts
-// Version : 1.2.0
-// Latest commit: feature/calendar-people
+// Version : 1.3.0
+// Latest commit: feature/people-time
 // Author : Gerrah
 // Purpose : What other layers may use from the events feature.
 
@@ -24,6 +24,7 @@ export {
   checkEventDraft,
   draftFromEvent,
   draftMinutes,
+  withStartTime,
   emptyEventDraft,
   fieldsFromDraft,
 } from "./model/eventDraft";
