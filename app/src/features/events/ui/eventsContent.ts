@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/eventsContent.ts
-// Version : 1.1.0
-// Latest commit: feature/repeats
+// Version : 1.2.0
+// Latest commit: feature/calendar-people
 // Author : Gerrah
 // Purpose : The words for the calendar, its items, the event form, the
 // workflows to apply and the tasks they add.
@@ -8,9 +8,18 @@
 export const CalendarText = {
   previous: "Previous month",
   next: "Next month",
+  previousWeek: "Previous week",
+  nextWeek: "Next week",
+  calendarLabel: "Calendar",
+  mine: "My calendar",
+  allMyGroups: "All my groups",
+  myGroups: "My groups",
+  otherGroups: "Other groups",
+  everything: "Everything",
+  everythingGroup: "The whole workspace",
   today: "Today",
   viewLabel: "View",
-  views: { month: "Month", list: "List" },
+  views: { month: "Month", week: "Week", list: "List" },
   groupLabel: "Work group",
   allGroups: "All work groups",
   newEvent: "New event",
@@ -20,6 +29,7 @@ export const CalendarText = {
     sunday: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
   },
   addOn: (day: string) => `New event on ${day}`,
+  earlier: "Before 8 AM",
   legend:
     "Events have a solid coloured edge; one-off tasks are dashed. Past events fade, with a ✓ when every task got done. Times are in the workspace's time zone.",
   emptyList: "Nothing planned this month.",
@@ -45,7 +55,10 @@ export const EventFormText = {
     "Colours the event on the calendar, and suggests the workflows made for this type.",
   date: "Date",
   dateRequired: "Pick a date.",
-  time: "Time",
+  time: "From",
+  endTime: "To",
+  endTimeHelp:
+    "When it ends. Shapes its block in the week view. An end before the start means it finishes the next day.",
   link: "Link",
   linkPlaceholder: "https://",
   linkHelp: "Where to watch or join. Fills {link} in the tasks' text.",

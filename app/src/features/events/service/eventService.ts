@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/service/eventService.ts
-// Version : 1.1.0
-// Latest commit: feature/repeats
+// Version : 1.2.0
+// Latest commit: feature/calendar-people
 // Author : Gerrah
 // Purpose : Makes an event together with the tasks of its workflows (one batch,
 // so it's all or nothing), saves changes (moving its tasks by the same amount
@@ -18,13 +18,16 @@ import { newTaskData, type TaskRecord } from "@/features/tasks";
 import type { WorkflowRecord } from "@/features/workflows";
 import { db } from "@/lib/firebase";
 import { applyWorkflows, type Formats } from "../model/applyWorkflows";
+import { audienceData } from "../types/audience";
 import type { EventFields } from "../types/eventTypes";
 
-function tidy(fields: EventFields) {
+/** What every event shares with its repeat: everything but when. */
+export type SharedFields = Omit<EventFields, "startsAt" | "endsAt">;
+
+export function sharedData(fields: SharedFields) {
   return {
     title: fields.title.trim(),
     eventTypeId: fields.eventTypeId,
-    startsAt: fromDate(fields.startsAt),
     link: fields.link?.trim() || null,
     details: Object.fromEntries(
       Object.entries(fields.details)
@@ -32,6 +35,17 @@ function tidy(fields: EventFields) {
         .filter(([, value]) => value !== ""),
     ),
     notes: fields.notes.trim(),
+    ...audienceData(fields.audience),
+  };
+}
+
+function tidy(fields: EventFields) {
+  return {
+    ...sharedData(fields),
+    startsAt: fromDate(fields.startsAt),
+    endsAt: fromDate(
+      fields.endsAt < fields.startsAt ? fields.startsAt : fields.endsAt,
+    ),
   };
 }
 
@@ -40,6 +54,8 @@ export interface CreateOptions {
   formats: Formats;
   startingStatusId: string;
   createdBy: string;
+  /** Who the event belongs to, when not who makes it (a repeat's maker). */
+  eventMaker?: string;
 }
 
 /** A task's id for an event: the same whoever makes it, so it's never made twice. */
@@ -56,7 +72,13 @@ export function eventWrites(
   eventId: string,
   fields: EventFields,
   repeatId: string | null,
-  { workflows, formats, startingStatusId, createdBy }: CreateOptions,
+  {
+    workflows,
+    formats,
+    startingStatusId,
+    createdBy,
+    eventMaker,
+  }: CreateOptions,
 ): BatchWrite[] {
   const planned = applyWorkflows(
     {
@@ -74,7 +96,7 @@ export function eventWrites(
         ...tidy(fields),
         workflowIds: workflows.map((workflow) => workflow.id),
         repeatId,
-        createdBy,
+        createdBy: eventMaker ?? createdBy,
         createdAt: serverTime(),
         updatedAt: serverTime(),
       }),
@@ -163,24 +185,18 @@ export function deleteEvent(
   return commitWrites(db, deleteEventWrites(id, taskIds));
 }
 
-/** Changes an event's details (and its start, when given) without touching its tasks. */
+/** Changes an event's details and its times without touching its tasks. */
 export function eventDetailsWrite(
   id: string,
-  fields: Omit<EventFields, "startsAt">,
-  startsAt?: Date,
+  fields: SharedFields,
+  startsAt: Date,
+  endsAt: Date,
 ): BatchWrite {
-  const { title, eventTypeId, link, details, notes } = tidy({
-    ...fields,
-    startsAt: new Date(),
-  });
   return (batch) =>
     batch.update(doc(db, Collections.events, id), {
-      title,
-      eventTypeId,
-      link,
-      details,
-      notes,
-      ...(startsAt ? { startsAt: fromDate(startsAt) } : {}),
+      ...sharedData(fields),
+      startsAt: fromDate(startsAt),
+      endsAt: fromDate(endsAt),
       updatedAt: serverTime(),
     });
 }

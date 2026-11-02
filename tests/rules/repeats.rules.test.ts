@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/repeats.rules.test.ts
-// Version : 1.0.0
-// Latest commit: feature/repeats
+// Version : 1.1.0
+// Latest commit: feature/calendar-people
 // Author : Gerrah
 // Purpose : Tests repeats against the rules: every member reads them; Plan
 // events makes one with its first events and their tasks, tops up the weeks
@@ -16,6 +16,7 @@ import {
   arrayUnion,
   collection,
   doc,
+  getDoc,
   getDocs,
   query,
   serverTimestamp,
@@ -46,6 +47,7 @@ const repeat = (changes: Record<string, unknown> = {}) => ({
   eventTypeId: null,
   weekdays: [1],
   time: "10:00",
+  minutes: 60,
   startDate: "2026-11-02",
   endKind: "never",
   endDate: null,
@@ -55,27 +57,34 @@ const repeat = (changes: Record<string, unknown> = {}) => ({
   details: {},
   notes: "",
   workflowIds: ["meeting"],
+  everyone: false,
+  groupIds: ["content"],
+  memberIds: [],
   createdBy: "pat",
   createdAt: serverTimestamp(),
   updatedAt: serverTimestamp(),
   ...changes,
 });
 
-const event = (date: string) => ({
+const event = (date: string, createdBy = "pat") => ({
   title: "Weekly content meeting",
   eventTypeId: null,
   startsAt: new Date(`${date}T10:00:00Z`),
+  endsAt: new Date(`${date}T11:00:00Z`),
   link: null,
   details: {},
   workflowIds: ["meeting"],
   notes: "",
   repeatId: "weekly",
-  createdBy: "pat",
+  everyone: false,
+  groupIds: ["content"],
+  memberIds: [],
+  createdBy,
   createdAt: serverTimestamp(),
   updatedAt: serverTimestamp(),
 });
 
-const task = (eventId: string) => ({
+const task = (eventId: string, createdBy = "pat") => ({
   title: "Agenda",
   notes: "",
   workGroupId: "content",
@@ -97,7 +106,7 @@ const task = (eventId: string) => ({
   approvedBy: null,
   approvedAt: null,
   changesRequested: null,
-  createdBy: "pat",
+  createdBy,
   createdAt: serverTimestamp(),
   updatedAt: serverTimestamp(),
   doneAt: null,
@@ -110,12 +119,21 @@ const stored = (value: Record<string, unknown>) => ({
 });
 
 /** A batch that makes these dates' events and tasks, ids from the date. */
-function topUp(db: ReturnType<typeof signedInAs>, dates: string[]) {
+function topUp(
+  db: ReturnType<typeof signedInAs>,
+  dates: string[],
+  maker = "pat",
+  runner = "pat",
+) {
   const batch = writeBatch(db);
   for (const date of dates) {
     const eventId = `weekly_${date}`;
-    batch.set(doc(db, "events", eventId), event(date));
-    batch.set(doc(db, "tasks", `${eventId}_meeting_agenda`), task(eventId));
+    batch.set(doc(db, "events", eventId), event(date, maker));
+    // The event belongs to the repeat's maker; its tasks to whoever made them.
+    batch.set(
+      doc(db, "tasks", `${eventId}_meeting_agenda`),
+      task(eventId, runner),
+    );
   }
   return batch;
 }
@@ -135,6 +153,7 @@ beforeEach(async () => {
       position: 0,
     },
     "members/pat": { status: "active", roleIds: ["planner"], workGroupIds: [] },
+    "members/lee": { status: "active", roleIds: ["planner"], workGroupIds: [] },
     "members/sam": { status: "active", roleIds: [], workGroupIds: ["content"] },
     "members/chris": {
       status: "disabled",
@@ -152,12 +171,23 @@ afterAll(async () => {
 });
 
 describe("reading repeats", () => {
-  it("is open to active members only", async () => {
+  it("is for the same people as its events", async () => {
+    const repeats = (who: string) =>
+      collection(signedInAs(env, who), "repeats");
     await assertSucceeds(
-      getDocs(collection(signedInAs(env, "sam"), "repeats")),
+      getDocs(
+        query(repeats("sam"), where("groupIds", "array-contains", "content")),
+      ),
     );
-    await assertFails(getDocs(collection(signedInAs(env, "chris"), "repeats")));
-    await assertFails(getDocs(collection(signedOut(env), "repeats")));
+    await assertSucceeds(
+      getDocs(query(repeats("pat"), where("createdBy", "==", "pat"))),
+    );
+    await assertFails(getDocs(repeats("sam")));
+    await assertFails(
+      getDocs(
+        query(repeats("chris"), where("groupIds", "array-contains", "content")),
+      ),
+    );
   });
 });
 
@@ -192,6 +222,8 @@ describe("making a repeat", () => {
     await assertFails(addDoc(repeats, repeat({ createdBy: "sam" })));
     await assertFails(addDoc(repeats, repeat({ createdAt: new Date() })));
     await assertFails(addDoc(repeats, repeat({ colour: "red" })));
+    await assertFails(addDoc(repeats, repeat({ minutes: 0 })));
+    await assertFails(addDoc(repeats, repeat({ memberIds: "sam" })));
     await assertSucceeds(
       addDoc(repeats, repeat({ endKind: "afterCount", endCount: 10 })),
     );
@@ -208,6 +240,21 @@ describe("topping up the weeks ahead", () => {
       "2026-12-14",
     ];
     await assertSucceeds(topUp(signedInAs(env, "pat"), dates).commit());
+  });
+
+  it("lets another planner make them, still belonging to the repeat's maker", async () => {
+    await assertSucceeds(
+      topUp(signedInAs(env, "lee"), ["2026-11-16"], "pat", "lee").commit(),
+    );
+    await assertFails(
+      topUp(signedInAs(env, "lee"), ["2026-11-23"], "sam", "lee").commit(),
+    );
+  });
+
+  it("lets a planner check which dates are made", async () => {
+    await assertSucceeds(
+      getDoc(doc(signedInAs(env, "lee"), "events/weekly_2026-11-30")),
+    );
   });
 
   it("can't make one that's already made", async () => {

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/NewEventView.tsx
-// Version : 1.1.0
-// Latest commit: feature/repeats
+// Version : 1.2.0
+// Latest commit: feature/calendar-people
 // Author : Gerrah
 // Purpose : Planning an event: its details on the left; on the right the
 // workflows to apply (the ones made for its type ticked to start with) and
@@ -27,6 +27,7 @@ import {
   checkRepeatDraft,
   createEvent,
   createRepeat,
+  draftMinutes,
   emptyEventDraft,
   EventForm,
   fieldsFromDraft,
@@ -37,6 +38,7 @@ import {
   scheduleFromDraft,
   startRepeatDraft,
   TaskPreview,
+  useAudienceOptions,
   weekdayOf,
   WorkflowPicker,
   type EventDraft,
@@ -73,6 +75,7 @@ export function NewEventView() {
   const groups = useWorkGroups();
   const members = useMembers();
   const workflows = useWorkflows();
+  const people = useAudienceOptions();
   const toast = useToast();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -152,7 +155,8 @@ export function NewEventView() {
         createdBy: member.id,
       };
       if (!schedule) return eventPath(await createEvent(fields, options));
-      const repeatId = await createRepeat(fields, schedule, selected, {
+      const series = { ...fields, minutes: draftMinutes(draft) };
+      const repeatId = await createRepeat(series, schedule, selected, {
         ...options,
         today,
       });
@@ -246,6 +250,7 @@ export function NewEventView() {
             eventTypes={eventTypes.items}
             gaps={gaps}
             problems={tried ? problems : null}
+            people={people}
           />
           {repeat ? (
             <RepeatFields

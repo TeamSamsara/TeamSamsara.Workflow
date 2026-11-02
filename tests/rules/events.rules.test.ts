@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/events.rules.test.ts
-// Version : 1.0.0
-// Latest commit: feature/calendar-events
+// Version : 1.1.0
+// Latest commit: feature/calendar-people
 // Author : Gerrah
 // Purpose : Tests events against the rules: every member reads them; Plan
 // events makes one together with its tasks in one batch, changes it, moves its
@@ -17,10 +17,13 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
+  query,
   serverTimestamp,
   setDoc,
   updateDoc,
+  where,
   writeBatch,
 } from "firebase/firestore";
 import { afterAll, beforeAll, beforeEach, describe, it } from "vitest";
@@ -36,19 +39,28 @@ const roles = {
       permissions: ["doAssignedTasks"],
     },
     planner: { name: "Planner", position: 1, permissions: ["planEvents"] },
+    viewer: { name: "Viewer", position: 2, permissions: ["viewAll"] },
   },
-  grants: { doAssignedTasks: ["everyone"], planEvents: ["planner"] },
+  grants: {
+    doAssignedTasks: ["everyone"],
+    planEvents: ["planner"],
+    viewAll: ["viewer"],
+  },
 };
 
 const event = (changes: Record<string, unknown> = {}) => ({
   title: "vs. Team Nova",
   eventTypeId: null,
   startsAt: new Date(2026, 10, 9, 19),
+  endsAt: new Date(2026, 10, 9, 21),
   link: null,
   details: { opponent: "Team Nova" },
   workflowIds: ["matchday"],
   notes: "",
   repeatId: null,
+  everyone: true,
+  groupIds: [],
+  memberIds: [],
   createdBy: "pat",
   createdAt: serverTimestamp(),
   updatedAt: serverTimestamp(),
@@ -109,12 +121,23 @@ beforeEach(async () => {
     },
     "members/pat": { status: "active", roleIds: ["planner"], workGroupIds: [] },
     "members/sam": { status: "active", roleIds: [], workGroupIds: ["design"] },
+    "members/kai": { status: "active", roleIds: [], workGroupIds: ["bloom"] },
+    "members/vic": { status: "active", roleIds: ["viewer"], workGroupIds: [] },
     "members/chris": {
       status: "disabled",
       roleIds: ["planner"],
       workGroupIds: [],
     },
     "events/match": stored(event()),
+    "events/scrims": stored(
+      event({ title: "Bloom scrims", everyone: false, groupIds: ["bloom"] }),
+    ),
+    "events/shoot": stored(
+      event({ title: "Player intros", everyone: false, memberIds: ["sam"] }),
+    ),
+    "events/sponsor": stored(
+      event({ title: "Sponsor call", everyone: false, groupIds: ["partners"] }),
+    ),
     "tasks/graphic": stored(task("match")),
   });
 });
@@ -123,11 +146,82 @@ afterAll(async () => {
   await env.cleanup();
 });
 
-describe("reading events", () => {
-  it("is open to active members only", async () => {
-    await assertSucceeds(getDocs(collection(signedInAs(env, "sam"), "events")));
-    await assertFails(getDocs(collection(signedInAs(env, "chris"), "events")));
-    await assertFails(getDocs(collection(signedOut(env), "events")));
+describe("who sees an event", () => {
+  const events = (who: string) => collection(signedInAs(env, who), "events");
+
+  it("shows events for Everyone to every active member", async () => {
+    await assertSucceeds(
+      getDocs(query(events("sam"), where("everyone", "==", true))),
+    );
+    await assertFails(
+      getDocs(
+        query(
+          collection(signedInAs(env, "chris"), "events"),
+          where("everyone", "==", true),
+        ),
+      ),
+    );
+    await assertFails(
+      getDocs(
+        query(
+          collection(signedOut(env), "events"),
+          where("everyone", "==", true),
+        ),
+      ),
+    );
+  });
+
+  it("shows events to the people in them", async () => {
+    await assertSucceeds(
+      getDocs(
+        query(events("sam"), where("memberIds", "array-contains", "sam")),
+      ),
+    );
+    await assertSucceeds(getDoc(doc(signedInAs(env, "sam"), "events/shoot")));
+    await assertFails(getDoc(doc(signedInAs(env, "kai"), "events/shoot")));
+  });
+
+  it("shows events to the work groups in them, one group at a time", async () => {
+    await assertSucceeds(
+      getDocs(
+        query(events("kai"), where("groupIds", "array-contains", "bloom")),
+      ),
+    );
+    await assertSucceeds(getDoc(doc(signedInAs(env, "kai"), "events/scrims")));
+    await assertFails(
+      getDocs(
+        query(events("sam"), where("groupIds", "array-contains", "bloom")),
+      ),
+    );
+    await assertFails(getDoc(doc(signedInAs(env, "sam"), "events/scrims")));
+  });
+
+  it("shows events to the work groups in them, all groups at once", async () => {
+    await assertSucceeds(
+      getDocs(
+        query(
+          events("kai"),
+          where("groupIds", "array-contains-any", ["bloom"]),
+        ),
+      ),
+    );
+  });
+
+  it("shows events to whoever made them", async () => {
+    await assertSucceeds(
+      getDocs(query(events("pat"), where("createdBy", "==", "pat"))),
+    );
+    await assertSucceeds(getDoc(doc(signedInAs(env, "pat"), "events/sponsor")));
+  });
+
+  it("shows everything to View all, and nothing unasked to others", async () => {
+    await assertSucceeds(getDocs(events("vic")));
+    await assertFails(getDocs(events("sam")));
+    await assertFails(getDoc(doc(signedInAs(env, "sam"), "events/sponsor")));
+  });
+
+  it("lets anyone check that an event doesn't exist", async () => {
+    await assertSucceeds(getDoc(doc(signedInAs(env, "sam"), "events/nowhere")));
   });
 });
 
@@ -162,6 +256,11 @@ describe("making an event", () => {
     await assertFails(addDoc(events, event({ createdBy: "sam" })));
     await assertFails(addDoc(events, event({ createdAt: new Date() })));
     await assertFails(addDoc(events, event({ colour: "red" })));
+    await assertFails(
+      addDoc(events, event({ endsAt: new Date(2026, 10, 9, 18) })),
+    );
+    await assertFails(addDoc(events, event({ groupIds: "bloom" })));
+    await assertFails(addDoc(events, event({ everyone: "yes" })));
   });
 
   it("can't make tasks for an event that doesn't exist", async () => {

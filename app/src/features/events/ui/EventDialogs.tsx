@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/EventDialogs.tsx
-// Version : 1.0.0
-// Latest commit: feature/repeats
+// Version : 1.1.0
+// Latest commit: feature/calendar-people
 // Author : Gerrah
 // Purpose : The dialogs behind an event's ⋯ menu: edit it (moving its tasks
 // when its time changes), edit a repeat from this date on, delete it, skip one
@@ -26,11 +26,14 @@ import { useToast } from "@/shared/components/Toast/useToast";
 import { useNow } from "@/shared/hooks/useNow";
 import { dayKey, formatDate } from "@/shared/time/dates";
 import { dayKeyToDate } from "@/shared/time/monthGrid";
+import { useAudienceOptions } from "../hooks/useAudienceOptions";
 import { useEventTasks } from "../hooks/useEvents";
 import { askedGaps } from "../model/applyWorkflows";
 import {
   checkEventDraft,
   draftFromEvent,
+  draftMinutes,
+  endTimeFor,
   fieldsFromDraft,
   type EventDraft,
 } from "../model/eventDraft";
@@ -147,6 +150,7 @@ export function EditEventDialog({
   const eventTypes = useEventTypes();
   const tasks = useTasksOf(event);
   const gaps = useGaps(event.details, event.workflowIds);
+  const people = useAudienceOptions();
   const toast = useToast();
   const [draft, setDraft] = useState<EventDraft>(() =>
     draftFromEvent(event, workspace.timeZone),
@@ -210,6 +214,7 @@ export function EditEventDialog({
         eventTypes={eventTypes.items}
         gaps={gaps}
         problems={tried ? problems : null}
+        people={people}
       />
       {moved && tasks.items.length > 0 ? (
         <Checkbox
@@ -242,6 +247,7 @@ export function EditSeriesDialog({
   const statuses = useStatuses();
   const workflows = useWorkflows();
   const gaps = useGaps(repeat.details, repeat.workflowIds);
+  const people = useAudienceOptions();
   const toast = useToast();
   const dayLabel = useDayLabel();
   const today = dayKey(useNow(), workspace.timeZone);
@@ -250,9 +256,15 @@ export function EditSeriesDialog({
     eventTypeId: repeat.eventTypeId,
     date: fromDay,
     time: repeat.time,
+    endTime: endTimeFor(repeat.time, repeat.minutes),
     link: repeat.link ?? "",
     notes: repeat.notes,
     details: repeat.details,
+    audience: {
+      everyone: repeat.everyone,
+      groupIds: repeat.groupIds,
+      memberIds: repeat.memberIds,
+    },
   }));
   const [schedule, setSchedule] = useState<RepeatDraft>(() =>
     draftFromRepeat(repeat),
@@ -275,6 +287,8 @@ export function EditSeriesDialog({
           link: draft.link.trim() || null,
           details: draft.details,
           notes: draft.notes,
+          audience: draft.audience,
+          minutes: draftMinutes(draft),
         },
         next,
         {
@@ -334,6 +348,7 @@ export function EditSeriesDialog({
         eventTypes={eventTypes.items}
         gaps={gaps}
         problems={tried ? problems : null}
+        people={people}
         hideDate
         autoFocus={false}
       />
@@ -451,7 +466,7 @@ export function EndRepeatDialog({
     addDays(today, RepeatLimits.weeksAhead * 7),
   ).length;
   const end = useMutation({
-    mutationFn: () => endRepeatAfter(repeat.id, date),
+    mutationFn: () => endRepeatAfter(repeat, date, today),
     onSuccess: () => {
       toast.show({ tone: "success", title: Text.ended(label) });
       onClose();

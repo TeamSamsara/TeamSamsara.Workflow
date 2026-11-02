@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/scripts/seedEmulator.mjs
-// Version : 1.11.0
-// Latest commit: feature/repeats
+// Version : 1.12.0
+// Latest commit: feature/calendar-people
 // Author : Gerrah
 // Purpose : Fills the local emulators with a ready-made workspace and test
 // accounts, so the app can be tried without touching the real project. It wipes
@@ -110,6 +110,7 @@ function sampleRepeat(now, uidOf, timeZone) {
     eventTypeId: "meeting",
     weekdays: [1, 4],
     time: "10:00",
+    minutes: 60,
     startDate: today,
     endKind: "never",
     endDate: null,
@@ -119,6 +120,9 @@ function sampleRepeat(now, uidOf, timeZone) {
     details: {},
     notes: "Plan the week's posts and clips.",
     workflowIds: [],
+    everyone: true,
+    groupIds: [],
+    memberIds: [],
     createdBy: uidOf("alex"),
     createdAt: now,
     updatedAt: now,
@@ -270,6 +274,10 @@ function sampleEvent(now, uidOf) {
     workflowIds: ["match-day"],
     notes: "",
     repeatId: null,
+    endsAt: new Date(startsAt.getTime() + 2 * hour),
+    everyone: true,
+    groupIds: [],
+    memberIds: [],
     createdBy: uidOf("alex"),
     createdAt: now,
     updatedAt: now,

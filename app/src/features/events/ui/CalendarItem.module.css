@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/features/events/ui/CalendarItem.module.css
-   Version : 1.1.0
-   Latest commit: feature/repeats
+   Version : 1.2.0
+   Latest commit: feature/calendar-people
    Author : Gerrah
    Purpose : Calendar items: an event is a filled block with a coloured left edge; a one-off task is a dashed block. Both show a bold title and a muted time line. */
 
@@ -169,4 +169,70 @@
 
 .task[data-late="true"] .meta {
   color: var(--color-error-text);
+}
+
+/* Yours personally: a dark outline, so it stands out on My calendar. */
+.eventWrap[data-mine] .event {
+  box-shadow: inset 0 0 0 2px var(--color-text);
+}
+
+/* In the week view: the item fills its block from start to end. */
+.eventWrap[data-block] {
+  z-index: 1;
+}
+
+.eventWrap[data-block] .event {
+  box-sizing: border-box;
+  height: 100%;
+  overflow: hidden;
+  padding-top: var(--space-1);
+  padding-bottom: var(--space-1);
+}
+
+.task[data-block] {
+  z-index: 1;
+  box-sizing: border-box;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-1-5);
+  overflow: hidden;
+  padding-top: var(--space-1);
+  padding-bottom: var(--space-1);
+  background-color: var(--color-surface);
+}
+
+.task[data-block] .title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.skipped[data-block] {
+  z-index: 1;
+  box-sizing: border-box;
+  overflow: hidden;
+  background-color: var(--color-surface);
+}
+
+/* An hour or less: the title and the time each keep to one line. */
+.eventWrap[data-compact] .event {
+  gap: 0;
+}
+
+.eventWrap[data-compact] .title,
+.eventWrap[data-compact] .meta {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.eventWrap[data-compact] .titleRow,
+.eventWrap[data-compact] .meta {
+  max-width: 100%;
+}
+
+/* Narrow blocks break between words, not inside them. */
+.eventWrap[data-block] .title {
+  overflow-wrap: break-word;
 }

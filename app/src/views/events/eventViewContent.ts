@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/eventViewContent.ts
-// Version : 1.1.0
-// Latest commit: feature/repeats
+// Version : 1.2.0
+// Latest commit: feature/calendar-people
 // Author : Gerrah
 // Purpose : The words on an event's page.
 
@@ -16,6 +16,7 @@ export const EventViewText = {
   noTasks: "No tasks yet.",
   limited: "Only the tasks given to you or your work groups show here.",
   details: "Details",
+  audience: "Who's in it",
   type: "Type",
   noType: "No type",
   link: "Link",

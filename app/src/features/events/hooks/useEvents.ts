@@ -1,10 +1,11 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/hooks/useEvents.ts
-// Version : 1.1.0
-// Latest commit: feature/repeats
+// Version : 1.2.0
+// Latest commit: feature/calendar-people
 // Author : Gerrah
 // Purpose : Live events for the dates on screen, one event by id, an event's
 // tasks, how far each shown event's tasks are, and the one-off tasks due in
-// the shown dates. Members who can't see every task get only theirs.
+// the shown dates. Each member reads only the events they may see, and only
+// their own tasks unless they can see every task.
 
 import { useMemo } from "react";
 import { collection, orderBy, query, where } from "firebase/firestore";
@@ -18,7 +19,9 @@ import {
   type MemberRecord,
 } from "@/core/data";
 import { taskConverter, type TaskRecord } from "@/features/tasks";
+import type { CalendarScope, Viewer } from "../model/calendarScope";
 import { eventConverter, type EventRecord } from "../types/eventTypes";
+import { audienceKey, audienceQueries } from "./audienceQueries";
 
 interface Live<T> {
   status: "loading" | "ready" | "error";
@@ -48,22 +51,51 @@ export function useSeesAllTasks(): boolean {
   );
 }
 
-export function useEventsInRange(start: Date, end: Date): Live<EventRecord> {
+/** Whether this member sees every event (View all). */
+export function useSeesAllEvents(): boolean {
+  return usePermissions().can("viewAll");
+}
+
+/** The events of one calendar (see CalendarScope) starting in these dates. */
+export function useEventsInRange(
+  start: Date,
+  end: Date,
+  scope: CalendarScope,
+  viewer: Viewer | null,
+): Live<EventRecord> {
   const isReady = usePermissions().status === "ready";
-  const key = isReady ? `events:${start.getTime()}-${end.getTime()}` : null;
+  const key =
+    isReady && viewer
+      ? `events:${start.getTime()}-${end.getTime()}:${audienceKey(scope, viewer)}`
+      : null;
   const result = useLiveQueries(
     key,
-    (database) => [
-      query(
-        collection(database, Collections.events),
-        where("startsAt", ">=", start),
-        where("startsAt", "<", end),
-        orderBy("startsAt"),
-      ).withConverter(eventConverter),
-    ],
+    (database) =>
+      viewer
+        ? audienceQueries(
+            collection(database, Collections.events).withConverter(
+              eventConverter,
+            ),
+            scope,
+            viewer,
+            [
+              where("startsAt", ">=", start),
+              where("startsAt", "<", end),
+              orderBy("startsAt"),
+            ],
+          )
+        : [],
     (event) => event.id,
   );
-  return useMemo(() => toLive(result), [result]);
+  return useMemo(() => {
+    const live = toLive(result);
+    return {
+      ...live,
+      items: [...live.items].sort(
+        (a, b) => a.startsAt.getTime() - b.startsAt.getTime(),
+      ),
+    };
+  }, [result]);
 }
 
 /** undefined while loading, null when there's no such event. */

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/EventView.tsx
-// Version : 1.1.0
-// Latest commit: feature/repeats
+// Version : 1.2.0
+// Latest commit: feature/calendar-people
 // Author : Gerrah
 // Purpose : An event's page: when and what it is, its tasks and how far along
 // they are, its details and the repeat it's part of. Planners change it from
@@ -18,8 +18,10 @@ import {
   gapLabel,
   useEvent,
   useEventTasks,
-  useRepeats,
+  useAudienceOptions,
+  useRepeat,
   useSeesEventTasks,
+  AudienceText,
   type EventRecord,
 } from "@/features/events";
 import { useMembers } from "@/features/members";
@@ -66,7 +68,7 @@ function EventPage({ event }: { event: EventRecord }) {
   const platforms = usePlatforms();
   const workflows = useWorkflows();
   const seesAll = useSeesEventTasks();
-  const repeats = useRepeats();
+  const people = useAudienceOptions();
   const tasks = useEventTasks(event.id, member);
   const toast = useToast();
   const navigate = useNavigate();
@@ -76,9 +78,16 @@ function EventPage({ event }: { event: EventRecord }) {
   const tz = workspace.timeZone;
   const canPlan = access.can("planEvents");
   const type = eventTypes.items.find((entry) => entry.id === event.eventTypeId);
-  const repeat = event.repeatId
-    ? (repeats.find((entry) => entry.id === event.repeatId) ?? null)
-    : null;
+  const repeat = useRepeat(event.repeatId);
+  const audience = [
+    ...(event.everyone ? [AudienceText.everyone] : []),
+    ...event.groupIds.map(
+      (id) => people.groups.find((group) => group.id === id)?.name ?? "",
+    ),
+    ...event.memberIds.map(
+      (id) => people.members.find((member) => member.id === id)?.name ?? "",
+    ),
+  ].filter(Boolean);
   const done = tasks.items.filter((task) => task.doneAt).length;
   const usedWorkflows = workflows.items.filter((workflow) =>
     event.workflowIds.includes(workflow.id),
@@ -107,7 +116,8 @@ function EventPage({ event }: { event: EventRecord }) {
             <span className={styles.when}>
               <Icon name="calendar" />
               {formatLongDate(event.startsAt, tz)},{" "}
-              {formatTime(event.startsAt, tz, workspace.timeFormat)}
+              {formatTime(event.startsAt, tz, workspace.timeFormat)} –{" "}
+              {formatTime(event.endsAt, tz, workspace.timeFormat)}
             </span>
             {event.link ? (
               <a
@@ -171,6 +181,12 @@ function EventPage({ event }: { event: EventRecord }) {
               {Text.details}
             </h2>
             <dl className={panels.details}>
+              <dt>{Text.audience}</dt>
+              <dd>
+                {audience.length > 0
+                  ? audience.join(", ")
+                  : AudienceText.nobody}
+              </dd>
               <dt>{Text.type}</dt>
               <dd>{type?.name ?? Text.noType}</dd>
               {event.link ? (
