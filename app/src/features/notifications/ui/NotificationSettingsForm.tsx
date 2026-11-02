@@ -1,9 +1,9 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/ui/NotificationSettingsForm.tsx
-// Version : 1.0.0
-// Latest commit: feature/notifications
+// Version : 1.1.0
+// Latest commit: fix/modal-and-account-notifications
 // Author : Gerrah
 // Purpose : What someone is told about, and where: a row per kind with a
-// switch for In Playbook and for Email (Discord comes with the bot), then
+// switch for In Playbook and for Email (Discord's says it's coming soon), then
 // when to be reminded before tasks and events. Saves with one button; a test
 // email checks email works.
 
@@ -139,7 +139,20 @@ export function NotificationSettingsForm({
                     />
                   </td>
                   <td>
-                    <span className={styles.later}>{Text.withBot}</span>
+                    <button
+                      type="button"
+                      className={styles.soon}
+                      aria-label={Text.discordSoon(Text.groups[group].name)}
+                      onClick={() =>
+                        toast.show({
+                          tone: "info",
+                          title: Text.comingSoon,
+                          detail: Text.comingSoonBody,
+                        })
+                      }
+                    >
+                      <span className={styles.soonKnob} />
+                    </button>
                   </td>
                 </tr>
               ))}

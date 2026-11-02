@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/ui/onboardingContent.ts
-// Version : 1.2.0
-// Latest commit: chore/rename-playbook
+// Version : 1.3.0
+// Latest commit: fix/modal-and-account-notifications
 // Author : Gerrah
 // Purpose : The words of the walkthrough: chapter names, each step's note, the
 // welcome, the "make it yours" step, the calendar card and the invite preview.
@@ -25,6 +25,10 @@ export const ChapterText = {
     nav: {
       title: "The menu",
       body: "Calendar, My tasks and Documentation are always here. Availability sits under Calendar. Your name at the bottom opens Your account.",
+    },
+    bell: {
+      title: "Notifications",
+      body: "The bell counts what needs you: tasks given to you, reviews, and events you're added to or that move. Reminders come 1 hour before events and 2 hours before tasks; change them, or get them by email, on Your account.",
     },
     picker: {
       title: "Whose calendar",

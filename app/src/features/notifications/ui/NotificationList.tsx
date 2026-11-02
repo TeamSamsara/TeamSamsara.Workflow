@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/ui/NotificationList.tsx
-// Version : 1.0.0
-// Latest commit: feature/notifications
+// Version : 1.1.0
+// Latest commit: fix/modal-and-account-notifications
 // Author : Gerrah
 // Purpose : The notification list, in the bell's panel and on its own page:
 // a header with Mark all read and the settings, All / Unread, then Today and
@@ -24,7 +24,10 @@ import type {
   NotificationKind,
   NotificationRecord,
 } from "../types/notificationTypes";
-import { NotificationListText as Text } from "./notificationsContent";
+import {
+  accountNotificationsId,
+  NotificationListText as Text,
+} from "./notificationsContent";
 import styles from "./NotificationList.module.css";
 
 const look: Record<NotificationKind, { icon: IconName; tone: string }> = {
@@ -95,7 +98,7 @@ export function NotificationList({
           </button>
         ) : null}
         <Link
-          to={RoutePaths.accountNotifications}
+          to={`${RoutePaths.account}#${accountNotificationsId}`}
           className={styles.settings}
           aria-label={Text.settings}
           title={Text.settings}
