@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/calendar/CalendarView.tsx
-// Version : 1.6.0
-// Latest commit: feature/onboarding
+// Version : 1.7.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : The calendar: a month, a week (8 AM to midnight) or a list, of the
 // calendar picked: My calendar (what involves me), my work groups, one group,
@@ -47,6 +47,7 @@ import {
   useStandaloneTasksInRange,
   type CalendarScope,
   type WeekEntry,
+  useTaskFormats,
 } from "@/features/events";
 import {
   PersonalDialog,
@@ -146,6 +147,7 @@ interface Entry {
 
 export function CalendarView() {
   const workspace = useWorkspaceRecord();
+  const taskFormats = useTaskFormats();
   const access = usePermissions();
   const session = useSession();
   const member = session.status === "active" ? session.member : null;
@@ -225,11 +227,7 @@ export function CalendarView() {
     repeats,
     workflows: workflows.items,
     workflowsReady: workflows.status === "ready",
-    formats: {
-      timeZone: workspace.timeZone,
-      clock: workspace.timeFormat,
-      dateFormat: workspace.dateFormat,
-    },
+    formats: taskFormats,
     startingStatusId: startingStatus(statuses.items)?.id ?? null,
     memberId: member?.id ?? null,
     today: dayKey(now, workspace.timeZone),

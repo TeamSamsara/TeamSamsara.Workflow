@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/router.tsx
-// Version : 1.16.0
-// Latest commit: feature/onboarding
+// Version : 1.17.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : Every route in the app. Layouts and the not-found page load with the
 // app; every other page loads only when it is first opened. Pages not built yet show ComingSoonView, and each
@@ -184,6 +184,11 @@ const taskSetupView = () =>
     Component: module.TaskSetupView,
   }));
 
+const fieldsView = () =>
+  import("@/views/settings/fields/FieldsView").then((module) => ({
+    Component: module.FieldsView,
+  }));
+
 const docsView = () =>
   import("@/views/docs/DocsView").then((module) => ({
     Component: module.DocsView,
@@ -321,6 +326,7 @@ export const router = createBrowserRouter([
                       }),
                       settingsPage(RoutePaths.settingsPlatforms, platformsView),
                       settingsPage(RoutePaths.settingsTaskSetup, taskSetupView),
+                      settingsPage(RoutePaths.settingsFields, fieldsView),
                     ],
                   },
                 ],

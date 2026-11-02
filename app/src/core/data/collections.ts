@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/collections.ts
-// Version : 1.5.0
-// Latest commit: feature/event-sets
+// Version : 1.6.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : The name of every Firestore collection and settings document, in one
 // place. One Firebase project holds one workspace, so everything sits at the top.
@@ -16,6 +16,8 @@ export const Collections = {
   /** Labels a workspace makes for its tasks, like Trello's. */
   tags: "tags",
   workflows: "workflows",
+  /** The details an event can have (Opponent, League…), keyed by how text writes them. */
+  fields: "fields",
   events: "events",
   repeats: "repeats",
   eventSets: "eventSets",

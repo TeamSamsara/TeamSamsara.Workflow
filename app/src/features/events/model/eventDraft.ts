@@ -1,12 +1,13 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/model/eventDraft.ts
-// Version : 1.2.0
-// Latest commit: feature/event-sets
+// Version : 1.3.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : An event as its form holds it (a date box, start and end time
 // boxes, who's in it), what's wrong with it, and back to an event's fields.
 
 import { checkLink } from "@/features/work-groups";
 import { EventGaps, fillGaps, findGaps } from "@/features/workflows";
+import type { ValueText } from "./applyWorkflows";
 import { fromDateAndTime, toDateAndTime } from "@/features/tasks";
 import { EventFormText } from "../ui/eventsContent";
 import { nobody, type Audience } from "../types/audience";
@@ -79,6 +80,7 @@ export function draftFromEvent(
   event: EventRecord,
   timeZone: string,
   titlePattern: string | null = null,
+  text?: ValueText,
 ): EventDraft {
   const { date, time } = toDateAndTime(event.startsAt, timeZone);
   const minutes = Math.max(
@@ -86,7 +88,7 @@ export function draftFromEvent(
     Math.round((event.endsAt.getTime() - event.startsAt.getTime()) / 60_000),
   );
   return {
-    title: editableTitle(event, titlePattern),
+    title: editableTitle(event, titlePattern, text),
     eventTypeId: event.eventTypeId,
     date,
     time,
@@ -124,9 +126,15 @@ export function checkEventDraft(draft: EventDraft): EventDraftProblems {
   };
 }
 
-function filledDetails(details: Readonly<Record<string, string>>) {
+/** The details that have a value, each as it reads (see valueText). */
+function filledDetails(
+  details: Readonly<Record<string, string>>,
+  text?: ValueText,
+) {
   return Object.fromEntries(
-    Object.entries(details).filter(([, value]) => value.trim() !== ""),
+    Object.entries(details)
+      .filter(([, value]) => value.trim() !== "")
+      .map(([key, value]) => [key, text ? text(key, value) : value]),
   );
 }
 
@@ -144,9 +152,10 @@ export function titleGaps(title: string): string[] {
 export function editableTitle(
   event: Pick<EventRecord, "title" | "details">,
   titlePattern: string | null,
+  text?: ValueText,
 ): string {
   if (!titlePattern) return event.title;
-  const filled = fillGaps(titlePattern, filledDetails(event.details));
+  const filled = fillGaps(titlePattern, filledDetails(event.details, text));
   return filled === event.title ? titlePattern : event.title;
 }
 
@@ -154,12 +163,13 @@ export function editableTitle(
 export function fieldsFromDraft(
   draft: EventDraft,
   timeZone: string,
+  text?: ValueText,
 ): EventFields | null {
   const startsAt = fromDateAndTime(draft.date, draft.time, timeZone);
   if (!startsAt) return null;
   return {
     // Gaps in the title fill from the details; empty ones stay to fill later.
-    title: fillGaps(draft.title.trim(), filledDetails(draft.details)),
+    title: fillGaps(draft.title.trim(), filledDetails(draft.details, text)),
     eventTypeId: draft.eventTypeId,
     startsAt,
     endsAt: new Date(startsAt.getTime() + draftMinutes(draft) * 60_000),

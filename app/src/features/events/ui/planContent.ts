@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/planContent.ts
-// Version : 1.1.0
-// Latest commit: fix/sets-polish
+// Version : 1.2.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : The words for planning several events at once and for sets.
 
@@ -21,7 +21,7 @@ export const PlanText = {
   title: "Title",
   titlePlaceholder: "vs. {opponent}",
   titleHelp:
-    "Words in {curly brackets} become a column below, filled in per event. The workflows' own gaps join them.",
+    "Words in {curly brackets} become a column below, filled in per event. The workflows' own fields join them.",
   type: "Event type",
   noType: "No type",
   usualStart: "Usual start",
@@ -49,7 +49,7 @@ export const PlanText = {
   whoSome: (free: number, total: number, names: string) =>
     `${free} of ${total} · ${names}`,
   tbdNote: (count: number) =>
-    `${plural(count, "row")} ${count === 1 ? "has" : "have"} a gap left as TBD. ${count === 1 ? "It's" : "They're"} made with the gap still in the title, to fill in later on each event.`,
+    `${plural(count, "row")} ${count === 1 ? "has" : "have"} a field left as TBD. ${count === 1 ? "It's" : "They're"} made with the field still in the title, to fill in later on each event.`,
 
   summaryTitle: "This creates",
   events: "events",
@@ -124,11 +124,11 @@ export const PlanText = {
     firstRowHeader: "The first row names the columns",
     read: (count: number) => `${plural(count, "row")} read`,
     readHelp: (timeZone: string) =>
-      `Dates and times are read in the workspace's time zone (${timeZone}). Columns fill the {gaps} in the title.`,
+      `Dates and times are read in the workspace's time zone (${timeZone}). Columns fill the {fields} in the title.`,
     skipped: (lines: readonly number[]) =>
       `${lines.length === 1 ? "Line" : "Lines"} ${lines.join(", ")} ${lines.length === 1 ? "has" : "have"} no date that could be read and ${lines.length === 1 ? "is" : "are"} left out.`,
     unknown: (count: number) =>
-      `${plural(count, "value")} ${count === 1 ? "says" : "say"} TBD or ${count === 1 ? "is" : "are"} empty. Those gaps stay empty so you can fill them in later.`,
+      `${plural(count, "value")} ${count === 1 ? "says" : "say"} TBD or ${count === 1 ? "is" : "are"} empty. Those fields stay empty so you can fill them in later.`,
     noDate: "Pick which column holds the date.",
     cancel: "Cancel",
     add: (count: number) =>
@@ -168,7 +168,8 @@ export const SetText = {
   next: (title: string) => `next: ${title}`,
   nothingNext: "nothing coming up",
   allPast: "All done",
-  tbd: (count: number) => (count === 1 ? "gap still TBD" : "gaps still TBD"),
+  tbd: (count: number) =>
+    count === 1 ? "field still TBD" : "fields still TBD",
   noneTbd: "nothing TBD",
   eventsCaption: "Events in the set",
   select: (title: string) => `Select ${title}`,

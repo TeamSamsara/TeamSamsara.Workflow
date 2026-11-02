@@ -1,15 +1,16 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/PlanTable.tsx
-// Version : 1.0.0
-// Latest commit: feature/event-sets
+// Version : 1.1.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : The events being planned, one row each: date, start, end, a box
 // per {gap}, the title it becomes and who can make it. A gap left empty is
 // TBD and is marked in the title; a row missing its date is outlined in red.
 
 import type { WhoCanMake } from "@/features/availability";
+import type { FieldRecord } from "@/features/fields";
 import { IconButton } from "@/shared/components/Button/IconButton";
 import { Table } from "@/shared/components/Table/Table";
-import { gapLabel } from "../model/applyWorkflows";
+import { gapLabel, type ValueText } from "../model/applyWorkflows";
 import {
   emptyGaps,
   rowTitle,
@@ -31,6 +32,12 @@ interface PlanTableProps {
   /** Said in the last column when who is null. */
   whoNote: string;
   onChange: (rows: PlanRow[]) => void;
+  /** The workspace's fields, so a choice or a person is picked, not typed. */
+  fields?: readonly FieldRecord[];
+  /** Who a person field can be. */
+  people?: readonly { id: string; name: string }[];
+  /** How a value reads in the title it makes. */
+  text?: ValueText;
 }
 
 /** The title with each TBD gap marked. */
@@ -54,6 +61,9 @@ function Title({ text }: { text: string }) {
 export function PlanTable({
   rows,
   gaps,
+  fields = [],
+  people = [],
+  text,
   titlePattern,
   problems,
   who,
@@ -79,7 +89,9 @@ export function PlanTable({
           <th>{Text.start}</th>
           <th>{Text.end}</th>
           {gaps.map((gap) => (
-            <th key={gap} className={styles.gapHead}>{`{${gap}}`}</th>
+            <th key={gap} className={styles.gapHead}>
+              {gapLabel(gap, fields)}
+            </th>
           ))}
           <th>{Text.becomes}</th>
           <th>{Text.who}</th>
@@ -136,26 +148,71 @@ export function PlanTable({
                   }
                 />
               </td>
-              {gaps.map((gap) => (
-                <td key={gap}>
-                  <input
-                    className={styles.input}
-                    data-size="gap"
-                    data-tbd={missing.includes(gap) ? true : undefined}
-                    aria-label={`${gapLabel(gap)}, ${number}`}
-                    placeholder={Text.fillIn}
-                    maxLength={EventLimits.detail}
-                    value={row.values[gap] ?? ""}
-                    onChange={(event) =>
-                      change(row.key, {
-                        values: { ...row.values, [gap]: event.target.value },
-                      })
-                    }
-                  />
-                </td>
-              ))}
+              {gaps.map((gap) => {
+                const field = fields.find((entry) => entry.id === gap);
+                const label = `${gapLabel(gap, fields)}, ${number}`;
+                const value = row.values[gap] ?? "";
+                const set = (next: string) =>
+                  change(row.key, { values: { ...row.values, [gap]: next } });
+                const options =
+                  field?.type === "choice"
+                    ? field.choices.map((choice) => ({
+                        value: choice,
+                        label: choice,
+                      }))
+                    : field?.type === "person"
+                      ? people.map((person) => ({
+                          value: person.id,
+                          label: person.name,
+                        }))
+                      : null;
+                return (
+                  <td key={gap}>
+                    {options ? (
+                      <select
+                        className={styles.input}
+                        data-size="gap"
+                        data-tbd={missing.includes(gap) ? true : undefined}
+                        aria-label={label}
+                        value={value}
+                        onChange={(event) => set(event.target.value)}
+                      >
+                        <option value="">{Text.fillIn}</option>
+                        {options.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                        {value &&
+                        !options.some((option) => option.value === value) ? (
+                          <option value={value}>{value}</option>
+                        ) : null}
+                      </select>
+                    ) : (
+                      <input
+                        className={styles.input}
+                        data-size="gap"
+                        data-tbd={missing.includes(gap) ? true : undefined}
+                        aria-label={label}
+                        placeholder={Text.fillIn}
+                        maxLength={EventLimits.detail}
+                        type={
+                          field?.type === "datetime"
+                            ? "datetime-local"
+                            : undefined
+                        }
+                        inputMode={
+                          field?.type === "number" ? "decimal" : undefined
+                        }
+                        value={value}
+                        onChange={(event) => set(event.target.value)}
+                      />
+                    )}
+                  </td>
+                );
+              })}
               <td className={styles.title}>
-                <Title text={rowTitle(titlePattern, row)} />
+                <Title text={rowTitle(titlePattern, row, text)} />
                 {rowProblems?.title ? (
                   <span className={styles.error}>{rowProblems.title}</span>
                 ) : null}

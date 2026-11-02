@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/model/planDraft.ts
-// Version : 1.0.0
-// Latest commit: feature/event-sets
+// Version : 1.1.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : Several events planned at once, as their page holds them: what
 // they share (the set's name, type, usual times, a title with {gaps}, who's
@@ -9,6 +9,7 @@
 // weekly pattern adds, and each row's event fields. A gap left empty is "TBD":
 // the event is made with the gap still in its title, to fill in later.
 
+import type { ValueText } from "./applyWorkflows";
 import { EventGaps, fillGaps, findGaps } from "@/features/workflows";
 import { fromDateAndTime } from "@/features/tasks";
 import { EventFormText } from "../ui/eventsContent";
@@ -96,7 +97,9 @@ export function planGaps(
   );
 }
 
-function filledValues(values: Readonly<Record<string, string>>) {
+function filledValues(
+  values: Readonly<Record<string, string>>,
+): Record<string, string> {
   return Object.fromEntries(
     Object.entries(values)
       .map(([gap, value]) => [gap, value.trim()])
@@ -104,9 +107,21 @@ function filledValues(values: Readonly<Record<string, string>>) {
   );
 }
 
-/** The row's title: the pattern with its gaps filled; empty ones stay {gap}. */
-export function rowTitle(titlePattern: string, row: Pick<PlanRow, "values">) {
-  return fillGaps(titlePattern.trim(), filledValues(row.values));
+/** The row's title: the pattern with its fields filled; empty ones stay {field}. */
+export function rowTitle(
+  titlePattern: string,
+  row: Pick<PlanRow, "values">,
+  text?: ValueText,
+) {
+  const values = filledValues(row.values);
+  return fillGaps(
+    titlePattern.trim(),
+    text
+      ? Object.fromEntries(
+          Object.entries(values).map(([key, value]) => [key, text(key, value)]),
+        )
+      : values,
+  );
 }
 
 /** The gaps a row leaves empty (TBD). */
@@ -165,11 +180,12 @@ export function rowFields(
   draft: PlanDraft,
   row: PlanRow,
   timeZone: string,
+  text?: ValueText,
 ): EventFields | null {
   const startsAt = rowStart(row, timeZone);
   if (!startsAt) return null;
   return {
-    title: rowTitle(draft.titlePattern, row),
+    title: rowTitle(draft.titlePattern, row, text),
     eventTypeId: draft.eventTypeId,
     startsAt,
     endsAt: new Date(startsAt.getTime() + draftMinutes(row) * 60_000),

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/service/eventService.ts
-// Version : 1.3.0
-// Latest commit: feature/event-sets
+// Version : 1.4.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : Makes an event together with the tasks of its workflows (one batch,
 // so it's all or nothing), saves changes (moving its tasks by the same amount
@@ -18,6 +18,7 @@ import { newTaskData, type TaskRecord } from "@/features/tasks";
 import type { WorkflowRecord } from "@/features/workflows";
 import { db } from "@/lib/firebase";
 import { applyWorkflows, type Formats } from "../model/applyWorkflows";
+import type { TaskRefill } from "../model/refillTasks";
 import { audienceData } from "../types/audience";
 import type { EventFields } from "../types/eventTypes";
 
@@ -87,6 +88,8 @@ export function eventWrites(
     {
       title: fields.title,
       startsAt: fields.startsAt,
+      endsAt: fields.endsAt,
+      eventTypeId: fields.eventTypeId,
       link: fields.link,
       details: fields.details,
     },
@@ -135,34 +138,48 @@ export async function createEvent(
 
 /**
  * Saves the event. With tasks given, they move by as much as the start did,
- * so a match moved an hour later keeps every task an hour later too.
+ * so a match moved an hour later keeps every task an hour later too. With
+ * refills given, those tasks' text is filled again from the new fields.
  */
 export function saveEvent(
   id: string,
   fields: EventFields,
   previousStart: Date,
   tasksToMove: readonly Pick<TaskRecord, "id" | "dueAt">[],
+  refills: readonly TaskRefill[] = [],
 ): Promise<void> {
   const shift = fields.startsAt.getTime() - previousStart.getTime();
+  // One update per task, whether it moves, gets new text, or both.
+  const changes = new Map<string, Record<string, unknown>>();
+  if (shift !== 0) {
+    for (const task of tasksToMove) {
+      if (!task.dueAt) continue;
+      changes.set(task.id, {
+        dueAt: fromDate(new Date(task.dueAt.getTime() + shift)),
+      });
+    }
+  }
+  for (const refill of refills) {
+    changes.set(refill.taskId, {
+      ...changes.get(refill.taskId),
+      ...refill.changes,
+    });
+  }
   const writes: BatchWrite[] = [
     (batch) =>
       batch.update(doc(db, Collections.events, id), {
         ...tidy(fields),
         updatedAt: serverTime(),
       }),
+    ...[...changes].map(
+      ([taskId, change]): BatchWrite =>
+        (batch) =>
+          batch.update(doc(db, Collections.tasks, taskId), {
+            ...change,
+            updatedAt: serverTime(),
+          }),
+    ),
   ];
-  if (shift !== 0) {
-    for (const task of tasksToMove) {
-      if (!task.dueAt) continue;
-      const dueAt = new Date(task.dueAt.getTime() + shift);
-      writes.push((batch) =>
-        batch.update(doc(db, Collections.tasks, task.id), {
-          dueAt: fromDate(dueAt),
-          updatedAt: serverTime(),
-        }),
-      );
-    }
-  }
   return commitWrites(db, writes);
 }
 

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/ui/workflowsContent.ts
-// Version : 1.2.0
-// Latest commit: fix/general-wording
+// Version : 1.3.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : The words for the workflows list and editor: the table, the task
 // list, each task's fields and sections, due times, and the gaps card.
@@ -70,7 +70,7 @@ export const SectionText = {
   posts: {
     name: "Post text",
     description: "What to post on each platform.",
-    help: "Write the text for each platform. The count uses that platform's limit. Gaps like {title} or {sponsor} fill in from the event's details.",
+    help: "Write the text for each platform. The count uses that platform's limit. Fields like {title} or {sponsor} fill in from the event.",
   },
   checklist: {
     name: "Checklist",
@@ -134,12 +134,14 @@ export const DueFieldText = {
 } as const;
 
 export const GapsCardText = {
-  title: "Event details it uses",
-  help: "Type a gap like {opponent} in a task's title, notes, checklist or post text. When the workflow is used on an event, the gap is filled in from that event.",
+  title: "Fields it uses",
+  help: "Write a field like {opponent} in a task's title, notes, checklist or post text. When the workflow is used on an event, it's filled in from that event. Set up fields in Settings › Fields.",
   fromEvent: "From the event",
   asked: "Asked when the event is planned",
-  none: "No gaps yet. Type one like {title} or {opponent} in a task's text.",
-  builtIn: "{title}, {date}, {time} and {link} come from the event itself.",
+  none: "No fields yet. Write one like {title} or {opponent} in a task's text.",
+  builtIn:
+    "{title}, {date}, {time}, {end_time}, {link} and {event_type} come from the event itself.",
+  notAField: "Not set up as a field yet, so it's asked for as text.",
 } as const;
 
 export const AboutCardText = {

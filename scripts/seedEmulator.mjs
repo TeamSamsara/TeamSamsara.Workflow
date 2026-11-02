@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/scripts/seedEmulator.mjs
-// Version : 1.15.0
-// Latest commit: feature/your-account
+// Version : 1.16.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : Fills the local emulators with a ready-made workspace and test
 // accounts, so the app can be tried without touching the real project. It wipes
@@ -179,7 +179,7 @@ const sampleWorkflow = {
           platformId: "x",
           formatId: null,
           texts: {
-            post: "Matchday! {title} vs {opponent} at {time}. Watch: {link}",
+            post: "{league} matchday! {title} vs {opponent} at {time}. Watch: {link}",
           },
         },
       ],
@@ -542,6 +542,36 @@ async function main() {
         .doc("repeats/weekly-meeting")
         .set(sampleRepeat(now, uidOf, seedTimeZone)),
     );
+    // Fields: the details events can have, keyed by how text writes them.
+    const field = (name, type, extra = {}) => ({
+      name,
+      type,
+      choices: [],
+      help: "",
+      createdBy: uidOf("alex"),
+      createdAt: now,
+      updatedAt: now,
+      ...extra,
+    });
+    writes.push(
+      db
+        .doc("fields/opponent")
+        .set(field("Opponent", "text", { help: "Who we play." })),
+      db
+        .doc("fields/league")
+        .set(
+          field("League", "choice", {
+            choices: ["NACL", "Challengers", "Scrims"],
+          }),
+        ),
+      db
+        .doc("fields/match_link")
+        .set(
+          field("Match link", "link", { help: "The stream or bracket page." }),
+        ),
+      db.doc("fields/co_streamer").set(field("Co-streamer", "person")),
+    );
+
     // A set: four Bloom matches on Saturdays, the last opponent still TBD.
     const firstMatch = new Date(now);
     firstMatch.setUTCDate(

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/EventSetView.tsx
-// Version : 1.1.0
-// Latest commit: feature/your-account
+// Version : 1.2.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : One set's page: what its events share, how far along it is
 // (played, tasks done, what's next, gaps still TBD), and its events in a
@@ -31,7 +31,9 @@ import {
   useSetEvents,
   type EventRecord,
   type EventSetRecord,
+  useTaskFormats,
 } from "@/features/events";
+import { fieldText, useFields } from "@/features/fields";
 import { useEventTypes } from "@/features/task-setup";
 import { useWorkflows } from "@/features/workflows";
 import { Banner } from "@/shared/components/Banner/Banner";
@@ -268,6 +270,8 @@ function SetPage({ set }: { set: EventSetRecord }) {
   const eventTypes = useEventTypes();
   const workflows = useWorkflows();
   const people = useAudienceOptions();
+  const taskFormats = useTaskFormats();
+  const fields = useFields();
   const seesAll = useSeesAllEvents();
   const navigate = useNavigate();
   const now = useNow();
@@ -478,7 +482,7 @@ function SetPage({ set }: { set: EventSetRecord }) {
                 <th>{Text.when}</th>
                 <th>{Text.event}</th>
                 {gaps.map((gap) => (
-                  <th key={gap}>{gapLabel(gap)}</th>
+                  <th key={gap}>{gapLabel(gap, fields.items)}</th>
                 ))}
                 <th>{Text.tasks}</th>
               </tr>
@@ -521,7 +525,11 @@ function SetPage({ set }: { set: EventSetRecord }) {
                     {gaps.map((gap) => (
                       <td key={gap}>
                         {event.details[gap] ? (
-                          event.details[gap]
+                          fieldText(fields.byKey(gap), event.details[gap], {
+                            ...taskFormats,
+                            dateFormat: time.dateFormat,
+                            clock: time.timeFormat,
+                          })
                         ) : (
                           <span className={plan.pill}>{Text.tbdPill}</span>
                         )}

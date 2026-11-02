@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/ui/onboardingContent.ts
-// Version : 1.0.0
-// Latest commit: feature/onboarding
+// Version : 1.1.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : The words of the walkthrough: chapter names, each step's note, the
 // welcome, the "make it yours" step, the calendar card and the invite preview.
@@ -100,7 +100,7 @@ export const ChapterText = {
     },
     make: {
       title: "Make one",
-      body: "A short guide asks a question at a time and builds it for you. Gaps like {opponent} are filled in from each event.",
+      body: "A short guide asks a question at a time and builds it for you. Fields like {opponent} are filled in from each event.",
     },
     approvals: {
       title: "Reviews wait here",

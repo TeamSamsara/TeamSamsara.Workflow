@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/articles.ts
-// Version : 1.0.0
-// Latest commit: feature/onboarding
+// Version : 1.1.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : The Documentation: one short article per feature, in groups. Each
 // group (or article) is for the people with its permission, the same as the
@@ -254,12 +254,12 @@ export const DocGroups: readonly DocGroup[] = [
         body: [
           steps(
             "New event › Several events.",
-            "Set what they share: the set's name, type, usual times, who's in them, and a title with gaps like vs. {opponent}.",
+            "Set what they share: the set's name, type, usual times, who's in them, and a title with fields like vs. {opponent}.",
             "Fill the rows: Add dates on a pattern, Paste from a spreadsheet, or Add a row.",
             "Create: each row becomes an event with its own tasks.",
           ),
           p(
-            "A gap can stay TBD: the event keeps {opponent} in its title until you fill it in on the event.",
+            "A field can stay TBD: the event keeps {opponent} in its title until you fill it in on the event.",
           ),
         ],
       },
@@ -321,12 +321,18 @@ export const DocGroups: readonly DocGroup[] = [
         ],
       },
       {
-        id: "gaps",
-        title: "Gaps like {opponent}",
-        summary: "Words filled in from each event.",
+        id: "fields",
+        title: "Fields like {opponent}",
+        summary: "Details filled in from each event.",
         body: [
           p(
-            "Write {opponent} in a task's title or post and it's asked for when planning the event. {title}, {date}, {time} and {link} fill themselves.",
+            "A field is a detail an event can have: an opponent, a league, a co-streamer. Set them up in Settings › Fields, each with a type: text, a link, a number, a choice from a list, a date and time, or someone on the team.",
+          ),
+          p(
+            "Write {opponent} in a task's title, notes, checklist or post, or in an event's title, and planning the event asks for it with the right kind of input. {title}, {date}, {time}, {end_time}, {link} and {event_type} fill themselves.",
+          ),
+          p(
+            "Left empty, a field shows as its name in brackets, like [Match link]. Change a value later and the event's unfinished tasks follow, except text someone edited by hand.",
           ),
         ],
       },

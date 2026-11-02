@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/model/applyWorkflows.test.ts
-// Version : 1.0.0
-// Latest commit: feature/calendar-events
+// Version : 1.1.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : Tests turning an event and its workflows into tasks: due times in
 // Toronto, filled gaps (and unfilled ones left visible), the gaps to ask for.
@@ -81,7 +81,7 @@ describe("applyWorkflows", () => {
     expect(announce.dueAt).toEqual(new Date("2026-11-08T17:00:00Z"));
     expect(results.dueAt).toEqual(new Date("2026-11-10T03:00:00Z"));
     expect(announce.posts?.[0].texts.post).toBe(
-      "Team Nova on Mon, Nov 9 at 7:00 PM. Watch: https://twitch.tv/samsara {sponsor}",
+      "Team Nova on Mon, Nov 9 at 7:00 PM. Watch: https://twitch.tv/samsara [Sponsor]",
     );
     expect(announce.checklist).toEqual([
       { id: "c1", text: "Tag Team Nova", done: false },
@@ -94,7 +94,7 @@ describe("applyWorkflows", () => {
     expect(results.needsApproval).toBe(true);
   });
 
-  it("leaves {link} visible when the event has none", () => {
+  it("shows a field with no value as its name in brackets", () => {
     const values = gapValues({ ...match, link: null }, formats);
     expect(values.link).toBeUndefined();
     const [announce] = applyWorkflows(
@@ -102,7 +102,7 @@ describe("applyWorkflows", () => {
       [workflow],
       formats,
     );
-    expect(announce.posts?.[0].texts.post).toContain("Watch: {link}");
+    expect(announce.posts?.[0].texts.post).toContain("Watch: [Link]");
   });
 });
 
@@ -110,5 +110,57 @@ describe("askedGaps", () => {
   it("lists the gaps to ask for, not the event's own", () => {
     expect(askedGaps([workflow])).toEqual(["opponent", "sponsor"]);
     expect(gapLabel("co_streamer")).toBe("Co streamer");
+  });
+});
+
+describe("typed fields", () => {
+  const fields = [
+    {
+      id: "co_streamer",
+      name: "Co-streamer",
+      type: "person" as const,
+      choices: [],
+      help: "",
+      createdBy: "alex",
+      createdAt: null,
+      updatedAt: null,
+    },
+    {
+      id: "kickoff",
+      name: "Kickoff",
+      type: "datetime" as const,
+      choices: [],
+      help: "",
+      createdBy: "alex",
+      createdAt: null,
+      updatedAt: null,
+    },
+  ];
+  const typed = {
+    ...formats,
+    fields,
+    memberName: (id: string) => (id === "sam" ? "Rivi" : null),
+    eventTypeName: (id: string) => (id === "match" ? "Match" : null),
+  };
+
+  it("reads each value the way its type does, plus the new built-ins", () => {
+    const values = gapValues(
+      {
+        ...match,
+        endsAt: new Date("2026-11-10T02:00:00Z"),
+        eventTypeId: "match",
+        details: { co_streamer: "sam", kickoff: "2026-11-14T19:00" },
+      },
+      typed,
+    );
+    expect(values.co_streamer).toBe("Rivi");
+    expect(values.kickoff).toBe("Sat, Nov 14, 7:00 PM");
+    expect(values.end_time).toBe("9:00 PM");
+    expect(values.event_type).toBe("Match");
+  });
+
+  it("names a field from its settings, or from its key", () => {
+    expect(gapLabel("co_streamer", fields)).toBe("Co-streamer");
+    expect(gapLabel("map_pool")).toBe("Map pool");
   });
 });

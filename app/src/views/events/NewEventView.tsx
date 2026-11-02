@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/NewEventView.tsx
-// Version : 1.6.0
-// Latest commit: feature/onboarding
+// Version : 1.7.0
+// Latest commit: feature/event-fields
 // Author : Gerrah
 // Purpose : Planning an event: its details on the left; on the right the
 // workflows to apply (the ones made for its type ticked to start with) and
@@ -44,6 +44,8 @@ import {
   WorkflowPicker,
   type EventDraft,
   type RepeatDraft,
+  useTaskFormats,
+  valueText,
 } from "@/features/events";
 import { useMembers } from "@/features/members";
 import {
@@ -72,6 +74,7 @@ export function NewEventView() {
   const session = useSession();
   const member = session.status === "active" ? session.member : null;
   const workspace = useWorkspaceRecord();
+  const formats = useTaskFormats();
   const time = useDisplayTime();
   const statuses = useStatuses();
   const eventTypes = useEventTypes();
@@ -115,16 +118,13 @@ export function NewEventView() {
     selectedIds.includes(workflow.id),
   );
   const gaps = askedGaps(selected);
-  const formats = {
-    timeZone: workspace.timeZone,
-    clock: workspace.timeFormat,
-    dateFormat: workspace.dateFormat,
-  };
-  const fields = fieldsFromDraft(draft, workspace.timeZone);
+  const fields = fieldsFromDraft(draft, workspace.timeZone, valueText(formats));
   const planned = applyWorkflows(
     {
       title: fields?.title ?? draft.title,
       startsAt: fields?.startsAt ?? new Date(),
+      endsAt: fields?.endsAt,
+      eventTypeId: draft.eventTypeId,
       link: draft.link || null,
       details: draft.details,
     },
