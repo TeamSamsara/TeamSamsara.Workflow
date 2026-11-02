@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/vite.config.ts
-// Version : 1.3.0
-// Latest commit: fix/vite-firebase-prebundle
+// Version : 1.4.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : Vite setup: React, the @/ alias, and the build split into a few
 // files. Firebase and React rarely change, so they get files of their own that
@@ -33,6 +33,7 @@ export default defineConfig({
       "firebase/auth",
       "firebase/firestore",
       "firebase/functions",
+      "firebase/storage",
     ],
   },
   css: {

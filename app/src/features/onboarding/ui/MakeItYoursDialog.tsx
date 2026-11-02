@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/ui/MakeItYoursDialog.tsx
-// Version : 1.0.0
-// Latest commit: feature/onboarding
+// Version : 1.1.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : The walkthrough's last step: your name and in-game name (with how
 // others will see you), your time zone (offering this device's), date format
@@ -138,7 +138,7 @@ export function MakeItYoursDialog({ member, onDone }: MakeItYoursDialogProps) {
           />
         </div>
         <div className={styles.preview}>
-          <Avatar name={memberName(preview)} />
+          <Avatar name={memberName(preview)} src={member.photoUrl} />
           <span className={styles.previewNames}>
             <b>{memberName(preview)}</b>
             {memberSubName(preview) ? (

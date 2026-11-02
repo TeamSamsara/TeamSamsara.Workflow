@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/ui/notificationsContent.ts
-// Version : 1.1.0
-// Latest commit: fix/modal-and-account-notifications
+// Version : 1.2.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : The words of notifications: the bell, the list, each kind of
 // notification, and the settings page.
@@ -29,6 +29,13 @@ export const NotificationListText = {
   failed: "Couldn't load your notifications.",
   unreadMark: "Unread",
   someone: "Someone",
+  answers: {
+    going: "Going",
+    maybe: "Maybe",
+    cant: "Can't go",
+  } as Record<string, string>,
+  replied: (answer: string | null) =>
+    answer ? `replied ${answer} to` : "replied to",
   justNow: "Just now",
   minutesAgo: (count: number) => `${count} min ago`,
   hoursAgo: (count: number) => `${count} h ago`,
@@ -62,7 +69,7 @@ export const NotificationSettingsText = {
     },
     events: {
       name: "I'm added to an event, or one I'm in changes",
-      help: "Moved or cancelled, and its reminder.",
+      help: "Moved or cancelled, asked to reply, replies to yours, and its reminder.",
     },
   } satisfies Record<SettingGroup, { name: string; help: string }>,
   switchLabel: (name: string, where: string) => `${name}, ${where}`,

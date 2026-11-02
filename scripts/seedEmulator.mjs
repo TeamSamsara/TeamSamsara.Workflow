@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/scripts/seedEmulator.mjs
-// Version : 1.16.0
-// Latest commit: feature/event-fields
+// Version : 1.17.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : Fills the local emulators with a ready-made workspace and test
 // accounts, so the app can be tried without touching the real project. It wipes
@@ -497,7 +497,8 @@ async function main() {
         .doc(`availability/${uidOf("sam")}`)
         .set({ ...samAvailability, updatedAt: now }),
     );
-    // A Bloom-only event: Bloom and View all see it, others don't.
+    // A Bloom-only event: Bloom and View all see it, others don't. It asks
+    // Bloom (and Alex) to reply: Sam already said maybe, Alex is waited on.
     const scrimStart = new Date(
       Math.ceil((now.getTime() + 48 * hour) / (24 * hour)) * 24 * hour + hour,
     );
@@ -514,7 +515,17 @@ async function main() {
         repeatId: null,
         everyone: false,
         groupIds: ["bloom"],
-        memberIds: [],
+        memberIds: [uidOf("alex")],
+        asksReply: true,
+        requiredIds: [uidOf("jordan"), uidOf("sam")],
+        tellEveryReply: false,
+        replies: {
+          [uidOf("sam")]: {
+            answer: "maybe",
+            note: "Depends on my exam",
+            at: now,
+          },
+        },
         createdBy: uidOf("jordan"),
         createdAt: now,
         updatedAt: now,
@@ -557,13 +568,11 @@ async function main() {
       db
         .doc("fields/opponent")
         .set(field("Opponent", "text", { help: "Who we play." })),
-      db
-        .doc("fields/league")
-        .set(
-          field("League", "choice", {
-            choices: ["NACL", "Challengers", "Scrims"],
-          }),
-        ),
+      db.doc("fields/league").set(
+        field("League", "choice", {
+          choices: ["NACL", "Challengers", "Scrims"],
+        }),
+      ),
       db
         .doc("fields/match_link")
         .set(
@@ -587,7 +596,17 @@ async function main() {
         workflowIds: [],
         everyone: false,
         groupIds: ["bloom"],
-        memberIds: [],
+        memberIds: [uidOf("alex")],
+        asksReply: true,
+        requiredIds: [uidOf("jordan"), uidOf("sam")],
+        tellEveryReply: false,
+        replies: {
+          [uidOf("sam")]: {
+            answer: "maybe",
+            note: "Depends on my exam",
+            at: now,
+          },
+        },
         createdBy: uidOf("jordan"),
         createdAt: now,
         updatedAt: now,

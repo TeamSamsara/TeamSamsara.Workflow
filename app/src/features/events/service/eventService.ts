@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/service/eventService.ts
-// Version : 1.4.0
-// Latest commit: feature/event-fields
+// Version : 1.5.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : Makes an event together with the tasks of its workflows (one batch,
 // so it's all or nothing), saves changes (moving its tasks by the same amount
@@ -19,6 +19,7 @@ import type { WorkflowRecord } from "@/features/workflows";
 import { db } from "@/lib/firebase";
 import { applyWorkflows, type Formats } from "../model/applyWorkflows";
 import type { TaskRefill } from "../model/refillTasks";
+import { attendanceData } from "../types/attendance";
 import { audienceData } from "../types/audience";
 import type { EventFields } from "../types/eventTypes";
 
@@ -37,6 +38,7 @@ export function sharedData(fields: SharedFields) {
     ),
     notes: fields.notes.trim(),
     ...audienceData(fields.audience),
+    ...attendanceData(fields.attendance),
   };
 }
 

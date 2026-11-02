@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/layouts/AppLayout/Sidebar.tsx
-// Version : 1.7.0
-// Latest commit: feature/notifications
+// Version : 1.8.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : The dark sidebar: the logo with the workspace's name, the main menu
 // (only the items the member may use), and the account link with the theme
@@ -86,7 +86,11 @@ export function Sidebar({ id, isCompact, isOpen, className }: SidebarProps) {
           title={SidebarText.account}
         >
           {member ? (
-            <Avatar name={memberName(member)} size="small" />
+            <Avatar
+              name={memberName(member)}
+              src={member.photoUrl}
+              size="small"
+            />
           ) : (
             <Icon name="user" />
           )}

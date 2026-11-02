@@ -1,0 +1,60 @@
+// File : /TeamSamsara.Workflow/storage.rules
+// Version : 1.0.0
+// Latest commit: feature/attendance-photos
+// Author : Gerrah
+// Purpose : Who may read and add files. Profile photos: signed-in members see
+// them; each member adds and removes only their own, and an Administrator
+// may remove anyone's. The sign-in page's pictures: anyone sees them (the
+// page shows them before sign-in); only an Administrator adds or removes
+// them. Only images, and small ones (the app shrinks them before upload).
+//
+// These read Firestore (member records and the role index), which the
+// first deploy asks permission for.
+
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function memberRecord() {
+      return firestore.get(/databases/(default)/documents/members/$(request.auth.uid));
+    }
+
+    function isActiveMember() {
+      return request.auth != null
+        && firestore.exists(/databases/(default)/documents/members/$(request.auth.uid))
+        && memberRecord().data.status in ["active", "invited"];
+    }
+
+    function isAdministrator() {
+      return isActiveMember()
+        && firestore.get(/databases/(default)/documents/config/roles).data.grants
+          .get("administrator", [])
+          .hasAny(memberRecord().data.roleIds.concat(["everyone"]));
+    }
+
+    function isImageUnder(megabytes) {
+      return request.resource.contentType.matches("image/(webp|jpeg|png)")
+        && request.resource.size < megabytes * 1024 * 1024;
+    }
+
+    match /members/{memberId}/{file} {
+      allow read: if isActiveMember();
+      allow create, update: if isActiveMember()
+        && request.auth.uid == memberId
+        && isImageUnder(1);
+      allow delete: if isActiveMember()
+        && (request.auth.uid == memberId || isAdministrator());
+    }
+
+    match /signin/{file} {
+      allow read: if true;
+      allow create, update: if isAdministrator() && isImageUnder(4);
+      allow delete: if isAdministrator();
+    }
+
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

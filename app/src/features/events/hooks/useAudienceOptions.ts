@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/hooks/useAudienceOptions.ts
-// Version : 1.2.0
-// Latest commit: feature/your-account
+// Version : 1.3.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : The work groups and people that can be put in an event, by name,
 // with how many people each group has.
@@ -43,6 +43,7 @@ export function useAudienceOptions(): AudienceOptions {
           id: member.id,
           name: memberName(member),
           subName: memberSubName(member),
+          photoUrl: member.photoUrl,
         }))
         .sort((a, b) => a.name.localeCompare(b.name)),
     };

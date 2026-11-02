@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/EventDialogs.tsx
-// Version : 1.4.0
-// Latest commit: feature/event-fields
+// Version : 1.5.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : The dialogs behind an event's ⋯ menu: edit it (moving its tasks
 // when its time changes), edit a repeat from this date on, delete it, skip one
@@ -310,6 +310,11 @@ export function EditSeriesDialog({
       groupIds: repeat.groupIds,
       memberIds: repeat.memberIds,
     },
+    attendance: {
+      asksReply: repeat.asksReply,
+      requiredIds: repeat.requiredIds,
+      tellEveryReply: repeat.tellEveryReply,
+    },
   }));
   const [schedule, setSchedule] = useState<RepeatDraft>(() =>
     draftFromRepeat(repeat),
@@ -333,6 +338,7 @@ export function EditSeriesDialog({
           details: draft.details,
           notes: draft.notes,
           audience: draft.audience,
+          attendance: draft.attendance,
           minutes: draftMinutes(draft),
         },
         next,

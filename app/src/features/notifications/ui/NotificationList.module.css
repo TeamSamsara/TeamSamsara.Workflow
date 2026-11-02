@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/features/notifications/ui/NotificationList.module.css
-   Version : 1.0.0
-   Latest commit: feature/notifications
+   Version : 1.1.0
+   Latest commit: feature/attendance-photos
    Author : Gerrah
    Purpose : Look of the notification list: the heading row, All / Unread as a small segmented pair, day headings, and each notification with a tinted icon tile, unread ones on a faint green with a dot. */
 
@@ -136,12 +136,23 @@
   background-color: var(--color-surface-raised);
 }
 
-.item[data-unread] {
+/* Unread ones are tinted, together with a reply row when there is one. */
+.entry {
+  border-radius: var(--radius-field);
+}
+
+.entry[data-unread] {
   background-color: color-mix(
     in srgb,
     var(--color-accent) 9%,
     var(--color-surface)
   );
+}
+
+/* Replying from the notification: lined up under its text. */
+.inline {
+  padding: 0 var(--space-2-5) var(--space-2-5)
+    calc(34px + var(--space-3) + var(--space-2-5));
 }
 
 .badge {
@@ -181,6 +192,15 @@
     var(--color-surface)
   );
   color: var(--color-info-text);
+}
+
+.badge[data-tone="alert"] {
+  background-color: color-mix(
+    in srgb,
+    var(--color-error) 16%,
+    var(--color-surface)
+  );
+  color: var(--color-error-text);
 }
 
 .text {

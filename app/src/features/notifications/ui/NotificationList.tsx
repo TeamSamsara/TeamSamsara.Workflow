@@ -1,15 +1,17 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/ui/NotificationList.tsx
-// Version : 1.1.0
-// Latest commit: fix/modal-and-account-notifications
+// Version : 1.2.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : The notification list, in the bell's panel and on its own page:
 // a header with Mark all read and the settings, All / Unread, then Today and
 // Earlier. Each one says who did what, with an icon for its kind; unread ones
 // are tinted with a dot. Opening one marks it read and goes to its task or event.
+// Being asked to reply to an event can be answered right there.
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDisplayTime } from "@/core/workspace";
+import { InlineReply } from "@/features/events";
 import { memberName, useMembers } from "@/features/members";
 import { useWorkGroups } from "@/features/work-groups";
 import { Icon } from "@/shared/icons/Icon";
@@ -40,6 +42,9 @@ const look: Record<NotificationKind, { icon: IconName; tone: string }> = {
   eventMoved: { icon: "calendar", tone: "event" },
   eventSoon: { icon: "time", tone: "time" },
   eventCancelled: { icon: "calendar", tone: "event" },
+  replyAsked: { icon: "check", tone: "task" },
+  replyDeclined: { icon: "warning", tone: "alert" },
+  replied: { icon: "members", tone: "event" },
 };
 
 interface NotificationListProps {
@@ -148,7 +153,11 @@ export function NotificationList({
                 );
                 const kind = look[note.kind];
                 return (
-                  <li key={note.id}>
+                  <li
+                    key={note.id}
+                    className={styles.entry}
+                    data-unread={!note.readAt || undefined}
+                  >
                     <button
                       type="button"
                       className={styles.item}
@@ -183,6 +192,11 @@ export function NotificationList({
                         </span>
                       ) : null}
                     </button>
+                    {note.kind === "replyAsked" && note.eventId ? (
+                      <div className={styles.inline}>
+                        <InlineReply eventId={note.eventId} />
+                      </div>
+                    ) : null}
                   </li>
                 );
               })}

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/service/repeatService.ts
-// Version : 1.1.0
-// Latest commit: feature/calendar-people
+// Version : 1.2.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : Repeats and their events. Makes a repeat and its next weeks of
 // events; tops up the weeks ahead (any planner's browser can, and an event's
@@ -153,6 +153,11 @@ function occurrenceFields(
       everyone: repeat.everyone,
       groupIds: repeat.groupIds,
       memberIds: repeat.memberIds,
+    },
+    attendance: {
+      asksReply: repeat.asksReply,
+      requiredIds: repeat.requiredIds,
+      tellEveryReply: repeat.tellEveryReply,
     },
   };
 }

@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/app/layouts/AuthLayout/AuthLayout.module.css
-   Version : 1.2.0
-   Latest commit: core/workspace
+   Version : 1.3.0
+   Latest commit: feature/attendance-photos
    Author : Gerrah
    Purpose : Layout of the sign-in frame: the dark brand panel on the left with the green Anton slogan, the form column centred on the right, at most 440px wide (520px for setup). The panel wraps above the form when there is no room beside it. */
 
@@ -12,7 +12,10 @@
 }
 
 /* #region Brand panel */
+/* Its own layer, so the pictures (z-index −1) sit behind the words but above the page. */
 .panel {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex: 1 1 var(--auth-aside-width);
   flex-direction: column;

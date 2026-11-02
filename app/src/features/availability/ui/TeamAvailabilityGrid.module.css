@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/features/availability/ui/TeamAvailabilityGrid.module.css
-   Version : 1.1.0
-   Latest commit: feature/your-account
+   Version : 1.2.0
+   Latest commit: feature/attendance-photos
    Author : Gerrah
    Purpose : The team availability grid: names on the left, a bar per day from 8 AM to midnight. Green is available, stripes unavailable, amber a personal appointment, a red outline a clash; the team's events and the everyone-free row frame the people. Phones scroll it sideways. */
 
@@ -108,8 +108,15 @@
   height: 32px;
   border-radius: 50%;
   background-color: var(--color-surface-raised);
+  overflow: hidden;
   font-size: var(--text-small);
   font-weight: var(--weight-bold);
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .name {

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/EventView.tsx
-// Version : 1.5.0
-// Latest commit: feature/event-fields
+// Version : 1.6.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : An event's page: when and what it is, its tasks and how far along
 // they are, its details, and the repeat or set it's part of. Planners change it from
@@ -26,8 +26,12 @@ import {
   AudienceText,
   type EventRecord,
   useTaskFormats,
+  AttendanceCard,
+  ReplyCard,
+  isAsked,
+  type AttendancePerson,
 } from "@/features/events";
-import { useMembers } from "@/features/members";
+import { memberName, useMembers } from "@/features/members";
 import { usePlatforms } from "@/features/platforms";
 import {
   startingStatus,
@@ -101,6 +105,15 @@ function EventPage({ event }: { event: EventRecord }) {
     ),
   ].filter(Boolean);
   const done = tasks.items.filter((task) => task.doneAt).length;
+  const attendees: AttendancePerson[] = members.records
+    .filter((entry) => entry.status === "active" || entry.status === "invited")
+    .map((entry) => ({
+      id: entry.id,
+      name: memberName(entry),
+      photoUrl: entry.photoUrl,
+      workGroupIds: entry.workGroupIds,
+    }));
+  const planner = members.records.find((entry) => entry.id === event.createdBy);
   const usedWorkflows = workflows.items.filter((workflow) =>
     event.workflowIds.includes(workflow.id),
   );
@@ -175,6 +188,13 @@ function EventPage({ event }: { event: EventRecord }) {
 
       <div className={styles.columns}>
         <div className={styles.main}>
+          {member && isAsked(event, member) ? (
+            <ReplyCard
+              event={event}
+              memberId={member.id}
+              plannerName={planner ? memberName(planner) : null}
+            />
+          ) : null}
           {!seesAll ? <Banner tone="info">{Text.limited}</Banner> : null}
           {tasks.status === "error" ? (
             <Banner tone="error">
@@ -196,6 +216,16 @@ function EventPage({ event }: { event: EventRecord }) {
           )}
         </div>
         <aside className={styles.side}>
+          {event.asksReply ? (
+            <AttendanceCard
+              event={event}
+              people={attendees}
+              meId={member?.id ?? null}
+              canRemind={canPlan}
+              timeZone={tz}
+              now={now}
+            />
+          ) : null}
           <section className={panels.card} aria-labelledby="event-details">
             <h2 id="event-details" className={panels.title}>
               {Text.details}

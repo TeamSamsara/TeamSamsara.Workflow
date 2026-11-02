@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/model.ts
-// Version : 1.0.0
-// Latest commit: feature/notifications
+// Version : 1.1.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : The decisions behind notifications, kept free of Firebase so they
 // can be tested: what a change to a task or an event tells whom, which kind of
@@ -16,6 +16,9 @@ export const NotificationKinds = [
   "eventCancelled",
   "taskDue",
   "eventSoon",
+  "replyAsked",
+  "replyDeclined",
+  "replied",
 ] as const;
 export type NotificationKind = (typeof NotificationKinds)[number];
 
@@ -32,6 +35,9 @@ export const SettingGroupOf: Record<NotificationKind, SettingGroup> = {
   eventMoved: "events",
   eventCancelled: "events",
   eventSoon: "events",
+  replyAsked: "events",
+  replyDeclined: "events",
+  replied: "events",
 };
 
 export type TaskReminder = "off" | "1h" | "2h" | "dayBefore";
@@ -181,6 +187,8 @@ export function taskNotifications(
 
 // #region Events
 
+export type ReplyAnswer = "going" | "maybe" | "cant";
+
 export interface EventData {
   title: string;
   startsAt: Date;
@@ -189,10 +197,15 @@ export interface EventData {
   memberIds: string[];
   repeatId: string | null;
   setId: string | null;
+  createdBy: string | null;
+  asksReply: boolean;
+  requiredIds: string[];
+  tellEveryReply: boolean;
+  replies: Record<string, { answer: ReplyAnswer; note: string }>;
 }
 
 export interface EventPlan {
-  kind: "eventAdded" | "eventMoved" | "eventCancelled";
+  kind: "eventAdded" | "eventMoved" | "eventCancelled" | "replyAsked";
   /** Member ids, worked out from the event's audience. */
   memberIds: string[];
 }
@@ -228,10 +241,13 @@ export function eventNotifications(
   now: Date,
 ): EventPlan[] {
   const isPast = (event: EventData) => event.startsAt.getTime() < now.getTime();
+  // An event that asks for replies asks the people it adds, instead of just saying so.
+  const welcome = (event: EventData) =>
+    event.asksReply ? ("replyAsked" as const) : ("eventAdded" as const);
   if (!before && after) {
     if (after.repeatId || after.setId || isPast(after)) return [];
     return [
-      { kind: "eventAdded", memberIds: [...eventAudience(after, members)] },
+      { kind: welcome(after), memberIds: [...eventAudience(after, members)] },
     ];
   }
   if (before && !after) {
@@ -249,12 +265,55 @@ export function eventNotifications(
   const now_ = eventAudience(after, members);
   const plans: EventPlan[] = [];
   const added = [...now_].filter((id) => !was.has(id));
-  if (added.length) plans.push({ kind: "eventAdded", memberIds: added });
+  if (added.length) plans.push({ kind: welcome(after), memberIds: added });
+  // Asking starts on an event people were already in: ask those who haven't replied.
+  if (after.asksReply && !before.asksReply) {
+    const asked = [...now_].filter((id) => was.has(id) && !after.replies[id]);
+    if (asked.length) plans.push({ kind: "replyAsked", memberIds: asked });
+  }
   if (!sameTime(before.startsAt, after.startsAt)) {
     const stayed = [...now_].filter((id) => was.has(id));
     if (stayed.length) plans.push({ kind: "eventMoved", memberIds: stayed });
   }
   return plans;
+}
+
+export interface ReplyPlan {
+  kind: "replyDeclined" | "replied";
+  /** Who replied. */
+  memberId: string;
+  answer: ReplyAnswer;
+  note: string;
+}
+
+/**
+ * What new replies tell the planner: a required person who can't go always,
+ * every other reply only when the planner asked to hear about every reply.
+ * A note changed without a new answer says nothing.
+ */
+export function replyNotifications(
+  before: EventData | null,
+  after: EventData | null,
+): ReplyPlan[] {
+  if (!after?.asksReply) return [];
+  const plans: ReplyPlan[] = [];
+  for (const [memberId, reply] of Object.entries(after.replies)) {
+    if (before?.replies[memberId]?.answer === reply.answer) continue;
+    const required = after.requiredIds.includes(memberId);
+    if (reply.answer === "cant" && required)
+      plans.push({ kind: "replyDeclined", memberId, ...reply });
+    else if (after.tellEveryReply)
+      plans.push({ kind: "replied", memberId, ...reply });
+  }
+  return plans;
+}
+
+/** Who an event still waits on: the people in it without a reply. */
+export function waitingOn(
+  event: EventData,
+  members: readonly { id: string; workGroupIds: readonly string[] }[],
+): string[] {
+  return [...eventAudience(event, members)].filter((id) => !event.replies[id]);
 }
 
 // #endregion

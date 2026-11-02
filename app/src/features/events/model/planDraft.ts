@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/model/planDraft.ts
-// Version : 1.1.0
-// Latest commit: feature/event-fields
+// Version : 1.2.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : Several events planned at once, as their page holds them: what
 // they share (the set's name, type, usual times, a title with {gaps}, who's
@@ -20,6 +20,7 @@ import {
   EventLimits,
   type EventFields,
 } from "../types/eventTypes";
+import { noAttendance } from "../types/attendance";
 import { EventSetLimits, type EventSetRecord } from "../types/setTypes";
 import { draftMinutes, endTimeFor } from "./eventDraft";
 import { addDays, repeatDates } from "./repeatRule";
@@ -193,6 +194,7 @@ export function rowFields(
     details: filledValues(row.values),
     notes: "",
     audience: draft.audience,
+    attendance: noAttendance,
   };
 }
 

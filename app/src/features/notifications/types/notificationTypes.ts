@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/types/notificationTypes.ts
-// Version : 1.0.0
-// Latest commit: feature/notifications
+// Version : 1.1.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : A notification (written by the server functions, see
 // functions/src/model.ts, which keeps the same kinds and settings) and each
@@ -23,6 +23,9 @@ export const NotificationKinds = [
   "eventCancelled",
   "taskDue",
   "eventSoon",
+  "replyAsked",
+  "replyDeclined",
+  "replied",
 ] as const;
 export type NotificationKind = (typeof NotificationKinds)[number];
 
@@ -40,6 +43,8 @@ export interface NotificationRecord {
   eventId: string | null;
   /** The work group a task went to, when it went to a group. */
   groupId: string | null;
+  /** Someone's reply to an event ("going", "maybe", "cant"), for "replied". */
+  answer: string | null;
   createdAt: Date | null;
   readAt: Date | null;
 }
@@ -59,6 +64,7 @@ export const notificationConverter = createConverter<NotificationRecord>({
       taskId: readOptionalString(data, "taskId"),
       eventId: readOptionalString(data, "eventId"),
       groupId: readOptionalString(data, "groupId"),
+      answer: readOptionalString(data, "answer"),
       createdAt: readDate(data, "createdAt"),
       readAt: readDate(data, "readAt"),
     };

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/models/memberModel.ts
-// Version : 1.3.0
-// Latest commit: feature/onboarding
+// Version : 1.4.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : The member record (members/{account id}): who the person is, whether
 // they may use the app, and which roles and work groups they are in. A record
@@ -68,6 +68,8 @@ export interface MemberRecord {
   workGroupIds: string[];
   /** Shown first wherever they appear, with the real name under it. */
   gameName: string | null;
+  /** Their profile photo (a download address in Storage); null shows initials. */
+  photoUrl: string | null;
   /** The member's own time zone; null means "use the workspace's". */
   timeZone: string | null;
   /** How they see dates and times; null means "use the workspace's". */
@@ -95,6 +97,7 @@ function parse(id: string, data: DocumentData): MemberRecord {
     roleIds: readStringList(data, "roleIds"),
     workGroupIds: readStringList(data, "workGroupIds"),
     gameName: readOptionalString(data, "gameName"),
+    photoUrl: readOptionalString(data, "photoUrl"),
     timeZone: readOptionalString(data, "timeZone"),
     dateFormat: DateFormats.includes(data.dateFormat)
       ? (data.dateFormat as DateFormat)
@@ -118,6 +121,7 @@ function serialize(member: MemberRecord): DocumentData {
     roleIds: member.roleIds,
     workGroupIds: member.workGroupIds,
     gameName: member.gameName,
+    photoUrl: member.photoUrl,
     timeZone: member.timeZone,
     dateFormat: member.dateFormat,
     timeFormat: member.timeFormat,

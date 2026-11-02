@@ -1,0 +1,79 @@
+/* File : /TeamSamsara.Workflow/app/src/features/sign-in-photos/ui/SignInPhotosCard.module.css
+   Version : 1.0.0
+   Latest commit: feature/attendance-photos
+   Author : Gerrah
+   Purpose : The sign-in pictures card: wide thumbnails in a grid, each with small move and remove buttons along its bottom, then the Add button with its note. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-section-heading);
+  text-transform: uppercase;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-field);
+  background-color: var(--color-page);
+}
+
+.thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.tools {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-0-5);
+  padding: var(--space-1);
+}
+
+.add {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.file {
+  display: none;
+}

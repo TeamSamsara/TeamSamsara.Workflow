@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/account/AccountView.tsx
-// Version : 1.3.0
-// Latest commit: fix/modal-and-account-notifications
+// Version : 1.4.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : Your account: who you are (name, in-game name, email), how you see
 // times and dates (your own time zone, date format and clock, or the
@@ -21,7 +21,13 @@ import {
 import { signOut, useSession } from "@/core/session";
 import { ThemeChoices, useTheme, type ThemeChoice } from "@/core/theme";
 import { useWorkspaceRecord } from "@/core/workspace";
-import { AccountLimits, saveAccount } from "@/features/account";
+import {
+  AccountLimits,
+  PhotoDialog,
+  PhotoText,
+  removePhoto,
+  saveAccount,
+} from "@/features/account";
 import { ChangePasswordForm } from "@/features/auth";
 import { useAvailability } from "@/features/availability";
 import { memberName, memberSubName } from "@/features/members";
@@ -79,6 +85,17 @@ function Account({ member }: { member: MemberRecord }) {
   const groups = useWorkGroups();
   const theme = useTheme();
   const toast = useToast();
+  const [isChoosingPhoto, setIsChoosingPhoto] = useState(false);
+  const takeDownPhoto = useMutation({
+    mutationFn: () => removePhoto(member.id, member.photoUrl),
+    onSuccess: () => toast.show({ tone: "success", title: PhotoText.removed }),
+    onError: (error) =>
+      toast.show({
+        tone: "error",
+        title: PhotoText.removeFailed,
+        detail: dataErrorMessage(error),
+      }),
+  });
   const now = useNow();
   const availability = useAvailability(member.id);
   const walkthrough = useWalkthrough();
@@ -153,7 +170,7 @@ function Account({ member }: { member: MemberRecord }) {
       />
 
       <div className={styles.who}>
-        <Avatar name={memberName(preview)} />
+        <Avatar name={memberName(preview)} src={member.photoUrl} size="large" />
         <span className={styles.names}>
           <b className={styles.name}>{memberName(preview)}</b>
           {memberSubName(preview) ? (
@@ -162,8 +179,40 @@ function Account({ member }: { member: MemberRecord }) {
           <span className={styles.muted}>
             {[...roleNames, ...groupNames].join(" · ") || Text.noRoles}
           </span>
+          <span className={styles.photoActions}>
+            <Button
+              size="small"
+              variant="ghost"
+              iconStart="upload"
+              onClick={() => setIsChoosingPhoto(true)}
+            >
+              {member.photoUrl ? PhotoText.change : PhotoText.add}
+            </Button>
+            {member.photoUrl ? (
+              <Button
+                size="small"
+                variant="ghost"
+                iconStart="trash"
+                isLoading={takeDownPhoto.isPending}
+                onClick={() => takeDownPhoto.mutate()}
+              >
+                {PhotoText.remove}
+              </Button>
+            ) : null}
+          </span>
         </span>
       </div>
+      {isChoosingPhoto ? (
+        <PhotoDialog
+          memberId={member.id}
+          currentUrl={member.photoUrl}
+          onClose={() => setIsChoosingPhoto(false)}
+          onSaved={() => {
+            setIsChoosingPhoto(false);
+            toast.show({ tone: "success", title: PhotoText.saved });
+          }}
+        />
+      ) : null}
 
       {save.error ? (
         <Banner tone="error">

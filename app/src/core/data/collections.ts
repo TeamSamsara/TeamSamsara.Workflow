@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/collections.ts
-// Version : 1.7.0
-// Latest commit: feature/notifications
+// Version : 1.8.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : The name of every Firestore collection and settings document, in one
 // place. One Firebase project holds one workspace, so everything sits at the top.
@@ -39,6 +39,8 @@ export const ConfigDocuments = {
   workspace: "workspace",
   /** Every role and the permission index the security rules read. */
   roles: "roles",
+  /** The sign-in page's pictures; readable before sign-in. */
+  signin: "signin",
 } as const;
 
 export type CollectionName = (typeof Collections)[keyof typeof Collections];

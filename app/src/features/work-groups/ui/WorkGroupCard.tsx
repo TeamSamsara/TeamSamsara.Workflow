@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/ui/WorkGroupCard.tsx
-// Version : 1.1.0
-// Latest commit: task/group-leads-and-x-premium
+// Version : 1.2.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : One work group as a card: its name, member count, the first few
 // members' avatars, who leads it, and what it does. The open group is outlined
@@ -42,6 +42,7 @@ export function WorkGroupCard({ item, to }: WorkGroupCardProps) {
             <Avatar
               key={member.id}
               name={member.displayName || member.email}
+              src={member.photoUrl}
               className={styles.avatar}
             />
           ))}
