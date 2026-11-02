@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/members/ui/InviteDialog.tsx
-// Version : 1.1.0
-// Latest commit: feature/onboarding
+// Version : 1.2.0
+// Latest commit: fix/invite-and-fields
 // Author : Gerrah
 // Purpose : Invite people: their emails, the roles they start with (only roles
 // you may give), and their work groups. Sends one by one, then lists how each
@@ -10,7 +10,6 @@ import { useState, type ReactNode } from "react";
 import { usePermissions } from "@/core/access";
 import { givableRoles, RolePicker } from "@/features/roles";
 import { useWorkGroups, WorkGroupPicker } from "@/features/work-groups";
-import { Banner } from "@/shared/components/Banner/Banner";
 import { Button } from "@/shared/components/Button/Button";
 import { Modal } from "@/shared/components/Modal/Modal";
 import { Icon } from "@/shared/icons/Icon";
@@ -65,6 +64,10 @@ export function InviteDialog({ onClose, preview }: InviteDialogProps) {
           </Button>
         ) : (
           <>
+            <span className={styles.linkNote}>
+              <Icon name="time" />
+              {InviteDialogText.linkNote}
+            </span>
             <Button variant="ghost" onClick={onClose} disabled={isSending}>
               {InviteDialogText.cancel}
             </Button>
@@ -119,15 +122,12 @@ export function InviteDialog({ onClose, preview }: InviteDialogProps) {
             onChange={setRoleIds}
           />
           <WorkGroupPicker
-            groups={groups.items.map((item) => item.group)}
+            groups={groups.items}
             selectedIds={workGroupIds}
             onChange={setWorkGroupIds}
             hideHint
           />
           {preview ? preview(roleIds) : null}
-          <Banner tone="info" icon="time">
-            {InviteDialogText.linkNote}
-          </Banner>
         </div>
       )}
     </Modal>

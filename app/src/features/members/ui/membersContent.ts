@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/members/ui/membersContent.ts
-// Version : 1.0.0
-// Latest commit: feature/members
+// Version : 1.1.0
+// Latest commit: fix/invite-and-fields
 // Author : Gerrah
 // Purpose : The words in the members feature: the table, status pills, the
 // email field, the invite dialog, a member's cards, the member picker, and the
@@ -45,8 +45,7 @@ export const InviteDialogText = {
   title: "Invite people",
   description:
     "They get an email with a link to set a password. Then they sign in with email and password.",
-  linkNote:
-    "Invite links work for 1 hour. If one runs out, use Resend invite on the member's page.",
+  linkNote: "Invite links work for 1 hour.",
   needEmail: "Add at least one email.",
   cancel: "Cancel",
   close: "Close",

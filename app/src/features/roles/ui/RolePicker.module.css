@@ -1,8 +1,8 @@
 /* File : /TeamSamsara.Workflow/app/src/features/roles/ui/RolePicker.module.css
-   Version : 1.1.0
-   Latest commit: feature/members
+   Version : 1.2.0
+   Latest commit: fix/invite-and-fields
    Author : Gerrah
-   Purpose : Look of the role picker: a labelled group of checkboxes, each with the role's colour dot, and a muted hint below. */
+   Purpose : Look of the role picker: one bordered list, a row per role with its colour dot, name, what it gives and a switch, the rows that are on lightly tinted, and a muted hint below. */
 
 .picker {
   display: flex;
@@ -24,23 +24,48 @@
   padding: 0;
 }
 
-.options {
+.list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  overflow: hidden;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
 }
 
-.option {
+.row {
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-surface);
+  transition: background-color var(--motion-fast) ease;
+}
+
+.row + .row {
+  border-top: var(--border-width) solid var(--color-border);
+}
+
+.row[data-on="true"] {
+  background-color: color-mix(
+    in srgb,
+    var(--color-accent) 8%,
+    var(--color-surface)
+  );
+}
+
+.switchRow {
+  align-items: center;
+}
+
+.name {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-2-5);
 }
 
 .dot {
-  width: var(--space-2-5);
-  height: var(--space-2-5);
+  flex: none;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background-color: var(--role-color);
+  background-color: var(--role-color, var(--color-text-muted));
 }
 
 .hint {
