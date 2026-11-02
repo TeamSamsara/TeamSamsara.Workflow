@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/service/availabilityService.ts
-// Version : 1.0.0
-// Latest commit: feature/people-time
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : Saves a member's usual week and exceptions, and adds, changes and
 // removes personal appointments together with their busy copies (one batch,
@@ -14,10 +14,12 @@ import {
   type AvailabilityException,
 } from "../types/availabilityTypes";
 
+/** Saves the usual week and exceptions, in the member's own time zone. */
 export function saveAvailability(
   memberId: string,
   weekly: Record<number, number[]>,
   exceptions: readonly AvailabilityException[],
+  timeZone: string,
 ): Promise<void> {
   const data = {
     weekly: Object.fromEntries(
@@ -35,6 +37,7 @@ export function saveAvailability(
           (a.from ?? "").localeCompare(b.from ?? ""),
       )
       .slice(0, AvailabilityLimits.exceptions),
+    timeZone,
     updatedAt: serverTime(),
   };
   return commitWrites(db, [

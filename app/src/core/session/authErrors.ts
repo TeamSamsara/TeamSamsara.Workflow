@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/session/authErrors.ts
-// Version : 1.1.0
-// Latest commit: core/workspace
+// Version : 1.2.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : Sorts Firebase sign-in errors into the few reasons people are told
 // about. Wrong email and wrong password are deliberately the same reason, so the
@@ -35,7 +35,21 @@ const kindByCode: Record<string, AuthErrorKind> = {
   "auth/network-request-failed": "offline",
 };
 
+/** The current password given when changing it didn't match. */
+export class WrongCurrentPassword extends Error {
+  readonly reason: unknown;
+  constructor(reason: unknown) {
+    super("Wrong current password");
+    this.reason = reason;
+  }
+}
+
 export function authErrorKind(error: unknown): AuthErrorKind {
+  if (error instanceof WrongCurrentPassword) {
+    return authErrorKind(error.reason) === "tooManyAttempts"
+      ? "tooManyAttempts"
+      : "wrongCurrentPassword";
+  }
   if (error instanceof FirebaseError) {
     return kindByCode[error.code] ?? "unknown";
   }

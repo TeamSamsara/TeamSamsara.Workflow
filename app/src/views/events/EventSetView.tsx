@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/EventSetView.tsx
-// Version : 1.0.0
-// Latest commit: feature/event-sets
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : One set's page: what its events share, how far along it is
 // (played, tasks done, what's next, gaps still TBD), and its events in a
@@ -13,7 +13,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { usePermissions } from "@/core/access";
 import { dataErrorMessage, DataErrorText } from "@/core/data";
 import { useSession } from "@/core/session";
-import { useWorkspaceRecord } from "@/core/workspace";
+import { useDisplayTime, useWorkspaceRecord } from "@/core/workspace";
 import {
   AudienceText,
   deleteEvents,
@@ -264,6 +264,7 @@ function SetPage({ set }: { set: EventSetRecord }) {
   const session = useSession();
   const member = session.status === "active" ? session.member : null;
   const workspace = useWorkspaceRecord();
+  const time = useDisplayTime();
   const eventTypes = useEventTypes();
   const workflows = useWorkflows();
   const people = useAudienceOptions();
@@ -275,7 +276,7 @@ function SetPage({ set }: { set: EventSetRecord }) {
   const [picked, setPicked] = useState<ReadonlySet<string>>(new Set());
   const [dialog, setDialog] = useState<Dialog | null>(null);
 
-  const tz = workspace.timeZone;
+  const tz = time.timeZone;
   const canPlan = access.can("planEvents");
   const type = eventTypes.items.find((entry) => entry.id === set.eventTypeId);
   const gaps = planGaps(set.titlePattern, []);
@@ -304,7 +305,7 @@ function SetPage({ set }: { set: EventSetRecord }) {
     tasksDone += entry.done;
     tasksTotal += entry.total;
   }
-  const day = (date: Date) => formatDate(date, tz, workspace.dateFormat);
+  const day = (date: Date) => formatDate(date, tz, time.dateFormat);
   const span =
     items.length > 0
       ? Text.dates(
@@ -510,7 +511,7 @@ function SetPage({ set }: { set: EventSetRecord }) {
                     ) : null}
                     <td className={plan.muted}>
                       {day(event.startsAt)} ·{" "}
-                      {formatTime(event.startsAt, tz, workspace.timeFormat)}
+                      {formatTime(event.startsAt, tz, time.timeFormat)}
                     </td>
                     <td>
                       <Link to={eventPath(event.id)} className={plan.eventLink}>
@@ -552,7 +553,7 @@ function SetPage({ set }: { set: EventSetRecord }) {
       {dialog === "move" ? (
         <MoveDialog
           events={selected}
-          timeZone={tz}
+          timeZone={workspace.timeZone}
           onClose={() => {
             setDialog(null);
             setPicked(new Set());

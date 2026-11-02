@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/time/timeZones.ts
-// Version : 1.0.0
-// Latest commit: core/workspace
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : The time zones a person can pick, with readable labels such as
 // "America/Toronto (UTC−5)", sorted by their offset from UTC, plus the device's
@@ -88,4 +88,9 @@ export function timeZoneOptions(at: Date = new Date()): SelectOption[] {
     .map((zone) => ({ zone, offset: utcOffsetMinutes(zone, at) }))
     .sort((a, b) => a.offset - b.offset || a.zone.localeCompare(b.zone))
     .map(({ zone }) => ({ value: zone, label: timeZoneLabel(zone, at) }));
+}
+
+/** A zone's city, for saying "7:00 PM Toronto time": "America/Toronto" → "Toronto". */
+export function zoneCity(timeZone: string): string {
+  return (timeZone.split("/").at(-1) ?? timeZone).replaceAll("_", " ");
 }

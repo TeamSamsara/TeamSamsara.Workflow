@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/EventDialogs.tsx
-// Version : 1.2.0
-// Latest commit: feature/event-sets
+// Version : 1.3.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : The dialogs behind an event's ⋯ menu: edit it (moving its tasks
 // when its time changes), edit a repeat from this date on, delete it, skip one
@@ -11,7 +11,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { dataErrorMessage } from "@/core/data";
 import { useSession } from "@/core/session";
-import { useWorkspaceRecord } from "@/core/workspace";
+import { useDisplayTime, useWorkspaceRecord } from "@/core/workspace";
 import {
   startingStatus,
   useEventTypes,
@@ -60,9 +60,8 @@ import { RepeatFields } from "./RepeatFields";
 import styles from "./EventDialogs.module.css";
 
 function useDayLabel() {
-  const workspace = useWorkspaceRecord();
-  return (key: string) =>
-    formatDate(dayKeyToDate(key), "UTC", workspace.dateFormat);
+  const time = useDisplayTime();
+  return (key: string) => formatDate(dayKeyToDate(key), "UTC", time.dateFormat);
 }
 
 function useTasksOf(event: EventRecord) {

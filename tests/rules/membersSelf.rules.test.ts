@@ -1,10 +1,11 @@
 // File : /TeamSamsara.Workflow/tests/rules/membersSelf.rules.test.ts
-// Version : 1.1.0
-// Latest commit: core/access
+// Version : 1.2.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : Tests what a member may do with their own record: read it, become
-// active on their first sign-in, and note when they were last active. Nothing
-// else, and never on someone else's record.
+// active on their first sign-in, note when they were last active, and change
+// their own name, in-game name, time zone and formats. Nothing else, and never
+// on someone else's record.
 
 import {
   assertFails,
@@ -162,6 +163,75 @@ describe("recording last activity", () => {
         lastActiveAt: serverTimestamp(),
         displayName: "Boss",
       }),
+    );
+  });
+});
+
+describe("changing your own settings", () => {
+  it("lets an active member change their name, in-game name, time zone and formats", async () => {
+    await assertSucceeds(
+      updateDoc(memberDoc("sam", "sam"), {
+        displayName: "Sam Rivera",
+        gameName: "Rivi",
+        timeZone: "Europe/Paris",
+        dateFormat: "dayMonth",
+        timeFormat: "24h",
+      }),
+    );
+    await assertSucceeds(
+      updateDoc(memberDoc("sam", "sam"), {
+        displayName: "Sam Rivera",
+        gameName: null,
+        timeZone: null,
+        dateFormat: null,
+        timeFormat: null,
+      }),
+    );
+  });
+
+  it("refuses settings that don't fit", async () => {
+    await assertFails(updateDoc(memberDoc("sam", "sam"), { displayName: "" }));
+    await assertFails(
+      updateDoc(memberDoc("sam", "sam"), {
+        displayName: "Sam",
+        gameName: "x".repeat(41),
+      }),
+    );
+    await assertFails(
+      updateDoc(memberDoc("sam", "sam"), {
+        displayName: "Sam",
+        dateFormat: "yearFirst",
+      }),
+    );
+    await assertFails(
+      updateDoc(memberDoc("sam", "sam"), {
+        displayName: "Sam",
+        timeFormat: 12,
+      }),
+    );
+  });
+
+  it("refuses roles, groups or email with them", async () => {
+    await assertFails(
+      updateDoc(memberDoc("sam", "sam"), {
+        displayName: "Sam",
+        roleIds: ["admin"],
+      }),
+    );
+    await assertFails(
+      updateDoc(memberDoc("sam", "sam"), {
+        displayName: "Sam",
+        email: "boss@example.com",
+      }),
+    );
+  });
+
+  it("refuses them for a disabled member or on someone else's record", async () => {
+    await assertFails(
+      updateDoc(memberDoc("chris", "chris"), { displayName: "Chris" }),
+    );
+    await assertFails(
+      updateDoc(memberDoc("sam", "mika"), { displayName: "Mika" }),
     );
   });
 });

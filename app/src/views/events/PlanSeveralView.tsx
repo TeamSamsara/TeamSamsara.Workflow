@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/PlanSeveralView.tsx
-// Version : 1.0.0
-// Latest commit: feature/event-sets
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : Planning several events at once, as a set: what they share (the
 // set's name, type, usual times, a title with {gaps}, who's in them), then
@@ -20,7 +20,11 @@ import {
 import { usePermissions } from "@/core/access";
 import { dataErrorMessage } from "@/core/data";
 import { useSession } from "@/core/session";
-import { useWorkspaceRecord } from "@/core/workspace";
+import {
+  PlannedZoneNote,
+  useDisplayTime,
+  useWorkspaceRecord,
+} from "@/core/workspace";
 import { useWhoCanMake } from "@/features/availability";
 import {
   addToEventSet,
@@ -78,6 +82,7 @@ function PlanSeveral({ set }: { set: EventSetRecord | null }) {
   const session = useSession();
   const member = session.status === "active" ? session.member : null;
   const workspace = useWorkspaceRecord();
+  const time = useDisplayTime();
   const statuses = useStatuses();
   const eventTypes = useEventTypes();
   const groups = useWorkGroups();
@@ -338,6 +343,7 @@ function PlanSeveral({ set }: { set: EventSetRecord | null }) {
                 className={plan.time}
               />
             </div>
+            <PlannedZoneNote />
             <AudiencePicker
               value={draft.audience}
               onChange={(audience) => change({ audience })}
@@ -446,7 +452,7 @@ function PlanSeveral({ set }: { set: EventSetRecord | null }) {
         <PasteDialog
           gaps={gaps}
           usual={{ time: draft.time, endTime: draft.endTime }}
-          options={{ today, dayFirst: workspace.dateFormat === "dayMonth" }}
+          options={{ today, dayFirst: time.dateFormat === "dayMonth" }}
           timeZone={tz}
           onAdd={addRows}
           onClose={() => setDialog(null)}

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/workflows/WorkflowGuideView.tsx
-// Version : 1.0.0
-// Latest commit: feature/workflow-guide
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : The guided setup page: the guide in the middle of the page, a
 // question before leaving with answers filled in, and on creating, the new
@@ -10,7 +10,7 @@ import { useRef, useState } from "react";
 import { Navigate, useBlocker, useNavigate } from "react-router-dom";
 import { usePermissions } from "@/core/access";
 import { isCurrentMember } from "@/core/data";
-import { useWorkspaceRecord } from "@/core/workspace";
+import { useDisplayTime } from "@/core/workspace";
 import { useMembers } from "@/features/members";
 import { useWorkGroups } from "@/features/work-groups";
 import { WorkflowGuide, type GuideAnswers } from "@/features/workflows";
@@ -27,7 +27,7 @@ const noAnswers: GuideAnswers = { name: "", description: "", tasks: [] };
 
 export function WorkflowGuideView() {
   const canEdit = usePermissions().can("editWorkflows");
-  const workspace = useWorkspaceRecord();
+  const time = useDisplayTime();
   const groups = useWorkGroups();
   const members = useMembers();
   const toast = useToast();
@@ -57,7 +57,7 @@ export function WorkflowGuideView() {
         onChange={setAnswers}
         groups={groups.items.map((item) => item.group)}
         members={members.records.filter(isCurrentMember)}
-        clockFormat={workspace.timeFormat}
+        clockFormat={time.timeFormat}
         onCancel={() => navigate(RoutePaths.workflows)}
         onCreated={(workflowId) => {
           toast.show({

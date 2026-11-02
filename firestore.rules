@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/firestore.rules
-// Version : 1.16.0
-// Latest commit: feature/event-sets
+// Version : 1.17.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : Who may read and write what in Firestore. Everything is denied until
 // a rule below allows it; each PR opens exactly what its feature needs, with a
@@ -210,9 +210,10 @@ service cloud.firestore {
       allow get: if isSelf(memberId);
       allow read: if isActiveMember();
 
-      // A member's own writes: activating on first sign-in, and "last active".
+      // A member's own writes: activating on first sign-in, "last active",
+      // and their own name, in-game name, time zone and date and time formats.
       allow update: if isSelf(memberId)
-        && (isActivatingSelf() || isRecordingLastActive());
+        && (isActivatingSelf() || isRecordingLastActive() || isChangingOwnProfile());
 
       // Someone managing members, roles or groups changing another record.
       allow update: if isManagedChange();
@@ -361,6 +362,25 @@ service cloud.firestore {
         && request.resource.data.joinedAt == request.time
         && request.resource.data.lastActiveAt == request.time
         && changedFields().hasOnly(["status", "joinedAt", "lastActiveAt"]);
+    }
+
+    /**
+     * An active member's own settings on Your account. Null means "the
+     * workspace's" for the time zone and formats, and no in-game name.
+     */
+    function isChangingOwnProfile() {
+      let after = request.resource.data;
+      return resource.data.status == "active"
+        && changedFields().hasOnly(["displayName", "gameName", "timeZone",
+          "dateFormat", "timeFormat"])
+        && after.displayName is string
+        && after.displayName.size() > 0 && after.displayName.size() <= 80
+        && (after.get("gameName", null) == null
+          || (after.gameName is string && after.gameName.size() > 0 && after.gameName.size() <= 40))
+        && (after.timeZone == null
+          || (after.timeZone is string && after.timeZone.size() > 0 && after.timeZone.size() <= 64))
+        && after.get("dateFormat", null) in [null, "weekdayMonthDay", "monthDay", "dayMonth", "isoDate"]
+        && after.get("timeFormat", null) in [null, "12h", "24h"];
     }
 
     /** An active member opening the app: only "last active" changes, to the server's time. */
@@ -822,8 +842,9 @@ service cloud.firestore {
       return weekly.get(day, []) is list && weekly.get(day, []).size() <= 24;
     }
 
+    // timeZone: the zone the hours are in (the member's own); older ones have none.
     function isValidAvailability(data) {
-      return data.keys().hasOnly(["weekly", "exceptions", "updatedAt"])
+      return data.keys().hasOnly(["weekly", "exceptions", "timeZone", "updatedAt"])
         && data.keys().hasAll(["weekly", "exceptions", "updatedAt"])
         && data.weekly is map
         && data.weekly.keys().hasOnly(["0", "1", "2", "3", "4", "5", "6"])
@@ -832,6 +853,8 @@ service cloud.firestore {
         && isWeekday(data.weekly, "4") && isWeekday(data.weekly, "5")
         && isWeekday(data.weekly, "6")
         && data.exceptions is list && data.exceptions.size() <= 60
+        && (data.get("timeZone", null) == null
+          || (data.timeZone is string && data.timeZone.size() <= 64))
         && data.updatedAt == request.time;
     }
 

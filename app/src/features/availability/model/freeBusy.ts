@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/model/freeBusy.ts
-// Version : 1.0.0
-// Latest commit: feature/people-time
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : Who's free when. Checks a person against their usual week, their
 // exceptions and their personal appointments, half an hour at a time in the
@@ -49,14 +49,20 @@ const covers = (exception: AvailabilityException, clock: string) =>
   exception.to === null ||
   (clock >= exception.from && clock < exception.to);
 
-/** Whether the usual week and the exceptions leave this moment free. */
+/**
+ * Whether the usual week and the exceptions leave this moment free. They're
+ * read in the zone the member painted them in, else the one given.
+ */
 export function isAvailableAt(
   availability: AvailabilityRecord | null,
   instant: Date,
   timeZone: string,
 ): boolean {
   if (!availability) return true;
-  const { date, weekday, hour, clock } = wallOf(instant, timeZone);
+  const { date, weekday, hour, clock } = wallOf(
+    instant,
+    availability.timeZone ?? timeZone,
+  );
   const today = availability.exceptions.filter(
     (exception) => exception.date === date && covers(exception, clock),
   );

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/tasks/TaskView.tsx
-// Version : 1.0.0
-// Latest commit: feature/tasks
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : A task's page: where it is (the status steps), how to do it, the
 // post text to copy and the checklist to tick; beside them, the next step,
@@ -10,7 +10,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useBlocker, useNavigate, useParams } from "react-router-dom";
 import { dataErrorMessage, isCurrentMember } from "@/core/data";
-import { useWorkspaceRecord } from "@/core/workspace";
+import { useDisplayTime, useWorkspaceRecord } from "@/core/workspace";
 import { memberName, useMembers } from "@/features/members";
 import { usePlatforms } from "@/features/platforms";
 import { StatusPill, useStatuses, useTags } from "@/features/task-setup";
@@ -53,6 +53,7 @@ import styles from "./TaskView.module.css";
 
 function TaskPage({ task }: { task: TaskRecord }) {
   const workspace = useWorkspaceRecord();
+  const time = useDisplayTime();
   const statuses = useStatuses();
   const groups = useWorkGroups();
   const members = useMembers();
@@ -92,13 +93,7 @@ function TaskPage({ task }: { task: TaskRecord }) {
   );
 
   const when = (date: Date) =>
-    formatDue(
-      date,
-      workspace.timeZone,
-      workspace.timeFormat,
-      workspace.dateFormat,
-      now,
-    );
+    formatDue(date, time.timeZone, time.timeFormat, time.dateFormat, now);
   const status = statusOf(task, statuses.items);
   const group = groups.items.find(
     (item) => item.group.id === task.workGroupId,

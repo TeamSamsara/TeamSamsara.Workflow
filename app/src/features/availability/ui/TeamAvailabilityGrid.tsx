@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/ui/TeamAvailabilityGrid.tsx
-// Version : 1.0.0
-// Latest commit: feature/people-time
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : A team's week at a glance: one row per person, one column per day
 // from 8 AM to midnight, coloured by available, unavailable and personal
@@ -16,7 +16,10 @@ import styles from "./TeamAvailabilityGrid.module.css";
 
 export interface TeamPerson {
   id: string;
+  /** Their in-game name, else their name. */
   name: string;
+  /** Their real name, under an in-game name. */
+  subName?: string | null;
   initials: string;
 }
 
@@ -184,6 +187,9 @@ export function TeamAvailabilityGrid({
               </span>
               <span className={styles.name}>
                 <b>{person.name}</b>
+                {person.subName ? (
+                  <span className={styles.subName}>{person.subName}</span>
+                ) : null}
                 {clashes > 0 ? (
                   <span className={styles.clashNote}>
                     {Text.clashes(clashes)}

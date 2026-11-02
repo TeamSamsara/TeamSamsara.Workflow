@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/general/generalSettingsViewContent.ts
-// Version : 1.0.0
-// Latest commit: feature/workspace-settings
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : The words on Settings → General.
 
@@ -42,7 +42,7 @@ export const GeneralSettingsFormText = {
     "24h": "19:00 (24-hour)",
   } satisfies Record<TimeFormat, string>,
   timeNote:
-    "Events are planned in the workspace time zone. Each person will be able to see times in their own, from their account page.",
+    "Events and tasks are planned in the workspace time zone. Each person can see times in their own from Your account.",
   lookHeading: "Look",
   defaultTheme: "Default theme for new members",
   themes: {

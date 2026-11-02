@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/availability/TeamAvailabilityView.tsx
-// Version : 1.1.0
-// Latest commit: feature/event-sets
+// Version : 1.2.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : A work group's week of availability, for See everyone's
 // availability: who's free when, their personal appointments, clashes with the
@@ -12,7 +12,7 @@ import { useSearchParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { isCurrentMember } from "@/core/data";
 import { useSession } from "@/core/session";
-import { useWorkspaceRecord } from "@/core/workspace";
+import { useDisplayTime, useWorkspaceRecord } from "@/core/workspace";
 import {
   bestTimes,
   TeamAvailabilityGrid,
@@ -23,7 +23,7 @@ import {
   type PersonTime,
 } from "@/features/availability";
 import { CalendarText, useEventsInRange } from "@/features/events";
-import { memberName } from "@/features/members";
+import { memberName, memberSubName } from "@/features/members";
 import { useWorkGroups } from "@/features/work-groups";
 import { HelpTip } from "@/shared/components/HelpTip/HelpTip";
 import { Button } from "@/shared/components/Button/Button";
@@ -63,7 +63,9 @@ export function TeamAvailabilityView() {
   const groups = useWorkGroups();
   const now = useNow();
   const [params, setParams] = useSearchParams();
-  const tz = workspace.timeZone;
+  // Shown in the person's own zone; links to New event use the workspace's.
+  const time = useDisplayTime();
+  const tz = time.timeZone;
   const today = dayKey(now, tz);
   const week = useMemo(
     () =>
@@ -90,6 +92,7 @@ export function TeamAvailabilityView() {
     .map((record) => ({
       id: record.id,
       name: memberName(record),
+      subName: memberSubName(record),
       initials: initialsOf(memberName(record)),
     }));
 
@@ -115,7 +118,7 @@ export function TeamAvailabilityView() {
         title: personal.find((own) => own.id === entry.id)?.title,
       })),
   });
-  const timeOf = (date: Date) => formatTime(date, tz, workspace.timeFormat);
+  const timeOf = (date: Date) => formatTime(date, tz, time.timeFormat);
   const spanLabel = (start: Date, end: Date) =>
     `${timeOf(start)} – ${timeOf(end)}`;
   const best = bestTimes(week.days, people, timeFor, tz, now);
@@ -226,8 +229,8 @@ export function TeamAvailabilityView() {
             ) : (
               <>
                 {best.slice(0, 8).map((slot) => {
-                  const wall = toWallTime(slot.start, tz);
-                  const date = dayKey(slot.start, tz);
+                  const wall = toWallTime(slot.start, workspace.timeZone);
+                  const date = dayKey(slot.start, workspace.timeZone);
                   const time = `${String(wall.hour).padStart(2, "0")}:${String(wall.minute).padStart(2, "0")}`;
                   return (
                     <Link

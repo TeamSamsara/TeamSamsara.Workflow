@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/app/layouts/AppLayout/Sidebar.module.css
-   Version : 1.3.0
-   Latest commit: feature/people-time
+   Version : 1.4.0
+   Latest commit: feature/your-account
    Author : Gerrah
    Purpose : Look of the sidebar: dark in both themes, the logo, Norwester app name and workspace name on top, uppercase Agdasima menu links with a green marker on the current page, and the account row pinned to the bottom. */
 
@@ -97,6 +97,22 @@
 }
 
 .link:hover,
+.accountText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: var(--text-small);
+  line-height: 1.3;
+}
+
+.accountName {
+  overflow: hidden;
+  color: var(--color-nav-text);
+  font-size: var(--text-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .account:hover {
   background-color: var(--color-nav-active);
   color: var(--color-nav-text);

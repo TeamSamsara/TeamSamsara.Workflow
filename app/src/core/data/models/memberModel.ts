@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/models/memberModel.ts
-// Version : 1.1.0
-// Latest commit: feature/members
+// Version : 1.2.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : The member record (members/{account id}): who the person is, whether
 // they may use the app, and which roles and work groups they are in. A record
@@ -16,6 +16,12 @@ import {
   readStringList,
 } from "../fieldReaders";
 import { fromDate } from "../timestamps";
+import {
+  DateFormats,
+  TimeFormats,
+  type DateFormat,
+  type TimeFormat,
+} from "./workspaceModel";
 
 /**
  * invited: has an account but hasn't signed in yet. active: signed in at least
@@ -44,8 +50,13 @@ export interface MemberRecord {
   status: MemberStatus;
   roleIds: string[];
   workGroupIds: string[];
+  /** Shown first wherever they appear, with the real name under it. */
+  gameName: string | null;
   /** The member's own time zone; null means "use the workspace's". */
   timeZone: string | null;
+  /** How they see dates and times; null means "use the workspace's". */
+  dateFormat: DateFormat | null;
+  timeFormat: TimeFormat | null;
   /** Account id of the member who sent the invite, if any. */
   invitedBy: string | null;
   invitedAt: Date | null;
@@ -62,7 +73,14 @@ function parse(id: string, data: DocumentData): MemberRecord {
     status: readChoice(data, "status", MemberStatuses, "disabled"),
     roleIds: readStringList(data, "roleIds"),
     workGroupIds: readStringList(data, "workGroupIds"),
+    gameName: readOptionalString(data, "gameName"),
     timeZone: readOptionalString(data, "timeZone"),
+    dateFormat: DateFormats.includes(data.dateFormat)
+      ? (data.dateFormat as DateFormat)
+      : null,
+    timeFormat: TimeFormats.includes(data.timeFormat)
+      ? (data.timeFormat as TimeFormat)
+      : null,
     invitedBy: readOptionalString(data, "invitedBy"),
     invitedAt: readDate(data, "invitedAt"),
     joinedAt: readDate(data, "joinedAt"),
@@ -77,7 +95,10 @@ function serialize(member: MemberRecord): DocumentData {
     status: member.status,
     roleIds: member.roleIds,
     workGroupIds: member.workGroupIds,
+    gameName: member.gameName,
     timeZone: member.timeZone,
+    dateFormat: member.dateFormat,
+    timeFormat: member.timeFormat,
     invitedBy: member.invitedBy,
     invitedAt: fromDate(member.invitedAt),
     joinedAt: fromDate(member.joinedAt),

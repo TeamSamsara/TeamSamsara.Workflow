@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/members/ui/MemberHeader.tsx
-// Version : 1.0.0
-// Latest commit: feature/members
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : The top of a member's page: avatar, name, email, when they joined
 // (or were invited), status, and the field to set their name. The page puts
@@ -12,7 +12,7 @@ import { Avatar } from "@/shared/components/Avatar/Avatar";
 import { TextField } from "@/shared/components/Fields/TextField/TextField";
 import { formatLongDate } from "@/shared/time/dates";
 import { TextLimits } from "@/shared/validation/textLimits";
-import { memberName } from "../types/memberTypes";
+import { memberName, memberSubName } from "../types/memberTypes";
 import { MemberHeaderText } from "./membersContent";
 import { MemberStatusPill } from "./MemberStatusPill";
 import styles from "./MemberHeader.module.css";
@@ -37,7 +37,9 @@ export function MemberHeader({
   timeZone,
   actions,
 }: MemberHeaderProps) {
-  const name = memberName({ displayName, email: member.email });
+  const shown = { displayName, email: member.email, gameName: member.gameName };
+  const name = memberName(shown);
+  const subName = memberSubName(shown);
   const when = member.joinedAt
     ? MemberHeaderText.joined(formatLongDate(member.joinedAt, timeZone))
     : member.invitedAt
@@ -51,9 +53,13 @@ export function MemberHeader({
           <Avatar name={name} size="large" />
           <div className={styles.text}>
             {/* An email in the heading font would be shouted in capitals. */}
-            <h2 className={styles.name} data-email={!displayName.trim()}>
+            <h2
+              className={styles.name}
+              data-email={!displayName.trim() && !member.gameName}
+            >
               {name}
             </h2>
+            {subName ? <p className={styles.muted}>{subName}</p> : null}
             <p className={styles.muted}>
               {member.email}
               {when ? ` · ${when}` : ""}

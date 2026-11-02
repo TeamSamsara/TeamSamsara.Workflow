@@ -1,13 +1,13 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/members/MembersView.tsx
-// Version : 1.0.0
-// Latest commit: feature/members
+// Version : 1.1.0
+// Latest commit: feature/your-account
 // Author : Gerrah
 // Purpose : Settings → Members: everyone in the workspace with search and a
 // status filter, and Invite people.
 
 import { useState } from "react";
 import { DataErrorText } from "@/core/data";
-import { useWorkspaceRecord } from "@/core/workspace";
+import { useDisplayTime } from "@/core/workspace";
 import {
   countByStatus,
   filterMembers,
@@ -27,7 +27,7 @@ import { MembersViewText } from "./membersViewContent";
 import styles from "./MembersView.module.css";
 
 export function MembersView() {
-  const workspace = useWorkspaceRecord();
+  const time = useDisplayTime();
   const members = useMembers();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<StatusFilter>("all");
@@ -90,7 +90,7 @@ export function MembersView() {
           <MembersTable
             items={filterMembers(members.items, filter, search)}
             hrefFor={memberPath}
-            timeZone={workspace.timeZone}
+            timeZone={time.timeZone}
           />
         )}
       </section>
