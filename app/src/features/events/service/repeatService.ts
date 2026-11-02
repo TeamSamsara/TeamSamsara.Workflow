@@ -1,17 +1,19 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/service/repeatService.ts
-// Version : 1.0.0
-// Latest commit: feature/repeats
+// Version : 1.1.0
+// Latest commit: feature/calendar-people
 // Author : Gerrah
 // Purpose : Repeats and their events. Makes a repeat and its next weeks of
 // events; tops up the weeks ahead (any planner's browser can, and an event's
 // id is its date, so it's never made twice); skips one date; ends the repeat
 // after a date; and changes it from a date onward, moving, adding or removing
-// upcoming events to match.
+// upcoming events to match. A repeat's events are found by their ids, since a
+// planner may not be allowed to see all of them.
 
 import {
   arrayUnion,
   collection,
   doc,
+  getDoc,
   getDocs,
   query,
   where,
@@ -19,6 +21,7 @@ import {
 import {
   Collections,
   commitWrites,
+  dataErrorKind,
   fromDate,
   serverTime,
   splitIntoChunks,
@@ -29,7 +32,6 @@ import type { WorkflowRecord } from "@/features/workflows";
 import { db } from "@/lib/firebase";
 import {
   addDays,
-  occurrenceDate,
   occurrenceId,
   occurrenceStart,
   repeatDates,
@@ -48,31 +50,19 @@ import {
   deleteEventWrites,
   eventDetailsWrite,
   eventWrites,
+  sharedData,
   type CreateOptions,
+  type SharedFields,
 } from "./eventService";
 
-/** What a repeat's events share (everything but when). */
-export type SeriesFields = Omit<EventFields, "startsAt">;
+/** What a repeat's events share: everything but when, plus how long they last. */
+export type SeriesFields = SharedFields & { minutes: number };
 
 interface TopUpOptions extends Omit<CreateOptions, "workflows"> {
   /** Every workflow; the repeat's own are picked out. */
   workflows: readonly WorkflowRecord[];
   /** Today's date in the workspace's time zone. */
   today: string;
-}
-
-function seriesData(fields: SeriesFields) {
-  return {
-    title: fields.title.trim(),
-    eventTypeId: fields.eventTypeId,
-    link: fields.link?.trim() || null,
-    details: Object.fromEntries(
-      Object.entries(fields.details)
-        .map(([gap, value]) => [gap, value.trim()])
-        .filter(([, value]) => value !== ""),
-    ),
-    notes: fields.notes.trim(),
-  };
 }
 
 function scheduleData(schedule: RepeatSchedule) {
@@ -89,23 +79,43 @@ function scheduleData(schedule: RepeatSchedule) {
   };
 }
 
+function seriesData(fields: SeriesFields) {
+  return {
+    ...sharedData(fields),
+    minutes: Math.min(1440, Math.max(5, Math.round(fields.minutes))),
+  };
+}
+
 const windowEnd = (today: string) =>
   addDays(today, RepeatLimits.weeksAhead * 7);
 
-/** The repeat's events from a date on, read once. */
-async function upcomingEvents(
+/** An occurrence that exists: its event, or "hidden" when this planner can't see it. */
+type Found = EventRecord | "hidden";
+
+/** Which of these dates already have their event, read one by one by id. */
+async function findOccurrences(
   repeatId: string,
-  fromDay: string,
-): Promise<EventRecord[]> {
-  const snapshot = await getDocs(
-    query(
-      collection(db, Collections.events),
-      where("repeatId", "==", repeatId),
-    ).withConverter(eventConverter),
+  dates: readonly string[],
+): Promise<Map<string, Found>> {
+  const found = new Map<string, Found>();
+  await Promise.all(
+    dates.map(async (date) => {
+      const ref = doc(
+        db,
+        Collections.events,
+        occurrenceId(repeatId, date),
+      ).withConverter(eventConverter);
+      try {
+        const snapshot = await getDoc(ref);
+        if (snapshot.exists()) found.set(date, snapshot.data());
+      } catch (error) {
+        // Not allowed to read it means it exists for someone else.
+        if (dataErrorKind(error) === "notAllowed") found.set(date, "hidden");
+        else throw error;
+      }
+    }),
   );
-  return snapshot.docs
-    .map((entry) => entry.data())
-    .filter((event) => (occurrenceDate(event.id, repeatId) ?? "") >= fromDay);
+  return found;
 }
 
 /** The tasks of these events, read once. */
@@ -130,19 +140,27 @@ function occurrenceFields(
   date: string,
   timeZone: string,
 ): EventFields {
+  const startsAt = occurrenceStart(date, repeat.time, timeZone);
   return {
     title: repeat.title,
     eventTypeId: repeat.eventTypeId,
-    startsAt: occurrenceStart(date, repeat.time, timeZone),
+    startsAt,
+    endsAt: new Date(startsAt.getTime() + repeat.minutes * 60_000),
     link: repeat.link,
     details: repeat.details,
     notes: repeat.notes,
+    audience: {
+      everyone: repeat.everyone,
+      groupIds: repeat.groupIds,
+      memberIds: repeat.memberIds,
+    },
   };
 }
 
 /**
  * Makes the repeat's missing events from today until the weeks ahead, with
- * their tasks. Gives back how many it made.
+ * their tasks. The events belong to whoever made the repeat. Gives back how
+ * many it made.
  */
 export async function topUpRepeat(
   repeat: RepeatRecord,
@@ -152,22 +170,22 @@ export async function topUpRepeat(
     repeat.startDate > options.today ? repeat.startDate : options.today;
   const dates = repeatDates(repeat, from, windowEnd(options.today));
   if (dates.length === 0) return 0;
-  const existing = new Set(
-    (await upcomingEvents(repeat.id, from)).map((event) => event.id),
-  );
+  const found = await findOccurrences(repeat.id, dates);
   const workflows = options.workflows.filter(
     (workflow) =>
       repeat.workflowIds.includes(workflow.id) && !workflow.archived,
   );
-  const missing = dates.filter(
-    (date) => !existing.has(occurrenceId(repeat.id, date)),
-  );
+  const missing = dates.filter((date) => !found.has(date));
   const writes = missing.flatMap((date) =>
     eventWrites(
       occurrenceId(repeat.id, date),
       occurrenceFields(repeat, date, options.formats.timeZone),
       repeat.id,
-      { ...options, workflows },
+      {
+        ...options,
+        workflows,
+        eventMaker: repeat.createdBy,
+      },
     ),
   );
   await commitWrites(db, writes);
@@ -223,29 +241,36 @@ export async function skipOccurrence(
 
 /** Ends the repeat after a date: later events and their tasks go. */
 export async function endRepeatAfter(
-  repeatId: string,
+  repeat: RepeatRecord,
   lastDate: string,
+  today: string,
 ): Promise<number> {
-  const later = await upcomingEvents(repeatId, addDays(lastDate, 1));
-  const tasks = await tasksOf(later.map((event) => event.id));
+  const later = [
+    ...(
+      await findOccurrences(
+        repeat.id,
+        repeatDates(repeat, addDays(lastDate, 1), windowEnd(today)),
+      )
+    ).keys(),
+  ];
+  const eventIds = later.map((date) => occurrenceId(repeat.id, date));
+  const tasks = await tasksOf(eventIds);
   await commitWrites(db, [
     (batch) =>
-      batch.update(doc(db, Collections.repeats, repeatId), {
+      batch.update(doc(db, Collections.repeats, repeat.id), {
         endKind: "onDate",
         endDate: lastDate,
         endCount: null,
         updatedAt: serverTime(),
       }),
-    ...later.flatMap((event) =>
+    ...eventIds.flatMap((eventId) =>
       deleteEventWrites(
-        event.id,
-        tasks
-          .filter((task) => task.eventId === event.id)
-          .map((task) => task.id),
+        eventId,
+        tasks.filter((task) => task.eventId === eventId).map((task) => task.id),
       ),
     ),
   ]);
-  return later.length;
+  return eventIds.length;
 }
 
 /**
@@ -284,48 +309,53 @@ export async function editSeriesFrom(
   options: TopUpOptions,
 ): Promise<void> {
   const startDate = fromDay > repeat.startDate ? fromDay : schedule.startDate;
+  const series = seriesData(fields);
   const next: RepeatRecord = {
     ...repeat,
-    ...seriesData(fields),
+    ...series,
     ...scheduleData(countFrom(repeat, { ...schedule, startDate })),
   };
-  const upcoming = await upcomingEvents(repeat.id, fromDay);
-  const keep = new Set(repeatDates(next, fromDay, windowEnd(options.today)));
-  const tasks = await tasksOf(upcoming.map((event) => event.id));
+  const end = windowEnd(options.today);
+  const found = await findOccurrences(
+    repeat.id,
+    repeatDates(repeat, fromDay, end),
+  );
+  const keep = new Set(repeatDates(next, fromDay, end));
+  const tasks = await tasksOf(
+    [...found.keys()].map((date) => occurrenceId(repeat.id, date)),
+  );
   const tasksFor = (eventId: string) =>
     tasks.filter((task) => task.eventId === eventId);
 
   const writes: BatchWrite[] = [
     (batch) =>
       batch.update(doc(db, Collections.repeats, repeat.id), {
-        ...seriesData(fields),
+        ...series,
         ...scheduleData(next),
         updatedAt: serverTime(),
       }),
   ];
-  for (const event of upcoming) {
-    const date = occurrenceDate(event.id, repeat.id);
-    if (!date) continue;
+  for (const [date, event] of found) {
+    const eventId = occurrenceId(repeat.id, date);
     if (!keep.has(date)) {
       writes.push(
         ...deleteEventWrites(
-          event.id,
-          tasksFor(event.id).map((task) => task.id),
+          eventId,
+          tasksFor(eventId).map((task) => task.id),
         ),
       );
       continue;
     }
     const startsAt = occurrenceStart(date, next.time, options.formats.timeZone);
-    const shift = startsAt.getTime() - event.startsAt.getTime();
-    writes.push(
-      eventDetailsWrite(
-        event.id,
-        seriesData(fields),
-        shift === 0 ? undefined : startsAt,
-      ),
-    );
+    const endsAt = new Date(startsAt.getTime() + next.minutes * 60_000);
+    const before =
+      event === "hidden"
+        ? occurrenceStart(date, repeat.time, options.formats.timeZone)
+        : event.startsAt;
+    const shift = startsAt.getTime() - before.getTime();
+    writes.push(eventDetailsWrite(eventId, fields, startsAt, endsAt));
     if (shift === 0) continue;
-    for (const task of tasksFor(event.id)) {
+    for (const task of tasksFor(eventId)) {
       if (!task.dueAt) continue;
       const dueAt = new Date(task.dueAt.getTime() + shift);
       writes.push((batch) =>
@@ -340,7 +370,7 @@ export async function editSeriesFrom(
   await topUpRepeat(next, options);
 }
 
-/** How many events a repeat would make in the weeks ahead, and the first few dates. */
+/** The dates a repeat would make events on in the weeks ahead. */
 export function previewRepeat(schedule: RepeatSchedule, today: string) {
   const from = schedule.startDate > today ? schedule.startDate : today;
   return repeatDates(schedule, from, windowEnd(today));

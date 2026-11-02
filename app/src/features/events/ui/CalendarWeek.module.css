@@ -1,0 +1,156 @@
+/* File : /TeamSamsara.Workflow/app/src/features/events/ui/CalendarWeek.module.css
+   Version : 1.0.0
+   Latest commit: feature/calendar-people
+   Author : Gerrah
+   Purpose : The week view: a header row of days, then an hour column and seven day columns with a line every hour; today is tinted and has a red line at the current time. */
+
+.week {
+  display: flex;
+  flex-direction: column;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.head,
+.body {
+  display: grid;
+  grid-template-columns: 56px repeat(7, minmax(0, 1fr));
+}
+
+.head {
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.dayHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-2);
+  border-left: var(--border-width) solid var(--color-border);
+}
+
+.dayHead[data-today="true"],
+.day[data-today="true"] {
+  background-color: color-mix(in srgb, var(--color-accent) 7%, transparent);
+}
+
+.dayTitle {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1-5);
+}
+
+.weekday {
+  color: var(--color-text-muted);
+  font-family: var(--font-heading);
+  font-size: var(--text-tab);
+  text-transform: uppercase;
+}
+
+.dayNumber {
+  font-weight: var(--weight-bold);
+  font-size: var(--text-body-large);
+}
+
+.dayHead[data-today="true"] .dayNumber {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-color: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+
+.add {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
+  border-radius: var(--radius-small);
+  color: var(--color-text-muted);
+  opacity: 0;
+  --icon-size: 16px;
+}
+
+.dayHead:hover .add,
+.add:focus-visible {
+  opacity: 1;
+}
+
+.add:hover {
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+}
+
+@media (hover: none) {
+  .add {
+    opacity: 1;
+  }
+}
+
+.early {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.hours {
+  display: flex;
+  flex-direction: column;
+}
+
+.hour {
+  height: var(--hour-height);
+  box-sizing: border-box;
+  padding: 2px var(--space-2) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  text-align: right;
+  transform: translateY(-7px);
+}
+
+.hour:first-child {
+  transform: none;
+}
+
+.day {
+  position: relative;
+  min-width: 0;
+  height: calc(var(--hour-height) * 16);
+  border-left: var(--border-width) solid var(--color-border);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 calc(var(--hour-height) - 1px),
+    color-mix(in srgb, var(--color-border) 55%, transparent)
+      calc(var(--hour-height) - 1px) var(--hour-height)
+  );
+}
+
+.slot {
+  display: contents;
+}
+
+.now {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  height: 2px;
+  background-color: var(--color-error);
+  pointer-events: none;
+}
+
+.now::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--color-error);
+}

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/events.rules.test.ts
-// Version : 1.0.0
-// Latest commit: feature/calendar-events
+// Version : 1.1.0
+// Latest commit: feature/calendar-people
 // Author : Gerrah
 // Purpose : Tests events against the rules: every member reads them; Plan
 // events makes one together with its tasks in one batch, changes it, moves its

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/CalendarItem.tsx
-// Version : 1.1.0
-// Latest commit: feature/repeats
+// Version : 1.2.0
+// Latest commit: feature/calendar-people
 // Author : Gerrah
 // Purpose : An item in a calendar day: an event (solid, with its type's colour
 // on the edge, time and how many tasks are done; faded once over, with a ✓ or
@@ -31,6 +31,12 @@ interface EventItemProps {
   isPast?: boolean;
   /** The ⋯ menu, for planners. */
   actions?: ReactNode;
+  /** The member is in it themselves (not only through a group): outlined. */
+  isMine?: boolean;
+  /** Where it sits in the week view; it then fills that block. */
+  layout?: CSSProperties | null;
+  /** A short block: title and time on one line each. */
+  compact?: boolean;
 }
 
 /** How a past event looks: all done, tasks left, or nothing to do. */
@@ -48,10 +54,14 @@ export function EventItem({
   isRepeat = false,
   isPast = false,
   actions,
+  isMine = false,
+  layout,
+  compact = false,
 }: EventItemProps) {
-  const style = color
-    ? ({ "--item-color": color } as CSSProperties)
-    : undefined;
+  const style = {
+    ...(color ? { "--item-color": color } : {}),
+    ...(layout ?? {}),
+  } as CSSProperties;
   const state = isPast ? pastState(progress) : null;
   const done =
     progress && progress.total > 0 && progress.done === progress.total;
@@ -70,6 +80,9 @@ export function EventItem({
       data-past={isPast || undefined}
       data-state={state ?? undefined}
       data-has-actions={actions ? true : undefined}
+      data-mine={isMine || undefined}
+      data-block={layout ? true : undefined}
+      data-compact={compact || undefined}
     >
       <Link to={href} className={styles.event}>
         <span className={styles.titleRow}>
@@ -102,9 +115,21 @@ export function EventItem({
 }
 
 /** A date a repeat skips: shown faintly so it's clear it was left out on purpose. */
-export function SkippedItem({ title, time }: { title: string; time: string }) {
+export function SkippedItem({
+  title,
+  time,
+  layout,
+}: {
+  title: string;
+  time: string;
+  layout?: CSSProperties | null;
+}) {
   return (
-    <div className={styles.skipped}>
+    <div
+      className={styles.skipped}
+      data-block={layout ? true : undefined}
+      style={layout ?? undefined}
+    >
       <span className={styles.titleRow}>
         <Icon name="skip" className={styles.mark} />
         <span className={styles.title}>{title}</span>
@@ -122,6 +147,8 @@ interface TaskItemProps {
   time: string;
   isLate: boolean;
   href: string;
+  /** Where it sits in the week view. */
+  layout?: CSSProperties | null;
 }
 
 export function TaskItem({
@@ -130,10 +157,17 @@ export function TaskItem({
   time,
   isLate,
   href,
+  layout,
 }: TaskItemProps) {
   const status = statusOf(task, statuses);
   return (
-    <Link to={href} className={styles.task} data-late={isLate}>
+    <Link
+      to={href}
+      className={styles.task}
+      data-late={isLate}
+      data-block={layout ? true : undefined}
+      style={layout ?? undefined}
+    >
       <span className={styles.title}>{task.title}</span>
       <span className={styles.meta}>
         {time}

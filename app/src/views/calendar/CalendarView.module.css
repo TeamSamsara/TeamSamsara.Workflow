@@ -1,8 +1,8 @@
 /* File : /TeamSamsara.Workflow/app/src/views/calendar/CalendarView.module.css
-   Version : 1.0.0
-   Latest commit: feature/calendar-events
+   Version : 1.1.0
+   Latest commit: feature/calendar-people
    Author : Gerrah
-   Purpose : Layout of the calendar page: the month title with previous, next and Today; the view switch, group filter and New buttons; then the grid or list and a short legend. On phones the grid scrolls sideways. */
+   Purpose : Layout of the calendar page: the month title with previous, next and Today; the calendar picker, the view switch and New buttons; then the grid or list and a short legend. On phones the grid scrolls sideways. */
 
 .page {
   display: flex;
@@ -35,12 +35,12 @@
 .toolbar {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
   gap: var(--space-3);
 }
 
-.groupFilter {
-  flex: 0 1 220px;
+.picker {
+  flex: 0 1 240px;
 }
 
 .actions {

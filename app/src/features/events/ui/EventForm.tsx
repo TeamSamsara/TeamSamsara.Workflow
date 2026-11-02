@@ -1,17 +1,23 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/EventForm.tsx
-// Version : 1.1.0
-// Latest commit: feature/repeats
+// Version : 1.2.0
+// Latest commit: feature/calendar-people
 // Author : Gerrah
-// Purpose : An event's details as a form: title, type, date and time, link,
-// a box per {gap} its workflows ask for, and notes.
+// Purpose : An event's details as a form: title, type, date, start and end,
+// who's in it, link, a box per {gap} its workflows ask for, and notes.
 
 import type { ColouredItem } from "@/core/data";
 import { Select } from "@/shared/components/Fields/Select/Select";
 import { TextArea } from "@/shared/components/Fields/TextArea/TextArea";
 import { TextField } from "@/shared/components/Fields/TextField/TextField";
 import { gapLabel } from "../model/applyWorkflows";
-import type { EventDraft, EventDraftProblems } from "../model/eventDraft";
+import {
+  withStartTime,
+  type EventDraft,
+  type EventDraftProblems,
+} from "../model/eventDraft";
+import type { AudienceOptions } from "../hooks/useAudienceOptions";
 import { EventLimits } from "../types/eventTypes";
+import { AudiencePicker } from "./AudiencePicker";
 import { EventFormText as Text } from "./eventsContent";
 import styles from "./EventForm.module.css";
 
@@ -22,6 +28,8 @@ interface EventFormProps {
   /** The gaps to ask for, e.g. ["opponent"]. */
   gaps: readonly string[];
   problems: EventDraftProblems | null;
+  /** The groups and people that can be put in it. */
+  people: AudienceOptions;
   /** Leaves the date out, for changing a repeat (its days are set apart). */
   hideDate?: boolean;
   /** Focuses the title when the form opens. */
@@ -34,6 +42,7 @@ export function EventForm({
   eventTypes,
   gaps,
   problems,
+  people,
   hideDate = false,
   autoFocus = true,
 }: EventFormProps) {
@@ -76,10 +85,29 @@ export function EventForm({
           label={Text.time}
           type="time"
           value={draft.time}
-          onChange={(event) => onChange({ time: event.target.value })}
+          onChange={(event) =>
+            event.target.value &&
+            onChange(withStartTime(draft, event.target.value))
+          }
+          className={styles.time}
+        />
+        <TextField
+          label={Text.endTime}
+          help={Text.endTimeHelp}
+          type="time"
+          value={draft.endTime}
+          onChange={(event) =>
+            event.target.value && onChange({ endTime: event.target.value })
+          }
           className={styles.time}
         />
       </div>
+      <AudiencePicker
+        value={draft.audience}
+        onChange={(audience) => onChange({ audience })}
+        groups={people.groups}
+        members={people.members}
+      />
       <TextField
         label={Text.link}
         help={Text.linkHelp}

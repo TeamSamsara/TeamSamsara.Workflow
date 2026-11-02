@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/repeats.rules.test.ts
-// Version : 1.0.0
-// Latest commit: feature/repeats
+// Version : 1.1.0
+// Latest commit: feature/calendar-people
 // Author : Gerrah
 // Purpose : Tests repeats against the rules: every member reads them; Plan
 // events makes one with its first events and their tasks, tops up the weeks
@@ -84,7 +84,7 @@ const event = (date: string, createdBy = "pat") => ({
   updatedAt: serverTimestamp(),
 });
 
-const task = (eventId: string) => ({
+const task = (eventId: string, createdBy = "pat") => ({
   title: "Agenda",
   notes: "",
   workGroupId: "content",
@@ -106,7 +106,7 @@ const task = (eventId: string) => ({
   approvedBy: null,
   approvedAt: null,
   changesRequested: null,
-  createdBy: "pat",
+  createdBy,
   createdAt: serverTimestamp(),
   updatedAt: serverTimestamp(),
   doneAt: null,
@@ -123,12 +123,17 @@ function topUp(
   db: ReturnType<typeof signedInAs>,
   dates: string[],
   maker = "pat",
+  runner = "pat",
 ) {
   const batch = writeBatch(db);
   for (const date of dates) {
     const eventId = `weekly_${date}`;
     batch.set(doc(db, "events", eventId), event(date, maker));
-    batch.set(doc(db, "tasks", `${eventId}_meeting_agenda`), task(eventId));
+    // The event belongs to the repeat's maker; its tasks to whoever made them.
+    batch.set(
+      doc(db, "tasks", `${eventId}_meeting_agenda`),
+      task(eventId, runner),
+    );
   }
   return batch;
 }
@@ -239,10 +244,10 @@ describe("topping up the weeks ahead", () => {
 
   it("lets another planner make them, still belonging to the repeat's maker", async () => {
     await assertSucceeds(
-      topUp(signedInAs(env, "lee"), ["2026-11-16"], "pat").commit(),
+      topUp(signedInAs(env, "lee"), ["2026-11-16"], "pat", "lee").commit(),
     );
     await assertFails(
-      topUp(signedInAs(env, "lee"), ["2026-11-23"], "sam").commit(),
+      topUp(signedInAs(env, "lee"), ["2026-11-23"], "sam", "lee").commit(),
     );
   });
 

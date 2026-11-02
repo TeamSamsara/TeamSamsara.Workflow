@@ -1,0 +1,144 @@
+/* File : /TeamSamsara.Workflow/app/src/features/events/ui/AudiencePicker.module.css
+   Version : 1.0.0
+   Latest commit: feature/calendar-people
+   Author : Gerrah
+   Purpose : Who's in it: a box of chips with the search inside it, and a list of matches under it. Everyone is green, groups are filled, people are outlined. */
+
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+}
+
+.label {
+  font-size: var(--text-field-label);
+  font-weight: var(--weight-bold);
+}
+
+.box {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1-5);
+  min-height: var(--control-height);
+  padding: var(--space-1-5);
+  box-sizing: border-box;
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-field);
+  background-color: var(--color-field-fill);
+}
+
+.box:focus-within {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 30px;
+  padding: 0 var(--space-0-5) 0 var(--space-2-5);
+  border-radius: var(--radius-small);
+  background-color: var(--color-surface-raised);
+  font-size: var(--text-meta);
+}
+
+.chip[data-kind="everyone"] {
+  background-color: var(--color-accent);
+  color: var(--color-text-on-accent);
+  font-weight: var(--weight-bold);
+}
+
+.chip[data-kind="member"] {
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-pill);
+  background-color: transparent;
+}
+
+.chipIcon {
+  --icon-size: 14px;
+}
+
+.size {
+  color: var(--color-text-muted);
+}
+
+.remove {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  --icon-size: 13px;
+}
+
+.remove:hover {
+  background-color: rgb(0 0 0 / 8%);
+}
+
+.input {
+  flex: 1 1 160px;
+  min-width: 0;
+  height: 30px;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-body);
+  outline: none;
+}
+
+.list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: var(--layer-dropdown);
+  margin: 0;
+  padding: var(--space-1);
+  max-height: 280px;
+  overflow-y: auto;
+  list-style: none;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-dialog);
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-small);
+  cursor: pointer;
+}
+
+.option[data-active="true"] {
+  background-color: var(--color-surface-raised);
+}
+
+.optionName {
+  font-weight: var(--weight-bold);
+}
+
+.optionKind {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}
+
+.hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}

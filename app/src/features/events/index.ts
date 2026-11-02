@@ -1,11 +1,12 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/index.ts
-// Version : 1.1.0
-// Latest commit: feature/repeats
+// Version : 1.2.0
+// Latest commit: feature/calendar-people
 // Author : Gerrah
 // Purpose : What other layers may use from the events feature.
 
 export {
   useEvent,
+  useSeesAllEvents,
   useSeesEventTasks,
   useEventProgress,
   useEventsInRange,
@@ -14,12 +15,15 @@ export {
   useStandaloneTasksInRange,
 } from "./hooks/useEvents";
 export type { Progress } from "./hooks/useEvents";
-export { useRepeats, useRepeatTopUp } from "./hooks/useRepeats";
+export { useRepeat, useRepeats, useRepeatTopUp } from "./hooks/useRepeats";
+export { useAudienceOptions } from "./hooks/useAudienceOptions";
+export type { AudienceOptions } from "./hooks/useAudienceOptions";
 export { applyWorkflows, askedGaps, gapLabel } from "./model/applyWorkflows";
 export type { Formats, PlannedTask } from "./model/applyWorkflows";
 export {
   checkEventDraft,
   draftFromEvent,
+  draftMinutes,
   emptyEventDraft,
   fieldsFromDraft,
 } from "./model/eventDraft";
@@ -48,12 +52,19 @@ export {
   skipOccurrence,
 } from "./service/repeatService";
 export type { SeriesFields } from "./service/repeatService";
+export { readScope, scopeValue } from "./model/calendarScope";
+export type { CalendarScope, Viewer } from "./model/calendarScope";
+export { involves } from "./types/audience";
+export type { Audience } from "./types/audience";
+export { AudienceText } from "./ui/audienceContent";
 export { eventConverter, EventLimits } from "./types/eventTypes";
 export type { EventFields, EventRecord } from "./types/eventTypes";
 export { RepeatLimits } from "./types/repeatTypes";
 export type { RepeatRecord, RepeatSchedule } from "./types/repeatTypes";
 export { CalendarList } from "./ui/CalendarList";
 export { CalendarMonth } from "./ui/CalendarMonth";
+export { CalendarWeek } from "./ui/CalendarWeek";
+export type { WeekEntry } from "./ui/CalendarWeek";
 export { EventItem, SkippedItem, TaskItem } from "./ui/CalendarItem";
 export { EventActions } from "./ui/EventActions";
 export { EventActionsText } from "./ui/eventActionsContent";
