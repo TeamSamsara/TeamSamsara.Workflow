@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/session/sessionContent.ts
-// Version : 1.1.0
-// Latest commit: core/workspace
+// Version : 1.2.0
+// Latest commit: chore/rename-playbook
 // Author : Gerrah
 // Purpose : What people read when signing in, or using an email link, goes wrong.
 
@@ -26,7 +26,7 @@ export const SessionText = {
   loading: "Checking your sign-in",
   unavailableTitle: "Can't check your access",
   unavailableBody:
-    "Workflow couldn't load your member record. Check your connection, then try again.",
+    "Playbook couldn't load your member record. Check your connection, then try again.",
   tryAgain: "Try again",
   signOut: "Sign out",
 } as const;

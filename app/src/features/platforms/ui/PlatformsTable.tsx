@@ -1,9 +1,9 @@
 // File : /TeamSamsara.Workflow/app/src/features/platforms/ui/PlatformsTable.tsx
-// Version : 1.1.0
-// Latest commit: task/group-leads-and-x-premium
+// Version : 1.2.0
+// Latest commit: chore/rename-playbook
 // Author : Gerrah
 // Purpose : The platform catalogue as a table: each platform with the limits
-// Workflow checks, whether this workspace uses it, and a switch to change that.
+// Playbook checks, whether this workspace uses it, and a switch to change that.
 // A platform with a paid tier (X Premium) also asks whether the account has
 // it, which changes its limits. Everything saves straight away.
 

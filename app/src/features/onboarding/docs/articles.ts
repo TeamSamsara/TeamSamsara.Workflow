@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/articles.ts
-// Version : 1.1.0
-// Latest commit: feature/event-fields
+// Version : 1.2.0
+// Latest commit: chore/rename-playbook
 // Author : Gerrah
 // Purpose : The Documentation: one short article per feature, in groups. Each
 // group (or article) is for the people with its permission, the same as the
@@ -218,7 +218,7 @@ export const DocGroups: readonly DocGroup[] = [
         summary: "Everyone's availability, while you plan.",
         body: [
           p(
-            "Once people are in an event, Workflow checks their usual week, exceptions and personal appointments and says how many can make it, and why someone can't.",
+            "Once people are in an event, Playbook checks their usual week, exceptions and personal appointments and says how many can make it, and why someone can't.",
           ),
           p(
             "Nearby times when everyone's free are listed below: click one to move the event there.",

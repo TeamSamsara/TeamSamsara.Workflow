@@ -1,8 +1,8 @@
 // File : /TeamSamsara.Workflow/app/src/features/platforms/catalogue/platformCatalogue.ts
-// Version : 1.1.0
-// Latest commit: task/group-leads-and-x-premium
+// Version : 1.2.0
+// Latest commit: chore/rename-playbook
 // Author : Gerrah
-// Purpose : The platforms Workflow knows, with their current limits. This list
+// Purpose : The platforms Playbook knows, with their current limits. This list
 // comes with the app (it isn't edited per workspace); each workspace only
 // chooses which ones it uses, and whether its account has a platform's paid
 // tier (X Premium). Limits checked October 2026 — update them here when a

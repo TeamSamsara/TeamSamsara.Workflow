@@ -1,13 +1,13 @@
 // File : /TeamSamsara.Workflow/app/src/views/docs/docsViewContent.ts
-// Version : 1.0.0
-// Latest commit: feature/onboarding
+// Version : 1.1.0
+// Latest commit: chore/rename-playbook
 // Author : Gerrah
 // Purpose : The words on the Documentation page.
 
 export const DocsViewText = {
   title: "Documentation",
   description:
-    "How every part of Workflow works. You see the articles for what your roles let you do.",
+    "How every part of Playbook works. You see the articles for what your roles let you do.",
   viewAs: "View as",
   me: "Me",
   viewAsNote: (role: string) =>

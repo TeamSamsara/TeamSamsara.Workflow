@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/setup/setupViewContent.ts
-// Version : 1.0.0
-// Latest commit: core/workspace
+// Version : 1.1.0
+// Latest commit: chore/rename-playbook
 // Author : Gerrah
 // Purpose : The words on the first-time setup page.
 
@@ -18,7 +18,7 @@ export const SetupViewText = {
   doneTitle: "Your workspace is ready",
   doneDescription: (workspaceName: string) =>
     `${workspaceName} is set up, and you're its Admin. Next, invite your team from Settings.`,
-  openApp: "Open Workflow",
+  openApp: "Open Playbook",
 } as const;
 
 export const SetupFormText = {

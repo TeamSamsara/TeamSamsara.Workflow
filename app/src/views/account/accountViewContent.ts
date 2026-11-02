@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/account/accountViewContent.ts
-// Version : 1.1.0
-// Latest commit: feature/onboarding
+// Version : 1.2.0
+// Latest commit: chore/rename-playbook
 // Author : Gerrah
 // Purpose : The words on Your account.
 
@@ -10,7 +10,7 @@ import type { ThemeChoice } from "@/core/theme";
 export const AccountViewText = {
   title: "Your account",
   description:
-    "How you show up to others, and how Workflow shows things to you.",
+    "How you show up to others, and how Playbook shows things to you.",
   signOut: "Sign out",
   noRoles: "No roles or work groups yet",
   failed: "Couldn't save",
