@@ -408,10 +408,16 @@ service cloud.firestore {
 
     /** A profile photo: none, or a file in this project's Storage. */
     function isPhotoUrl(value) {
+      // Compared piece by piece: a pattern over a long address costs too many steps.
       return value == null
-        || (value is string && value.size() <= 600
-          && (value.matches("^https://firebasestorage[.]googleapis[.]com/.*")
-            || value.matches("^http://(127[.]0[.]0[.]1|localhost):9199/.*")));
+        || (value is string && value.size() <= 600 && isStorageAddress(value.split("/")));
+    }
+
+    /** "https://firebasestorage.googleapis.com/…", or the local Storage emulator's. */
+    function isStorageAddress(parts) {
+      return parts.size() > 3 && parts[1] == ""
+        && ((parts[0] == "https:" && parts[2] == "firebasestorage.googleapis.com")
+          || (parts[0] == "http:" && parts[2] in ["127.0.0.1:9199", "localhost:9199"]));
     }
 
     /** An Administrator taking down someone's photo. */
