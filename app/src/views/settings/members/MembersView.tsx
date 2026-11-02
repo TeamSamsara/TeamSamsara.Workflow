@@ -1,11 +1,12 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/members/MembersView.tsx
-// Version : 1.1.0
-// Latest commit: feature/your-account
+// Version : 1.2.0
+// Latest commit: feature/onboarding
 // Author : Gerrah
 // Purpose : Settings → Members: everyone in the workspace with search and a
 // status filter, and Invite people.
 
 import { useState } from "react";
+import { resolvePermissions, usePermissions } from "@/core/access";
 import { DataErrorText } from "@/core/data";
 import { useDisplayTime } from "@/core/workspace";
 import {
@@ -17,6 +18,7 @@ import {
   useMembers,
   type StatusFilter,
 } from "@/features/members";
+import { OnboardingPreview, TourTarget } from "@/features/onboarding";
 import { Banner } from "@/shared/components/Banner/Banner";
 import { Button } from "@/shared/components/Button/Button";
 import { TextField } from "@/shared/components/Fields/TextField/TextField";
@@ -28,6 +30,7 @@ import styles from "./MembersView.module.css";
 
 export function MembersView() {
   const time = useDisplayTime();
+  const access = usePermissions();
   const members = useMembers();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<StatusFilter>("all");
@@ -49,13 +52,15 @@ export function MembersView() {
           <h2 className={styles.title}>{MembersViewText.title}</h2>
           <p className={styles.muted}>{MembersViewText.description}</p>
         </div>
-        <Button
-          variant="primary"
-          iconStart="invite"
-          onClick={() => setIsInviting(true)}
-        >
-          {MembersViewText.invite}
-        </Button>
+        <TourTarget id="membersInvite">
+          <Button
+            variant="primary"
+            iconStart="invite"
+            onClick={() => setIsInviting(true)}
+          >
+            {MembersViewText.invite}
+          </Button>
+        </TourTarget>
       </header>
 
       <section className={styles.card}>
@@ -96,7 +101,16 @@ export function MembersView() {
       </section>
 
       {isInviting ? (
-        <InviteDialog onClose={() => setIsInviting(false)} />
+        <InviteDialog
+          onClose={() => setIsInviting(false)}
+          preview={(roleIds) =>
+            access.roles ? (
+              <OnboardingPreview
+                permissions={resolvePermissions(roleIds, access.roles)}
+              />
+            ) : null
+          }
+        />
       ) : null}
     </div>
   );

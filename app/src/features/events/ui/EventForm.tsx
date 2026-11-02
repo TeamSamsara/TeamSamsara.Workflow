@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/EventForm.tsx
-// Version : 1.5.0
-// Latest commit: feature/your-account
+// Version : 1.6.0
+// Latest commit: feature/onboarding
 // Author : Gerrah
 // Purpose : An event's details as a form: title, type, date, start and end,
 // who's in it (and who of them can make it), link, a box per {gap} its
@@ -9,6 +9,7 @@
 import type { ColouredItem } from "@/core/data";
 import { PlannedZoneNote, useWorkspaceRecord } from "@/core/workspace";
 import { AvailabilityCheck } from "@/features/availability";
+import { TourTarget } from "@/features/onboarding";
 import { useNow } from "@/shared/hooks/useNow";
 import { dayKey, formatTime } from "@/shared/time/dates";
 import { toWallTime } from "@/shared/time/zonedTime";
@@ -140,12 +141,14 @@ export function EventForm({
         />
       </div>
       <PlannedZoneNote />
-      <AudiencePicker
-        value={draft.audience}
-        onChange={(audience) => onChange({ audience })}
-        groups={people.groups}
-        members={people.members}
-      />
+      <TourTarget id="eventPeople">
+        <AudiencePicker
+          value={draft.audience}
+          onChange={(audience) => onChange({ audience })}
+          groups={people.groups}
+          members={people.members}
+        />
+      </TourTarget>
       {fields && checked.length > 0 ? (
         <AvailabilityCheck
           people={checked}

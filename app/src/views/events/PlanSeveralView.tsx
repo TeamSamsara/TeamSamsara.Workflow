@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/PlanSeveralView.tsx
-// Version : 1.1.0
-// Latest commit: feature/your-account
+// Version : 1.2.0
+// Latest commit: feature/onboarding
 // Author : Gerrah
 // Purpose : Planning several events at once, as a set: what they share (the
 // set's name, type, usual times, a title with {gaps}, who's in them), then
@@ -277,7 +277,11 @@ function PlanSeveral({ set }: { set: EventSetRecord | null }) {
 
       <div className={styles.columns}>
         <div className={styles.main}>
-          <section className={plan.card} aria-labelledby="plan-shared">
+          <section
+            className={plan.card}
+            aria-labelledby="plan-shared"
+            data-tour="planShared"
+          >
             <h2 id="plan-shared" className={plan.cardTitle}>
               {Text.shared}
             </h2>
@@ -392,7 +396,11 @@ function PlanSeveral({ set }: { set: EventSetRecord | null }) {
         </aside>
       </div>
 
-      <section className={plan.card} aria-labelledby="plan-rows">
+      <section
+        className={plan.card}
+        aria-labelledby="plan-rows"
+        data-tour="planRows"
+      >
         <div className={plan.rowsHead}>
           <h2 id="plan-rows" className={plan.cardTitle}>
             {Text.rowsTitle}

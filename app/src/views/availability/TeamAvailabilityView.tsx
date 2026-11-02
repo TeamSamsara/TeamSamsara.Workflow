@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/availability/TeamAvailabilityView.tsx
-// Version : 1.2.0
-// Latest commit: feature/your-account
+// Version : 1.3.0
+// Latest commit: feature/onboarding
 // Author : Gerrah
 // Purpose : A work group's week of availability, for See everyone's
 // availability: who's free when, their personal appointments, clashes with the
@@ -32,6 +32,7 @@ import { LinkButton } from "@/shared/components/Button/LinkButton";
 import { Select } from "@/shared/components/Fields/Select/Select";
 import { PageHeader } from "@/shared/components/PageHeader/PageHeader";
 import { RoutePaths } from "@/shared/constants/routePaths";
+import { TourTarget } from "@/features/onboarding";
 import { useNow } from "@/shared/hooks/useNow";
 import { formatTime } from "@/shared/time/dates";
 import {
@@ -204,23 +205,29 @@ export function TeamAvailabilityView() {
             />
           </div>
 
-          <TeamAvailabilityGrid
-            days={week.days}
-            weekdayNames={weekdayNames}
-            people={people}
-            timeFor={timeFor}
-            events={events.items.map((event) => ({
-              id: event.id,
-              title: event.title,
-              start: event.startsAt,
-              end: event.endsAt,
-            }))}
-            groupName={current?.group.name ?? ""}
-            timeZone={tz}
-            spanLabel={spanLabel}
-          />
+          <TourTarget id="teamGrid">
+            <TeamAvailabilityGrid
+              days={week.days}
+              weekdayNames={weekdayNames}
+              people={people}
+              timeFor={timeFor}
+              events={events.items.map((event) => ({
+                id: event.id,
+                title: event.title,
+                start: event.startsAt,
+                end: event.endsAt,
+              }))}
+              groupName={current?.group.name ?? ""}
+              timeZone={tz}
+              spanLabel={spanLabel}
+            />
+          </TourTarget>
 
-          <section className={styles.best} aria-labelledby="best-times">
+          <section
+            className={styles.best}
+            aria-labelledby="best-times"
+            data-tour="teamBest"
+          >
             <h2 id="best-times" className={styles.bestTitle}>
               {Text.bestTimes(current?.group.name ?? "")}
             </h2>

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/layouts/SettingsLayout/SettingsLayout.tsx
-// Version : 1.1.0
-// Latest commit: core/access
+// Version : 1.2.0
+// Latest commit: feature/onboarding
 // Author : Gerrah
 // Purpose : The frame around every settings page: the Settings title, the
 // settings menu (only the pages the member may open) on the left and the page
@@ -22,7 +22,11 @@ export function SettingsLayout() {
     <div className={styles.layout}>
       <PageHeader title={SettingsLayoutText.title} />
       <div className={styles.body}>
-        <nav aria-label={SettingsLayoutText.menuLabel} className={styles.menu}>
+        <nav
+          aria-label={SettingsLayoutText.menuLabel}
+          className={styles.menu}
+          data-tour="settingsMenu"
+        >
           <ul className={styles.list}>
             {visibleItems.map((item) => (
               <li key={item.to}>

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/membersSelf.rules.test.ts
-// Version : 1.2.0
-// Latest commit: feature/your-account
+// Version : 1.3.0
+// Latest commit: feature/onboarding
 // Author : Gerrah
 // Purpose : Tests what a member may do with their own record: read it, become
 // active on their first sign-in, note when they were last active, and change
@@ -232,6 +232,45 @@ describe("changing your own settings", () => {
     );
     await assertFails(
       updateDoc(memberDoc("sam", "mika"), { displayName: "Mika" }),
+    );
+  });
+});
+
+describe("recording the walkthrough", () => {
+  it("lets an active member record the chapters they've done", async () => {
+    await assertSucceeds(
+      updateDoc(memberDoc("sam", "sam"), {
+        walkthrough: { done: ["gettingAround", "myTasks"], hidden: false },
+      }),
+    );
+  });
+
+  it("refuses odd shapes, other fields with it, and other people", async () => {
+    await assertFails(
+      updateDoc(memberDoc("sam", "sam"), {
+        walkthrough: { done: "all", hidden: false },
+      }),
+    );
+    await assertFails(
+      updateDoc(memberDoc("sam", "sam"), {
+        walkthrough: { done: [], hidden: false, admin: true },
+      }),
+    );
+    await assertFails(
+      updateDoc(memberDoc("sam", "sam"), {
+        walkthrough: { done: [], hidden: true },
+        roleIds: ["admin"],
+      }),
+    );
+    await assertFails(
+      updateDoc(memberDoc("sam", "mika"), {
+        walkthrough: { done: [], hidden: true },
+      }),
+    );
+    await assertFails(
+      updateDoc(memberDoc("chris", "chris"), {
+        walkthrough: { done: [], hidden: true },
+      }),
     );
   });
 });

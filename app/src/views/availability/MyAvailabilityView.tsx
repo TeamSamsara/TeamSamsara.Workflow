@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/availability/MyAvailabilityView.tsx
-// Version : 1.1.0
-// Latest commit: feature/your-account
+// Version : 1.2.0
+// Latest commit: feature/onboarding
 // Author : Gerrah
 // Purpose : A member's availability: their usual week to paint, the dates that
 // differ, and who sees it. Saved together with one button; leaving with
@@ -32,6 +32,7 @@ import { PageHeader } from "@/shared/components/PageHeader/PageHeader";
 import { Spinner } from "@/shared/components/Spinner/Spinner";
 import { useToast } from "@/shared/components/Toast/useToast";
 import { RoutePaths } from "@/shared/constants/routePaths";
+import { TourTarget } from "@/features/onboarding";
 import { useNow } from "@/shared/hooks/useNow";
 import { dayKey, formatDate } from "@/shared/time/dates";
 import { timeZoneLabel } from "@/shared/time/timeZones";
@@ -122,32 +123,36 @@ function Editor({
       ) : null}
       <div className={styles.columns}>
         <section className={styles.main} aria-label={Text.title}>
-          <WeekPainter
-            weekly={weekly}
-            onChange={(next) => {
-              setWeekly(next);
-              setIsDirty(true);
-            }}
-            days={days}
-            hourLabel={hourLabel}
-          />
+          <TourTarget id="availabilityPainter">
+            <WeekPainter
+              weekly={weekly}
+              onChange={(next) => {
+                setWeekly(next);
+                setIsDirty(true);
+              }}
+              days={days}
+              hourLabel={hourLabel}
+            />
+          </TourTarget>
           <p className={styles.muted}>
             {Text.zoneNote(timeZoneLabel(time.timeZone, now))}
           </p>
         </section>
         <div className={styles.side}>
-          <ExceptionsCard
-            exceptions={exceptions}
-            onChange={(next) => {
-              setExceptions(next);
-              setIsDirty(true);
-            }}
-            dayLabel={(key) =>
-              formatDate(dayKeyToDate(key), "UTC", time.dateFormat)
-            }
-            timeLabel={(clock) => formatClockTime(clock, time.timeFormat)}
-            today={today}
-          />
+          <TourTarget id="availabilityExceptions">
+            <ExceptionsCard
+              exceptions={exceptions}
+              onChange={(next) => {
+                setExceptions(next);
+                setIsDirty(true);
+              }}
+              dayLabel={(key) =>
+                formatDate(dayKeyToDate(key), "UTC", time.dateFormat)
+              }
+              timeLabel={(clock) => formatClockTime(clock, time.timeFormat)}
+              today={today}
+            />
+          </TourTarget>
           <section className={styles.card} aria-labelledby="who-sees">
             <h2 id="who-sees" className={styles.weekTitle}>
               {Text.whoSees}

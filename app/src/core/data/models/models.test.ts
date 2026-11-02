@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/models/models.test.ts
-// Version : 1.3.0
-// Latest commit: feature/your-account
+// Version : 1.4.0
+// Latest commit: feature/onboarding
 // Author : Gerrah
 // Purpose : Tests that the workspace, member and roles records survive a save and
 // load unchanged, fill in safe defaults for missing fields, and that the roles
@@ -68,6 +68,7 @@ describe("member record", () => {
     timeZone: null,
     dateFormat: null,
     timeFormat: null,
+    walkthrough: null,
     invitedBy: "uid-0",
     invitedAt: new Date("2026-10-02T12:00:00Z"),
     joinedAt: new Date("2026-10-03T12:00:00Z"),

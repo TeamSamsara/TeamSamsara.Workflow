@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/models/memberModel.ts
-// Version : 1.2.0
-// Latest commit: feature/your-account
+// Version : 1.3.0
+// Latest commit: feature/onboarding
 // Author : Gerrah
 // Purpose : The member record (members/{account id}): who the person is, whether
 // they may use the app, and which roles and work groups they are in. A record
@@ -42,6 +42,22 @@ export function isCurrentMember(member: Pick<MemberRecord, "status">): boolean {
   return member.status !== "removed";
 }
 
+export interface Walkthrough {
+  done: string[];
+  hidden: boolean;
+}
+
+function readWalkthrough(data: DocumentData): Walkthrough | null {
+  const value = data.walkthrough;
+  if (value === null || typeof value !== "object") return null;
+  return {
+    done: Array.isArray(value.done)
+      ? value.done.filter((id: unknown): id is string => typeof id === "string")
+      : [],
+    hidden: value.hidden === true,
+  };
+}
+
 export interface MemberRecord {
   /** The member's sign-in account id, which is also the document id. */
   id: string;
@@ -57,6 +73,11 @@ export interface MemberRecord {
   /** How they see dates and times; null means "use the workspace's". */
   dateFormat: DateFormat | null;
   timeFormat: TimeFormat | null;
+  /**
+   * Their walkthrough: the chapters done (or skipped), and whether they hid
+   * its card. null until they first see it, which is when it offers itself.
+   */
+  walkthrough: Walkthrough | null;
   /** Account id of the member who sent the invite, if any. */
   invitedBy: string | null;
   invitedAt: Date | null;
@@ -81,6 +102,7 @@ function parse(id: string, data: DocumentData): MemberRecord {
     timeFormat: TimeFormats.includes(data.timeFormat)
       ? (data.timeFormat as TimeFormat)
       : null,
+    walkthrough: readWalkthrough(data),
     invitedBy: readOptionalString(data, "invitedBy"),
     invitedAt: readDate(data, "invitedAt"),
     joinedAt: readDate(data, "joinedAt"),
@@ -99,6 +121,7 @@ function serialize(member: MemberRecord): DocumentData {
     timeZone: member.timeZone,
     dateFormat: member.dateFormat,
     timeFormat: member.timeFormat,
+    walkthrough: member.walkthrough,
     invitedBy: member.invitedBy,
     invitedAt: fromDate(member.invitedAt),
     joinedAt: fromDate(member.joinedAt),

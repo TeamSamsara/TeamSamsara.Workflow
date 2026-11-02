@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/calendar/CalendarView.tsx
-// Version : 1.5.0
-// Latest commit: feature/your-account
+// Version : 1.6.0
+// Latest commit: feature/onboarding
 // Author : Gerrah
 // Purpose : The calendar: a month, a week (8 AM to midnight) or a list, of the
 // calendar picked: My calendar (what involves me), my work groups, one group,
@@ -70,6 +70,7 @@ import {
   type TaskRecord,
 } from "@/features/tasks";
 import { useWorkGroups } from "@/features/work-groups";
+import { TourTarget, WalkthroughCard } from "@/features/onboarding";
 import { formatClockTime, useWorkflows } from "@/features/workflows";
 import { Banner } from "@/shared/components/Banner/Banner";
 import { Button } from "@/shared/components/Button/Button";
@@ -486,23 +487,27 @@ export function CalendarView() {
           </Button>
         </div>
         <div className={styles.toolbar}>
-          <Select
-            label={Text.calendarLabel}
-            options={pickerOptions}
-            value={scopeValue(scope)}
-            onChange={(event) => setParam({ cal: event.target.value })}
-            className={styles.picker}
-          />
-          <SegmentedControl
-            label={Text.viewLabel}
-            options={Views.map((value) => ({
-              value,
-              label: Text.views[value],
-            }))}
-            value={view}
-            onChange={(value) => setParam({ view: value })}
-          />
-          <span className={styles.actions}>
+          <TourTarget id="calendarPicker">
+            <Select
+              label={Text.calendarLabel}
+              options={pickerOptions}
+              value={scopeValue(scope)}
+              onChange={(event) => setParam({ cal: event.target.value })}
+              className={styles.picker}
+            />
+          </TourTarget>
+          <TourTarget id="calendarViews">
+            <SegmentedControl
+              label={Text.viewLabel}
+              options={Views.map((value) => ({
+                value,
+                label: Text.views[value],
+              }))}
+              value={view}
+              onChange={(value) => setParam({ view: value })}
+            />
+          </TourTarget>
+          <span className={styles.actions} data-tour="newMenu">
             {access.can("createStandaloneTasks") ? (
               <Button iconStart="add" onClick={() => setIsCreatingTask(true)}>
                 {Text.newTask}
@@ -566,71 +571,75 @@ export function CalendarView() {
         </div>
       </header>
 
+      <WalkthroughCard />
+
       {events.status === "error" ? (
         <Banner tone="error">{DataErrorText[events.error ?? "unknown"]}</Banner>
       ) : null}
 
-      {events.status === "loading" ? (
-        <div className={styles.loading}>
-          <Spinner label={Text.loading} />
-        </div>
-      ) : view === "month" ? (
-        <div className={styles.scroll}>
-          <CalendarMonth
-            grid={grid}
-            weekStartsOn={workspace.weekStartsOn}
+      <TourTarget id="calendarBody">
+        {events.status === "loading" ? (
+          <div className={styles.loading}>
+            <Spinner label={Text.loading} />
+          </div>
+        ) : view === "month" ? (
+          <div className={styles.scroll}>
+            <CalendarMonth
+              grid={grid}
+              weekStartsOn={workspace.weekStartsOn}
+              itemsFor={itemsFor}
+              addHref={canPlan ? newEventPath : undefined}
+              dayLabel={dayLabel}
+            />
+          </div>
+        ) : view === "week" ? (
+          <div className={styles.scroll}>
+            <CalendarWeek
+              days={week.days}
+              entriesFor={weekEntriesFor}
+              now={now}
+              addHref={canPlan ? newEventPath : undefined}
+              dayLabel={dayLabel}
+              weekdayNames={Text.weekdays[workspace.weekStartsOn]}
+              hourLabel={(hour) =>
+                formatClockTime(
+                  `${String(hour).padStart(2, "0")}:00`,
+                  time.timeFormat,
+                ).replace(":00", "")
+              }
+              shadesFor={
+                scope.kind === "mine" && myAvailability
+                  ? (key) => {
+                      const day = week.days.find((entry) => entry.key === key);
+                      if (!day) return [];
+                      return stretches(
+                        { availability: myAvailability, busy: [] },
+                        new Date(day.start.getTime() + 8 * 3_600_000),
+                        day.end,
+                        tz,
+                      )
+                        .filter((part) => part.state === "unavailable")
+                        .map((part) => ({
+                          ...part,
+                          label: CalendarViewText.unavailable,
+                        }));
+                    }
+                  : undefined
+              }
+            />
+          </div>
+        ) : (
+          <CalendarList
+            dayKeys={grid.weeks
+              .flat()
+              .filter((day) => day.inMonth)
+              .map((day) => day.key)}
             itemsFor={itemsFor}
-            addHref={canPlan ? newEventPath : undefined}
             dayLabel={dayLabel}
+            todayKey={today}
           />
-        </div>
-      ) : view === "week" ? (
-        <div className={styles.scroll}>
-          <CalendarWeek
-            days={week.days}
-            entriesFor={weekEntriesFor}
-            now={now}
-            addHref={canPlan ? newEventPath : undefined}
-            dayLabel={dayLabel}
-            weekdayNames={Text.weekdays[workspace.weekStartsOn]}
-            hourLabel={(hour) =>
-              formatClockTime(
-                `${String(hour).padStart(2, "0")}:00`,
-                time.timeFormat,
-              ).replace(":00", "")
-            }
-            shadesFor={
-              scope.kind === "mine" && myAvailability
-                ? (key) => {
-                    const day = week.days.find((entry) => entry.key === key);
-                    if (!day) return [];
-                    return stretches(
-                      { availability: myAvailability, busy: [] },
-                      new Date(day.start.getTime() + 8 * 3_600_000),
-                      day.end,
-                      tz,
-                    )
-                      .filter((part) => part.state === "unavailable")
-                      .map((part) => ({
-                        ...part,
-                        label: CalendarViewText.unavailable,
-                      }));
-                  }
-                : undefined
-            }
-          />
-        </div>
-      ) : (
-        <CalendarList
-          dayKeys={grid.weeks
-            .flat()
-            .filter((day) => day.inMonth)
-            .map((day) => day.key)}
-          itemsFor={itemsFor}
-          dayLabel={dayLabel}
-          todayKey={today}
-        />
-      )}
+        )}
+      </TourTarget>
       <p className={styles.legend}>
         {scope.kind === "mine"
           ? CalendarViewText.mineLegend

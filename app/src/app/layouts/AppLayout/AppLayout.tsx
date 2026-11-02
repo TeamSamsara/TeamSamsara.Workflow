@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/layouts/AppLayout/AppLayout.tsx
-// Version : 1.0.0
-// Latest commit: core/app-shell
+// Version : 1.1.0
+// Latest commit: feature/onboarding
 // Author : Gerrah
 // Purpose : The frame around every signed-in page: the sidebar and the page area.
 // On narrow screens the sidebar becomes a slide-in menu behind a top bar button,
@@ -8,6 +8,7 @@
 
 import { useCallback, useEffect, useId, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
+import { WalkthroughProvider } from "@/features/onboarding";
 import { atOrBelow } from "@/shared/constants/breakpoints";
 import { useMediaQuery } from "@/shared/hooks/useMediaQuery";
 import { MobileTopBar } from "./MobileTopBar";
@@ -42,33 +43,35 @@ export function AppLayout() {
   }, [isMenuOpen, closeMenu]);
 
   return (
-    <div className={styles.shell}>
-      <a href={`#${mainContentId}`} className={styles.skipLink}>
-        {AppLayoutText.skipToContent}
-      </a>
+    <WalkthroughProvider>
+      <div className={styles.shell}>
+        <a href={`#${mainContentId}`} className={styles.skipLink}>
+          {AppLayoutText.skipToContent}
+        </a>
 
-      {isCompact ? (
-        <MobileTopBar
-          isMenuOpen={isMenuOpen}
-          sidebarId={sidebarId}
-          onToggleMenu={toggleMenu}
+        {isCompact ? (
+          <MobileTopBar
+            isMenuOpen={isMenuOpen}
+            sidebarId={sidebarId}
+            onToggleMenu={toggleMenu}
+          />
+        ) : null}
+
+        <Sidebar
+          id={sidebarId}
+          isCompact={isCompact}
+          isOpen={isMenuOpen}
+          className={styles.sidebar}
         />
-      ) : null}
 
-      <Sidebar
-        id={sidebarId}
-        isCompact={isCompact}
-        isOpen={isMenuOpen}
-        className={styles.sidebar}
-      />
+        {isMenuOpen ? (
+          <div className={styles.backdrop} onClick={closeMenu} aria-hidden />
+        ) : null}
 
-      {isMenuOpen ? (
-        <div className={styles.backdrop} onClick={closeMenu} aria-hidden />
-      ) : null}
-
-      <main id={mainContentId} className={styles.main} tabIndex={-1}>
-        <Outlet />
-      </main>
-    </div>
+        <main id={mainContentId} className={styles.main} tabIndex={-1}>
+          <Outlet />
+        </main>
+      </div>
+    </WalkthroughProvider>
   );
 }

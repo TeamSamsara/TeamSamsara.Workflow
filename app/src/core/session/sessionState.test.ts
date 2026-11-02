@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/session/sessionState.test.ts
-// Version : 1.2.0
-// Latest commit: feature/your-account
+// Version : 1.3.0
+// Latest commit: feature/onboarding
 // Author : Gerrah
 // Purpose : Tests every combination of sign-in account and member record.
 
@@ -21,6 +21,7 @@ const member: MemberRecord = {
   timeZone: null,
   dateFormat: null,
   timeFormat: null,
+  walkthrough: null,
   invitedBy: null,
   invitedAt: null,
   joinedAt: null,

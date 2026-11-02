@@ -1,12 +1,12 @@
 // File : /TeamSamsara.Workflow/app/src/features/members/ui/InviteDialog.tsx
-// Version : 1.0.0
-// Latest commit: feature/members
+// Version : 1.1.0
+// Latest commit: feature/onboarding
 // Author : Gerrah
 // Purpose : Invite people: their emails, the roles they start with (only roles
 // you may give), and their work groups. Sends one by one, then lists how each
 // email went.
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { usePermissions } from "@/core/access";
 import { givableRoles, RolePicker } from "@/features/roles";
 import { useWorkGroups, WorkGroupPicker } from "@/features/work-groups";
@@ -22,11 +22,13 @@ import styles from "./InviteDialog.module.css";
 
 interface InviteDialogProps {
   onClose: () => void;
+  /** What the picked roles will give them, shown under the pickers. */
+  preview?: (roleIds: readonly string[]) => ReactNode;
 }
 
 const goodOutcomes: readonly InviteOutcome[] = ["invited", "reinvited"];
 
-export function InviteDialog({ onClose }: InviteDialogProps) {
+export function InviteDialog({ onClose, preview }: InviteDialogProps) {
   const access = usePermissions();
   const groups = useWorkGroups();
   const { invite, isSending, isDone, results, isReady } = useInviteMembers();
@@ -122,6 +124,7 @@ export function InviteDialog({ onClose }: InviteDialogProps) {
             onChange={setWorkGroupIds}
             hideHint
           />
+          {preview ? preview(roleIds) : null}
           <Banner tone="info" icon="time">
             {InviteDialogText.linkNote}
           </Banner>
