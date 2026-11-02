@@ -211,9 +211,10 @@ describe("personal appointments", () => {
     await assertFails(
       deleteDoc(doc(signedInAs(env, "rin"), "personal/rinDentist")),
     );
-    const other = writeBatch(signedInAs(env, "kai"));
-    other.delete(doc(signedInAs(env, "kai"), "personal/rinDentist"));
-    other.delete(doc(signedInAs(env, "kai"), "busy/rinDentist"));
+    const kai = signedInAs(env, "kai");
+    const other = writeBatch(kai);
+    other.delete(doc(kai, "personal/rinDentist"));
+    other.delete(doc(kai, "busy/rinDentist"));
     await assertFails(other.commit());
     const db = signedInAs(env, "rin");
     const batch = writeBatch(db);
