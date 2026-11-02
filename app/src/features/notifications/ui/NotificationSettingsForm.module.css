@@ -1,0 +1,129 @@
+/* File : /TeamSamsara.Workflow/app/src/features/notifications/ui/NotificationSettingsForm.module.css
+   Version : 1.0.0
+   Latest commit: feature/notifications
+   Author : Gerrah
+   Purpose : Look of the notification settings: the kinds as a table with a switch per channel (scrolling sideways on a phone), the reminders card with its two selects side by side, and the buttons on the right. */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--content-gap);
+}
+
+.card {
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+  overflow: hidden;
+}
+
+.card[data-padded] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--card-padding);
+}
+
+.cardHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  text-transform: uppercase;
+}
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+}
+
+.table thead th {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--border-width) solid var(--color-border);
+  color: var(--color-text-muted);
+  font-family: var(--font-heading);
+  font-size: var(--text-tab);
+  font-weight: var(--weight-regular);
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.table thead th:first-child,
+.table tbody th {
+  text-align: left;
+}
+
+.table tbody tr + tr > * {
+  border-top: var(--border-width) solid var(--color-border);
+}
+
+.table tbody th,
+.table td {
+  padding: var(--space-3) var(--space-4);
+  font-weight: var(--weight-regular);
+}
+
+.table td {
+  width: 120px;
+  text-align: center;
+}
+
+.kind {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}
+
+.switch {
+  composes: switch from "../../../shared/components/Fields/Switch/Switch.module.css";
+  cursor: pointer;
+}
+
+.knob {
+  composes: knob from "../../../shared/components/Fields/Switch/Switch.module.css";
+}
+
+.later {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 var(--space-2-5);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-raised);
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  white-space: nowrap;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-4);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2-5);
+}

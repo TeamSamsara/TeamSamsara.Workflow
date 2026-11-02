@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/collections.ts
-// Version : 1.6.0
-// Latest commit: feature/event-fields
+// Version : 1.7.0
+// Latest commit: feature/notifications
 // Author : Gerrah
 // Purpose : The name of every Firestore collection and settings document, in one
 // place. One Firebase project holds one workspace, so everything sits at the top.
@@ -25,6 +25,10 @@ export const Collections = {
   personal: "personal",
   busy: "busy",
   tasks: "tasks",
+  /** What the server functions tell each member; they read and clear their own. */
+  notifications: "notifications",
+  /** Each member's choice of what they're told about, and where. */
+  notificationSettings: "notificationSettings",
   /** Workspace-wide documents that exist once (see ConfigDocuments). */
   config: "config",
 } as const;

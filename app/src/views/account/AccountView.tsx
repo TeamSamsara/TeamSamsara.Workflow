@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/account/AccountView.tsx
-// Version : 1.1.0
-// Latest commit: feature/onboarding
+// Version : 1.2.0
+// Latest commit: feature/notifications
 // Author : Gerrah
 // Purpose : Your account: who you are (name, in-game name, email), how you see
 // times and dates (your own time zone, date format and clock, or the
@@ -24,6 +24,7 @@ import { AccountLimits, saveAccount } from "@/features/account";
 import { ChangePasswordForm } from "@/features/auth";
 import { useAvailability } from "@/features/availability";
 import { memberName, memberSubName } from "@/features/members";
+import { signOutEverywhere } from "@/features/notifications";
 import { useWalkthrough } from "@/features/onboarding";
 import { useWorkGroups } from "@/features/work-groups";
 import { Avatar } from "@/shared/components/Avatar/Avatar";
@@ -89,6 +90,13 @@ function Account({ member }: { member: MemberRecord }) {
   const clock = draft.timeFormat || workspace.timeFormat;
   const change = (changes: Partial<Draft>) =>
     setDraft((current) => ({ ...current, ...changes }));
+
+  const everywhere = useMutation({
+    mutationFn: async () => {
+      await signOutEverywhere();
+      await signOut();
+    },
+  });
 
   const save = useMutation({
     mutationFn: () =>
@@ -317,6 +325,21 @@ function Account({ member }: { member: MemberRecord }) {
         </Button>
       </div>
 
+      <section className={styles.card} aria-labelledby="account-notify">
+        <h2 id="account-notify" className={styles.cardTitle}>
+          {Text.notifications}
+        </h2>
+        <p className={styles.muted}>{Text.notificationsHelp}</p>
+        <div className={styles.helpActions}>
+          <LinkButton
+            to={RoutePaths.accountNotifications}
+            iconStart="notifications"
+          >
+            {Text.notificationSettings}
+          </LinkButton>
+        </div>
+      </section>
+
       <section className={styles.card} aria-labelledby="account-help">
         <h2 id="account-help" className={styles.cardTitle}>
           {Text.help}
@@ -347,6 +370,25 @@ function Account({ member }: { member: MemberRecord }) {
             toast.show({ tone: "success", title: Text.passwordChanged })
           }
         />
+      </section>
+
+      <section className={styles.card} aria-labelledby="account-devices">
+        <h2 id="account-devices" className={styles.cardTitle}>
+          {Text.devices}
+        </h2>
+        <p className={styles.muted}>{Text.devicesHelp}</p>
+        {everywhere.error ? (
+          <Banner tone="error">{Text.everywhereFailed}</Banner>
+        ) : null}
+        <div className={styles.helpActions}>
+          <Button
+            iconStart="logOut"
+            onClick={() => everywhere.mutate()}
+            isLoading={everywhere.isPending}
+          >
+            {Text.signOutEverywhere}
+          </Button>
+        </div>
       </section>
     </div>
   );

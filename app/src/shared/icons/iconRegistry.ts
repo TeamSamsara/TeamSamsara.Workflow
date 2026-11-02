@@ -1,12 +1,13 @@
 // File : /TeamSamsara.Workflow/app/src/shared/icons/iconRegistry.ts
-// Version : 1.4.0
-// Latest commit: feature/event-sets
+// Version : 1.5.0
+// Latest commit: feature/notifications
 // Author : Gerrah
 // Purpose : The only file that knows where each icon comes from; screens use the names.
 
 import type { ComponentType } from "react";
 import {
   Archive,
+  Bell,
   ArrowLeft,
   Calendar,
   CalendarX,
@@ -124,6 +125,7 @@ export const iconRegistry = {
   time: Clock,
   loading: LoaderCircle,
   inbox: Inbox,
+  notifications: Bell,
 
   // Account and access
   user: User,

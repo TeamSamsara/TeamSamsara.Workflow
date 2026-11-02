@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/firestore.rules
-// Version : 1.20.0
-// Latest commit: feature/remember-me
+// Version : 1.21.0
+// Latest commit: feature/notifications
 // Author : Gerrah
 // Purpose : Who may read and write what in Firestore. Everything is denied until
 // a rule below allows it; each PR opens exactly what its feature needs, with a
@@ -449,6 +449,37 @@ service cloud.firestore {
       allow update: if can("manageSettings")
         && isValidStatus(request.resource.data);
       allow delete: if can("manageSettings");
+    }
+
+    // Notifications: only the server functions write them; each person reads,
+    // marks read and clears their own.
+    match /notifications/{notificationId} {
+      allow read, delete: if isActiveMember()
+        && resource.data.memberId == request.auth.uid;
+      allow update: if isActiveMember()
+        && resource.data.memberId == request.auth.uid
+        && changedFields().hasOnly(["readAt"])
+        && request.resource.data.readAt is timestamp;
+    }
+
+    // What each person wants to be told about, and where. Their own only.
+    match /notificationSettings/{memberId} {
+      allow read: if isActiveMember() && request.auth.uid == memberId;
+      allow create, update: if isActiveMember() && request.auth.uid == memberId
+        && isValidNotificationSettings(request.resource.data);
+    }
+
+    function isValidNotificationSettings(data) {
+      let kinds = ["given", "mine", "review", "events"];
+      return data.keys().hasOnly(["app", "email", "taskReminder", "eventReminder",
+          "updatedAt"])
+        && data.app is map && data.app.keys().hasOnly(kinds)
+        && data.app.values().hasOnly([true, false])
+        && data.email is map && data.email.keys().hasOnly(kinds)
+        && data.email.values().hasOnly([true, false])
+        && data.taskReminder in ["off", "1h", "2h", "dayBefore"]
+        && data.eventReminder in ["off", "15m", "1h", "dayBefore"]
+        && data.updatedAt == request.time;
     }
 
     // Fields: the details events can have, keyed by how text writes them

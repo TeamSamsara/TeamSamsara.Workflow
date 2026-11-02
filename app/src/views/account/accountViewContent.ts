@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/account/accountViewContent.ts
-// Version : 1.2.0
-// Latest commit: chore/rename-playbook
+// Version : 1.3.0
+// Latest commit: feature/notifications
 // Author : Gerrah
 // Purpose : The words on Your account.
 
@@ -50,6 +50,15 @@ export const AccountViewText = {
   themeNote: "The theme changes right away, on this device.",
   reset: "Undo changes",
   save: "Save changes",
+  notifications: "Notifications",
+  notificationsHelp:
+    "Choose what Playbook tells you about, by email too, and when it reminds you.",
+  notificationSettings: "Notification settings",
+  devices: "Your devices",
+  devicesHelp:
+    "Lost a phone or signed in on a shared computer? Sign out everywhere: other devices are signed out within the hour, this one right away.",
+  signOutEverywhere: "Sign out everywhere",
+  everywhereFailed: "Couldn't sign out everywhere. Try again.",
   help: "Help",
   helpProgress: (done: number, total: number) =>
     done >= total

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/constants/routePaths.ts
-// Version : 1.13.0
-// Latest commit: feature/event-fields
+// Version : 1.14.0
+// Latest commit: feature/notifications
 // Author : Gerrah
 // Purpose : Every address in the app, in one place, so links and routes can
 // never disagree about where a page lives.
@@ -27,6 +27,10 @@ export const RoutePaths = {
   /** One workflow in the editor; "new" for a workflow not saved yet. */
   workflow: "/workflows/:workflowId",
   account: "/account",
+  /** What Playbook tells you about, and where. */
+  accountNotifications: "/account/notifications",
+  /** The notification list on its own page (the bell opens it on a phone). */
+  notifications: "/notifications",
   /** How everything works, for what you can do. */
   docs: "/docs",
   /** One article. */

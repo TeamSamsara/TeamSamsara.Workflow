@@ -1,6 +1,6 @@
 # File : /TeamSamsara.Workflow/.github/workflows/ci.yml
-# Version : 1.3.0
-# Latest commit: feature/members
+# Version : 1.4.0
+# Latest commit: feature/notifications
 # Author : Gerrah
 # Purpose : Checks every PR into dev or main, and every push to them: lint,
 # type-check, unit tests and a production build of the app, and the Firestore
@@ -50,6 +50,13 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Server functions (type-check and test)
+        working-directory: functions
+        run: |
+          npm ci
+          npm run typecheck
+          npm test
 
   rules:
     name: Security rules

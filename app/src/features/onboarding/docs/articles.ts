@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/articles.ts
-// Version : 1.2.0
-// Latest commit: chore/rename-playbook
+// Version : 1.3.0
+// Latest commit: feature/notifications
 // Author : Gerrah
 // Purpose : The Documentation: one short article per feature, in groups. Each
 // group (or article) is for the people with its permission, the same as the
@@ -95,6 +95,19 @@ export const DocGroups: readonly DocGroup[] = [
           ),
           p(
             'When your time zone differs, forms that set times say "Times here are in Toronto time", and an event\'s page shows both times.',
+          ),
+        ],
+      },
+      {
+        id: "notifications",
+        title: "Notifications",
+        summary: "The bell: what needs you, and reminders.",
+        body: [
+          p(
+            "The bell at the top of the menu counts what's new: a task given to you or your group, a task sent to you to review, yours approved or sent back, and events you're added to, moved or cancelled. Reminders come before a task is due and before an event starts. Nothing you do yourself notifies you.",
+          ),
+          p(
+            "Open one to go to its task or event. Choose which kinds you get, by email too, and when you're reminded on Your account › Notifications, where a test email checks that email reaches you.",
           ),
         ],
       },
