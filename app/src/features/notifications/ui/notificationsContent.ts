@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/ui/notificationsContent.ts
-// Version : 1.0.0
-// Latest commit: feature/notifications
+// Version : 1.1.0
+// Latest commit: fix/modal-and-account-notifications
 // Author : Gerrah
 // Purpose : The words of notifications: the bell, the list, each kind of
 // notification, and the settings page.
@@ -10,6 +10,9 @@ import type {
   SettingGroup,
   TaskReminder,
 } from "../types/notificationTypes";
+
+/** Where notification settings sit on Your account (its link from the bell). */
+export const accountNotificationsId = "notifications";
 
 export const NotificationListText = {
   title: "Notifications",
@@ -41,7 +44,9 @@ export const NotificationSettingsText = {
   inApp: "In Playbook",
   email: "Email",
   discord: "Discord",
-  withBot: "With the bot",
+  discordSoon: (name: string) => `${name}, on Discord: coming soon`,
+  comingSoon: "Discord notifications are coming soon",
+  comingSoonBody: "They'll arrive with the Playbook bot for your server.",
   groups: {
     given: {
       name: "A task is given to me or my group",

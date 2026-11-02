@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/account/accountViewContent.ts
-// Version : 1.3.0
-// Latest commit: feature/notifications
+// Version : 1.4.0
+// Latest commit: fix/modal-and-account-notifications
 // Author : Gerrah
 // Purpose : The words on Your account.
 
@@ -52,8 +52,7 @@ export const AccountViewText = {
   save: "Save changes",
   notifications: "Notifications",
   notificationsHelp:
-    "Choose what Playbook tells you about, by email too, and when it reminds you.",
-  notificationSettings: "Notification settings",
+    "What Playbook tells you about, and where. Nothing you do yourself notifies you.",
   devices: "Your devices",
   devicesHelp:
     "Lost a phone or signed in on a shared computer? Sign out everywhere: other devices are signed out within the hour, this one right away.",

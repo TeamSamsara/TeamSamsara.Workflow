@@ -1,13 +1,14 @@
 // File : /TeamSamsara.Workflow/app/src/views/account/AccountView.tsx
-// Version : 1.2.0
-// Latest commit: feature/notifications
+// Version : 1.3.0
+// Latest commit: fix/modal-and-account-notifications
 // Author : Gerrah
 // Purpose : Your account: who you are (name, in-game name, email), how you see
 // times and dates (your own time zone, date format and clock, or the
 // workspace's; your theme), your password, and signing out.
 
 import { useMutation } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { usePermissions } from "@/core/access";
 import {
   dataErrorMessage,
@@ -24,7 +25,12 @@ import { AccountLimits, saveAccount } from "@/features/account";
 import { ChangePasswordForm } from "@/features/auth";
 import { useAvailability } from "@/features/availability";
 import { memberName, memberSubName } from "@/features/members";
-import { signOutEverywhere } from "@/features/notifications";
+import {
+  accountNotificationsId,
+  NotificationSettingsForm,
+  signOutEverywhere,
+  useNotificationSettings,
+} from "@/features/notifications";
 import { useWalkthrough } from "@/features/onboarding";
 import { useWorkGroups } from "@/features/work-groups";
 import { Avatar } from "@/shared/components/Avatar/Avatar";
@@ -91,6 +97,13 @@ function Account({ member }: { member: MemberRecord }) {
   const change = (changes: Partial<Draft>) =>
     setDraft((current) => ({ ...current, ...changes }));
 
+  const notificationSettings = useNotificationSettings();
+  const { hash } = useLocation();
+  // The bell's gear links here with #notifications: go to that part.
+  useEffect(() => {
+    if (!hash || !notificationSettings) return;
+    document.getElementById(hash.slice(1))?.scrollIntoView({ block: "start" });
+  }, [hash, notificationSettings]);
   const everywhere = useMutation({
     mutationFn: async () => {
       await signOutEverywhere();
@@ -325,19 +338,20 @@ function Account({ member }: { member: MemberRecord }) {
         </Button>
       </div>
 
-      <section className={styles.card} aria-labelledby="account-notify">
-        <h2 id="account-notify" className={styles.cardTitle}>
-          {Text.notifications}
-        </h2>
-        <p className={styles.muted}>{Text.notificationsHelp}</p>
-        <div className={styles.helpActions}>
-          <LinkButton
-            to={RoutePaths.accountNotifications}
-            iconStart="notifications"
-          >
-            {Text.notificationSettings}
-          </LinkButton>
+      <section
+        id={accountNotificationsId}
+        className={styles.block}
+        aria-labelledby="account-notify"
+      >
+        <div className={styles.blockHead}>
+          <h2 id="account-notify" className={styles.blockTitle}>
+            {Text.notifications}
+          </h2>
+          <p className={styles.muted}>{Text.notificationsHelp}</p>
         </div>
+        {notificationSettings ? (
+          <NotificationSettingsForm settings={notificationSettings} />
+        ) : null}
       </section>
 
       <section className={styles.card} aria-labelledby="account-help">

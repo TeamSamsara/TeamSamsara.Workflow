@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/ui/NotificationBell.tsx
-// Version : 1.0.0
-// Latest commit: feature/notifications
+// Version : 1.1.0
+// Latest commit: fix/modal-and-account-notifications
 // Author : Gerrah
 // Purpose : The bell with the unread count. In the sidebar it opens the list
 // in a panel beside it (closed by Escape, a click outside, or opening one); in
@@ -61,6 +61,7 @@ export function NotificationBell({ opens = "panel" }: NotificationBellProps) {
       <Link
         to={RoutePaths.notifications}
         className={styles.bell}
+        data-tour="notificationBell"
         aria-label={Text.bell(unread)}
       >
         <Icon name="notifications" />
@@ -70,7 +71,7 @@ export function NotificationBell({ opens = "panel" }: NotificationBellProps) {
   }
 
   return (
-    <div ref={root} className={styles.root}>
+    <div ref={root} className={styles.root} data-tour="notificationBell">
       <button
         ref={button}
         type="button"

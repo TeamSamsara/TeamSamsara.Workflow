@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/components/Modal/Modal.tsx
-// Version : 1.0.0
-// Latest commit: core/ui-kit
+// Version : 1.1.0
+// Latest commit: fix/modal-and-account-notifications
 // Author : Gerrah
 // Purpose : The generic dialog: a titled card over a dimmed page, built on the browser's own
 // dialog so focus stays inside and the page behind cannot be used. It opens when it appears
@@ -11,6 +11,7 @@ import {
   useId,
   useRef,
   type MouseEvent,
+  type PointerEvent,
   type ReactNode,
 } from "react";
 import { classNames } from "@/lib/classNames";
@@ -72,18 +73,31 @@ export function Modal({
     if (canClose) onClose?.();
   }
 
+  /** Whether a point is outside the card (on the dimmed backdrop). */
+  function isOutside(dialog: HTMLDialogElement, x: number, y: number) {
+    const box = dialog.getBoundingClientRect();
+    return x < box.left || x > box.right || y < box.top || y > box.bottom;
+  }
+
+  // Where the press began: a drag that starts inside the card (selecting
+  // text, a right-click drag) and ends outside it must not close it.
+  const pressedOutside = useRef(false);
+
+  function handlePointerDown(event: PointerEvent<HTMLDialogElement>) {
+    pressedOutside.current =
+      event.target === event.currentTarget &&
+      event.button === 0 &&
+      isOutside(event.currentTarget, event.clientX, event.clientY);
+  }
+
   // A click outside the card lands on the dialog itself; one inside is within its box.
   function handleClick(event: MouseEvent<HTMLDialogElement>) {
-    if (!canClose || event.target !== event.currentTarget) return;
-
-    const box = event.currentTarget.getBoundingClientRect();
-    const isOutside =
-      event.clientX < box.left ||
-      event.clientX > box.right ||
-      event.clientY < box.top ||
-      event.clientY > box.bottom;
-
-    if (isOutside) onClose?.();
+    const startedOutside = pressedOutside.current;
+    pressedOutside.current = false;
+    if (!canClose || !startedOutside || event.target !== event.currentTarget)
+      return;
+    if (isOutside(event.currentTarget, event.clientX, event.clientY))
+      onClose?.();
   }
 
   return (
@@ -94,6 +108,7 @@ export function Modal({
       aria-labelledby={titleId}
       aria-describedby={description ? descriptionId : undefined}
       onCancel={handleCancel}
+      onPointerDown={handlePointerDown}
       onClick={handleClick}
     >
       <div className={styles.content}>

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/model/chapters.ts
-// Version : 1.0.0
-// Latest commit: feature/onboarding
+// Version : 1.1.0
+// Latest commit: fix/modal-and-account-notifications
 // Author : Gerrah
 // Purpose : The walkthrough's chapters, each for one thing a person can do,
 // shown only to people with its permission. A chapter is a few steps; each
@@ -14,6 +14,7 @@ import { ChapterText as Text } from "../ui/onboardingContent";
 /** The parts of pages the walkthrough points at (see TourTarget). */
 export type TourTargetId =
   | "nav"
+  | "notificationBell"
   | "calendarPicker"
   | "calendarViews"
   | "calendarBody"
@@ -80,6 +81,7 @@ export const Chapters: readonly Chapter[] = [
     requires: null,
     steps: [
       { path: RoutePaths.calendar, target: "nav", ...S.nav },
+      { path: RoutePaths.calendar, target: "notificationBell", ...S.bell },
       { path: RoutePaths.calendar, target: "calendarPicker", ...S.picker },
       { path: RoutePaths.calendar, target: "calendarViews", ...S.views },
       { path: RoutePaths.calendar, target: "calendarBody", ...S.events },
