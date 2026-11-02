@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/workflows/WorkflowsView.tsx
-// Version : 1.3.0
-// Latest commit: feature/your-account
+// Version : 1.4.0
+// Latest commit: feature/onboarding
 // Author : Gerrah
 // Purpose : The Workflows page: every workflow in a table, in use or archived,
 // with New workflow (with the guide, or blank) and Import. The first visit
@@ -22,6 +22,7 @@ import {
   WorkflowsTable,
   WorkflowTutorial,
 } from "@/features/workflows";
+import { TourTarget } from "@/features/onboarding";
 import { Banner } from "@/shared/components/Banner/Banner";
 import { Button } from "@/shared/components/Button/Button";
 import { ButtonContent } from "@/shared/components/Button/ButtonContent";
@@ -128,44 +129,46 @@ export function WorkflowsView() {
                 >
                   {Text.import}
                 </Button>
-                <Dropdown>
-                  <DropdownTrigger
-                    popup="menu"
-                    {...buttonLook("primary", "medium", false)}
-                  >
-                    <ButtonContent iconStart="add" iconEnd="chevronDown">
-                      {Text.new}
-                    </ButtonContent>
-                  </DropdownTrigger>
-                  <DropdownPanel
-                    role="menu"
-                    placement="bottom-end"
-                    aria-label={Text.new}
-                  >
-                    <DropdownItem
-                      as={Link}
-                      to={RoutePaths.workflowGuide}
-                      role="menuitem"
-                      className={styles.menuItem}
+                <TourTarget id="workflowsNew">
+                  <Dropdown>
+                    <DropdownTrigger
+                      popup="menu"
+                      {...buttonLook("primary", "medium", false)}
                     >
-                      <b>{Text.newGuided}</b>
-                      <span className={styles.muted}>
-                        {Text.newGuidedDetail}
-                      </span>
-                    </DropdownItem>
-                    <DropdownItem
-                      as={Link}
-                      to={workflowPath()}
-                      role="menuitem"
-                      className={styles.menuItem}
+                      <ButtonContent iconStart="add" iconEnd="chevronDown">
+                        {Text.new}
+                      </ButtonContent>
+                    </DropdownTrigger>
+                    <DropdownPanel
+                      role="menu"
+                      placement="bottom-end"
+                      aria-label={Text.new}
                     >
-                      <b>{Text.newBlank}</b>
-                      <span className={styles.muted}>
-                        {Text.newBlankDetail}
-                      </span>
-                    </DropdownItem>
-                  </DropdownPanel>
-                </Dropdown>
+                      <DropdownItem
+                        as={Link}
+                        to={RoutePaths.workflowGuide}
+                        role="menuitem"
+                        className={styles.menuItem}
+                      >
+                        <b>{Text.newGuided}</b>
+                        <span className={styles.muted}>
+                          {Text.newGuidedDetail}
+                        </span>
+                      </DropdownItem>
+                      <DropdownItem
+                        as={Link}
+                        to={workflowPath()}
+                        role="menuitem"
+                        className={styles.menuItem}
+                      >
+                        <b>{Text.newBlank}</b>
+                        <span className={styles.muted}>
+                          {Text.newBlankDetail}
+                        </span>
+                      </DropdownItem>
+                    </DropdownPanel>
+                  </Dropdown>
+                </TourTarget>
                 <input
                   ref={fileInput}
                   type="file"
@@ -184,7 +187,7 @@ export function WorkflowsView() {
       {!canEdit ? <Banner tone="info">{Text.readOnly}</Banner> : null}
 
       {isEmpty ? (
-        <section className={styles.first}>
+        <section className={styles.first} data-tour="workflowsList">
           <span className={styles.firstIcon} aria-hidden="true">
             <Icon name="workflows" />
           </span>
@@ -201,7 +204,7 @@ export function WorkflowsView() {
           ) : null}
         </section>
       ) : (
-        <section className={styles.card}>
+        <section className={styles.card} data-tour="workflowsList">
           <SegmentedControl
             label={Text.filterLabel}
             options={filterOptions}

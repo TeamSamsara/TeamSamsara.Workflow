@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/firestore.rules
-// Version : 1.17.0
-// Latest commit: feature/your-account
+// Version : 1.18.0
+// Latest commit: feature/onboarding
 // Author : Gerrah
 // Purpose : Who may read and write what in Firestore. Everything is denied until
 // a rule below allows it; each PR opens exactly what its feature needs, with a
@@ -213,7 +213,8 @@ service cloud.firestore {
       // A member's own writes: activating on first sign-in, "last active",
       // and their own name, in-game name, time zone and date and time formats.
       allow update: if isSelf(memberId)
-        && (isActivatingSelf() || isRecordingLastActive() || isChangingOwnProfile());
+        && (isActivatingSelf() || isRecordingLastActive() || isChangingOwnProfile()
+          || isRecordingWalkthrough());
 
       // Someone managing members, roles or groups changing another record.
       allow update: if isManagedChange();
@@ -381,6 +382,18 @@ service cloud.firestore {
           || (after.timeZone is string && after.timeZone.size() > 0 && after.timeZone.size() <= 64))
         && after.get("dateFormat", null) in [null, "weekdayMonthDay", "monthDay", "dayMonth", "isoDate"]
         && after.get("timeFormat", null) in [null, "12h", "24h"];
+    }
+
+    /** An active member's walkthrough: the chapters they've done, and whether its card is hidden. */
+    function isRecordingWalkthrough() {
+      let walk = request.resource.data.walkthrough;
+      return resource.data.status == "active"
+        && changedFields().hasOnly(["walkthrough"])
+        && walk is map
+        && walk.keys().hasOnly(["done", "hidden"])
+        && walk.keys().hasAll(["done", "hidden"])
+        && walk.done is list && walk.done.size() <= 30
+        && walk.hidden is bool;
     }
 
     /** An active member opening the app: only "last active" changes, to the server's time. */

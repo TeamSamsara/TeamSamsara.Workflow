@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/account/accountViewContent.ts
-// Version : 1.0.0
-// Latest commit: feature/your-account
+// Version : 1.1.0
+// Latest commit: feature/onboarding
 // Author : Gerrah
 // Purpose : The words on Your account.
 
@@ -50,6 +50,13 @@ export const AccountViewText = {
   themeNote: "The theme changes right away, on this device.",
   reset: "Undo changes",
   save: "Save changes",
+  help: "Help",
+  helpProgress: (done: number, total: number) =>
+    done >= total
+      ? "You've been through the whole walkthrough. Replay it, or open one part from Documentation."
+      : `Walkthrough: ${done} of ${total} chapters done. Pick it up from your calendar, or replay it all.`,
+  replay: "Replay the walkthrough",
+  openDocs: "Open Documentation",
   password: "Password",
   passwordChanged: "Password changed",
 } as const;

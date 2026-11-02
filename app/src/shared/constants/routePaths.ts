@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/constants/routePaths.ts
-// Version : 1.11.0
-// Latest commit: feature/event-sets
+// Version : 1.12.0
+// Latest commit: feature/onboarding
 // Author : Gerrah
 // Purpose : Every address in the app, in one place, so links and routes can
 // never disagree about where a page lives.
@@ -27,6 +27,10 @@ export const RoutePaths = {
   /** One workflow in the editor; "new" for a workflow not saved yet. */
   workflow: "/workflows/:workflowId",
   account: "/account",
+  /** How everything works, for what you can do. */
+  docs: "/docs",
+  /** One article. */
+  docsArticle: "/docs/:articleId",
   availability: "/availability",
   availabilityTeam: "/availability/team",
   // #endregion
@@ -123,4 +127,9 @@ export function planSeveralPath(setId?: string): string {
   return setId
     ? `/events/new/several?set=${encodeURIComponent(setId)}`
     : "/events/new/several";
+}
+
+/** /docs/:articleId */
+export function docsPath(articleId?: string): string {
+  return articleId ? `/docs/${encodeURIComponent(articleId)}` : "/docs";
 }

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/members/service/memberFilters.test.ts
-// Version : 1.1.0
-// Latest commit: feature/your-account
+// Version : 1.2.0
+// Latest commit: feature/onboarding
 // Author : Gerrah
 // Purpose : Tests the Members page's status filter, search and counts.
 
@@ -25,6 +25,7 @@ const item = (
     timeZone: null,
     dateFormat: null,
     timeFormat: null,
+    walkthrough: null,
     invitedBy: null,
     invitedAt: null,
     joinedAt: null,

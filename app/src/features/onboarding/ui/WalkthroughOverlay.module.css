@@ -1,0 +1,137 @@
+/* File : /TeamSamsara.Workflow/app/src/features/onboarding/ui/WalkthroughOverlay.module.css
+   Version : 1.0.0
+   Latest commit: feature/onboarding
+   Author : Gerrah
+   Purpose : The walkthrough over the page: the lit part outlined in green with the rest dimmed around it (clicks still reach the page), and the note card beside it; on narrow screens, or when the part isn't there, the card sits at the bottom. */
+
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--layer-dialog);
+  pointer-events: none;
+}
+
+.spotlight {
+  position: fixed;
+  border-radius: var(--radius-card);
+  outline: 3px solid var(--color-accent);
+  box-shadow: 0 0 0 200vmax rgb(15 21 25 / 55%);
+  transition:
+    top var(--motion-fast) ease,
+    left var(--motion-fast) ease,
+    width var(--motion-fast) ease,
+    height var(--motion-fast) ease;
+}
+
+.dim {
+  position: fixed;
+  inset: 0;
+  background-color: rgb(15 21 25 / 55%);
+}
+
+.callout {
+  position: fixed;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  left: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2-5);
+  box-sizing: border-box;
+  max-width: 480px;
+  margin-inline: auto;
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-dialog);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-dialog);
+  color: var(--color-text);
+  pointer-events: auto;
+}
+
+.callout[data-placed] {
+  right: auto;
+  bottom: auto;
+  width: 360px;
+  margin: 0;
+}
+
+.callout:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.chapter {
+  color: var(--color-accent-text);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+}
+
+.count {
+  margin-left: auto;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}
+
+.bar {
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-raised);
+  overflow: hidden;
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+  background-color: var(--color-accent);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.body,
+.note {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.note {
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+}
+
+.tryIt {
+  align-self: flex-start;
+  padding: var(--space-0-5) var(--space-2-5);
+  border: var(--border-width) solid var(--color-alert);
+  border-radius: var(--radius-pill);
+  background-color: color-mix(
+    in srgb,
+    var(--color-alert) 20%,
+    var(--color-surface)
+  );
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding-top: var(--space-1);
+}
+
+.spacer {
+  flex: 1;
+}

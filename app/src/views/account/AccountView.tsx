@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/account/AccountView.tsx
-// Version : 1.0.0
-// Latest commit: feature/your-account
+// Version : 1.1.0
+// Latest commit: feature/onboarding
 // Author : Gerrah
 // Purpose : Your account: who you are (name, in-game name, email), how you see
 // times and dates (your own time zone, date format and clock, or the
@@ -24,15 +24,18 @@ import { AccountLimits, saveAccount } from "@/features/account";
 import { ChangePasswordForm } from "@/features/auth";
 import { useAvailability } from "@/features/availability";
 import { memberName, memberSubName } from "@/features/members";
+import { useWalkthrough } from "@/features/onboarding";
 import { useWorkGroups } from "@/features/work-groups";
 import { Avatar } from "@/shared/components/Avatar/Avatar";
 import { Banner } from "@/shared/components/Banner/Banner";
 import { Button } from "@/shared/components/Button/Button";
+import { LinkButton } from "@/shared/components/Button/LinkButton";
 import { Select } from "@/shared/components/Fields/Select/Select";
 import { TextField } from "@/shared/components/Fields/TextField/TextField";
 import { PageHeader } from "@/shared/components/PageHeader/PageHeader";
 import { SegmentedControl } from "@/shared/components/SegmentedControl/SegmentedControl";
 import { useToast } from "@/shared/components/Toast/useToast";
+import { RoutePaths } from "@/shared/constants/routePaths";
 import { useNow } from "@/shared/hooks/useNow";
 import { formatDate, formatTime } from "@/shared/time/dates";
 import {
@@ -71,6 +74,7 @@ function Account({ member }: { member: MemberRecord }) {
   const toast = useToast();
   const now = useNow();
   const availability = useAvailability(member.id);
+  const walkthrough = useWalkthrough();
   const [draft, setDraft] = useState<Draft>(() => draftOf(member));
   const [tried, setTried] = useState(false);
   const zones = useMemo(() => timeZoneOptions(), []);
@@ -312,6 +316,26 @@ function Account({ member }: { member: MemberRecord }) {
           {Text.save}
         </Button>
       </div>
+
+      <section className={styles.card} aria-labelledby="account-help">
+        <h2 id="account-help" className={styles.cardTitle}>
+          {Text.help}
+        </h2>
+        <p className={styles.muted}>
+          {Text.helpProgress(
+            walkthrough.chapters.length - walkthrough.left.length,
+            walkthrough.chapters.length,
+          )}
+        </p>
+        <div className={styles.helpActions}>
+          <Button iconStart="repeat" onClick={walkthrough.replay}>
+            {Text.replay}
+          </Button>
+          <LinkButton to={RoutePaths.docs} variant="ghost" iconStart="help">
+            {Text.openDocs}
+          </LinkButton>
+        </div>
+      </section>
 
       <section className={styles.card} aria-labelledby="account-password">
         <h2 id="account-password" className={styles.cardTitle}>

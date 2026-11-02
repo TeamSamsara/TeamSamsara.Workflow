@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/tasks/MyTasksView.tsx
-// Version : 1.1.0
-// Latest commit: feature/your-account
+// Version : 1.2.0
+// Latest commit: feature/onboarding
 // Author : Gerrah
 // Purpose : My tasks: what's given to me (and my work groups) and still to do,
 // grouped Late, Today, This week, Later and No due date; beside it, for
@@ -121,7 +121,7 @@ export function MyTasksView() {
       />
 
       <div className={styles.columns}>
-        <div className={styles.main}>
+        <div className={styles.main} data-tour="myTasks">
           {open.status === "loading" ? (
             <div className={styles.loading}>
               <Spinner label={Text.loading} />
@@ -154,7 +154,7 @@ export function MyTasksView() {
         </div>
 
         {canApprove ? (
-          <aside className={styles.side}>
+          <aside className={styles.side} data-tour="myTasksSide">
             {queue.items.length > 0 ? (
               <TaskGroupCard
                 title={Text.approvals}

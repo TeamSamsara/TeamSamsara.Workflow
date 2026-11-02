@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/layouts/AppLayout/Sidebar.tsx
-// Version : 1.5.0
-// Latest commit: fix/sidebar
+// Version : 1.6.0
+// Latest commit: feature/onboarding
 // Author : Gerrah
 // Purpose : The dark sidebar: the logo with the workspace's name, the main menu
 // (only the items the member may use), and the account link with the theme
@@ -55,7 +55,11 @@ export function Sidebar({ id, isCompact, isOpen, className }: SidebarProps) {
         </span>
       </div>
 
-      <nav aria-label={SidebarText.mainMenu} className={styles.menu}>
+      <nav
+        aria-label={SidebarText.mainMenu}
+        className={styles.menu}
+        data-tour="nav"
+      >
         <ul className={styles.list}>
           {visibleItems.map((item) => (
             <li key={item.to}>

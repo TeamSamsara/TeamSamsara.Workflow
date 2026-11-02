@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/NewEventView.tsx
-// Version : 1.5.0
-// Latest commit: feature/your-account
+// Version : 1.6.0
+// Latest commit: feature/onboarding
 // Author : Gerrah
 // Purpose : Planning an event: its details on the left; on the right the
 // workflows to apply (the ones made for its type ticked to start with) and
@@ -60,6 +60,7 @@ import { Modal } from "@/shared/components/Modal/Modal";
 import { PageHeader } from "@/shared/components/PageHeader/PageHeader";
 import { useToast } from "@/shared/components/Toast/useToast";
 import { eventPath, RoutePaths } from "@/shared/constants/routePaths";
+import { TourTarget } from "@/features/onboarding";
 import { useNow } from "@/shared/hooks/useNow";
 import { dayKey, formatDate } from "@/shared/time/dates";
 import { dayKeyToDate } from "@/shared/time/monthGrid";
@@ -276,7 +277,7 @@ export function NewEventView() {
               problems={tried ? repeatProblems : null}
             />
           ) : (
-            <div className={styles.repeatAdd}>
+            <div className={styles.repeatAdd} data-tour="eventRepeat">
               <Button
                 variant="ghost"
                 iconStart="repeat"
@@ -289,13 +290,15 @@ export function NewEventView() {
           )}
         </section>
         <div className={styles.side}>
-          <WorkflowPicker
-            workflows={available}
-            selectedIds={selectedIds}
-            onChange={setPickedIds}
-            eventTypeId={draft.eventTypeId}
-            groups={groups.items.map((item) => item.group)}
-          />
+          <TourTarget id="eventWorkflows">
+            <WorkflowPicker
+              workflows={available}
+              selectedIds={selectedIds}
+              onChange={setPickedIds}
+              eventTypeId={draft.eventTypeId}
+              groups={groups.items.map((item) => item.group)}
+            />
+          </TourTarget>
           <TaskPreview
             tasks={planned}
             hasDate={fields !== null}

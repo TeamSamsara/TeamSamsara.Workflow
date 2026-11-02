@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/EventSetsView.tsx
-// Version : 1.1.0
-// Latest commit: feature/your-account
+// Version : 1.2.0
+// Latest commit: feature/onboarding
 // Author : Gerrah
 // Purpose : Every set of events (a split, a month of content), newest first,
 // each opening its page; planners start a new one from here.
@@ -62,9 +62,11 @@ export function EventSetsView() {
           <Spinner label={Text.loading} />
         </div>
       ) : sets.items.length === 0 ? (
-        <p className={plan.empty}>{Text.noSets}</p>
+        <p className={plan.empty} data-tour="setsList">
+          {Text.noSets}
+        </p>
       ) : (
-        <div className={plan.tableCard}>
+        <div className={plan.tableCard} data-tour="setsList">
           <Table caption={Text.setsCaption} minWidth={560}>
             <thead>
               <tr>
