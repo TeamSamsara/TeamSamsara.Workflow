@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/calendar/CalendarView.tsx
-// Version : 1.2.0
-// Latest commit: feature/calendar-people
+// Version : 1.3.0
+// Latest commit: feature/people-time
 // Author : Gerrah
 // Purpose : The calendar: a month, a week (8 AM to midnight) or a list, of the
 // calendar picked: My calendar (what involves me), my work groups, one group,
@@ -8,7 +8,9 @@
 // the address so a link opens the same view, and the browser remembers the
 // last view and calendar. Planners add events from here and change them from
 // each event's ⋯ menu; opening it also makes the coming weeks' events of each
-// repeat. New task makes a one-off task.
+// repeat. My calendar also shows personal appointments and the hours the
+// member is usually unavailable. New task makes a one-off task; Personal adds
+// a personal appointment.
 
 import {
   useEffect,
@@ -46,6 +48,15 @@ import {
   type CalendarScope,
   type WeekEntry,
 } from "@/features/events";
+import {
+  PersonalDialog,
+  PersonalItem,
+  PersonalText,
+  stretches,
+  useAvailability,
+  usePersonalInRange,
+  type PersonalEntry,
+} from "@/features/availability";
 import { useMembers } from "@/features/members";
 import { usePlatforms } from "@/features/platforms";
 import {
@@ -147,6 +158,8 @@ export function CalendarView() {
   const now = useNow();
   const [params, setParams] = useSearchParams();
   const [isCreatingTask, setIsCreatingTask] = useState(false);
+  // A personal appointment being added (true) or changed.
+  const [personal, setPersonal] = useState<PersonalEntry | true | null>(null);
 
   const tz = workspace.timeZone;
   const today = dayKey(now, tz);
@@ -220,6 +233,12 @@ export function CalendarView() {
     member?.id ?? null,
     member?.workGroupIds ?? [],
   );
+  const myAppointments = usePersonalInRange(
+    member?.id ?? null,
+    range.start,
+    range.end,
+  );
+  const myAvailability = useAvailability(member?.id ?? null);
   // #endregion
 
   function setParam(changes: Record<string, string | null>) {
@@ -313,6 +332,28 @@ export function CalendarView() {
         ),
       });
     }
+
+    // My personal appointments, on My calendar only.
+    if (scope.kind === "mine")
+      for (const entry of myAppointments)
+        list.push({
+          id: `personal:${entry.id}`,
+          start: entry.startsAt,
+          end: entry.endsAt,
+          render: (layout) => (
+            <PersonalItem
+              key={entry.id}
+              title={entry.title}
+              time={
+                layout
+                  ? span(entry.startsAt, entry.endsAt)
+                  : timeOf(entry.startsAt)
+              }
+              layout={layout}
+              onOpen={() => setPersonal(entry)}
+            />
+          ),
+        });
 
     // Dates a repeat skips, so it's clear they were left out on purpose.
     for (const repeat of repeats) {
@@ -455,6 +496,11 @@ export function CalendarView() {
             onChange={(value) => setParam({ view: value })}
           />
           <span className={styles.actions}>
+            {member ? (
+              <Button iconStart="lock" onClick={() => setPersonal(true)}>
+                {PersonalText.add}
+              </Button>
+            ) : null}
             {access.can("createStandaloneTasks") ? (
               <Button iconStart="add" onClick={() => setIsCreatingTask(true)}>
                 {Text.newTask}
@@ -502,6 +548,25 @@ export function CalendarView() {
                 workspace.timeFormat,
               ).replace(":00", "")
             }
+            shadesFor={
+              scope.kind === "mine" && myAvailability
+                ? (key) => {
+                    const day = week.days.find((entry) => entry.key === key);
+                    if (!day) return [];
+                    return stretches(
+                      { availability: myAvailability, busy: [] },
+                      new Date(day.start.getTime() + 8 * 3_600_000),
+                      day.end,
+                      tz,
+                    )
+                      .filter((part) => part.state === "unavailable")
+                      .map((part) => ({
+                        ...part,
+                        label: CalendarViewText.unavailable,
+                      }));
+                  }
+                : undefined
+            }
           />
         </div>
       ) : (
@@ -522,6 +587,20 @@ export function CalendarView() {
             ? CalendarViewText.groupLegend
             : Text.legend}
       </p>
+
+      {personal && member ? (
+        <PersonalDialog
+          memberId={member.id}
+          entry={personal === true ? undefined : personal}
+          date={
+            view === "week" && !week.days.some((day) => day.isToday)
+              ? week.key
+              : today
+          }
+          timeZone={tz}
+          onClose={() => setPersonal(null)}
+        />
+      ) : null}
 
       {isCreatingTask && member ? (
         <NewTaskDialog

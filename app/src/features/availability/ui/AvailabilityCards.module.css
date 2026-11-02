@@ -1,0 +1,99 @@
+/* File : /TeamSamsara.Workflow/app/src/features/availability/ui/AvailabilityCards.module.css
+   Version : 1.0.0
+   Latest commit: feature/people-time
+   Author : Gerrah
+   Purpose : The side cards on the availability pages (exceptions, who sees it) and the forms in their dialogs. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-section-heading);
+  text-transform: uppercase;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.empty {
+  margin: 0;
+  font-size: var(--text-body);
+}
+
+.text {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.rowText {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.addButton {
+  align-self: flex-start;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.times {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.times > * {
+  flex: 1 1 140px;
+}
+
+.note {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3-5);
+  border-radius: var(--radius-field);
+  background-color: var(--color-page);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}

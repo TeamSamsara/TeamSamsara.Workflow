@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/layouts/AppLayout/navItems.ts
-// Version : 1.1.0
-// Latest commit: core/access
+// Version : 1.2.0
+// Latest commit: feature/people-time
 // Author : Gerrah
 // Purpose : The main menu, in order: where each item goes, its label, its icon,
 // and the permissions it needs to show.
@@ -18,6 +18,8 @@ export interface NavItem {
   end?: boolean;
   /** Shown only to members holding at least one of these. */
   requiresAnyOf?: readonly PermissionKey[];
+  /** Part of the item above it: shown smaller and indented under it. */
+  sub?: boolean;
 }
 
 export const navItems: readonly NavItem[] = [
@@ -26,6 +28,12 @@ export const navItems: readonly NavItem[] = [
     label: SidebarText.calendar,
     icon: "calendar",
     end: true,
+  },
+  {
+    to: RoutePaths.availability,
+    label: SidebarText.availability,
+    icon: "time",
+    sub: true,
   },
   { to: RoutePaths.myTasks, label: SidebarText.myTasks, icon: "myTasks" },
   { to: RoutePaths.workflows, label: SidebarText.workflows, icon: "workflows" },

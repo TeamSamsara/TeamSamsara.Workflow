@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/access/permissionCatalogue.ts
-// Version : 1.0.0
-// Latest commit: core/access
+// Version : 1.1.0
+// Latest commit: feature/people-time
 // Author : Gerrah
 // Purpose : How the permissions are grouped and ordered on the Roles page, and
 // which of them open Settings.
@@ -30,7 +30,7 @@ export const permissionsByGroup: Record<
   ],
   planning: ["editWorkflows", "planEvents", "createStandaloneTasks"],
   tasks: ["doAssignedTasks", "editAnyTask", "approveTasks", "reassignTasks"],
-  viewing: ["viewAll"],
+  viewing: ["viewAll", "viewAvailability"],
 };
 
 /** Holding any one of these shows Settings in the menu. */

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/collections.ts
-// Version : 1.3.0
-// Latest commit: fix/general-wording
+// Version : 1.4.0
+// Latest commit: feature/people-time
 // Author : Gerrah
 // Purpose : The name of every Firestore collection and settings document, in one
 // place. One Firebase project holds one workspace, so everything sits at the top.
@@ -18,6 +18,9 @@ export const Collections = {
   workflows: "workflows",
   events: "events",
   repeats: "repeats",
+  availability: "availability",
+  personal: "personal",
+  busy: "busy",
   tasks: "tasks",
   /** Workspace-wide documents that exist once (see ConfigDocuments). */
   config: "config",

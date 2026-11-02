@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/firestore.rules
-// Version : 1.14.0
-// Latest commit: feature/calendar-people
+// Version : 1.15.0
+// Latest commit: feature/people-time
 // Author : Gerrah
 // Purpose : Who may read and write what in Firestore. Everything is denied until
 // a rule below allows it; each PR opens exactly what its feature needs, with a
@@ -117,7 +117,8 @@ service cloud.firestore {
         && data.grants.keys().hasOnly(["administrator", "manageSettings",
           "manageMembers", "manageRoles", "manageWorkGroups", "editWorkflows",
           "planEvents", "createStandaloneTasks", "doAssignedTasks",
-          "editAnyTask", "approveTasks", "reassignTasks", "viewAll"])
+          "editAnyTask", "approveTasks", "reassignTasks", "viewAll",
+          "viewAvailability"])
         && "everyone" in data.roles
         && !("administrator" in data.roles.everyone.permissions)
         && data.grants.get("administrator", []).size() > 0
@@ -145,7 +146,8 @@ service cloud.firestore {
           && grantUnchangedOrHeld(grants, held, "editAnyTask")
           && grantUnchangedOrHeld(grants, held, "approveTasks")
           && grantUnchangedOrHeld(grants, held, "reassignTasks")
-          && grantUnchangedOrHeld(grants, held, "viewAll"));
+          && grantUnchangedOrHeld(grants, held, "viewAll")
+          && grantUnchangedOrHeld(grants, held, "viewAvailability"));
     }
 
     // Same lengths as TextLimits in app/src/shared/validation/textLimits.ts.
@@ -256,7 +258,8 @@ service cloud.firestore {
           && gainIsHeld(grants, held, before, after, "editAnyTask")
           && gainIsHeld(grants, held, before, after, "approveTasks")
           && gainIsHeld(grants, held, before, after, "reassignTasks")
-          && gainIsHeld(grants, held, before, after, "viewAll"));
+          && gainIsHeld(grants, held, before, after, "viewAll")
+          && gainIsHeld(grants, held, before, after, "viewAvailability"));
     }
 
     /** A new member from an invite: Invited, from the inviter, with the server's time. */
@@ -753,6 +756,90 @@ service cloud.firestore {
         && repeat.createdBy is string
         && repeat.createdAt is timestamp
         && repeat.updatedAt is timestamp;
+    }
+    // #endregion
+
+    // #region Availability
+    // Each member's usual week (the hours they're unavailable, per weekday)
+    // and the dates that differ. Every member can read them, to plan events
+    // when people are free; only the member changes their own.
+    match /availability/{memberId} {
+      allow read: if isActiveMember();
+      allow create, update: if isActiveMember()
+        && request.auth.uid == memberId
+        && isValidAvailability(request.resource.data);
+      allow delete: if isActiveMember() && request.auth.uid == memberId;
+    }
+
+    function isWeekday(weekly, day) {
+      return weekly.get(day, []) is list && weekly.get(day, []).size() <= 24;
+    }
+
+    function isValidAvailability(data) {
+      return data.keys().hasOnly(["weekly", "exceptions", "updatedAt"])
+        && data.keys().hasAll(["weekly", "exceptions", "updatedAt"])
+        && data.weekly is map
+        && data.weekly.keys().hasOnly(["0", "1", "2", "3", "4", "5", "6"])
+        && isWeekday(data.weekly, "0") && isWeekday(data.weekly, "1")
+        && isWeekday(data.weekly, "2") && isWeekday(data.weekly, "3")
+        && isWeekday(data.weekly, "4") && isWeekday(data.weekly, "5")
+        && isWeekday(data.weekly, "6")
+        && data.exceptions is list && data.exceptions.size() <= 60
+        && data.updatedAt == request.time;
+    }
+
+    // Personal appointments. The details are for the member and for whoever
+    // can see everyone's availability; the times are copied to /busy, which
+    // every member can read, so others see only "Busy". The two are written
+    // together and must match.
+    match /personal/{entryId} {
+      allow read: if isActiveMember()
+        && (resource.data.memberId == request.auth.uid || can("viewAvailability"));
+      allow create: if isActiveMember()
+        && request.resource.data.memberId == request.auth.uid
+        && isValidPersonal(request.resource.data)
+        && matchesBusy(entryId, request.resource.data);
+      allow update: if isActiveMember()
+        && resource.data.memberId == request.auth.uid
+        && request.resource.data.memberId == request.auth.uid
+        && isValidPersonal(request.resource.data)
+        && matchesBusy(entryId, request.resource.data);
+      allow delete: if isActiveMember()
+        && resource.data.memberId == request.auth.uid
+        && !existsAfter(/databases/$(database)/documents/busy/$(entryId));
+    }
+
+    function isValidPersonal(entry) {
+      let fields = ["memberId", "title", "notes", "startsAt", "endsAt", "createdAt", "updatedAt"];
+      return entry.keys().hasOnly(fields)
+        && entry.keys().hasAll(fields)
+        && entry.title is string && entry.title.size() > 0 && entry.title.size() <= 120
+        && entry.notes is string && entry.notes.size() <= 1000
+        && entry.startsAt is timestamp
+        && entry.endsAt is timestamp && entry.endsAt > entry.startsAt
+        && entry.createdAt is timestamp
+        && entry.updatedAt == request.time;
+    }
+
+    function matchesBusy(entryId, entry) {
+      let busy = getAfter(/databases/$(database)/documents/busy/$(entryId)).data;
+      return busy.memberId == entry.memberId
+        && busy.startsAt == entry.startsAt
+        && busy.endsAt == entry.endsAt;
+    }
+
+    match /busy/{entryId} {
+      allow read: if isActiveMember();
+      allow create, update: if isActiveMember()
+        && request.resource.data.keys().hasOnly(["memberId", "startsAt", "endsAt"])
+        && request.resource.data.memberId == request.auth.uid
+        && (resource == null || resource.data.memberId == request.auth.uid)
+        && request.resource.data.startsAt is timestamp
+        && request.resource.data.endsAt is timestamp
+        && existsAfter(/databases/$(database)/documents/personal/$(entryId));
+      allow delete: if isActiveMember()
+        && resource.data.memberId == request.auth.uid
+        && !existsAfter(/databases/$(database)/documents/personal/$(entryId));
     }
     // #endregion
 

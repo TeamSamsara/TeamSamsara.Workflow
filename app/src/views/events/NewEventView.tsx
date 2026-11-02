@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/NewEventView.tsx
-// Version : 1.2.0
-// Latest commit: feature/calendar-people
+// Version : 1.3.0
+// Latest commit: feature/people-time
 // Author : Gerrah
 // Purpose : Planning an event: its details on the left; on the right the
 // workflows to apply (the ones made for its type ticked to start with) and
@@ -39,6 +39,7 @@ import {
   startRepeatDraft,
   TaskPreview,
   useAudienceOptions,
+  withStartTime,
   weekdayOf,
   WorkflowPicker,
   type EventDraft,
@@ -79,9 +80,20 @@ export function NewEventView() {
   const toast = useToast();
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const [draft, setDraft] = useState<EventDraft>(() =>
-    emptyEventDraft(params.get("date") ?? ""),
-  );
+  const [draft, setDraft] = useState<EventDraft>(() => {
+    // Team availability opens this at a free time, with its group already in.
+    const start = emptyEventDraft(params.get("date") ?? "");
+    const time = params.get("time");
+    const group = params.get("group");
+    return {
+      ...(time && /^\d{2}:\d{2}$/.test(time)
+        ? withStartTime(start, time)
+        : start),
+      audience: group
+        ? { ...start.audience, groupIds: [group] }
+        : start.audience,
+    };
+  });
   const [repeat, setRepeat] = useState<RepeatDraft | null>(null);
   const [pickedIds, setPickedIds] = useState<string[] | null>(null);
   const now = useNow();

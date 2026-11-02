@@ -1,0 +1,91 @@
+/* File : /TeamSamsara.Workflow/app/src/features/availability/ui/WeekPainter.module.css
+   Version : 1.0.0
+   Latest commit: feature/people-time
+   Author : Gerrah
+   Purpose : The usual-week grid: green hours are available, striped ones unavailable; a brush switch and the weekly total above. Phones scroll it sideways. */
+
+.painter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  user-select: none;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.total {
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+}
+
+.help {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+}
+
+.scroll {
+  overflow-x: auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 56px repeat(7, minmax(44px, 1fr));
+  gap: 3px;
+  min-width: 420px;
+}
+
+.row {
+  display: contents;
+}
+
+.dayName {
+  padding-bottom: var(--space-1);
+  color: var(--color-text-muted);
+  font-family: var(--font-heading);
+  font-size: var(--text-tab);
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.hour {
+  padding-right: var(--space-1-5);
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: 30px;
+  text-align: right;
+}
+
+.cell {
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-small);
+  background-color: color-mix(
+    in srgb,
+    var(--color-accent) 45%,
+    var(--color-surface)
+  );
+  cursor: pointer;
+  touch-action: none;
+}
+
+.cell[data-off="true"] {
+  background-color: var(--color-surface-raised);
+  background-image: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-text) 14%, transparent) 0 3px,
+    transparent 3px 7px
+  );
+}
+
+.cell:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
