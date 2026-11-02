@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/ui/WeekPainter.tsx
-// Version : 1.0.0
-// Latest commit: feature/people-time
+// Version : 1.1.0
+// Latest commit: fix/docs-and-brush
 // Author : Gerrah
 // Purpose : A member's usual week as a grid of hours (8 AM to midnight) to
 // paint: pick Available or Unavailable, then click or drag across hours.
@@ -62,8 +62,8 @@ export function WeekPainter({
         <SegmentedControl
           label={Text.brush}
           options={[
-            { value: "unavailable", label: Text.unavailable },
             { value: "available", label: Text.available },
+            { value: "unavailable", label: Text.unavailable },
           ]}
           value={brush}
           onChange={setBrush}
