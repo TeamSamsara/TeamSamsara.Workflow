@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/session/index.ts
-// Version : 1.3.0
-// Latest commit: feature/your-account
+// Version : 1.4.0
+// Latest commit: feature/remember-me
 // Author : Gerrah
 // Purpose : What other layers may use from the session module.
 
@@ -13,6 +13,11 @@ export {
   signIn,
   signOut,
 } from "./authService";
+export {
+  endSession,
+  isPastLimit,
+  takeSessionEndedNotice,
+} from "./sessionLimit";
 export { authErrorKind } from "./authErrors";
 export type { AuthErrorKind } from "./authErrors";
 export { readActionLink } from "./actionLink";

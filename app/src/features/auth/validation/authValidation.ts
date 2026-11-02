@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/auth/validation/authValidation.ts
-// Version : 1.0.0
-// Latest commit: feature/auth-screens
+// Version : 1.1.0
+// Latest commit: feature/remember-me
 // Author : Gerrah
 // Purpose : The checks each sign-in form runs before sending anything: what is
 // missing or wrong, as the message to show under the field.
@@ -28,6 +28,8 @@ export function checkEmail(email: string): string | undefined {
 export interface SignInValues {
   email: string;
   password: string;
+  /** Stay signed in on this browser; off ends it when the browser closes. */
+  keep?: boolean;
 }
 
 export function checkSignIn(

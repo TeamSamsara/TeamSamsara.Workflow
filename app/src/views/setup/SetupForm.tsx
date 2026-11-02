@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/setup/SetupForm.tsx
-// Version : 1.2.0
-// Latest commit: task/group-leads-and-x-premium
+// Version : 1.3.0
+// Latest commit: feature/remember-me
 // Author : Gerrah
 // Purpose : The setup form, used only by SetupView, in two steps: the
 // workspace (name, time zone, week start, time format), then the account that
@@ -9,6 +9,7 @@
 import { useMemo, useState, type FormEvent } from "react";
 import {
   DateFormats,
+  defaultSessionDays,
   TimeFormats,
   WeekStarts,
   type TimeFormat,
@@ -127,6 +128,7 @@ export function SetupForm({
         defaultTheme: "device",
         enabledPlatformIds: [],
         upgradedPlatformIds: [],
+        sessionDays: defaultSessionDays,
       },
       account: { displayName, email, password },
       signedInUser,

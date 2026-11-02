@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/workspaceSettings.rules.test.ts
-// Version : 1.1.0
-// Latest commit: task/group-leads-and-x-premium
+// Version : 1.2.0
+// Latest commit: feature/remember-me
 // Author : Gerrah
 // Purpose : Tests Settings → General and Platforms against the rules: only
 // Manage settings (or an Administrator) edits the workspace record; every
@@ -87,6 +87,15 @@ describe("General", () => {
     await assertFails(updateDoc(settings("jordan"), { defaultTheme: "pink" }));
     await assertFails(updateDoc(settings("jordan"), { name: "" }));
     await assertFails(updateDoc(settings("jordan"), { logo: "x.png" }));
+  });
+});
+
+describe("Signing in", () => {
+  it("keeps how long a sign-in lasts to the offered choices", async () => {
+    await assertSucceeds(updateDoc(settings("jordan"), { sessionDays: 14 }));
+    await assertSucceeds(updateDoc(settings("jordan"), { sessionDays: 0 }));
+    await assertFails(updateDoc(settings("jordan"), { sessionDays: 5 }));
+    await assertFails(updateDoc(settings("jordan"), { sessionDays: "30" }));
   });
 });
 

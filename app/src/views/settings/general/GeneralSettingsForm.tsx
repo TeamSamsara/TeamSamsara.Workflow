@@ -1,13 +1,18 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/general/GeneralSettingsForm.tsx
-// Version : 1.0.0
-// Latest commit: feature/workspace-settings
+// Version : 1.1.0
+// Latest commit: feature/remember-me
 // Author : Gerrah
 // Purpose : The fields of Settings → General, in three cards: the workspace's
 // name; its time zone, week start, date and time formats; and the default
 // theme. Used only by GeneralSettingsView, which holds the draft.
 
 import { useMemo } from "react";
-import { DateFormats, TimeFormats, WeekStarts } from "@/core/data";
+import {
+  DateFormats,
+  SessionDayOptions,
+  TimeFormats,
+  WeekStarts,
+} from "@/core/data";
 import { ThemeChoices } from "@/core/theme";
 import type { WorkspaceSettings } from "@/core/workspace";
 import { Select } from "@/shared/components/Fields/Select/Select";
@@ -151,6 +156,28 @@ export function GeneralSettingsForm({
           />
           <p className={styles.muted}>{Text.themeHint}</p>
         </div>
+      </section>
+
+      <section className={styles.card}>
+        <h3 className={styles.cardTitle}>{Text.signInHeading}</h3>
+        <Select
+          label={Text.sessionDays}
+          options={SessionDayOptions.map((value) => ({
+            value: String(value),
+            label: Text.sessionDayOptions(value),
+          }))}
+          value={String(settings.sessionDays)}
+          onChange={(event) =>
+            onChange({
+              sessionDays:
+                SessionDayOptions.find(
+                  (value) => String(value) === event.target.value,
+                ) ?? settings.sessionDays,
+            })
+          }
+          hint={Text.sessionHint}
+          disabled={disabled}
+        />
       </section>
     </>
   );

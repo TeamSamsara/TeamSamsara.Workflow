@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/general/GeneralSettingsView.tsx
-// Version : 1.1.0
-// Latest commit: task/group-leads-and-x-premium
+// Version : 1.2.0
+// Latest commit: feature/remember-me
 // Author : Gerrah
 // Purpose : Settings → General: the workspace's name, time and date settings
 // and default theme, saved together. Everyone signed in sees a rename at once
@@ -38,6 +38,7 @@ const fields = [
   "dateFormat",
   "timeFormat",
   "defaultTheme",
+  "sessionDays",
 ] as const satisfies readonly (keyof Editable)[];
 
 export function GeneralSettingsView() {
@@ -53,6 +54,7 @@ export function GeneralSettingsView() {
     dateFormat: workspace.dateFormat,
     timeFormat: workspace.timeFormat,
     defaultTheme: workspace.defaultTheme,
+    sessionDays: workspace.sessionDays,
   };
   // Only what was changed is kept; everything else follows the live workspace.
   const [edits, setEdits] = useState<Partial<Editable>>({});
