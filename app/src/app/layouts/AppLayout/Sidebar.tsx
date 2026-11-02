@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/layouts/AppLayout/Sidebar.tsx
-// Version : 1.4.0
-// Latest commit: feature/your-account
+// Version : 1.5.0
+// Latest commit: fix/sidebar
 // Author : Gerrah
 // Purpose : The dark sidebar: the logo with the workspace's name, the main menu
 // (only the items the member may use), and the account link with the theme
@@ -9,7 +9,7 @@
 
 import { NavLink } from "react-router-dom";
 import { usePermissions } from "@/core/access";
-import { useSession } from "@/core/session";
+import { signOut, useSession } from "@/core/session";
 import { ThemeToggle } from "@/core/theme";
 import { useWorkspaceRecord } from "@/core/workspace";
 import { memberName } from "@/features/members";
@@ -74,7 +74,11 @@ export function Sidebar({ id, isCompact, isOpen, className }: SidebarProps) {
       </nav>
 
       <div className={styles.footer}>
-        <NavLink to={RoutePaths.account} className={styles.account}>
+        <NavLink
+          to={RoutePaths.account}
+          className={styles.account}
+          title={SidebarText.account}
+        >
           {member ? (
             <Avatar name={memberName(member)} size="small" />
           ) : (
@@ -82,11 +86,24 @@ export function Sidebar({ id, isCompact, isOpen, className }: SidebarProps) {
           )}
           <span className={styles.accountText}>
             {member ? (
-              <b className={styles.accountName}>{memberName(member)}</b>
-            ) : null}
-            <span>{SidebarText.account}</span>
+              <>
+                <b className={styles.accountName}>{memberName(member)}</b>
+                <span className={styles.hidden}>{SidebarText.account}</span>
+              </>
+            ) : (
+              <span>{SidebarText.account}</span>
+            )}
           </span>
         </NavLink>
+        <button
+          type="button"
+          className={styles.signOut}
+          aria-label={SidebarText.signOut}
+          title={SidebarText.signOut}
+          onClick={() => signOut()}
+        >
+          <Icon name="logOut" />
+        </button>
         <ThemeToggle surface="nav" />
       </div>
     </aside>
