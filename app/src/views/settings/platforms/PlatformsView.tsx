@@ -1,9 +1,9 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/platforms/PlatformsView.tsx
-// Version : 1.0.0
-// Latest commit: feature/workspace-settings
+// Version : 1.1.0
+// Latest commit: chore/rename-playbook
 // Author : Gerrah
 // Purpose : Settings → Platforms: the built-in platform list with the limits
-// Workflow checks, and which ones this workspace uses. Switches save at once.
+// Playbook checks, and which ones this workspace uses. Switches save at once.
 
 import { usePermissions } from "@/core/access";
 import { PlatformsTable, usePlatforms } from "@/features/platforms";

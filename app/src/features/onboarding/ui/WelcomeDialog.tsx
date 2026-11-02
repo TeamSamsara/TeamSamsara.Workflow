@@ -1,8 +1,8 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/ui/WelcomeDialog.tsx
-// Version : 1.0.0
-// Latest commit: feature/onboarding
+// Version : 1.1.0
+// Latest commit: chore/rename-playbook
 // Author : Gerrah
-// Purpose : What someone sees the first time they sign in: what Workflow is,
+// Purpose : What someone sees the first time they sign in: what Playbook is,
 // and the walkthrough's chapters for what they can do, with how long it takes.
 // They start it, or leave it for later (it waits on their calendar).
 

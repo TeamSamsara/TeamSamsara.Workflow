@@ -1,4 +1,4 @@
-# Workflow
+# Playbook
 
 Team Samsara's internal planning and task tool. Planners build reusable workflows, put events on the calendar and the tasks appear for the right people and work groups, with approvals where they are needed.
 

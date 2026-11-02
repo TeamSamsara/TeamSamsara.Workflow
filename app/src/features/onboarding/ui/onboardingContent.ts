@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/ui/onboardingContent.ts
-// Version : 1.1.0
-// Latest commit: feature/event-fields
+// Version : 1.2.0
+// Latest commit: chore/rename-playbook
 // Author : Gerrah
 // Purpose : The words of the walkthrough: chapter names, each step's note, the
 // welcome, the "make it yours" step, the calendar card and the invite preview.
@@ -131,7 +131,7 @@ export const WalkthroughText = {
 } as const;
 
 export const WelcomeText = {
-  title: (name: string) => `Welcome to Workflow, ${name}`,
+  title: (name: string) => `Welcome to Playbook, ${name}`,
   body: "Team Samsara's planning tool: what's coming up, what you need to do, and when people are free.",
   intro: (minutes: number) =>
     `A walkthrough shows you around the real pages, one part at a time. It takes about ${minutes} minutes, for what you can do:`,
