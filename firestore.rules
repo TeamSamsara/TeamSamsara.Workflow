@@ -408,7 +408,6 @@ service cloud.firestore {
 
     /** A profile photo: none, or a file in this project's Storage. */
     function isPhotoUrl(value) {
-      // Compared piece by piece: a pattern over a long address costs too many steps.
       return value == null
         || (value is string && value.size() <= 600 && isStorageAddress(value.split("/")));
     }

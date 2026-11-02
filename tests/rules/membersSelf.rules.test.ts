@@ -242,13 +242,17 @@ describe("profile photos", () => {
 
   it("lets an active member set and clear their own photo", async () => {
     const me = doc(signedInAs(env, "sam"), "members/sam");
-    await assertSucceeds(updateDoc(me, { photoUrl: photo }));
+    // Real records always have a name; the seeded one doesn't.
+    await assertSucceeds(
+      updateDoc(me, { displayName: "Sam", photoUrl: photo }),
+    );
     await assertSucceeds(updateDoc(me, { photoUrl: null }));
   });
 
   it("refuses photos from elsewhere and on someone else's record", async () => {
     await assertFails(
       updateDoc(doc(signedInAs(env, "sam"), "members/sam"), {
+        displayName: "Sam",
         photoUrl: "https://example.com/me.png",
       }),
     );
