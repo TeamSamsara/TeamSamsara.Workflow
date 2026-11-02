@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/articles.ts
-// Version : 1.3.0
-// Latest commit: feature/notifications
+// Version : 1.4.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : The Documentation: one short article per feature, in groups. Each
 // group (or article) is for the people with its permission, the same as the
@@ -85,6 +85,19 @@ export const DocGroups: readonly DocGroup[] = [
         ],
       },
       {
+        id: "replying",
+        title: "Replying: are you going?",
+        summary: "Going, Maybe or Can't go, when an event asks.",
+        body: [
+          p(
+            "Some events ask the people in them to reply. Answer Going, Maybe or Can't go on the event's page, or straight from the notification. A note is optional, like \"15 min late\" or why you can't make it. You can change your reply any time.",
+          ),
+          p(
+            "The event's page says whether you're required or optional, and shows everyone's answer. On the calendar a ✓ means you're going, ? maybe, a dot that it's waiting on you, and a struck-through event that you can't go.",
+          ),
+        ],
+      },
+      {
         id: "time-zones",
         title: "Times and your time zone",
         summary:
@@ -104,7 +117,7 @@ export const DocGroups: readonly DocGroup[] = [
         summary: "The bell: what needs you, and reminders.",
         body: [
           p(
-            "The bell at the top of the menu counts what's new: a task given to you or your group, a task sent to you to review, yours approved or sent back, and events you're added to, moved or cancelled. Reminders come before a task is due and before an event starts. Nothing you do yourself notifies you.",
+            "The bell at the top of the menu counts what's new: a task given to you or your group, a task sent to you to review, yours approved or sent back, events you're added to, moved or cancelled, and events asking you to reply (answer right in the notification). Reminders come before a task is due and before an event starts. Nothing you do yourself notifies you.",
           ),
           p(
             "Open one to go to its task or event. Choose which kinds you get, by email too, and when you're reminded on Your account › Notifications, where a test email checks that email reaches you.",
@@ -235,6 +248,24 @@ export const DocGroups: readonly DocGroup[] = [
           ),
           p(
             "Nearby times when everyone's free are listed below: click one to move the event there.",
+          ),
+        ],
+      },
+      {
+        id: "attendance",
+        title: "Asking people to reply",
+        summary: "Who's coming, and who's required.",
+        body: [
+          steps(
+            "In the event's form, turn on Ask people to reply.",
+            "Everyone in it starts as Required: set the ones who don't have to come to Optional (or use All required and All optional).",
+            "Tick Tell me about every reply to hear each answer; otherwise you're told only when someone required can't go.",
+          ),
+          p(
+            "People get a notification to reply. The event's page shows the counts and everyone's answer, grouped by required and optional, with what their availability says. Remind who hasn't replied sends them another notification (once an hour at most).",
+          ),
+          p(
+            "People added later are asked too, as optional until you change it. Each date of a repeating event gets its own replies.",
           ),
         ],
       },
@@ -424,6 +455,9 @@ export const DocGroups: readonly DocGroup[] = [
           p(
             "Settings › General sets the workspace's time zone (what everything is planned in), date and time formats and default theme. Tasks and events sets the statuses, tags and event types.",
           ),
+          p(
+            "Administrators also choose the sign-in page's pictures there: add up to 8, put them in order, or remove one. They take turns behind the welcome, and anyone with the link can see them.",
+          ),
         ],
       },
     ],
@@ -437,10 +471,10 @@ export const DocGroups: readonly DocGroup[] = [
       {
         id: "account",
         title: "Your account",
-        summary: "Your names, time zone, password.",
+        summary: "Your photo, names, time zone, password.",
         body: [
           p(
-            "Click your name at the bottom of the menu. There you set your name and in-game name (shown first wherever you appear), your time zone, date format and clock, your theme, and your password.",
+            "Click your name at the bottom of the menu. There you add a profile photo (drag and zoom to frame it), set your name and in-game name (shown first wherever you appear), your time zone, date format and clock, your theme, and your password.",
           ),
           p(
             'Forgot your password? "Email me a reset link" on Your account, or "Forgot password?" on the sign-in page.',

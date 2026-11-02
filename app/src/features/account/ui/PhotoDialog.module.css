@@ -1,0 +1,85 @@
+/* File : /TeamSamsara.Workflow/app/src/features/account/ui/PhotoDialog.module.css
+   Version : 1.0.0
+   Latest commit: feature/attendance-photos
+   Author : Gerrah
+   Purpose : Framing a profile photo: a round window over the picture that can be dragged, a zoom slider under it, and a large dashed button to pick a picture. */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.file {
+  display: none;
+}
+
+.frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: 50%;
+  background-color: var(--color-surface-raised);
+  box-shadow: 0 0 0 var(--border-width) var(--color-border);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.frame:active {
+  cursor: grabbing;
+}
+
+.image {
+  position: absolute;
+  max-width: none;
+  pointer-events: none;
+}
+
+.zoom {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: min(100%, 280px);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+}
+
+.zoom input {
+  flex-grow: 1;
+  accent-color: var(--color-accent);
+}
+
+.pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  width: 100%;
+  min-height: 180px;
+  border: var(--border-width) dashed var(--color-border-control);
+  border-radius: var(--radius-field);
+  background-color: var(--color-page);
+  color: var(--color-text);
+  font: inherit;
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+}
+
+.pick:hover {
+  background-color: var(--color-surface-raised);
+}
+
+.pick:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-regular);
+  text-align: center;
+}

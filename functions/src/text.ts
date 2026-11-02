@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/text.ts
-// Version : 1.0.0
-// Latest commit: feature/notifications
+// Version : 1.1.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : The words of notification emails, and dates as the workspace
 // writes them. The app words its own list the same way (notificationText).
@@ -13,7 +13,15 @@ export interface Said {
   detail: string | null;
   /** The work group a task went to, when it went to a group. */
   group: string | null;
+  /** Their reply, for "replied". */
+  answer?: string | null;
 }
+
+export const answerWords: Record<string, string> = {
+  going: "Going",
+  maybe: "Maybe",
+  cant: "Can't go",
+};
 
 /** One line saying what happened, used as the email's subject. */
 export function sentence(kind: NotificationKind, said: Said): string {
@@ -41,6 +49,12 @@ export function sentence(kind: NotificationKind, said: Said): string {
       return `${said.title} is due ${said.detail ?? "soon"}`;
     case "eventSoon":
       return `${said.title} starts ${said.detail ?? "soon"}`;
+    case "replyAsked":
+      return `${who} asked you to reply to ${said.title}`;
+    case "replyDeclined":
+      return `${who} can't go to ${said.title}`;
+    case "replied":
+      return `${who} replied ${answerWords[said.answer ?? ""] ?? "to"} to ${said.title}`;
   }
 }
 

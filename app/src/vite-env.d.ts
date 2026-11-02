@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/vite-env.d.ts
-// Version : 1.0.0
-// Latest commit: core/project-setup
+// Version : 1.1.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : Declares the shape of import.meta.env so every VITE_* variable
 // used in the app is properly typed instead of implicitly any.
@@ -12,6 +12,7 @@ interface ImportMetaEnv {
   readonly VITE_FIREBASE_AUTH_DOMAIN: string;
   readonly VITE_FIREBASE_PROJECT_ID: string;
   readonly VITE_FIREBASE_APP_ID: string;
+  readonly VITE_FIREBASE_STORAGE_BUCKET?: string;
   readonly VITE_USE_FIREBASE_EMULATORS: string;
 }
 

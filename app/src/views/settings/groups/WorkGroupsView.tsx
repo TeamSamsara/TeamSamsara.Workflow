@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/groups/WorkGroupsView.tsx
-// Version : 1.2.0
-// Latest commit: task/group-leads-and-x-premium
+// Version : 1.3.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : Settings → Work groups: the group cards on top, the open group's
 // editor under them (name, what it does, its leads and links, who is in it,
@@ -182,7 +182,11 @@ function WorkGroupEditor({ item }: { item: WorkGroupListItem }) {
               const name = memberName(entry.member);
               return (
                 <span key={entry.member.id} className={styles.lead}>
-                  <Avatar name={name} size="small" />
+                  <Avatar
+                    name={name}
+                    src={entry.member.photoUrl}
+                    size="small"
+                  />
                   {name}
                   <IconButton
                     icon="close"
@@ -257,7 +261,7 @@ function WorkGroupEditor({ item }: { item: WorkGroupListItem }) {
               const name = memberName(member);
               return (
                 <li key={member.id} className={styles.member}>
-                  <Avatar name={name} />
+                  <Avatar name={name} src={member.photoUrl} />
                   <span className={styles.memberText}>
                     <b>{name}</b>
                     <span className={styles.muted}>{member.email}</span>

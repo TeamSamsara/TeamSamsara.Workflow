@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/CalendarItem.tsx
-// Version : 1.2.0
-// Latest commit: feature/calendar-people
+// Version : 1.3.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : An item in a calendar day: an event (solid, with its type's colour
 // on the edge, time and how many tasks are done; faded once over, with a ✓ or
@@ -10,12 +10,15 @@
 import type { CSSProperties, ReactNode } from "react";
 import { Link } from "react-router-dom";
 import type { StatusRecord } from "@/core/data";
+import { useSession } from "@/core/session";
 import { StatusPill } from "@/features/task-setup";
 import { statusOf, type TaskRecord } from "@/features/tasks";
 import { VisuallyHidden } from "@/shared/components/VisuallyHidden/VisuallyHidden";
 import { Icon } from "@/shared/icons/Icon";
 import type { Progress } from "../hooks/useEvents";
+import { myReply } from "../model/attendance";
 import type { EventRecord } from "../types/eventTypes";
+import { replyMarks } from "./attendanceContent";
 import { CalendarItemText as Text } from "./eventsContent";
 import styles from "./CalendarItem.module.css";
 
@@ -62,6 +65,11 @@ export function EventItem({
     ...(color ? { "--item-color": color } : {}),
     ...(layout ?? {}),
   } as CSSProperties;
+  const session = useSession();
+  const reply = myReply(
+    event,
+    session.status === "active" ? session.member : null,
+  );
   const state = isPast ? pastState(progress) : null;
   const done =
     progress && progress.total > 0 && progress.done === progress.total;
@@ -83,6 +91,7 @@ export function EventItem({
       data-mine={isMine || undefined}
       data-block={layout ? true : undefined}
       data-compact={compact || undefined}
+      data-reply={reply ?? undefined}
     >
       <Link to={href} className={styles.event}>
         <span className={styles.titleRow}>
@@ -90,6 +99,20 @@ export function EventItem({
             <>
               <Icon name="repeat" className={styles.mark} />
               <VisuallyHidden>{Text.repeats}: </VisuallyHidden>
+            </>
+          ) : null}
+          {reply ? (
+            <>
+              <span className={styles.reply} data-reply={reply} aria-hidden>
+                {reply === "going" ? (
+                  <Icon name="check" strokeWidth={3} />
+                ) : reply === "maybe" ? (
+                  "?"
+                ) : reply === "cant" ? null : (
+                  "●"
+                )}
+              </span>
+              <VisuallyHidden>{replyMarks[reply]}: </VisuallyHidden>
             </>
           ) : null}
           <span className={styles.title}>{event.title}</span>

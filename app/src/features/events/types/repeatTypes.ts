@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/types/repeatTypes.ts
-// Version : 1.1.0
-// Latest commit: feature/calendar-people
+// Version : 1.2.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : A repeat: an event that happens on set weekdays at a set time
 // ("every Monday and Thursday at 7:00 PM"), from a start date until it ends,
@@ -18,6 +18,7 @@ import {
   readString,
   readStringList,
 } from "@/core/data";
+import { readAttendance, type Attendance } from "./attendance";
 import { readAudience, type Audience } from "./audience";
 import { defaultEventMinutes } from "./eventTypes";
 
@@ -37,7 +38,7 @@ export interface RepeatSchedule {
   skipDates: string[];
 }
 
-export interface RepeatRecord extends RepeatSchedule, Audience {
+export interface RepeatRecord extends RepeatSchedule, Audience, Attendance {
   id: string;
   title: string;
   /** How long each of its events lasts. */
@@ -89,6 +90,7 @@ export const repeatConverter = createConverter<RepeatRecord>({
     time: readString(data, "time", "19:00"),
     minutes: readNumber(data, "minutes") || defaultEventMinutes,
     ...readAudience(data),
+    ...readAttendance(data),
     startDate: readString(data, "startDate"),
     endKind: readChoice(data, "endKind", RepeatEnds, "never"),
     endDate: readOptionalString(data, "endDate"),

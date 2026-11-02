@@ -1,12 +1,13 @@
 // File : /TeamSamsara.Workflow/functions/src/index.ts
-// Version : 1.0.0
-// Latest commit: feature/notifications
+// Version : 1.1.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : Playbook's server functions. They watch tasks and events and
 // write notifications for the people a change concerns (never the person who
 // made it), send reminders before tasks are due and events start, email the
-// kinds each person asked for (through Resend), send a test email, and sign
-// someone out on every device.
+// kinds each person asked for (through Resend), ask people to reply to events
+// and tell planners about the replies, send a test email, and sign someone out
+// on every device.
 
 import { initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
@@ -27,10 +28,13 @@ import {
   isDueIn,
   readSettings,
   reminderAt,
+  replyNotifications,
   SettingGroupOf,
   taskNotifications,
+  waitingOn,
   type Audience,
   type EventData,
+  type ReplyAnswer,
   type NotificationKind,
   type TaskData,
 } from "./model.js";
@@ -145,7 +149,28 @@ function eventData(data: DocumentData | undefined): EventData | null {
     memberIds: list(data.memberIds),
     repeatId: text(data.repeatId),
     setId: text(data.setId),
+    createdBy: text(data.createdBy),
+    asksReply: data.asksReply === true,
+    requiredIds: list(data.requiredIds),
+    tellEveryReply: data.tellEveryReply === true,
+    replies: replies(data.replies),
   };
+}
+
+const answers: readonly string[] = ["going", "maybe", "cant"];
+
+function replies(value: unknown): EventData["replies"] {
+  const result: EventData["replies"] = {};
+  if (!value || typeof value !== "object") return result;
+  for (const [id, entry] of Object.entries(value as Record<string, unknown>)) {
+    const reply = (entry ?? {}) as Record<string, unknown>;
+    if (typeof reply.answer === "string" && answers.includes(reply.answer))
+      result[id] = {
+        answer: reply.answer as ReplyAnswer,
+        note: typeof reply.note === "string" ? reply.note : "",
+      };
+  }
+  return result;
 }
 
 // #endregion
@@ -160,6 +185,8 @@ interface Note {
   taskId: string | null;
   eventId: string | null;
   groupId: string | null;
+  /** Someone's reply to an event, for "replied". */
+  answer?: string | null;
 }
 
 async function sendEmail(
@@ -230,8 +257,13 @@ async function deliver(
           title: note.title,
           detail: note.detail,
           group: note.groupId ? (groupNames.get(note.groupId) ?? null) : null,
+          answer: note.answer ?? null,
         });
-        const quote = note.kind === "changesAsked" ? note.detail : null;
+        const quote = ["changesAsked", "replyDeclined", "replied"].includes(
+          note.kind,
+        )
+          ? note.detail
+          : null;
         await sendEmail(
           member.email,
           line,
@@ -313,9 +345,28 @@ export const onEventWritten = onDocumentWrittenWithAuthContext(
     const after = eventData(event.data?.after.data());
     const members = await activeMembers();
     const plans = eventNotifications(before, after, members, new Date());
-    if (plans.length === 0) return;
+    const replyPlans = replyNotifications(before, after);
+    if (plans.length === 0 && replyPlans.length === 0) return;
     const formats = await workspaceFormats();
     const shown = (after ?? before)!;
+    // Replies tell whoever made the event (never themselves: deliver skips the actor).
+    for (const plan of replyPlans) {
+      if (!after?.createdBy) break;
+      await deliver(
+        [after.createdBy],
+        {
+          kind: plan.kind,
+          actorId: plan.memberId,
+          title: shown.title,
+          detail: plan.note.trim() || null,
+          taskId: null,
+          eventId: event.params.eventId,
+          groupId: null,
+          answer: plan.answer,
+        },
+        members,
+      );
+    }
     for (const plan of plans) {
       await deliver(
         plan.memberIds,
@@ -480,6 +531,64 @@ export const sendTestEmail = onCall(
       throw new HttpsError("internal", String(error));
     });
     return { sentTo: email };
+  },
+);
+
+const remindEvery = 60 * 60 * 1000;
+
+/** Reminds who hasn't replied to an event; planners only, once an hour. */
+export const remindReplies = onCall(
+  { secrets: [resendKey] },
+  async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) throw new HttpsError("unauthenticated", "Sign in first.");
+    const eventId = text((request.data as { eventId?: unknown })?.eventId);
+    if (!eventId) throw new HttpsError("invalid-argument", "Which event?");
+    const members = await activeMembers();
+    const caller = members.find((member) => member.id === uid);
+    const grants = ((await db.doc("config/roles").get()).data()?.grants ??
+      {}) as Record<string, unknown>;
+    const planners = new Set([
+      ...list(grants.planEvents),
+      ...list(grants.administrator),
+    ]);
+    if (
+      !caller ||
+      ![...caller.roleIds, "everyone"].some((role) => planners.has(role))
+    )
+      throw new HttpsError("permission-denied", "Only planners can remind.");
+    const item = eventData((await db.doc(`events/${eventId}`).get()).data());
+    if (!item?.asksReply)
+      throw new HttpsError(
+        "failed-precondition",
+        "It doesn't ask for replies.",
+      );
+
+    // One reminder an hour, whoever presses it.
+    const marker = db.doc(`sentReminders/replies_${eventId}`);
+    const last = toDate((await marker.get()).data()?.at);
+    if (last && Date.now() - last.getTime() < remindEvery)
+      throw new HttpsError(
+        "resource-exhausted",
+        "They were reminded less than an hour ago.",
+      );
+    await marker.set({ at: FieldValue.serverTimestamp() });
+
+    const waiting = waitingOn(item, members);
+    await deliver(
+      waiting,
+      {
+        kind: "replyAsked",
+        actorId: uid,
+        title: item.title,
+        detail: when(item.startsAt, await workspaceFormats()),
+        taskId: null,
+        eventId,
+        groupId: null,
+      },
+      members,
+    );
+    return { reminded: waiting.filter((id) => id !== uid).length };
   },
 );
 

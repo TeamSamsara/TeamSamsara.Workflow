@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/ui/TeamAvailabilityGrid.tsx
-// Version : 1.1.0
-// Latest commit: feature/your-account
+// Version : 1.2.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : A team's week at a glance: one row per person, one column per day
 // from 8 AM to midnight, coloured by available, unavailable and personal
@@ -21,6 +21,8 @@ export interface TeamPerson {
   /** Their real name, under an in-game name. */
   subName?: string | null;
   initials: string;
+  /** Their profile photo, shown instead of the initials. */
+  photoUrl?: string | null;
 }
 
 export interface TeamEvent {
@@ -183,7 +185,11 @@ export function TeamAvailabilityGrid({
           <div key={person.id} className={styles.personRow}>
             <div className={styles.label}>
               <span className={styles.avatar} aria-hidden>
-                {person.initials}
+                {person.photoUrl ? (
+                  <img src={person.photoUrl} alt="" className={styles.photo} />
+                ) : (
+                  person.initials
+                )}
               </span>
               <span className={styles.name}>
                 <b>{person.name}</b>

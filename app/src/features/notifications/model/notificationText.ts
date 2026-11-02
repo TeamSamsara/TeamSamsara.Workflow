@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/model/notificationText.ts
-// Version : 1.0.0
-// Latest commit: feature/notifications
+// Version : 1.1.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : How a notification reads in the list: who (bold), what happened,
 // the task or event (bold) and the rest, plus the reviewer's words when there
@@ -18,7 +18,8 @@ export interface NotificationLine {
 }
 
 export function notificationLine(
-  note: Pick<NotificationRecord, "kind" | "title" | "detail" | "groupId">,
+  note: Pick<NotificationRecord, "kind" | "title" | "detail" | "groupId"> &
+    Partial<Pick<NotificationRecord, "answer">>,
   actor: string | null,
   groupName: string | null,
 ): NotificationLine {
@@ -53,6 +54,18 @@ export function notificationLine(
       return line("", ` is due ${note.detail ?? "soon"}.`, false);
     case "eventSoon":
       return line("", ` starts ${note.detail ?? "soon"}.`, false);
+    case "replyAsked":
+      return line(
+        "asked you to reply to",
+        note.detail ? ` · ${note.detail}.` : ".",
+      );
+    case "replyDeclined":
+      return { ...line("can't go to"), quote: note.detail };
+    case "replied":
+      return {
+        ...line(Text.replied(Text.answers[note.answer ?? ""] ?? null)),
+        quote: note.detail,
+      };
   }
 }
 

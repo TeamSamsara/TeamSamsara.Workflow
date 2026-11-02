@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/model/notificationText.test.ts
-// Version : 1.0.0
-// Latest commit: feature/notifications
+// Version : 1.1.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : Tests how notifications read, and when they say they happened.
 
@@ -41,6 +41,26 @@ describe("notificationLine", () => {
     expect(notificationLine(note("eventAdded"), null, null).what).toBe(
       "You're in",
     );
+  });
+
+  it("words replies to events", () => {
+    expect(
+      notificationLine(
+        note("replyAsked", "Sat, Nov 14, 7:00 PM"),
+        "Jordan",
+        null,
+      ),
+    ).toMatchObject({
+      what: "asked you to reply to",
+      rest: " · Sat, Nov 14, 7:00 PM.",
+    });
+    expect(
+      notificationLine(note("replyDeclined", "Away"), "Lena", null),
+    ).toMatchObject({ who: "Lena", what: "can't go to", quote: "Away" });
+    expect(
+      notificationLine({ ...note("replied"), answer: "maybe" }, "Sora", null)
+        .what,
+    ).toBe("replied Maybe to");
   });
 });
 

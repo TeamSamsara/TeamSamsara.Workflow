@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/EventForm.tsx
-// Version : 1.7.0
-// Latest commit: feature/event-fields
+// Version : 1.8.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : An event's details as a form: title, type, date, start and end,
 // who's in it (and who of them can make it), link, a box per {gap} its
@@ -26,7 +26,8 @@ import {
 } from "../model/eventDraft";
 import type { AudienceOptions } from "../hooks/useAudienceOptions";
 import { EventLimits } from "../types/eventTypes";
-import { AudiencePicker } from "./AudiencePicker";
+import { AttendanceFields } from "./AttendanceFields";
+import { AudiencePicker, type AudienceOption } from "./AudiencePicker";
 import { EventFormText as Text } from "./eventsContent";
 import styles from "./EventForm.module.css";
 
@@ -81,9 +82,8 @@ export function EventForm({
         ]),
       ]
         .map((id) => people.members.find((member) => member.id === id))
-        .filter((member): member is { id: string; name: string } =>
-          Boolean(member),
-        );
+        .filter((member): member is AudienceOption => Boolean(member));
+  const inIt = draft.audience.everyone ? people.members : checked;
   const timeOf = (date: Date) => formatTime(date, tz, workspace.timeFormat);
   const weekday = (date: Date) =>
     new Date(`${dayKey(date, tz)}T12:00:00Z`).toLocaleString("en", {
@@ -177,6 +177,11 @@ export function EventForm({
           }}
         />
       ) : null}
+      <AttendanceFields
+        value={draft.attendance}
+        onChange={(attendance) => onChange({ attendance })}
+        people={inIt}
+      />
       <TextField
         label={Text.link}
         help={Text.linkHelp}

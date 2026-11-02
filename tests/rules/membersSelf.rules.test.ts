@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/membersSelf.rules.test.ts
-// Version : 1.3.0
-// Latest commit: feature/onboarding
+// Version : 1.4.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : Tests what a member may do with their own record: read it, become
 // active on their first sign-in, note when they were last active, and change
@@ -233,6 +233,53 @@ describe("changing your own settings", () => {
     await assertFails(
       updateDoc(memberDoc("sam", "mika"), { displayName: "Mika" }),
     );
+  });
+});
+
+describe("profile photos", () => {
+  const photo =
+    "https://firebasestorage.googleapis.com/v0/b/demo/o/members%2Fsam%2F1.webp?alt=media&token=t";
+
+  it("lets an active member set and clear their own photo", async () => {
+    const me = doc(signedInAs(env, "sam"), "members/sam");
+    await assertSucceeds(updateDoc(me, { photoUrl: photo }));
+    await assertSucceeds(updateDoc(me, { photoUrl: null }));
+  });
+
+  it("refuses photos from elsewhere and on someone else's record", async () => {
+    await assertFails(
+      updateDoc(doc(signedInAs(env, "sam"), "members/sam"), {
+        photoUrl: "https://example.com/me.png",
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(signedInAs(env, "sam"), "members/chris"), {
+        photoUrl: null,
+      }),
+    );
+  });
+
+  it("lets an Administrator take down someone's photo, and nothing else", async () => {
+    await seed(env, {
+      "config/roles": {
+        roles: {},
+        grants: { administrator: ["admin"] },
+      },
+      "members/alex": {
+        ...baseMember,
+        status: "active",
+        roleIds: ["admin"],
+      },
+      "members/sam": {
+        ...baseMember,
+        email: "sam@example.com",
+        status: "active",
+        photoUrl: photo,
+      },
+    });
+    const sam = doc(signedInAs(env, "alex"), "members/sam");
+    await assertFails(updateDoc(sam, { photoUrl: photo + "x" }));
+    await assertSucceeds(updateDoc(sam, { photoUrl: null }));
   });
 });
 

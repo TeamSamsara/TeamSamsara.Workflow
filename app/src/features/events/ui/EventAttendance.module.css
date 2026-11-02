@@ -1,0 +1,241 @@
+/* File : /TeamSamsara.Workflow/app/src/features/events/ui/EventAttendance.module.css
+   Version : 1.0.0
+   Latest commit: feature/attendance-photos
+   Author : Gerrah
+   Purpose : Attendance on an event's page: the three reply buttons (green for Going, amber for Maybe, dark for Can't go), the counts as tinted tiles, and everyone's answer as a pill beside their name. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.title {
+  flex-grow: 1;
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-section-heading);
+  text-transform: uppercase;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--space-6);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-raised);
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+}
+
+.badge[data-required] {
+  background-color: var(--color-nav);
+  color: var(--color-accent);
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+}
+
+/* #region Your reply */
+.answers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.answer {
+  min-height: var(--control-height);
+  padding: 0 var(--space-2);
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-field);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-size: var(--text-button);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-ui);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast) ease,
+    border-color var(--motion-fast) ease;
+}
+
+.answer:hover {
+  background-color: var(--color-surface-raised);
+}
+
+.answer:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.answer:disabled {
+  cursor: progress;
+}
+
+.answer[data-answer="going"][aria-pressed="true"] {
+  border-color: var(--color-accent);
+  background-color: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+
+.answer[data-answer="maybe"][aria-pressed="true"] {
+  border-color: var(--color-alert);
+  background-color: var(--color-alert);
+  color: var(--color-text-on-alert);
+}
+
+.answer[data-answer="cant"][aria-pressed="true"] {
+  border-color: var(--color-nav);
+  background-color: var(--color-nav);
+  color: var(--color-nav-text);
+}
+
+.noteRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.note {
+  flex: 1 1 220px;
+}
+/* #endregion */
+
+/* #region Who's coming */
+.counts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: var(--space-2);
+}
+
+.count {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-field);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+}
+
+.count b {
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  line-height: 1;
+}
+
+[data-answer="going"]:is(.count, .pill) {
+  background-color: color-mix(
+    in srgb,
+    var(--color-accent) 22%,
+    var(--color-surface)
+  );
+}
+
+[data-answer="maybe"]:is(.count, .pill) {
+  background-color: color-mix(
+    in srgb,
+    var(--color-alert) 28%,
+    var(--color-surface)
+  );
+}
+
+[data-answer="cant"]:is(.count, .pill) {
+  background-color: color-mix(
+    in srgb,
+    var(--color-error) 16%,
+    var(--color-surface)
+  );
+  color: var(--color-error-text);
+}
+
+[data-answer="waiting"]:is(.count, .pill) {
+  background-color: var(--color-surface-raised);
+  color: var(--color-text-muted);
+}
+
+.remind {
+  align-self: flex-start;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+}
+
+.groupName {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+}
+
+.people {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-field);
+  list-style: none;
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+}
+
+.person + .person {
+  border-top: var(--border-width) solid var(--color-border);
+}
+
+.who {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.who b {
+  font-weight: var(--weight-medium);
+}
+
+.quote {
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  overflow-wrap: anywhere;
+}
+
+.pill {
+  flex: none;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+  white-space: nowrap;
+}
+/* #endregion */

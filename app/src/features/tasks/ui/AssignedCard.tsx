@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/ui/AssignedCard.tsx
-// Version : 1.0.0
-// Latest commit: feature/tasks
+// Version : 1.1.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : Who a task is given to (a work group, a person, or both), who made
 // it, and Reassign for people who may.
@@ -55,7 +55,11 @@ export function AssignedCard({
       ) : null}
       {member ? (
         <span className={styles.person}>
-          <Avatar name={memberName(member)} size="small" />
+          <Avatar
+            name={memberName(member)}
+            src={member.photoUrl}
+            size="small"
+          />
           {memberName(member)}
         </span>
       ) : null}

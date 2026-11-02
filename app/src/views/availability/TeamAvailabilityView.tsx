@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/availability/TeamAvailabilityView.tsx
-// Version : 1.3.0
-// Latest commit: feature/onboarding
+// Version : 1.4.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : A work group's week of availability, for See everyone's
 // availability: who's free when, their personal appointments, clashes with the
@@ -95,6 +95,7 @@ export function TeamAvailabilityView() {
       name: memberName(record),
       subName: memberSubName(record),
       initials: initialsOf(memberName(record)),
+      photoUrl: record.photoUrl,
     }));
 
   const availability = useAllAvailability();

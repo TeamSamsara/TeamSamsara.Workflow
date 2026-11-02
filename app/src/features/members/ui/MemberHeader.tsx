@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/members/ui/MemberHeader.tsx
-// Version : 1.1.0
-// Latest commit: feature/your-account
+// Version : 1.2.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : The top of a member's page: avatar, name, email, when they joined
 // (or were invited), status, and the field to set their name. The page puts
@@ -50,7 +50,7 @@ export function MemberHeader({
     <section className={styles.card}>
       <div className={styles.top}>
         <div className={styles.identity}>
-          <Avatar name={name} size="large" />
+          <Avatar name={name} src={member.photoUrl} size="large" />
           <div className={styles.text}>
             {/* An email in the heading font would be shouted in capitals. */}
             <h2

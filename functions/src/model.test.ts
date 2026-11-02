@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/model.test.ts
-// Version : 1.0.0
-// Latest commit: feature/notifications
+// Version : 1.1.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : Tests who a task or event change notifies, and when reminders fire.
 
@@ -10,7 +10,9 @@ import {
   isDueIn,
   readSettings,
   reminderAt,
+  replyNotifications,
   taskNotifications,
+  waitingOn,
   type EventData,
   type TaskData,
 } from "./model.js";
@@ -80,7 +82,67 @@ describe("eventNotifications", () => {
     memberIds: [],
     repeatId: null,
     setId: null,
+    createdBy: "pat",
+    asksReply: false,
+    requiredIds: [],
+    tellEveryReply: false,
+    replies: {},
     ...changes,
+  });
+
+  it("asks people to reply instead when the event asks", () => {
+    expect(
+      eventNotifications(null, event({ asksReply: true }), members, now),
+    ).toEqual([{ kind: "replyAsked", memberIds: ["sam", "mika"] }]);
+    // Turning asking on later asks those in it who haven't replied.
+    expect(
+      eventNotifications(
+        event(),
+        event({
+          asksReply: true,
+          replies: { sam: { answer: "going", note: "" } },
+        }),
+        members,
+        now,
+      ),
+    ).toEqual([{ kind: "replyAsked", memberIds: ["mika"] }]);
+  });
+
+  it("tells the planner when someone required can't go", () => {
+    const asking = event({ asksReply: true, requiredIds: ["sam"] });
+    const declined = {
+      ...asking,
+      replies: {
+        sam: { answer: "cant" as const, note: "Away" },
+        mika: { answer: "cant" as const, note: "" },
+      },
+    };
+    expect(replyNotifications(asking, declined)).toEqual([
+      { kind: "replyDeclined", memberId: "sam", answer: "cant", note: "Away" },
+    ]);
+    // A note changed without a new answer says nothing.
+    expect(replyNotifications(declined, declined)).toEqual([]);
+  });
+
+  it("tells the planner about every reply when asked to", () => {
+    const asking = event({ asksReply: true, tellEveryReply: true });
+    expect(
+      replyNotifications(asking, {
+        ...asking,
+        replies: { mika: { answer: "maybe", note: "" } },
+      }),
+    ).toEqual([
+      { kind: "replied", memberId: "mika", answer: "maybe", note: "" },
+    ]);
+  });
+
+  it("knows who it's still waiting on", () => {
+    expect(
+      waitingOn(
+        event({ replies: { sam: { answer: "going", note: "" } } }),
+        members,
+      ),
+    ).toEqual(["mika"]);
   });
 
   it("tells everyone in a new event, but not for repeats, sets or the past", () => {

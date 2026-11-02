@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/features/events/ui/CalendarItem.module.css
-   Version : 1.2.0
-   Latest commit: feature/calendar-people
+   Version : 1.3.0
+   Latest commit: feature/attendance-photos
    Author : Gerrah
    Purpose : Calendar items: an event is a filled block with a coloured left edge; a one-off task is a dashed block. Both show a bold title and a muted time line. */
 
@@ -236,3 +236,46 @@
 .eventWrap[data-block] .title {
   overflow-wrap: break-word;
 }
+
+/* #region Your reply, when the event asks you */
+.reply {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 13px;
+  height: 13px;
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: var(--weight-bold);
+  line-height: 1;
+}
+
+.reply svg {
+  width: 13px;
+  height: 13px;
+}
+
+.reply[data-reply="going"] {
+  color: var(--color-accent-text);
+}
+
+.reply[data-reply="maybe"] {
+  color: var(--color-text);
+}
+
+/* Waiting on your reply: a small accent dot that asks to be opened. */
+.reply[data-reply="waiting"] {
+  color: var(--color-accent-text);
+  font-size: 9px;
+}
+
+/* You can't go: struck through and faded, still there for the record. */
+.eventWrap[data-reply="cant"] .event {
+  opacity: 0.55;
+}
+
+.eventWrap[data-reply="cant"] .title {
+  text-decoration: line-through;
+}
+/* #endregion */

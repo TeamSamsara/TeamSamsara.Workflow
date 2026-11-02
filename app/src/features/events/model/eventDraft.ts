@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/model/eventDraft.ts
-// Version : 1.3.0
-// Latest commit: feature/event-fields
+// Version : 1.4.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : An event as its form holds it (a date box, start and end time
 // boxes, who's in it), what's wrong with it, and back to an event's fields.
@@ -10,6 +10,7 @@ import { EventGaps, fillGaps, findGaps } from "@/features/workflows";
 import type { ValueText } from "./applyWorkflows";
 import { fromDateAndTime, toDateAndTime } from "@/features/tasks";
 import { EventFormText } from "../ui/eventsContent";
+import { noAttendance, type Attendance } from "../types/attendance";
 import { nobody, type Audience } from "../types/audience";
 import {
   defaultEventMinutes,
@@ -28,6 +29,7 @@ export interface EventDraft {
   notes: string;
   details: Record<string, string>;
   audience: Audience;
+  attendance: Attendance;
 }
 
 const toMinutes = (time: string) => {
@@ -73,6 +75,7 @@ export function emptyEventDraft(date = "", time = "19:00"): EventDraft {
     notes: "",
     details: {},
     audience: nobody,
+    attendance: noAttendance,
   };
 }
 
@@ -97,6 +100,11 @@ export function draftFromEvent(
       everyone: event.everyone,
       groupIds: event.groupIds,
       memberIds: event.memberIds,
+    },
+    attendance: {
+      asksReply: event.asksReply,
+      requiredIds: event.requiredIds,
+      tellEveryReply: event.tellEveryReply,
     },
     link: event.link ?? "",
     notes: event.notes,
@@ -174,6 +182,7 @@ export function fieldsFromDraft(
     startsAt,
     endsAt: new Date(startsAt.getTime() + draftMinutes(draft) * 60_000),
     audience: draft.audience,
+    attendance: draft.attendance,
     link: draft.link.trim() || null,
     notes: draft.notes,
     details: draft.details,

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/index.ts
-// Version : 1.5.0
-// Latest commit: feature/event-fields
+// Version : 1.6.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : What other layers may use from the events feature.
 
@@ -66,6 +66,15 @@ export {
 } from "./model/repeatRule";
 export { describeRepeat } from "./model/repeatSummary";
 export { createEvent, deleteEvent, saveEvent } from "./service/eventService";
+export { saveReply } from "./service/replyService";
+export { isAsked, myReply, peopleIn } from "./model/attendance";
+export type { ReplyState } from "./model/attendance";
+export { ReplyAnswers } from "./types/attendance";
+export type { ReplyAnswer } from "./types/attendance";
+export { AttendanceCard, ReplyCard } from "./ui/EventAttendance";
+export { InlineReply } from "./ui/InlineReply";
+export type { AttendancePerson } from "./ui/EventAttendance";
+export { answerLabels, ReplyText } from "./ui/attendanceContent";
 export {
   createRepeat,
   editSeriesFrom,

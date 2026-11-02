@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/AudiencePicker.tsx
-// Version : 1.1.0
-// Latest commit: feature/your-account
+// Version : 1.2.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : "Who's in it": one search box that finds Everyone, work groups and
 // people. A group stays one chip ("Bloom · 6 people") and follows its roster.
@@ -22,6 +22,8 @@ export interface AudienceOption {
   name: string;
   /** Their real name, under an in-game name; also found by search. */
   subName?: string | null;
+  /** Their profile photo, when they've added one. */
+  photoUrl?: string | null;
 }
 
 export interface AudienceGroupOption extends AudienceOption {

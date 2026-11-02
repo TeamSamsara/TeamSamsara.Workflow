@@ -1,11 +1,11 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/types/eventTypes.ts
-// Version : 1.2.0
-// Latest commit: feature/event-sets
+// Version : 1.3.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : An event on the calendar: a match, a content drop, a sponsor
 // activation, a meeting. It has a start and an end, who's in it, an optional
-// type and link, the values for its workflows' {gaps}, and the workflows used
-// to make its tasks.
+// type and link, the values for its workflows' {gaps}, the workflows used
+// to make its tasks, and whether it asks people to reply (and their replies).
 
 import type { DocumentData } from "firebase/firestore";
 import {
@@ -17,9 +17,15 @@ import {
   readString,
   readStringList,
 } from "@/core/data";
+import {
+  readAttendance,
+  readReplies,
+  type Attendance,
+  type EventReply,
+} from "./attendance";
 import { readAudience, type Audience } from "./audience";
 
-export interface EventRecord extends Audience {
+export interface EventRecord extends Audience, Attendance {
   id: string;
   title: string;
   eventTypeId: string | null;
@@ -35,6 +41,8 @@ export interface EventRecord extends Audience {
   repeatId: string | null;
   /** The set it was planned in, if any. */
   setId: string | null;
+  /** Each person's reply when it asks, by member id. */
+  replies: Record<string, EventReply>;
   createdBy: string;
   createdAt: Date | null;
   updatedAt: Date | null;
@@ -44,7 +52,7 @@ export interface EventRecord extends Audience {
 export type EventFields = Pick<
   EventRecord,
   "title" | "eventTypeId" | "startsAt" | "endsAt" | "link" | "details" | "notes"
-> & { audience: Audience };
+> & { audience: Audience; attendance: Attendance };
 
 /** How long an event lasts when nothing says otherwise. */
 export const defaultEventMinutes = 120;
@@ -80,6 +88,8 @@ export const eventConverter = createConverter<EventRecord>({
         readDate(data, "endsAt") ??
         new Date(startsAt.getTime() + defaultEventMinutes * 60_000),
       ...readAudience(data),
+      ...readAttendance(data),
+      replies: readReplies(data),
       link: readOptionalString(data, "link"),
       details: readDetails(data),
       workflowIds: readStringList(data, "workflowIds"),
@@ -105,6 +115,10 @@ export const eventConverter = createConverter<EventRecord>({
     everyone: event.everyone,
     groupIds: event.groupIds,
     memberIds: event.memberIds,
+    asksReply: event.asksReply,
+    requiredIds: event.requiredIds,
+    tellEveryReply: event.tellEveryReply,
+    replies: event.replies,
     createdBy: event.createdBy,
     createdAt: fromDate(event.createdAt),
     updatedAt: fromDate(event.updatedAt),

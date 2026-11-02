@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/members/ui/MembersTable.tsx
-// Version : 1.1.0
-// Latest commit: feature/your-account
+// Version : 1.2.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : The members table: who they are, their roles and work groups,
 // status, and when they were last active (or when the invite went out). Each
@@ -69,7 +69,7 @@ export function MembersTable({ items, hrefFor, timeZone }: MembersTableProps) {
             <tr key={item.member.id} className={styles.row}>
               <td>
                 <Link to={href} className={styles.person}>
-                  <Avatar name={name} />
+                  <Avatar name={name} src={item.member.photoUrl} />
                   <span className={styles.personText}>
                     <b className={styles.name}>{name}</b>
                     {memberSubName(item.member) ? (

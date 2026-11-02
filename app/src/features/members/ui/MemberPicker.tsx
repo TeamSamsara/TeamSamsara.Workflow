@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/members/ui/MemberPicker.tsx
-// Version : 1.1.0
-// Latest commit: task/group-leads-and-x-premium
+// Version : 1.2.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : A dialog to pick members (to give them a role, put them in a
 // group, and later to hand over a task): search, tick, Add.
@@ -97,7 +97,11 @@ export function MemberPicker({
                     disabled={isSaving}
                     label={
                       <span className={styles.person}>
-                        <Avatar name={name} size="small" />
+                        <Avatar
+                          name={name}
+                          src={item.member.photoUrl}
+                          size="small"
+                        />
                         <span className={styles.personText}>
                           <b>{name}</b>
                           {item.member.displayName.trim() ? (

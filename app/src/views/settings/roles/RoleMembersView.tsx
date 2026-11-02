@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/roles/RoleMembersView.tsx
-// Version : 1.0.0
-// Latest commit: feature/members
+// Version : 1.1.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : A role's Members tab: who has it, with search, Remove per person,
 // and Add members. Changes save straight away. Everyone has no Members tab.
@@ -140,7 +140,7 @@ export function RoleMembersView() {
                 <tr key={entry.member.id}>
                   <td>
                     <span className={styles.person}>
-                      <Avatar name={name} />
+                      <Avatar name={name} src={entry.member.photoUrl} />
                       <span className={styles.personText}>
                         <b>{name}</b>
                         <span className={styles.muted}>

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/general/GeneralSettingsView.tsx
-// Version : 1.2.0
-// Latest commit: feature/remember-me
+// Version : 1.3.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : Settings → General: the workspace's name, time and date settings
 // and default theme, saved together. Everyone signed in sees a rename at once
@@ -17,6 +17,7 @@ import {
   useWorkspaceRecord,
   type WorkspaceSettings,
 } from "@/core/workspace";
+import { SignInPhotosCard } from "@/features/sign-in-photos";
 import { Banner } from "@/shared/components/Banner/Banner";
 import { Button } from "@/shared/components/Button/Button";
 import { Modal } from "@/shared/components/Modal/Modal";
@@ -131,6 +132,9 @@ export function GeneralSettingsView() {
         nameError={nameError}
         disabled={!canChange || save.isPending}
       />
+
+      {/* Saves on its own, picture by picture: not part of Save above. */}
+      {can("administrator") ? <SignInPhotosCard /> : null}
 
       {blocker.state === "blocked" ? (
         <Modal

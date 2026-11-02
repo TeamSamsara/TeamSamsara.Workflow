@@ -1,16 +1,18 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/members/MemberView.tsx
-// Version : 1.2.0
-// Latest commit: fix/invite-and-fields
+// Version : 1.3.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : One member's page: their name, roles and work groups (saved
 // together with Save changes), what their roles let them do, and their access.
 // An Administrator's page is read-only for anyone who isn't one.
 
+import { useMutation } from "@tanstack/react-query";
 import { Navigate, useBlocker, useNavigate, useParams } from "react-router-dom";
 import { resolvePermissions, usePermissions } from "@/core/access";
-import { EveryoneRoleId } from "@/core/data";
+import { dataErrorMessage, EveryoneRoleId } from "@/core/data";
 import { useSession } from "@/core/session";
 import { useDisplayTime } from "@/core/workspace";
+import { PhotoText, removePhoto } from "@/features/account";
 import {
   MemberAccessCard,
   MemberGroupsCard,
@@ -43,6 +45,16 @@ function MemberEditor({ item }: { item: MemberListItem }) {
   const draft = useMemberDraft(member);
   const toast = useToast();
   const navigate = useNavigate();
+  const takeDownPhoto = useMutation({
+    mutationFn: () => removePhoto(member.id, member.photoUrl),
+    onSuccess: () => toast.show({ tone: "success", title: PhotoText.removed }),
+    onError: (error) =>
+      toast.show({
+        tone: "error",
+        title: PhotoText.removeFailed,
+        detail: dataErrorMessage(error),
+      }),
+  });
 
   const blocker = useBlocker(
     ({ nextLocation }) =>
@@ -87,6 +99,17 @@ function MemberEditor({ item }: { item: MemberListItem }) {
         actions={
           locked ? null : (
             <>
+              {/* Administrators can take down someone else's photo. */}
+              {isAdministrator && !isSelf && member.photoUrl ? (
+                <Button
+                  variant="ghost"
+                  iconStart="trash"
+                  isLoading={takeDownPhoto.isPending}
+                  onClick={() => takeDownPhoto.mutate()}
+                >
+                  {PhotoText.remove}
+                </Button>
+              ) : null}
               <Button
                 variant="ghost"
                 onClick={draft.reset}

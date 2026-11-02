@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/firestore.rules
-// Version : 1.21.0
-// Latest commit: feature/notifications
+// Version : 1.22.0
+// Latest commit: feature/attendance-photos
 // Author : Gerrah
 // Purpose : Who may read and write what in Firestore. Everything is denied until
 // a rule below allows it; each PR opens exactly what its feature needs, with a
@@ -81,6 +81,20 @@ service cloud.firestore {
 
     match /config/{document} {
       allow read: if isActiveMember();
+    }
+
+    // The sign-in page's pictures. Anyone may read it, signed in or not (the
+    // page shows them before sign-in); only an Administrator changes them.
+    match /config/signin {
+      allow get: if true;
+      allow create, update: if can("administrator")
+        && isValidSignIn(request.resource.data);
+    }
+
+    function isValidSignIn(data) {
+      return data.keys().hasOnly(["slides", "updatedAt"])
+        && data.slides is list && data.slides.size() <= 8
+        && data.updatedAt == request.time;
     }
 
     match /config/workspace {
@@ -222,6 +236,9 @@ service cloud.firestore {
 
       // Someone managing members, roles or groups changing another record.
       allow update: if isManagedChange();
+
+      // An Administrator taking down someone's profile photo.
+      allow update: if isRemovingPhoto();
 
       // First-time setup makes the first Admin; after that, invites.
       allow create: if (isSelf(memberId)
@@ -377,7 +394,8 @@ service cloud.firestore {
       let after = request.resource.data;
       return resource.data.status == "active"
         && changedFields().hasOnly(["displayName", "gameName", "timeZone",
-          "dateFormat", "timeFormat"])
+          "dateFormat", "timeFormat", "photoUrl"])
+        && isPhotoUrl(after.get("photoUrl", null))
         && after.displayName is string
         && after.displayName.size() > 0 && after.displayName.size() <= 80
         && (after.get("gameName", null) == null
@@ -386,6 +404,21 @@ service cloud.firestore {
           || (after.timeZone is string && after.timeZone.size() > 0 && after.timeZone.size() <= 64))
         && after.get("dateFormat", null) in [null, "weekdayMonthDay", "monthDay", "dayMonth", "isoDate"]
         && after.get("timeFormat", null) in [null, "12h", "24h"];
+    }
+
+    /** A profile photo: none, or a file in this project's Storage. */
+    function isPhotoUrl(value) {
+      return value == null
+        || (value is string && value.size() <= 600
+          && (value.matches("^https://firebasestorage[.]googleapis[.]com/.*")
+            || value.matches("^http://(127[.]0[.]0[.]1|localhost):9199/.*")));
+    }
+
+    /** An Administrator taking down someone's photo. */
+    function isRemovingPhoto() {
+      return can("administrator")
+        && changedFields().hasOnly(["photoUrl"])
+        && request.resource.data.photoUrl == null;
     }
 
     /** An active member's walkthrough: the chapters they've done, and whether its card is hidden. */
@@ -784,6 +817,39 @@ service cloud.firestore {
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.updatedAt == request.time;
       allow delete: if can("planEvents");
+
+      // Anyone in an event that asks for replies changes only their own reply.
+      allow update: if isActiveMember() && isReplying(resource.data);
+    }
+
+    // Whether the member is in the event: Everyone, by name, or through a group.
+    function isInEvent(event) {
+      return event.everyone == true
+        || request.auth.uid in event.memberIds
+        || event.groupIds.hasAny(memberRecord().data.get("workGroupIds", []));
+    }
+
+    // Going, Maybe or Can't go, with an optional note (same as AttendanceLimits).
+    function isReplying(event) {
+      let after = request.resource.data;
+      let reply = after.replies.get(request.auth.uid, null);
+      return event.get("asksReply", false) == true
+        && isInEvent(event)
+        && changedFields().hasOnly(["replies"])
+        && after.replies.diff(event.get("replies", {})).affectedKeys().hasOnly([request.auth.uid])
+        && reply is map
+        && reply.keys().hasOnly(["answer", "note", "at"])
+        && reply.keys().hasAll(["answer", "note", "at"])
+        && reply.answer in ["going", "maybe", "cant"]
+        && reply.note is string && reply.note.size() <= 300
+        && reply.at == request.time;
+    }
+
+    // Asking for replies, on an event or a repeat. Saved before it existed: none.
+    function isValidAttendance(data) {
+      return data.get("asksReply", false) is bool
+        && data.get("requiredIds", []) is list && data.get("requiredIds", []).size() <= 200
+        && data.get("tellEveryReply", false) is bool;
     }
 
     // An event planned in a set is made with (or after) its set.
@@ -804,8 +870,9 @@ service cloud.firestore {
       let fields = ["title", "eventTypeId", "startsAt", "endsAt", "link",
         "details", "workflowIds", "notes", "repeatId", "everyone", "groupIds",
         "memberIds", "createdBy", "createdAt", "updatedAt"];
-      // setId came later, so events saved before it may not have one.
-      return event.keys().hasOnly(fields.concat(["setId"]))
+      // setId and attendance came later, so events saved before may not have them.
+      return event.keys().hasOnly(fields.concat(["setId", "asksReply",
+          "requiredIds", "tellEveryReply", "replies"]))
         && event.keys().hasAll(fields)
         && event.title is string && event.title.size() > 0 && event.title.size() <= 120
         && isNullOr(event.eventTypeId, "string")
@@ -818,6 +885,8 @@ service cloud.firestore {
         && isNullOr(event.repeatId, "string")
         && isNullOr(event.get("setId", null), "string")
         && isValidAudience(event)
+        && isValidAttendance(event)
+        && event.get("replies", {}) is map && event.get("replies", {}).size() <= 300
         && event.createdBy is string
         && event.createdAt is timestamp
         && event.updatedAt is timestamp;
@@ -847,8 +916,9 @@ service cloud.firestore {
         "startDate", "endKind", "endDate", "endCount", "skipDates", "link",
         "details", "notes", "workflowIds", "everyone", "groupIds", "memberIds",
         "createdBy", "createdAt", "updatedAt"];
-      return repeat.keys().hasOnly(fields)
+      return repeat.keys().hasOnly(fields.concat(["asksReply", "requiredIds", "tellEveryReply"]))
         && repeat.keys().hasAll(fields)
+        && isValidAttendance(repeat)
         && repeat.title is string && repeat.title.size() > 0 && repeat.title.size() <= 120
         && isNullOr(repeat.eventTypeId, "string")
         && repeat.weekdays is list && repeat.weekdays.size() > 0 && repeat.weekdays.size() <= 7
