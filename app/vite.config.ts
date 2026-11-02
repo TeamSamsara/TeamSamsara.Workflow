@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/vite.config.ts
-// Version : 1.2.0
-// Latest commit: core/workspace
+// Version : 1.3.0
+// Latest commit: fix/vite-firebase-prebundle
 // Author : Gerrah
 // Purpose : Vite setup: React, the @/ alias, and the build split into a few
 // files. Firebase and React rarely change, so they get files of their own that
@@ -23,6 +23,17 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  optimizeDeps: {
+    // Every Firebase part bundled together up front. Found one at a time, a
+    // late one (firebase/functions) gets its own copy of Firebase's core, which
+    // doesn't see the others' sign-in, and the app waits forever.
+    include: [
+      "firebase/app",
+      "firebase/auth",
+      "firebase/firestore",
+      "firebase/functions",
+    ],
   },
   css: {
     // Lightning CSS (bundled with Vite) handles CSS Modules, including
