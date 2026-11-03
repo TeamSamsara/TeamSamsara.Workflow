@@ -1,11 +1,11 @@
 // File : /TeamSamsara.Workflow/app/src/features/platforms/catalogue/platformCatalogue.ts
-// Version : 1.2.0
-// Latest commit: chore/rename-playbook
+// Version : 1.3.0
+// Latest commit: feature/discord-platform
 // Author : Gerrah
 // Purpose : The platforms Playbook knows, with their current limits. This list
 // comes with the app (it isn't edited per workspace); each workspace only
 // chooses which ones it uses, and whether its account has a platform's paid
-// tier (X Premium). Limits checked October 2026 — update them here when a
+// tier (X Premium, Discord Nitro). Limits checked November 2026 — update them here when a
 // platform changes its rules.
 
 import type { EffectiveLimits, Platform } from "./platformTypes";
@@ -65,6 +65,20 @@ export const PlatformCatalogue: readonly Platform[] = [
     color: "#9146FF",
     texts: [{ field: "streamTitle", maxCharacters: 140 }],
     media: {},
+  },
+  {
+    id: "discord",
+    name: "Discord",
+    icon: "discord",
+    color: "#5865F2",
+    // A message in an announcements channel; Nitro doubles the length.
+    texts: [{ field: "post", maxCharacters: 2000 }],
+    media: { maxImages: 10, maxVideos: 10 },
+    upgrade: {
+      name: "Discord Nitro",
+      texts: [{ field: "post", maxCharacters: 4000 }],
+      formats: [],
+    },
   },
   {
     id: "bluesky",
