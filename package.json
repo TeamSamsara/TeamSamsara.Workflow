@@ -9,7 +9,7 @@
     "test:rules": "firebase emulators:exec --only firestore --project demo-workflow-rules \"vitest run --config tests/rules/vitest.config.ts\"",
     "seed": "node scripts/seedEmulator.mjs",
     "test:seed": "firebase emulators:exec --only auth,firestore --project demo-workflow-rules \"node scripts/seedEmulator.mjs\"",
-    "functions:install": "npm --prefix functions install",
+    "functions:install": "cd functions && npm install",
     "deploy": "firebase deploy"
   },
   "devDependencies": {
