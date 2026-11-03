@@ -1,0 +1,132 @@
+/* File : /TeamSamsara.Workflow/app/src/features/events/ui/RepeatFields.module.css
+   Version : 1.0.0
+   Latest commit: feature/repeats
+   Author : Gerrah
+   Purpose : The repeat panel: a soft box with the weekday toggles in a row, the end on one line, skip dates as chips and the dates it makes underneath. */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-field);
+  background-color: var(--color-page);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.headTitle {
+  font-weight: var(--weight-bold);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+}
+
+.days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1-5);
+}
+
+.day {
+  min-width: 44px;
+  min-height: 36px;
+  padding: 0 var(--space-2);
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-small);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+}
+
+.day:hover {
+  border-color: var(--color-accent);
+}
+
+.day[aria-pressed="true"] {
+  border-color: var(--color-accent);
+  background-color: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+
+.day:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.endRow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.skipRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.endField {
+  flex: 0 1 180px;
+  width: 180px;
+  max-width: 100%;
+}
+
+.countField {
+  width: 110px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1-5);
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-top: var(--space-3);
+  border-top: var(--border-width) solid var(--color-border);
+}
+
+.previewTitle {
+  margin: 0;
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+}
+
+.dates {
+  margin: 0;
+  font-size: var(--text-small);
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}

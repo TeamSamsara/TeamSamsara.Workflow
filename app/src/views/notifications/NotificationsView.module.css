@@ -1,0 +1,12 @@
+/* File : /TeamSamsara.Workflow/app/src/views/notifications/NotificationsView.module.css
+   Version : 1.0.0
+   Latest commit: feature/notifications
+   Author : Gerrah
+   Purpose : The notifications page: the list on a card, at most 640px wide. */
+
+.page {
+  max-width: 640px;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}

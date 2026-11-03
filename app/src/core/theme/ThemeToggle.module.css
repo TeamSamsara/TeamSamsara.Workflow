@@ -1,0 +1,35 @@
+/* File : /TeamSamsara.Workflow/app/src/core/theme/ThemeToggle.module.css
+   Version : 1.0.0
+   Latest commit: core/app-shell
+   Author : Gerrah
+   Purpose : Look of the theme toggle: a 40px square outlined button. On the dark sidebar it uses the sidebar's colours, which stay dark in both themes. */
+
+.toggle {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-height);
+  height: var(--control-height);
+  padding: 0;
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text);
+  transition:
+    background-color var(--motion-fast) ease,
+    border-color var(--motion-fast) ease;
+}
+
+.toggle:hover {
+  background-color: var(--color-surface-raised);
+}
+
+.toggle[data-surface="nav"] {
+  border-color: color-mix(in srgb, var(--color-nav-text) 22%, transparent);
+  color: var(--color-nav-text);
+}
+
+.toggle[data-surface="nav"]:hover {
+  background-color: var(--color-nav-active);
+}

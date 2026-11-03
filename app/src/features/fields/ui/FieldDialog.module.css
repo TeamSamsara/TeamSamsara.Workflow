@@ -1,0 +1,176 @@
+/* File : /TeamSamsara.Workflow/app/src/features/fields/ui/FieldDialog.module.css
+   Version : 1.0.0
+   Latest commit: feature/event-fields
+   Author : Gerrah
+   Purpose : Look of the field dialog: the key in a grey code chip, the six types as a grid of picked-or-not cards, the choices as chips in a field-styled box, and a muted note in the footer. */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.key {
+  padding: 1px var(--space-1-5);
+  border-radius: var(--radius-small);
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+
+.types {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  composes: label from "../../../shared/components/Fields/FieldFrame/FieldFrame.module.css";
+  margin-bottom: var(--space-2);
+  padding: 0;
+}
+
+.typeGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+@media (width < 560px) {
+  .typeGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.type {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-2-5) var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-field);
+  cursor: pointer;
+}
+
+.type[data-on="true"] {
+  border-color: var(--color-text);
+  box-shadow: inset 0 0 0 1px var(--color-text);
+  background-color: color-mix(
+    in srgb,
+    var(--color-accent) 8%,
+    var(--color-surface)
+  );
+}
+
+.type:has(.radio:focus-visible) {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.radio {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}
+
+.choicesField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+}
+
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1-5);
+  min-height: var(--field-height);
+  padding: var(--space-1-5);
+  box-sizing: border-box;
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-field);
+  background-color: var(--color-field-fill);
+}
+
+.choices:focus-within {
+  border-color: var(--color-focus-ring);
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+}
+
+.choices[data-invalid="true"] {
+  border-color: var(--color-error);
+}
+
+.choice {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 30px;
+  padding: 0 var(--space-0-5) 0 var(--space-2-5);
+  border-radius: var(--radius-small);
+  background-color: var(--color-surface-raised);
+  font-size: var(--text-meta);
+}
+
+.remove {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  --icon-size: 13px;
+}
+
+.choiceInput {
+  flex: 1 1 120px;
+  min-width: 0;
+  height: 30px;
+  padding: 0
+    calc(var(--field-padding-x) - var(--space-1-5) - var(--border-width));
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+}
+
+.choice + .choiceInput {
+  padding-left: var(--space-1);
+}
+
+.choiceInput::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
+.error {
+  margin: 0;
+  color: var(--color-error-text);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+}
+
+.footNote {
+  flex: 1 1 200px;
+  margin-right: auto;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}

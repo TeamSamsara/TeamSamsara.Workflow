@@ -1,0 +1,18 @@
+/* File : /TeamSamsara.Workflow/app/src/views/system/SystemView.module.css
+   Version : 1.0.0
+   Latest commit: core/app-shell
+   Author : Gerrah
+   Purpose : Layout of the system pages: the status panel centred in the space it is given, never wider than a comfortable line. */
+
+.page {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-10) 0;
+}
+
+.panel {
+  width: 100%;
+  max-width: var(--auth-form-width);
+}

@@ -1,0 +1,47 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/components/Pill/Pill.module.css
+   Version : 1.0.0
+   Latest commit: core/ui-kit
+   Author : Gerrah
+   Purpose : Look of a pill: bold 12px text in a fully rounded shape, filled for success, alert, error and info, outlined for neutral and muted. */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-0-5) var(--space-2-5);
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-small);
+  white-space: nowrap;
+}
+
+.pill[data-tone="neutral"] {
+  border-color: var(--color-border-control);
+  color: var(--color-text);
+}
+
+.pill[data-tone="muted"] {
+  border-color: var(--color-border-control);
+  color: var(--color-text-muted);
+}
+
+.pill[data-tone="success"] {
+  background-color: var(--color-accent-soft);
+  color: var(--color-text-on-accent);
+}
+
+.pill[data-tone="alert"] {
+  background-color: var(--color-alert);
+  color: var(--color-text-on-alert);
+}
+
+.pill[data-tone="error"] {
+  background-color: var(--color-error);
+  color: var(--color-text-on-error);
+}
+
+.pill[data-tone="info"] {
+  background-color: var(--color-info);
+  color: var(--color-text-on-info);
+}

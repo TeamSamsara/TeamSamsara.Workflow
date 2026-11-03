@@ -1,0 +1,17 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/components/VisuallyHidden/VisuallyHidden.module.css
+   Version : 1.0.0
+   Latest commit: core/ui-kit
+   Author : Gerrah
+   Purpose : Hides text on screen while keeping it in the page for screen readers. Other modules reuse it with composes. */
+
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

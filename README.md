@@ -1,8 +1,8 @@
-# Workflow
+# Playbook
 
 Team Samsara's internal planning and task tool. Planners build reusable workflows, put events on the calendar and the tasks appear for the right people and work groups, with approvals where they are needed.
 
-Frontend only: React talks straight to Firebase (Auth and Firestore), and Firestore security rules enforce who can do what. Access is invite only.
+React talks straight to Firebase (Auth, Firestore and Storage), and security rules enforce who can do what. A few server functions send notifications, reminders and email. Access is invite only.
 
 ## Requirements
 
@@ -29,6 +29,16 @@ npm run dev
 | `npm run preview` | Serves the built app locally |
 
 A commit runs ESLint and Prettier on the staged files.
+
+## Deploying
+
+From the root, on `main`, with `app/.env.production` filled in (the same values as `.env.development`, with `VITE_USE_FIREBASE_EMULATORS=false`):
+
+```bash
+npm run deploy         # builds the app and functions, then deploys hosting, rules, indexes, storage and functions
+```
+
+The first deploy asks for `MAIL_FROM` and `APP_URL`, and lets Storage's rules read Firestore. Firebase email links need the console's action URL set to `<APP_URL>/auth/link`.
 
 ## Project structure
 

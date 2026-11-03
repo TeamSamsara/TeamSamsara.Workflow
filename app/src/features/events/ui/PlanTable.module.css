@@ -1,0 +1,111 @@
+/* File : /TeamSamsara.Workflow/app/src/features/events/ui/PlanTable.module.css
+   Version : 1.0.0
+   Latest commit: feature/event-sets
+   Author : Gerrah
+   Purpose : The planning table: compact boxes in each cell, gap columns in the accent colour, TBD marked in amber, missing dates in red, and who can make it with a green or amber dot. */
+
+/* Doubled to win over the table's own cell padding. */
+.compact.compact td,
+.compact.compact th {
+  padding: var(--space-1-5) var(--space-2);
+}
+
+.number {
+  width: 28px;
+  color: var(--color-text-muted);
+}
+
+/* Doubled to win over the table's own heading style. */
+.gapHead.gapHead {
+  color: var(--color-accent-text);
+  text-transform: none;
+}
+
+.input {
+  box-sizing: border-box;
+  height: 34px;
+  padding: 0 var(--space-2);
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-control);
+  background-color: var(--color-field-fill);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-small);
+}
+
+.input:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: 0;
+  border-color: var(--color-focus-ring);
+}
+
+.input[data-size="date"] {
+  width: 140px;
+}
+
+.input[data-size="time"] {
+  width: 110px;
+}
+
+.input[data-size="gap"] {
+  width: 130px;
+}
+
+.input[data-tbd] {
+  border-style: dashed;
+}
+
+.input[aria-invalid="true"] {
+  border: 2px solid var(--color-error);
+}
+
+.title {
+  font-weight: var(--weight-bold);
+  overflow-wrap: anywhere;
+}
+
+.tbd {
+  padding: 0 var(--space-1);
+  border-radius: 4px;
+  background-color: color-mix(in srgb, var(--color-alert) 45%, transparent);
+  color: inherit;
+  font-weight: var(--weight-regular);
+}
+
+.error {
+  display: block;
+  color: var(--color-error-text);
+  font-size: var(--text-small);
+  font-weight: var(--weight-regular);
+}
+
+.who {
+  font-size: var(--text-small);
+  white-space: nowrap;
+}
+
+.whoState {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+}
+
+.whoState::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-alert);
+}
+
+.whoState[data-all="true"]::before {
+  background-color: var(--color-accent);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.hidden {
+  composes: hidden from "../../../shared/components/VisuallyHidden/VisuallyHidden.module.css";
+}

@@ -1,0 +1,37 @@
+/* File : /TeamSamsara.Workflow/app/src/features/auth/ui/AuthForm.module.css
+   Version : 1.1.0
+   Latest commit: feature/remember-me
+   Author : Gerrah
+   Purpose : Layout shared by the sign-in forms: fields stacked 18px apart, the "Forgot password?" link on the right, and a muted note under the button. */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* "Keep me signed in" on the left, "Forgot password?" on the right. */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
+
+.inlineLink {
+  align-self: flex-end;
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+  text-decoration: none;
+}
+
+.inlineLink:hover {
+  text-decoration: underline;
+}
+
+.note {
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}

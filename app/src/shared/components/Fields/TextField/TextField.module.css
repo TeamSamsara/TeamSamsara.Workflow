@@ -1,0 +1,29 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/components/Fields/TextField/TextField.module.css
+   Version : 1.0.0
+   Latest commit: core/ui-kit
+   Author : Gerrah
+   Purpose : Look of the single-line field: the shared outlined box, with room for an icon at the start and a small button at the end. */
+
+.control {
+  composes: control from "../fieldControl.module.css";
+}
+
+.input {
+  composes: input from "../fieldControl.module.css";
+}
+
+.leadingIcon {
+  --icon-size: var(--icon-size-small);
+  margin-left: var(--field-padding-x);
+  color: var(--color-text-muted);
+}
+
+.withLeading {
+  padding-left: var(--space-2-5);
+}
+
+.trailing {
+  display: inline-flex;
+  align-items: center;
+  margin-right: var(--space-1);
+}

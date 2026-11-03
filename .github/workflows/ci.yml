@@ -1,0 +1,103 @@
+# File : /TeamSamsara.Workflow/.github/workflows/ci.yml
+# Version : 1.4.0
+# Latest commit: feature/notifications
+# Author : Gerrah
+# Purpose : Checks every PR into dev or main, and every push to them: lint,
+# type-check, unit tests and a production build of the app, and the Firestore
+# security rules against the emulator.
+
+name: CI
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev, main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    name: Lint, type-check, test, build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node from .nvmrc
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Server functions (type-check and test)
+        working-directory: functions
+        run: |
+          npm ci
+          npm run typecheck
+          npm test
+
+  rules:
+    name: Security rules
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node from .nvmrc
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      # The Firestore emulator runs on Java.
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Rule tests against the emulator
+        run: |
+          set -o pipefail
+          npm run test:rules 2>&1 | tee rules-output.txt
+
+      # The end of the output as one annotation, so a failure can be read
+      # without opening the full log.
+      - name: Show why the rule tests failed
+        if: failure()
+        run: |
+          # Only the failing tests and the totals; the rest is in the full log.
+          sed -e 's/\x1b\[[0-9;]*m//g' rules-output.txt \
+            | grep -E -A6 "FAIL|AssertionError|Error:|Test Files|Tests  " \
+            | grep -v "GrpcConnection" | head -n 80 \
+            | sed -e 's/%/%25/g' -e 's/\r/%0D/g' | awk 'BEGIN{ORS="%0A"} {print}' > failure.txt
+          echo "::error title=Rule tests::$(cat failure.txt)"
+
+      - name: Emulator seed script runs
+        run: npm run test:seed

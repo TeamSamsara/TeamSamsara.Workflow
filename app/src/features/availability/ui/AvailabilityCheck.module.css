@@ -1,0 +1,137 @@
+/* File : /TeamSamsara.Workflow/app/src/features/availability/ui/AvailabilityCheck.module.css
+   Version : 1.0.0
+   Latest commit: feature/people-time
+   Author : Gerrah
+   Purpose : Who can make it: a count with a green or amber dot, a timeline per person around the event (outlined), who can't and why, and green buttons for times when everyone's free. */
+
+.check {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2-5);
+  padding: var(--space-3-5);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-field);
+  background-color: var(--color-surface);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--color-alert);
+}
+
+.dot[data-all="true"] {
+  background-color: var(--color-accent);
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+}
+
+.rows {
+  display: grid;
+  grid-template-columns: minmax(90px, 140px) minmax(0, 1fr);
+  gap: var(--space-1-5) var(--space-3);
+  align-items: center;
+  font-size: var(--text-meta);
+}
+
+.row {
+  display: contents;
+}
+
+.name {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.name[data-conflict="true"] {
+  color: var(--color-text);
+  font-weight: var(--weight-bold);
+}
+
+.track {
+  position: relative;
+  height: 16px;
+  overflow: hidden;
+  border-radius: 4px;
+  background-color: color-mix(
+    in srgb,
+    var(--color-accent) 45%,
+    var(--color-surface)
+  );
+}
+
+.part,
+.event {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+.part[data-state="unavailable"] {
+  background-color: var(--color-surface-raised);
+  background-image: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-text) 16%, transparent) 0 3px,
+    transparent 3px 7px
+  );
+}
+
+.part[data-state="busy"] {
+  background-color: var(--color-alert);
+}
+
+.event {
+  box-sizing: border-box;
+  border: 2px solid var(--color-text);
+  border-radius: 3px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-meta);
+}
+
+.free {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding-top: var(--space-2-5);
+  border-top: var(--border-width) solid var(--color-border);
+  font-size: var(--text-meta);
+}
+
+.pick {
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-accent);
+  color: var(--color-text-on-accent);
+  font: inherit;
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+}
+
+.pick:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}

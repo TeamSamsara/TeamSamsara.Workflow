@@ -1,0 +1,142 @@
+/* File : /TeamSamsara.Workflow/app/src/views/account/AccountView.module.css
+   Version : 1.3.0
+   Latest commit: feature/attendance-photos
+   Author : Gerrah
+   Purpose : Your account: who you are beside your avatar, then one card per part (you, time and dates, password), fields in wrapping rows, at a readable width. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--content-gap);
+  max-width: 1000px;
+}
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.photoActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
+  margin-left: calc(-1 * var(--space-2));
+}
+
+.names {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-width: 0;
+}
+
+.name {
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  text-transform: uppercase;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.wide {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.zone {
+  display: flex;
+  flex: 2 1 260px;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-1-5);
+}
+
+.narrow {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+.theme {
+  align-self: flex-start;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.note {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: var(--leading-meta);
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-accent-text);
+  font: inherit;
+  font-weight: var(--weight-bold);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.saveRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.helpActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* A section of its own cards (notifications), titled like a card. */
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  scroll-margin-top: var(--space-6);
+}
+
+.blockHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.blockTitle {
+  composes: cardTitle;
+}

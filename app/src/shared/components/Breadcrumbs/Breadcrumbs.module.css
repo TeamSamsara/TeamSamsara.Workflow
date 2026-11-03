@@ -1,0 +1,28 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/components/Breadcrumbs/Breadcrumbs.module.css
+   Version : 1.0.0
+   Latest commit: core/ui-kit
+   Author : Gerrah
+   Purpose : Look of the breadcrumb trail: 13px muted text, bold accent links, slashes between the steps. */
+
+.breadcrumbs {
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1-5);
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  font-weight: var(--weight-bold);
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}

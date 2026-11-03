@@ -1,0 +1,50 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/components/Avatar/Avatar.module.css
+   Version : 1.0.0
+   Latest commit: core/ui-kit
+   Author : Gerrah
+   Purpose : Look of an avatar: a circle with bold initials or a cropped photo, in three sizes, and the overlapping row of a group, each avatar ringed in the card colour. */
+
+.avatar {
+  /* Initials take 40% of the circle, so they scale with every size. */
+  --avatar-diameter: var(--avatar-size);
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--avatar-diameter);
+  height: var(--avatar-diameter);
+  overflow: hidden;
+  border-radius: 50%;
+  background-color: var(--color-avatar-placeholder);
+  color: var(--color-text);
+  font-size: calc(var(--avatar-diameter) * 0.4);
+  font-weight: var(--weight-bold);
+  line-height: 1;
+}
+
+.avatar[data-size="small"] {
+  --avatar-diameter: var(--space-6);
+}
+
+.avatar[data-size="large"] {
+  --avatar-diameter: var(--avatar-size-large);
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.group {
+  display: inline-flex;
+  align-items: center;
+}
+
+.stacked {
+  box-shadow: 0 0 0 2px var(--color-surface);
+}
+
+.stacked + .stacked {
+  margin-left: calc(-1 * var(--space-2));
+}

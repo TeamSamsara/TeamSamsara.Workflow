@@ -1,0 +1,114 @@
+/* File : /TeamSamsara.Workflow/app/src/features/events/ui/CalendarMonth.module.css
+   Version : 1.0.0
+   Latest commit: feature/calendar-events
+   Author : Gerrah
+   Purpose : The month grid: seven equal columns, each day a cell with its number at the top (today in an accent circle), items stacked under it, and a "+" that shows on hover or focus. */
+
+.month {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.weekdays,
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.weekday {
+  padding: var(--space-2) var(--space-2-5);
+  border-bottom: var(--border-width) solid var(--color-border);
+  color: var(--color-text-muted);
+  font-family: var(--font-heading);
+  font-size: var(--text-tab);
+  text-transform: uppercase;
+}
+
+.week + .week {
+  border-top: var(--border-width) solid var(--color-border);
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+  min-width: 0;
+  min-height: var(--calendar-cell-height, 120px);
+  padding: var(--space-1-5);
+}
+
+.day + .day {
+  border-left: var(--border-width) solid var(--color-border);
+}
+
+.day[data-in-month="false"] {
+  background-color: var(--color-page);
+}
+
+.day[data-in-month="false"] .number {
+  color: var(--color-text-muted);
+}
+
+.dayHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+}
+
+.day[data-today="true"] .number {
+  background-color: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+
+.add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-small);
+  color: var(--color-text-muted);
+  opacity: 0;
+  --icon-size: 16px;
+}
+
+.day:hover .add,
+.add:focus-visible {
+  opacity: 1;
+}
+
+.add:hover {
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+}
+
+.add:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+@media (hover: none) {
+  .add {
+    opacity: 1;
+  }
+}

@@ -1,0 +1,68 @@
+/* File : /TeamSamsara.Workflow/app/src/features/onboarding/ui/OnboardingPreview.module.css
+   Version : 1.0.0
+   Latest commit: feature/onboarding
+   Author : Gerrah
+   Purpose : The onboarding preview in the invite dialog: a light green panel, their chapters as solid chips and the others dashed and greyed. */
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2-5);
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--color-accent);
+  border-radius: var(--radius-card);
+  background-color: color-mix(
+    in srgb,
+    var(--color-accent) 12%,
+    var(--color-surface)
+  );
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+}
+
+.summary,
+.note {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}
+
+.note {
+  margin: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  padding: var(--space-1) var(--space-2-5);
+  border: var(--border-width) dashed var(--color-border-control);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+}
+
+.chip[data-on] {
+  border-style: solid;
+  border-color: var(--color-accent);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}

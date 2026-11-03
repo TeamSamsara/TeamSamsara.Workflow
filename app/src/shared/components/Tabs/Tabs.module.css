@@ -1,0 +1,63 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/components/Tabs/Tabs.module.css
+   Version : 1.0.0
+   Latest commit: core/ui-kit
+   Author : Gerrah
+   Purpose : Look of tabs and nav tabs: uppercase Agdasima labels on a divider line, the current one in full colour with a 3px green line under it. The row scrolls sideways when it does not fit. */
+
+.list {
+  display: flex;
+  gap: var(--space-1);
+  overflow-x: auto;
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.navList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--field-height);
+  padding: 0 var(--space-4);
+  border: 0;
+  border-bottom: var(--tab-indicator-width) solid transparent;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--text-tab);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-ui);
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition:
+    color var(--motion-fast) ease,
+    border-color var(--motion-fast) ease;
+}
+
+.tab:hover {
+  color: var(--color-text);
+}
+
+/* Inside the scrolling row the ring would be clipped, so it is drawn inside the tab. */
+.tab:focus-visible {
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
+
+.tab[aria-selected="true"],
+.tab[aria-current="page"] {
+  border-bottom-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.tab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.panel {
+  padding-top: var(--space-3-5);
+}

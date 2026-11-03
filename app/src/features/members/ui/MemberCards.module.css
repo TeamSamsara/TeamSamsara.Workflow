@@ -1,0 +1,96 @@
+/* File : /TeamSamsara.Workflow/app/src/features/members/ui/MemberCards.module.css
+   Version : 1.0.0
+   Latest commit: feature/members
+   Author : Gerrah
+   Purpose : Look shared by a member's cards (roles, work groups, permissions, access): a surface card with a Norwester title, muted notes, the permission ticks, and the access rows divided by lines. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-section-heading);
+  text-transform: uppercase;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.subheading {
+  composes: label from "../../../shared/components/Fields/FieldFrame/FieldFrame.module.css";
+}
+
+.permissions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.permission {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2-5);
+  color: var(--color-text-muted);
+  font-size: var(--text-body);
+  --icon-size: var(--space-4);
+}
+
+.permission[data-on="true"] {
+  color: var(--color-text);
+}
+
+.permission[data-on="true"] svg {
+  color: var(--color-accent-text);
+}
+
+.accessRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-bottom: var(--space-3-5);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.accessRow:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.accessText {
+  display: flex;
+  flex: 1 1 240px;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--text-body);
+}
+
+.text {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}

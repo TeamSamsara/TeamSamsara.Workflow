@@ -1,0 +1,123 @@
+/* File : /TeamSamsara.Workflow/app/src/views/setup/SetupView.module.css
+   Version : 1.0.0
+   Latest commit: core/workspace
+   Author : Gerrah
+   Purpose : Look of the setup page: the step indicator, the stacked form with its section headings, the time zone and week start side by side on wide screens, and the Back / Create row. */
+
+.view,
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-10) 0;
+}
+
+/* #region Steps */
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+}
+
+.step[data-reached="true"] {
+  color: var(--color-text);
+}
+
+.stepNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-6);
+  height: var(--space-6);
+  border-radius: 50%;
+  background-color: var(--color-surface-raised);
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  --icon-size: var(--space-3-5);
+}
+
+.step[data-reached="true"] .stepNumber {
+  background-color: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+/* #endregion */
+
+/* #region Form */
+.sectionHeading {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-section-heading);
+  text-transform: uppercase;
+}
+
+.fieldRow {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--space-3-5);
+  align-items: start;
+}
+
+/* Breakpoints.small */
+@media (max-width: 640px) {
+  .fieldRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1-5);
+}
+
+.choiceLabel {
+  composes: label from "../../shared/components/Fields/FieldFrame/FieldFrame.module.css";
+}
+
+.signedIn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-field);
+  background-color: var(--color-surface-raised);
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.signedIn p {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.submit {
+  flex: 1;
+}
+/* #endregion */

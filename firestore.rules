@@ -1,0 +1,1079 @@
+// File : /TeamSamsara.Workflow/firestore.rules
+// Version : 1.22.0
+// Latest commit: feature/attendance-photos
+// Author : Gerrah
+// Purpose : Who may read and write what in Firestore. Everything is denied until
+// a rule below allows it; each PR opens exactly what its feature needs, with a
+// test in tests/rules for every rule.
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // #region Helpers (used by the rules later PRs add)
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /** The fields an update changes, compared with the stored document. */
+    function changedFields() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+    // #endregion
+
+    // #region Access: the same rules as core/access in the app
+    function memberPath() {
+      return /databases/$(database)/documents/members/$(request.auth.uid);
+    }
+
+    function memberRecord() {
+      return get(memberPath());
+    }
+
+    /** Signed in with a member record that lets them in (Invited members activate on first sign-in). */
+    function isActiveMember() {
+      return isSignedIn()
+        && exists(memberPath())
+        && memberRecord().data.status in ["active", "invited"];
+    }
+
+    /** The roles that apply: every member also has Everyone. */
+    function heldRoleIds() {
+      return memberRecord().data.roleIds.concat(["everyone"]);
+    }
+
+    /**
+     * Whether the signed-in member holds a permission, through any of their roles.
+     * Reads the permission index in config/roles, so it costs one read however
+     * many roles there are. Administrator allows everything.
+     */
+    function can(permission) {
+      let grants = rolesGrants();
+      return isActiveMember()
+        && (grants.get("administrator", []).hasAny(heldRoleIds())
+          || grants.get(permission, []).hasAny(heldRoleIds()));
+    }
+
+    /** The permission index (permission → role ids) as it is before this write. */
+    function rolesGrants() {
+      return get(/databases/$(database)/documents/config/roles).data.grants;
+    }
+
+    /**
+     * The same check as can(), from values worked out once. Rules that check
+     * every permission use this: Firestore stops after 1,000 steps per request.
+     */
+    function holds(grants, held, permission) {
+      return grants.get("administrator", []).hasAny(held)
+        || grants.get(permission, []).hasAny(held);
+    }
+    // #endregion
+
+    // #region Workspace settings and roles
+    function configPath(document) {
+      return /databases/$(database)/documents/config/$(document);
+    }
+
+    match /config/{document} {
+      allow read: if isActiveMember();
+    }
+
+    // The sign-in page's pictures. Anyone may read it, signed in or not (the
+    // page shows them before sign-in); only an Administrator changes them.
+    match /config/signin {
+      allow get: if true;
+      allow create, update: if can("administrator")
+        && isValidSignIn(request.resource.data);
+    }
+
+    function isValidSignIn(data) {
+      return data.keys().hasOnly(["slides", "updatedAt"])
+        && data.slides is list && data.slides.size() <= 8
+        && data.updatedAt == request.time;
+    }
+
+    match /config/workspace {
+      // Anyone may read it, signed in or not: before sign-in the app must know
+      // whether to open first-time setup. It holds no private data.
+      allow get: if true;
+      allow create: if isSignedIn()
+        && isValidWorkspace(request.resource.data)
+        && request.resource.data.createdAt == request.time
+        && isSetupBatch();
+      allow update: if can("manageSettings")
+        && isValidWorkspace(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    match /config/roles {
+      allow create: if isSignedIn()
+        && isSetupBatch()
+        && isValidFirstRoles(request.resource.data);
+
+      // Manage roles edits roles, but (like Discord) only hands out or takes
+      // away permissions the editor holds; Administrator only by an
+      // Administrator. Which roles sit above whose is kept by the app.
+      allow update: if can("manageRoles")
+        && isValidRoles(request.resource.data)
+        && onlyHeldGrantsChange(rolesGrants(), heldRoleIds());
+    }
+
+    /** The shape every save keeps: Everyone exists and is never Administrator, someone still is. */
+    function isValidRoles(data) {
+      return data.keys().hasOnly(["roles", "grants"])
+        && data.roles is map
+        && data.grants is map
+        && data.grants.keys().hasOnly(["administrator", "manageSettings",
+          "manageMembers", "manageRoles", "manageWorkGroups", "editWorkflows",
+          "planEvents", "createStandaloneTasks", "doAssignedTasks",
+          "editAnyTask", "approveTasks", "reassignTasks", "viewAll",
+          "viewAvailability"])
+        && "everyone" in data.roles
+        && !("administrator" in data.roles.everyone.permissions)
+        && data.grants.get("administrator", []).size() > 0
+        && !("everyone" in data.grants.get("administrator", []));
+    }
+
+    /** A permission's list of roles is unchanged, or the editor holds that permission. */
+    function grantUnchangedOrHeld(grants, held, permission) {
+      return request.resource.data.grants.get(permission, [])
+          == grants.get(permission, [])
+        || holds(grants, held, permission);
+    }
+
+    function onlyHeldGrantsChange(grants, held) {
+      return grants.get("administrator", []).hasAny(held)
+        || (grantUnchangedOrHeld(grants, held, "manageSettings")
+          && grantUnchangedOrHeld(grants, held, "administrator")
+          && grantUnchangedOrHeld(grants, held, "manageMembers")
+          && grantUnchangedOrHeld(grants, held, "manageRoles")
+          && grantUnchangedOrHeld(grants, held, "manageWorkGroups")
+          && grantUnchangedOrHeld(grants, held, "editWorkflows")
+          && grantUnchangedOrHeld(grants, held, "planEvents")
+          && grantUnchangedOrHeld(grants, held, "createStandaloneTasks")
+          && grantUnchangedOrHeld(grants, held, "doAssignedTasks")
+          && grantUnchangedOrHeld(grants, held, "editAnyTask")
+          && grantUnchangedOrHeld(grants, held, "approveTasks")
+          && grantUnchangedOrHeld(grants, held, "reassignTasks")
+          && grantUnchangedOrHeld(grants, held, "viewAll")
+          && grantUnchangedOrHeld(grants, held, "viewAvailability"));
+    }
+
+    // Same lengths as TextLimits in app/src/shared/validation/textLimits.ts.
+    function isValidName(value) {
+      return value is string && value.size() > 0 && value.size() <= 80;
+    }
+
+    function isValidWorkspace(data) {
+      let required = ["name", "timeZone", "weekStartsOn", "timeFormat",
+        "defaultTheme", "enabledPlatformIds", "createdAt"];
+      // dateFormat, upgradedPlatformIds and sessionDays came later, so older
+      // workspaces may not have them.
+      return data.keys().hasOnly(required.concat(["dateFormat",
+          "upgradedPlatformIds", "sessionDays"]))
+        && data.keys().hasAll(required)
+        && isValidName(data.name)
+        && data.timeZone is string && data.timeZone.size() > 0
+        && data.weekStartsOn in ["monday", "sunday"]
+        && data.get("dateFormat", "weekdayMonthDay")
+          in ["weekdayMonthDay", "monthDay", "dayMonth", "isoDate"]
+        && data.timeFormat in ["12h", "24h"]
+        && data.defaultTheme in ["light", "dark", "device"]
+        // The same ids as PlatformCatalogue in app/src/features/platforms.
+        && data.enabledPlatformIds is list
+        && data.enabledPlatformIds.hasOnly(["x", "instagram", "youtube", "tiktok", "twitch", "bluesky", "threads", "linkedin", "facebook"])
+        // Platforms with a paid tier (UpgradablePlatformIds in the app).
+        && data.get("upgradedPlatformIds", []) is list
+        && data.get("upgradedPlatformIds", []).hasOnly(["x"])
+        // Days a sign-in lasts (SessionDayOptions in the app); 0 is never.
+        && data.get("sessionDays", 30) in [7, 14, 30, 90, 0]
+        && data.createdAt is timestamp;
+    }
+
+    /**
+     * First-time setup: there is no workspace yet, and this one write batch
+     * creates it together with the roles and the signed-in person's own member
+     * record, which holds a role that grants Administrator.
+     */
+    function isSetupBatch() {
+      return !exists(configPath("workspace"))
+        && existsAfter(configPath("workspace"))
+        && existsAfter(memberPath())
+        && existsAfter(configPath("roles"))
+        && getAfter(memberPath()).data.roleIds.hasAny(
+          getAfter(configPath("roles")).data.grants.get("administrator", []));
+    }
+
+    /** Everyone exists and never holds Administrator; at least one role does. */
+    function isValidFirstRoles(data) {
+      return data.keys().hasOnly(["roles", "grants"])
+        && data.roles is map
+        && data.grants is map
+        && "everyone" in data.roles
+        && !("administrator" in data.roles.everyone.permissions)
+        && data.grants.get("administrator", []).size() > 0
+        && !("everyone" in data.grants.get("administrator", []));
+    }
+    // #endregion
+
+    // #region Members
+    match /members/{memberId} {
+      // A member reads their own record (to learn whether they have access),
+      // and active members read everyone's (names, roles, groups).
+      allow get: if isSelf(memberId);
+      allow read: if isActiveMember();
+
+      // A member's own writes: activating on first sign-in, "last active",
+      // and their own name, in-game name, time zone and date and time formats.
+      allow update: if isSelf(memberId)
+        && (isActivatingSelf() || isRecordingLastActive() || isChangingOwnProfile()
+          || isRecordingWalkthrough());
+
+      // Someone managing members, roles or groups changing another record.
+      allow update: if isManagedChange();
+
+      // An Administrator taking down someone's profile photo.
+      allow update: if isRemovingPhoto();
+
+      // First-time setup makes the first Admin; after that, invites.
+      allow create: if (isSelf(memberId)
+          && isSetupBatch()
+          && isFirstAdminRecord(request.resource.data))
+        || (can("manageMembers") && isInviteRecord(request.resource.data));
+
+      // Members are never deleted: removing one keeps the record as Removed.
+    }
+
+    // #region Member changes made by others
+    function memberFields() {
+      return ["displayName", "email", "status", "roleIds", "workGroupIds",
+        "timeZone", "invitedBy", "invitedAt", "joinedAt", "lastActiveAt"];
+    }
+
+    /** A permission the member gains from the change, which the editor must hold. */
+    function gainIsHeld(grants, held, before, after, permission) {
+      return !after.hasAny(grants.get(permission, []))
+        || before.hasAny(grants.get(permission, []))
+        || holds(grants, held, permission);
+    }
+
+    /**
+     * Like Discord: you can't give anyone (yourself included) a permission you
+     * don't have, through any role. Administrator is only given by
+     * administrators, who may give anything.
+     */
+    function onlyHeldPermissionsGained(grants, held, before, after) {
+      return grants.get("administrator", []).hasAny(held)
+        || (gainIsHeld(grants, held, before, after, "administrator")
+          && gainIsHeld(grants, held, before, after, "manageSettings")
+          && gainIsHeld(grants, held, before, after, "manageMembers")
+          && gainIsHeld(grants, held, before, after, "manageRoles")
+          && gainIsHeld(grants, held, before, after, "manageWorkGroups")
+          && gainIsHeld(grants, held, before, after, "editWorkflows")
+          && gainIsHeld(grants, held, before, after, "planEvents")
+          && gainIsHeld(grants, held, before, after, "createStandaloneTasks")
+          && gainIsHeld(grants, held, before, after, "doAssignedTasks")
+          && gainIsHeld(grants, held, before, after, "editAnyTask")
+          && gainIsHeld(grants, held, before, after, "approveTasks")
+          && gainIsHeld(grants, held, before, after, "reassignTasks")
+          && gainIsHeld(grants, held, before, after, "viewAll")
+          && gainIsHeld(grants, held, before, after, "viewAvailability"));
+    }
+
+    /** A new member from an invite: Invited, from the inviter, with the server's time. */
+    function isInviteRecord(data) {
+      return data.keys().hasOnly(memberFields())
+        && data.keys().hasAll(memberFields())
+        && data.displayName is string
+        && data.displayName.size() <= 80
+        && data.email is string
+        && data.email.size() > 0
+        && data.status == "invited"
+        && data.roleIds is list
+        && data.workGroupIds is list
+        && onlyHeldPermissionsGained(rolesGrants(), heldRoleIds(), [], data.roleIds)
+        && data.timeZone == null
+        && data.invitedBy == request.auth.uid
+        && data.invitedAt == request.time
+        && data.joinedAt == null
+        && data.lastActiveAt == null;
+    }
+
+    /**
+     * Name, roles, groups and access, each needing its own permission:
+     * names and access need Manage members; roles need Manage members or
+     * Manage roles; groups need Manage members or Manage work groups. Only an
+     * Administrator changes an Administrator's record.
+     */
+    function isManagedChange() {
+      let before = resource.data;
+      let after = request.resource.data;
+      let changed = changedFields();
+      let grants = rolesGrants();
+      let held = heldRoleIds();
+      let adminRoles = grants.get("administrator", []);
+      return isActiveMember()
+        && changed.hasOnly(["displayName", "roleIds", "workGroupIds",
+          "status", "invitedBy", "invitedAt"])
+        && (!changed.hasAny(["displayName", "status", "invitedBy", "invitedAt"])
+          || holds(grants, held, "manageMembers"))
+        && (!changed.hasAny(["roleIds"])
+          || holds(grants, held, "manageMembers")
+          || holds(grants, held, "manageRoles"))
+        && (!changed.hasAny(["workGroupIds"])
+          || holds(grants, held, "manageMembers")
+          || holds(grants, held, "manageWorkGroups"))
+        && after.displayName is string
+        && after.displayName.size() <= 80
+        && after.roleIds is list
+        && after.workGroupIds is list
+        && ((!before.roleIds.hasAny(adminRoles) && !after.roleIds.hasAny(adminRoles))
+          || adminRoles.hasAny(held))
+        && (!changed.hasAny(["roleIds"])
+          || onlyHeldPermissionsGained(grants, held, before.roleIds, after.roleIds))
+        && isAllowedStatusChange(before, after, changed);
+    }
+
+    function isAllowedStatusChange(before, after, changed) {
+      return !changed.hasAny(["status", "invitedBy", "invitedAt"])
+        // Turning access off, or back on (Active if they ever signed in, else Invited).
+        || (!changed.hasAny(["invitedBy", "invitedAt"])
+          && before.status in ["active", "invited", "disabled"]
+          && (after.status == "disabled"
+            || (after.status == "active" && before.joinedAt != null)
+            || (after.status == "invited" && before.joinedAt == null)))
+        // Removing: no roles and no groups left.
+        || (!changed.hasAny(["invitedBy", "invitedAt"])
+          && after.status == "removed"
+          && after.roleIds.size() == 0
+          && after.workGroupIds.size() == 0)
+        // Inviting a removed member again.
+        || (before.status == "removed"
+          && after.status == "invited"
+          && after.invitedBy == request.auth.uid
+          && after.invitedAt == request.time);
+    }
+    // #endregion
+
+    function isFirstAdminRecord(data) {
+      let fields = ["displayName", "email", "status", "roleIds", "workGroupIds",
+        "timeZone", "invitedBy", "invitedAt", "joinedAt", "lastActiveAt"];
+      return data.keys().hasOnly(fields)
+        && data.keys().hasAll(fields)
+        && isValidName(data.displayName)
+        && data.email == request.auth.token.email
+        && data.status == "active"
+        && data.roleIds is list
+        && data.workGroupIds == []
+        && data.timeZone == null
+        && data.invitedBy == null
+        && data.invitedAt == null
+        && data.joinedAt == request.time
+        && data.lastActiveAt == request.time;
+    }
+
+    /** First sign-in after an invite: Invited becomes Active, with the server's time. */
+    function isActivatingSelf() {
+      return resource.data.status == "invited"
+        && request.resource.data.status == "active"
+        && request.resource.data.joinedAt == request.time
+        && request.resource.data.lastActiveAt == request.time
+        && changedFields().hasOnly(["status", "joinedAt", "lastActiveAt"]);
+    }
+
+    /**
+     * An active member's own settings on Your account. Null means "the
+     * workspace's" for the time zone and formats, and no in-game name.
+     */
+    function isChangingOwnProfile() {
+      let after = request.resource.data;
+      return resource.data.status == "active"
+        && changedFields().hasOnly(["displayName", "gameName", "timeZone",
+          "dateFormat", "timeFormat", "photoUrl"])
+        && isPhotoUrl(after.get("photoUrl", null))
+        && after.displayName is string
+        && after.displayName.size() > 0 && after.displayName.size() <= 80
+        && (after.get("gameName", null) == null
+          || (after.gameName is string && after.gameName.size() > 0 && after.gameName.size() <= 40))
+        && (after.timeZone == null
+          || (after.timeZone is string && after.timeZone.size() > 0 && after.timeZone.size() <= 64))
+        && after.get("dateFormat", null) in [null, "weekdayMonthDay", "monthDay", "dayMonth", "isoDate"]
+        && after.get("timeFormat", null) in [null, "12h", "24h"];
+    }
+
+    /** A profile photo: none, or a file in this project's Storage. */
+    function isPhotoUrl(value) {
+      return value == null
+        || (value is string && value.size() <= 600 && isStorageAddress(value.split("/")));
+    }
+
+    /** "https://firebasestorage.googleapis.com/…", or the local Storage emulator's. */
+    function isStorageAddress(parts) {
+      return parts.size() > 3 && parts[1] == ""
+        && ((parts[0] == "https:" && parts[2] == "firebasestorage.googleapis.com")
+          || (parts[0] == "http:" && parts[2] in ["127.0.0.1:9199", "localhost:9199"]));
+    }
+
+    /** An Administrator taking down someone's photo. */
+    function isRemovingPhoto() {
+      return can("administrator")
+        && changedFields().hasOnly(["photoUrl"])
+        && request.resource.data.photoUrl == null;
+    }
+
+    /** An active member's walkthrough: the chapters they've done, and whether its card is hidden. */
+    function isRecordingWalkthrough() {
+      let walk = request.resource.data.walkthrough;
+      return resource.data.status == "active"
+        && changedFields().hasOnly(["walkthrough"])
+        && walk is map
+        && walk.keys().hasOnly(["done", "hidden"])
+        && walk.keys().hasAll(["done", "hidden"])
+        && walk.done is list && walk.done.size() <= 30
+        && walk.hidden is bool;
+    }
+
+    /** An active member opening the app: only "last active" changes, to the server's time. */
+    function isRecordingLastActive() {
+      return resource.data.status == "active"
+        && request.resource.data.lastActiveAt == request.time
+        && changedFields().hasOnly(["lastActiveAt"]);
+    }
+    // #endregion
+
+    // #region Work groups
+    match /workGroups/{groupId} {
+      allow read: if isActiveMember();
+      allow create: if can("manageWorkGroups")
+        && isValidWorkGroup(request.resource.data)
+        && request.resource.data.createdAt == request.time;
+      allow update: if can("manageWorkGroups")
+        && isValidWorkGroup(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if can("manageWorkGroups");
+    }
+
+    // Same lengths as TextLimits in app/src/shared/validation/textLimits.ts.
+    // Leads and links came later, so older groups may not have them. Each
+    // lead's permissions and each link's address are checked by the app.
+    function isValidWorkGroup(data) {
+      return data.keys().hasOnly(["name", "description", "createdAt",
+          "leadIds", "links"])
+        && data.keys().hasAll(["name", "description", "createdAt"])
+        && isValidName(data.name)
+        && data.description is string
+        && data.description.size() <= 300
+        && data.get("leadIds", []) is list
+        && data.get("leadIds", []).size() <= 10
+        && data.get("links", []) is list
+        && data.get("links", []).size() <= 10
+        && data.createdAt is timestamp;
+    }
+    // #endregion
+
+    // #region Task setup
+    // The workspace's lists: statuses (a starting set is written by the setup
+    // batch), event types and tags. Keeping one open and one finished status
+    // is checked by the app.
+    match /statuses/{statusId} {
+      allow read: if isActiveMember();
+      allow create: if (can("manageSettings") || isSetupBatch())
+        && isValidStatus(request.resource.data);
+      allow update: if can("manageSettings")
+        && isValidStatus(request.resource.data);
+      allow delete: if can("manageSettings");
+    }
+
+    // Notifications: only the server functions write them; each person reads,
+    // marks read and clears their own.
+    match /notifications/{notificationId} {
+      allow read, delete: if isActiveMember()
+        && resource.data.memberId == request.auth.uid;
+      allow update: if isActiveMember()
+        && resource.data.memberId == request.auth.uid
+        && changedFields().hasOnly(["readAt"])
+        && request.resource.data.readAt is timestamp;
+    }
+
+    // What each person wants to be told about, and where. Their own only.
+    match /notificationSettings/{memberId} {
+      allow read: if isActiveMember() && request.auth.uid == memberId;
+      allow create, update: if isActiveMember() && request.auth.uid == memberId
+        && isValidNotificationSettings(request.resource.data);
+    }
+
+    function isValidNotificationSettings(data) {
+      let kinds = ["given", "mine", "review", "events"];
+      return data.keys().hasOnly(["app", "email", "taskReminder", "eventReminder",
+          "updatedAt"])
+        && data.app is map && data.app.keys().hasOnly(kinds)
+        && data.app.values().hasOnly([true, false])
+        && data.email is map && data.email.keys().hasOnly(kinds)
+        && data.email.values().hasOnly([true, false])
+        && data.taskReminder in ["off", "1h", "2h", "dayBefore"]
+        && data.eventReminder in ["off", "15m", "1h", "dayBefore"]
+        && data.updatedAt == request.time;
+    }
+
+    // Fields: the details events can have, keyed by how text writes them
+    // ({opponent} is fields/opponent). Edit workflows makes them; only admins
+    // change or delete them.
+    match /fields/{fieldKey} {
+      allow read: if isActiveMember();
+      allow create: if can("editWorkflows")
+        && fieldKey.matches("^[a-z][a-z0-9_]{0,29}$")
+        && !(fieldKey in ["title", "date", "time", "end_time", "link", "event_type"])
+        && isValidField(request.resource.data)
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if can("administrator")
+        && isValidField(request.resource.data)
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if can("administrator");
+    }
+
+    function isValidField(field) {
+      return field.keys().hasOnly(["name", "type", "choices", "help",
+          "createdBy", "createdAt", "updatedAt"])
+        && field.keys().hasAll(["name", "type", "choices", "help",
+          "createdBy", "createdAt", "updatedAt"])
+        && field.name is string && field.name.size() > 0 && field.name.size() <= 40
+        && field.type in ["text", "link", "number", "choice", "datetime", "person"]
+        && field.choices is list && field.choices.size() <= 20
+        && (field.type == "choice" || field.choices.size() == 0)
+        && field.help is string && field.help.size() <= 120
+        && field.createdBy is string;
+    }
+
+    match /eventTypes/{eventTypeId} {
+      allow read: if isActiveMember();
+      allow create, update: if can("manageSettings")
+        && isValidColouredItem(request.resource.data);
+      allow delete: if can("manageSettings");
+    }
+
+    match /tags/{tagId} {
+      allow read: if isActiveMember();
+      allow create, update: if can("manageSettings")
+        && isValidColouredItem(request.resource.data);
+      allow delete: if can("manageSettings");
+    }
+
+    // The same lists as StatusTones and StatusCategories in
+    // app/src/core/data/models/taskSetupModels.ts.
+    function isValidStatus(data) {
+      return data.keys().hasOnly(["name", "tone", "category", "position"])
+        && data.keys().hasAll(["name", "tone", "category", "position"])
+        && isValidName(data.name)
+        && data.tone in ["neutral", "info", "alert", "success", "error", "muted"]
+        && data.category in ["open", "awaitingApproval", "finished", "closed"]
+        && data.position is number;
+    }
+
+    function isValidColouredItem(data) {
+      return data.keys().hasOnly(["name", "color", "position"])
+        && data.keys().hasAll(["name", "color", "position"])
+        && isValidName(data.name)
+        && data.color is string
+        && data.color.matches("^#[0-9a-fA-F]{6}$")
+        && data.position is number;
+    }
+    // #endregion
+
+    // #region Workflows
+    // Reusable task lists. The steps live inside the workflow's document and
+    // are checked by the app; only archived workflows can be deleted.
+    match /workflows/{workflowId} {
+      allow read: if isActiveMember();
+      allow create: if can("editWorkflows")
+        && isValidWorkflow(request.resource.data)
+        && request.resource.data.archived == false
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if can("editWorkflows")
+        && isValidWorkflow(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if can("editWorkflows") && resource.data.archived == true;
+    }
+
+    // Same sizes as WorkflowLimits in app/src/features/workflows.
+    function isValidWorkflow(data) {
+      let fields = ["name", "description", "eventTypeId", "archived", "steps",
+        "createdAt", "updatedAt"];
+      return data.keys().hasOnly(fields)
+        && data.keys().hasAll(fields)
+        && isValidName(data.name)
+        && data.description is string
+        && data.description.size() <= 300
+        && (data.eventTypeId == null || data.eventTypeId is string)
+        && data.archived is bool
+        && data.steps is list
+        && data.steps.size() <= 40
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+    // #endregion
+
+    // #region Tasks
+    // Who may do what to a task. Anyone who sees everything (or approves, or
+    // edits any task) reads them all; Plan events reads every event's tasks;
+    // others read what's given to them or their work groups, and what they made. Changes come in four kinds, each
+    // limited to its own fields: doing the task, approving it, giving it to
+    // someone else, and editing it (Edit any task, or whoever made it).
+    function statusCategory(statusId) {
+      return get(/databases/$(database)/documents/statuses/$(statusId)).data.category;
+    }
+
+    function isGivenToMe(task) {
+      return task.memberId == request.auth.uid
+        || (task.workGroupId != null
+          && task.workGroupId in memberRecord().data.get("workGroupIds", []));
+    }
+
+    match /tasks/{taskId} {
+      allow read: if isActiveMember()
+        && (can("viewAll") || can("approveTasks") || can("editAnyTask")
+          || isGivenToMe(resource.data)
+          || resource.data.createdBy == request.auth.uid
+          || (resource.data.eventId != null && can("planEvents")));
+
+      allow create: if isActiveMember()
+        && isValidTask(request.resource.data)
+        && isNewTask(request.resource.data)
+        && ((request.resource.data.eventId == null && can("createStandaloneTasks"))
+          || (request.resource.data.eventId != null && can("planEvents")
+            && existsAfter(/databases/$(database)/documents/events/$(request.resource.data.eventId))));
+
+      // Firestore stops after 1,000 steps per request, so the permissions are
+      // worked out once and each kind of change checks its fields first.
+      allow update: if isActiveMember()
+        && request.resource.data.updatedAt == request.time
+        && keepsOrigin()
+        && isAllowedTaskChange(rolesGrants(), heldRoleIds())
+        && isValidTask(request.resource.data);
+
+      allow delete: if can("editAnyTask")
+        || (resource.data.createdBy == request.auth.uid && resource.data.eventId == null)
+        || (resource.data.eventId != null && can("planEvents"));
+    }
+
+    /** One of the four kinds of change, or Plan events moving an event's task
+        or filling its text again from the event's fields. */
+    function isAllowedTaskChange(grants, held) {
+      let changed = changedFields();
+      return holds(grants, held, "editAnyTask")
+        || (resource.data.createdBy == request.auth.uid && resource.data.eventId == null)
+        || (changed.hasOnly(["dueAt", "title", "notes", "posts", "checklist",
+            "updatedAt"])
+          && resource.data.eventId != null
+          && holds(grants, held, "planEvents"))
+        || (changed.hasOnly(["workGroupId", "memberId", "updatedAt"])
+          && holds(grants, held, "reassignTasks"))
+        || (changed.hasOnly(["statusId", "approvedBy", "approvedAt",
+            "changesRequested", "doneAt", "updatedAt"])
+          && holds(grants, held, "approveTasks")
+          && isApprovingTask())
+        || (changed.hasOnly(["statusId", "checklist", "liveLink",
+            "sentForReviewBy", "sentForReviewAt", "changesRequested", "doneAt",
+            "approvedBy", "approvedAt", "updatedAt"])
+          && holds(grants, held, "doAssignedTasks")
+          && isGivenToMe(resource.data)
+          && isDoingTask());
+    }
+
+    function isNewTask(task) {
+      return task.createdBy == request.auth.uid
+        && task.createdAt == request.time
+        && task.updatedAt == request.time
+        && exists(/databases/$(database)/documents/statuses/$(task.statusId))
+        && task.liveLink == null
+        && task.sentForReviewBy == null && task.sentForReviewAt == null
+        && task.approvedBy == null && task.approvedAt == null
+        && task.changesRequested == null
+        && task.doneAt == null;
+    }
+
+    /** Where a task came from and who made it never change. */
+    function keepsOrigin() {
+      let before = resource.data;
+      let after = request.resource.data;
+      return after.createdBy == before.createdBy
+        && after.createdAt == before.createdAt
+        && after.eventId == before.eventId
+        && after.workflowId == before.workflowId
+        && after.stepId == before.stepId;
+    }
+
+    /**
+     * Doing a task given to them or their group (fields and permission are
+     * checked by the caller): its status, checklist, the published link, and
+     * sending it for review. A task that needs approval can't be finished
+     * before someone approves it, and they can't approve it themselves.
+     */
+    function isDoingTask() {
+      let before = resource.data;
+      let after = request.resource.data;
+      return (after.approvedAt == null || after.approvedAt == before.approvedAt)
+        && (after.approvedBy == null || after.approvedBy == before.approvedBy)
+        && (after.sentForReviewBy == null || after.sentForReviewBy == request.auth.uid
+          || after.sentForReviewBy == before.sentForReviewBy)
+        && (after.changesRequested == null || after.changesRequested == before.changesRequested)
+        && (before.checklist == null || after.checklist.size() == before.checklist.size())
+        && (after.statusId == before.statusId
+          || !after.needsApproval
+          || after.approvedAt != null
+          || statusCategory(after.statusId) in ["open", "awaitingApproval"]);
+    }
+
+    /** Approve tasks (fields and permission checked by the caller): only in their own name. */
+    function isApprovingTask() {
+      let after = request.resource.data;
+      return (after.approvedBy == null || after.approvedBy == request.auth.uid
+          || after.approvedBy == resource.data.approvedBy)
+        && (after.approvedAt == null || after.approvedAt == request.time
+          || after.approvedAt == resource.data.approvedAt);
+    }
+
+    function isNullOr(value, type) {
+      return value == null || (type == "string" && value is string)
+        || (type == "timestamp" && value is timestamp);
+    }
+
+    // Same sizes as TaskLimits and WorkflowLimits in the app.
+    function isValidTask(task) {
+      let fields = ["title", "notes", "workGroupId", "memberId", "dueAt",
+        "statusId", "needsApproval", "tagIds", "posts", "checklist", "links",
+        "asksForLiveLink", "liveLink", "eventId", "workflowId", "stepId",
+        "sentForReviewBy", "sentForReviewAt", "approvedBy", "approvedAt",
+        "changesRequested", "createdBy", "createdAt", "updatedAt", "doneAt"];
+      return task.keys().hasOnly(fields)
+        && task.keys().hasAll(fields)
+        && task.title is string && task.title.size() > 0 && task.title.size() <= 120
+        && task.notes is string && task.notes.size() <= 2000
+        && isNullOr(task.workGroupId, "string")
+        && isNullOr(task.memberId, "string")
+        && isNullOr(task.dueAt, "timestamp")
+        && task.statusId is string && task.statusId.size() > 0
+        && task.needsApproval is bool
+        && task.tagIds is list && task.tagIds.size() <= 10
+        && (task.posts == null || (task.posts is list && task.posts.size() <= 10))
+        && (task.checklist == null || (task.checklist is list && task.checklist.size() <= 30))
+        && (task.links == null || (task.links is list && task.links.size() <= 10))
+        && task.asksForLiveLink is bool
+        && (task.liveLink == null || (task.liveLink is string && task.liveLink.size() <= 500))
+        && isNullOr(task.eventId, "string")
+        && isNullOr(task.workflowId, "string")
+        && isNullOr(task.stepId, "string")
+        && isNullOr(task.sentForReviewBy, "string")
+        && isNullOr(task.sentForReviewAt, "timestamp")
+        && isNullOr(task.approvedBy, "string")
+        && isNullOr(task.approvedAt, "timestamp")
+        && (task.changesRequested == null
+          || (task.changesRequested is string && task.changesRequested.size() <= 500))
+        && task.createdBy is string
+        && task.createdAt is timestamp
+        && task.updatedAt is timestamp
+        && isNullOr(task.doneAt, "timestamp");
+    }
+    // #endregion
+
+    // #region Events
+    // What's on the calendar. An event is seen by the people and work groups
+    // in it, by everyone when it's for Everyone, by whoever made it, and by
+    // View all. Plan events makes, changes and deletes them. A repeat's events
+    // are made by any planner's browser but belong to whoever made the repeat.
+    function canSeeAudience(data) {
+      return data.createdBy == request.auth.uid
+        || data.everyone == true
+        || request.auth.uid in data.memberIds
+        || data.groupIds.hasAny(memberRecord().data.get("workGroupIds", []))
+        || can("viewAll");
+    }
+
+    function isEventMaker(event) {
+      return event.createdBy == request.auth.uid
+        || (event.repeatId != null
+          && get(/databases/$(database)/documents/repeats/$(event.repeatId)).data.createdBy == event.createdBy);
+    }
+
+    match /events/{eventId} {
+      // Asking for one that doesn't exist is allowed, so a repeat can check
+      // which of its dates are made already.
+      allow get: if isActiveMember() && (resource == null || canSeeAudience(resource.data));
+      allow list: if isActiveMember() && canSeeAudience(resource.data);
+      allow create: if can("planEvents")
+        && isValidEvent(request.resource.data)
+        && isEventMaker(request.resource.data)
+        && isInRealSet(request.resource.data)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if can("planEvents")
+        && isValidEvent(request.resource.data)
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if can("planEvents");
+
+      // Anyone in an event that asks for replies changes only their own reply.
+      allow update: if isActiveMember() && isReplying(resource.data);
+    }
+
+    // Whether the member is in the event: Everyone, by name, or through a group.
+    function isInEvent(event) {
+      return event.everyone == true
+        || request.auth.uid in event.memberIds
+        || event.groupIds.hasAny(memberRecord().data.get("workGroupIds", []));
+    }
+
+    // Going, Maybe or Can't go, with an optional note (same as AttendanceLimits).
+    function isReplying(event) {
+      let after = request.resource.data;
+      let reply = after.replies.get(request.auth.uid, null);
+      return event.get("asksReply", false) == true
+        && isInEvent(event)
+        && changedFields().hasOnly(["replies"])
+        && after.replies.diff(event.get("replies", {})).affectedKeys().hasOnly([request.auth.uid])
+        && reply is map
+        && reply.keys().hasOnly(["answer", "note", "at"])
+        && reply.keys().hasAll(["answer", "note", "at"])
+        && reply.answer in ["going", "maybe", "cant"]
+        && reply.note is string && reply.note.size() <= 300
+        && reply.at == request.time;
+    }
+
+    // Asking for replies, on an event or a repeat. Saved before it existed: none.
+    function isValidAttendance(data) {
+      return data.get("asksReply", false) is bool
+        && data.get("requiredIds", []) is list && data.get("requiredIds", []).size() <= 200
+        && data.get("tellEveryReply", false) is bool;
+    }
+
+    // An event planned in a set is made with (or after) its set.
+    function isInRealSet(event) {
+      return event.get("setId", null) == null
+        || existsAfter(/databases/$(database)/documents/eventSets/$(event.setId));
+    }
+
+    // Who's in an event or a repeat: Everyone, work groups and people.
+    function isValidAudience(data) {
+      return data.everyone is bool
+        && data.groupIds is list && data.groupIds.size() <= 20
+        && data.memberIds is list && data.memberIds.size() <= 50;
+    }
+
+    // Same sizes as EventLimits in app/src/features/events.
+    function isValidEvent(event) {
+      let fields = ["title", "eventTypeId", "startsAt", "endsAt", "link",
+        "details", "workflowIds", "notes", "repeatId", "everyone", "groupIds",
+        "memberIds", "createdBy", "createdAt", "updatedAt"];
+      // setId and attendance came later, so events saved before may not have them.
+      return event.keys().hasOnly(fields.concat(["setId", "asksReply",
+          "requiredIds", "tellEveryReply", "replies"]))
+        && event.keys().hasAll(fields)
+        && event.title is string && event.title.size() > 0 && event.title.size() <= 120
+        && isNullOr(event.eventTypeId, "string")
+        && event.startsAt is timestamp
+        && event.endsAt is timestamp && event.endsAt >= event.startsAt
+        && (event.link == null || (event.link is string && event.link.size() <= 500))
+        && event.details is map && event.details.size() <= 20
+        && event.workflowIds is list && event.workflowIds.size() <= 5
+        && event.notes is string && event.notes.size() <= 2000
+        && isNullOr(event.repeatId, "string")
+        && isNullOr(event.get("setId", null), "string")
+        && isValidAudience(event)
+        && isValidAttendance(event)
+        && event.get("replies", {}) is map && event.get("replies", {}).size() <= 300
+        && event.createdBy is string
+        && event.createdAt is timestamp
+        && event.updatedAt is timestamp;
+    }
+
+    // Repeats: an event on set weekdays that the app makes a few weeks ahead.
+    // Seen by the same people as its events; Plan events makes, changes and
+    // ends them.
+    match /repeats/{repeatId} {
+      allow read: if isActiveMember() && canSeeAudience(resource.data);
+      allow create: if can("planEvents")
+        && isValidRepeat(request.resource.data)
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if can("planEvents")
+        && isValidRepeat(request.resource.data)
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if can("planEvents");
+    }
+
+    // Same sizes as RepeatLimits and EventLimits in app/src/features/events.
+    function isValidRepeat(repeat) {
+      let fields = ["title", "eventTypeId", "weekdays", "time", "minutes",
+        "startDate", "endKind", "endDate", "endCount", "skipDates", "link",
+        "details", "notes", "workflowIds", "everyone", "groupIds", "memberIds",
+        "createdBy", "createdAt", "updatedAt"];
+      return repeat.keys().hasOnly(fields.concat(["asksReply", "requiredIds", "tellEveryReply"]))
+        && repeat.keys().hasAll(fields)
+        && isValidAttendance(repeat)
+        && repeat.title is string && repeat.title.size() > 0 && repeat.title.size() <= 120
+        && isNullOr(repeat.eventTypeId, "string")
+        && repeat.weekdays is list && repeat.weekdays.size() > 0 && repeat.weekdays.size() <= 7
+        && repeat.time is string && repeat.time.matches("^[0-2][0-9]:[0-5][0-9]$")
+        && repeat.minutes is int && repeat.minutes >= 5 && repeat.minutes <= 1440
+        && repeat.startDate is string && repeat.startDate.size() == 10
+        && repeat.endKind in ["never", "onDate", "afterCount"]
+        && (repeat.endDate == null || (repeat.endDate is string && repeat.endDate.size() == 10))
+        && (repeat.endCount == null
+          || (repeat.endCount is int && repeat.endCount > 0 && repeat.endCount <= 200))
+        && repeat.skipDates is list && repeat.skipDates.size() <= 60
+        && (repeat.link == null || (repeat.link is string && repeat.link.size() <= 500))
+        && repeat.details is map && repeat.details.size() <= 20
+        && repeat.notes is string && repeat.notes.size() <= 2000
+        && repeat.workflowIds is list && repeat.workflowIds.size() <= 5
+        && isValidAudience(repeat)
+        && repeat.createdBy is string
+        && repeat.createdAt is timestamp
+        && repeat.updatedAt is timestamp;
+    }
+    // #endregion
+
+    // #region Event sets
+    // Events planned together (a split, a month of content). Every member can
+    // read a set's name and what its events share, since an event's page says
+    // which set it's part of; Plan events makes, renames and deletes them.
+    match /eventSets/{setId} {
+      allow read: if isActiveMember();
+      allow create: if can("planEvents")
+        && isValidEventSet(request.resource.data)
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if can("planEvents")
+        && isValidEventSet(request.resource.data)
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if can("planEvents");
+    }
+
+    // Same sizes as EventSetLimits and EventLimits in app/src/features/events.
+    function isValidEventSet(set) {
+      let fields = ["name", "eventTypeId", "titlePattern", "minutes",
+        "workflowIds", "everyone", "groupIds", "memberIds", "createdBy",
+        "createdAt", "updatedAt"];
+      return set.keys().hasOnly(fields)
+        && set.keys().hasAll(fields)
+        && set.name is string && set.name.size() > 0 && set.name.size() <= 80
+        && isNullOr(set.eventTypeId, "string")
+        && set.titlePattern is string && set.titlePattern.size() > 0 && set.titlePattern.size() <= 120
+        && set.minutes is int && set.minutes >= 5 && set.minutes <= 1440
+        && set.workflowIds is list && set.workflowIds.size() <= 5
+        && isValidAudience(set)
+        && set.createdBy is string
+        && set.createdAt is timestamp
+        && set.updatedAt is timestamp;
+    }
+    // #endregion
+
+    // #region Availability
+    // Each member's usual week (the hours they're unavailable, per weekday)
+    // and the dates that differ. Every member can read them, to plan events
+    // when people are free; only the member changes their own.
+    match /availability/{memberId} {
+      allow read: if isActiveMember();
+      allow create, update: if isActiveMember()
+        && request.auth.uid == memberId
+        && isValidAvailability(request.resource.data);
+      allow delete: if isActiveMember() && request.auth.uid == memberId;
+    }
+
+    function isWeekday(weekly, day) {
+      return weekly.get(day, []) is list && weekly.get(day, []).size() <= 24;
+    }
+
+    // timeZone: the zone the hours are in (the member's own); older ones have none.
+    function isValidAvailability(data) {
+      return data.keys().hasOnly(["weekly", "exceptions", "timeZone", "updatedAt"])
+        && data.keys().hasAll(["weekly", "exceptions", "updatedAt"])
+        && data.weekly is map
+        && data.weekly.keys().hasOnly(["0", "1", "2", "3", "4", "5", "6"])
+        && isWeekday(data.weekly, "0") && isWeekday(data.weekly, "1")
+        && isWeekday(data.weekly, "2") && isWeekday(data.weekly, "3")
+        && isWeekday(data.weekly, "4") && isWeekday(data.weekly, "5")
+        && isWeekday(data.weekly, "6")
+        && data.exceptions is list && data.exceptions.size() <= 60
+        && (data.get("timeZone", null) == null
+          || (data.timeZone is string && data.timeZone.size() <= 64))
+        && data.updatedAt == request.time;
+    }
+
+    // Personal appointments. The details are for the member and for whoever
+    // can see everyone's availability; the times are copied to /busy, which
+    // every member can read, so others see only "Busy". The two are written
+    // together and must match.
+    match /personal/{entryId} {
+      allow read: if isActiveMember()
+        && (resource.data.memberId == request.auth.uid || can("viewAvailability"));
+      allow create: if isActiveMember()
+        && request.resource.data.memberId == request.auth.uid
+        && isValidPersonal(request.resource.data)
+        && matchesBusy(entryId, request.resource.data);
+      allow update: if isActiveMember()
+        && resource.data.memberId == request.auth.uid
+        && request.resource.data.memberId == request.auth.uid
+        && isValidPersonal(request.resource.data)
+        && matchesBusy(entryId, request.resource.data);
+      allow delete: if isActiveMember()
+        && resource.data.memberId == request.auth.uid
+        && !existsAfter(/databases/$(database)/documents/busy/$(entryId));
+    }
+
+    function isValidPersonal(entry) {
+      let fields = ["memberId", "title", "notes", "startsAt", "endsAt", "createdAt", "updatedAt"];
+      return entry.keys().hasOnly(fields)
+        && entry.keys().hasAll(fields)
+        && entry.title is string && entry.title.size() > 0 && entry.title.size() <= 120
+        && entry.notes is string && entry.notes.size() <= 1000
+        && entry.startsAt is timestamp
+        && entry.endsAt is timestamp && entry.endsAt > entry.startsAt
+        && entry.createdAt is timestamp
+        && entry.updatedAt == request.time;
+    }
+
+    function matchesBusy(entryId, entry) {
+      let busy = getAfter(/databases/$(database)/documents/busy/$(entryId)).data;
+      return busy.memberId == entry.memberId
+        && busy.startsAt == entry.startsAt
+        && busy.endsAt == entry.endsAt;
+    }
+
+    match /busy/{entryId} {
+      allow read: if isActiveMember();
+      allow create, update: if isActiveMember()
+        && request.resource.data.keys().hasOnly(["memberId", "startsAt", "endsAt"])
+        && request.resource.data.memberId == request.auth.uid
+        && (resource == null || resource.data.memberId == request.auth.uid)
+        && request.resource.data.startsAt is timestamp
+        && request.resource.data.endsAt is timestamp
+        && existsAfter(/databases/$(database)/documents/personal/$(entryId));
+      allow delete: if isActiveMember()
+        && resource.data.memberId == request.auth.uid
+        && !existsAfter(/databases/$(database)/documents/personal/$(entryId));
+    }
+    // #endregion
+
+    // Deny everything that no rule above allows.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

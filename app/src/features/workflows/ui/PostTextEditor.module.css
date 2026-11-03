@@ -1,0 +1,66 @@
+/* File : /TeamSamsara.Workflow/app/src/features/workflows/ui/PostTextEditor.module.css
+   Version : 1.0.0
+   Latest commit: feature/workflows
+   Author : Gerrah
+   Purpose : The post text section: platform tabs with Add platform beside them, the boxes, and a count that turns red past the limit. */
+
+.tabsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.tabList {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tabLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-top: var(--space-4);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.count {
+  margin-left: auto;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.count[data-over="true"] {
+  color: var(--color-error-text);
+  font-weight: var(--weight-bold);
+}
+
+.remove {
+  align-self: flex-start;
+}
+
+.empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}

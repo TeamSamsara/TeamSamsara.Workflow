@@ -1,0 +1,18 @@
+/* File : /TeamSamsara.Workflow/app/src/features/work-groups/ui/WorkGroupForm.module.css
+   Version : 1.0.0
+   Latest commit: feature/work-groups
+   Author : Gerrah
+   Purpose : The work group fields stacked 20px apart, the name field no wider than 320px. */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.name {
+  /* A name is short; a full-width field would look empty. */
+  --group-name-width: 320px;
+
+  max-width: var(--group-name-width);
+}

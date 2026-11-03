@@ -1,0 +1,104 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/components/Button/Button.module.css
+   Version : 1.0.0
+   Latest commit: core/ui-kit
+   Author : Gerrah
+   Purpose : Look of every button and button-like link: an uppercase Agdasima label with 8px corners, in four looks (data-variant) and three sizes (data-size). */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+  padding: 0 var(--button-padding-x);
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-control);
+  background-color: transparent;
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-size: var(--text-button);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-ui);
+  line-height: 1;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,
+    color var(--motion-fast) ease,
+    opacity var(--motion-fast) ease;
+}
+
+/* #region Looks */
+.button[data-variant="primary"] {
+  border-color: var(--color-accent);
+  background-color: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+
+.button[data-variant="primary"]:hover:not(:disabled) {
+  border-color: var(--color-accent-soft);
+  background-color: var(--color-accent-soft);
+}
+
+.button[data-variant="secondary"] {
+  border-color: var(--color-border-control);
+}
+
+.button[data-variant="secondary"]:hover:not(:disabled),
+.button[data-variant="ghost"]:hover:not(:disabled) {
+  background-color: var(--color-surface-raised);
+}
+
+.button[data-variant="danger"] {
+  border-color: var(--color-error);
+  background-color: var(--color-error);
+  color: var(--color-text-on-error);
+}
+
+.button[data-variant="danger"]:hover:not(:disabled) {
+  opacity: 0.88;
+}
+/* #endregion */
+
+/* #region Sizes */
+.button[data-size="small"] {
+  min-height: var(--control-height-small);
+  padding: 0 var(--space-3);
+  font-size: var(--text-button-small);
+}
+
+.button[data-size="large"] {
+  min-height: var(--control-height-large);
+}
+/* #endregion */
+
+.fullWidth {
+  width: 100%;
+}
+
+/* Square, icon only: as wide as it is tall. */
+.iconOnly {
+  width: var(--control-height);
+  padding: 0;
+}
+
+.iconOnly[data-size="small"] {
+  width: var(--control-height-small);
+  padding: 0;
+}
+
+.iconOnly[data-size="large"] {
+  width: var(--control-height-large);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button[aria-busy="true"] {
+  cursor: progress;
+}

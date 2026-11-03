@@ -1,0 +1,175 @@
+/* File : /TeamSamsara.Workflow/app/src/features/work-groups/ui/WorkGroupPicker.module.css
+   Version : 1.2.0
+   Latest commit: fix/invite-and-fields
+   Author : Gerrah
+   Purpose : Look of the work group search: a field-styled box holding grey chips (name and size) and the search text, the list of groups to add dropping below it, and a muted hint. */
+
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+  min-width: 0;
+}
+
+.label {
+  composes: label from "../../../shared/components/Fields/FieldFrame/FieldFrame.module.css";
+}
+
+.hiddenLabel {
+  composes: hidden from "../../../shared/components/VisuallyHidden/VisuallyHidden.module.css";
+}
+
+.box {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1-5);
+  min-height: var(--field-height);
+  padding: var(--space-1-5);
+  box-sizing: border-box;
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-field);
+  background-color: var(--color-field-fill);
+  transition: border-color var(--motion-fast) ease;
+}
+
+.box:hover {
+  border-color: var(--color-text-muted);
+}
+
+.box:focus-within {
+  border-color: var(--color-focus-ring);
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: 0;
+}
+
+.box[data-disabled] {
+  opacity: 0.6;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 30px;
+  padding: 0 var(--space-0-5) 0 var(--space-2-5);
+  border-radius: var(--radius-small);
+  background-color: var(--color-surface-raised);
+  font-size: var(--text-meta);
+}
+
+.chipName {
+  font-weight: var(--weight-bold);
+}
+
+.size {
+  color: var(--color-text-muted);
+}
+
+.remove {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  --icon-size: 13px;
+}
+
+.remove:hover:not(:disabled) {
+  background-color: rgb(0 0 0 / 8%);
+}
+
+/* Lines the search text up with every other field's text (14px in from the
+   border) while the box keeps 6px around the chips. */
+.input {
+  flex: 1 1 160px;
+  min-width: 0;
+  height: 30px;
+  padding: 0
+    calc(var(--field-padding-x) - var(--space-1-5) - var(--border-width));
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-body);
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
+/* Every group is picked: no search text to make room for, so no empty line. */
+.input[data-full] {
+  flex-basis: var(--space-4);
+}
+
+.chip + .input {
+  padding-left: var(--space-1);
+}
+
+.list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: var(--layer-dropdown);
+  margin: 0;
+  padding: var(--space-1);
+  max-height: 220px;
+  overflow-y: auto;
+  list-style: none;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-dialog);
+}
+
+/* Near the bottom of a dialog there's no room below, so it opens upward. */
+.list[data-up] {
+  top: auto;
+  bottom: calc(100% + 4px);
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-small);
+  cursor: pointer;
+}
+
+.option[data-active="true"] {
+  background-color: var(--color-surface-raised);
+}
+
+.optionName {
+  font-weight: var(--weight-bold);
+}
+
+.optionSize {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}
+
+.empty {
+  padding: var(--space-2-5) var(--space-3);
+  color: var(--color-text-muted);
+}
+
+.hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}

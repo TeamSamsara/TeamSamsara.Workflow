@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/shared/styling/tokens/typography.css
-   Version : 1.0.0
-   Latest commit: core/project-setup
+   Version : 1.1.0
+   Latest commit: task/visual-fixes
    Author : Gerrah
    Purpose : Defines the font roles, text sizes, line heights, weights and letter spacing components use. */
 
@@ -8,6 +8,8 @@
   /* Font roles: components use these names, never the font names. */
   --font-display: "Anton", "Impact", sans-serif;
   --font-ui: "Agdasima", "Arial Narrow", sans-serif;
+  /* Norwester has capitals only: lowercase letters come out as smaller capitals, so
+     every Norwester heading sets text-transform: uppercase to keep its letters even. */
   --font-heading: "Norwester", "Impact", sans-serif;
   --font-body: "DM Sans", system-ui, sans-serif;
 

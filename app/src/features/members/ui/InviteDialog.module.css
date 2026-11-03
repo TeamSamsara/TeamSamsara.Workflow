@@ -1,0 +1,63 @@
+/* File : /TeamSamsara.Workflow/app/src/features/members/ui/InviteDialog.module.css
+   Version : 1.1.0
+   Latest commit: fix/invite-and-fields
+   Author : Gerrah
+   Purpose : Inside the invite dialog: the fields stacked 20px apart, then the list of results with a green tick or an amber warning per email. */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* In the footer, on the left of the buttons. */
+.linkNote {
+  display: inline-flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: var(--space-1-5);
+  margin-right: auto;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  --icon-size: 15px;
+}
+
+.resultsTitle {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-section-heading);
+  text-transform: uppercase;
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.result {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2-5);
+  padding: var(--space-2-5) var(--space-3);
+  border-radius: var(--radius-control);
+  background-color: var(--color-surface-raised);
+  color: var(--color-alert);
+}
+
+.result[data-ok="true"] {
+  color: var(--color-accent-text);
+}
+
+.resultText {
+  display: flex;
+  flex-direction: column;
+  color: var(--color-text);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}

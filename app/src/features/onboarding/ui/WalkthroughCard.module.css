@@ -1,0 +1,86 @@
+/* File : /TeamSamsara.Workflow/app/src/features/onboarding/ui/WalkthroughCard.module.css
+   Version : 1.0.0
+   Latest commit: feature/onboarding
+   Author : Gerrah
+   Purpose : The walkthrough card on the calendar: dark, a green title, chapter chips (done ticked, next highlighted, the rest dashed), Continue and a close button. */
+
+.card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-card);
+  background-color: var(--color-nav);
+  color: var(--color-nav-text);
+}
+
+.text {
+  display: flex;
+  flex: 1 1 360px;
+  flex-direction: column;
+  gap: var(--space-2-5);
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+}
+
+.title {
+  margin: 0;
+  color: var(--color-accent);
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  text-transform: uppercase;
+}
+
+.progress {
+  color: var(--color-nav-muted);
+  font-size: var(--text-meta);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border: var(--border-width) dashed
+    color-mix(in srgb, var(--color-nav-text) 30%, transparent);
+  border-radius: var(--radius-pill);
+  color: var(--color-nav-muted);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  --icon-size: 14px;
+}
+
+.chip[data-state="done"] {
+  border-style: solid;
+  border-color: transparent;
+  background-color: var(--color-nav-active);
+  color: var(--color-accent);
+}
+
+.chip[data-state="next"] {
+  border-style: solid;
+  border-color: var(--color-nav-text);
+  color: var(--color-nav-text);
+}
+
+.hide {
+  align-self: flex-start;
+  color: var(--color-nav-muted);
+}

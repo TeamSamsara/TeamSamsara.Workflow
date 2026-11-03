@@ -1,0 +1,25 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/components/Toast/ToastViewport.module.css
+   Version : 1.0.0
+   Latest commit: core/ui-kit
+   Author : Gerrah
+   Purpose : Where the toast stack sits: fixed at the top right of the screen, above everything. On phones it spans the width. It lets clicks through between toasts. */
+
+.viewport {
+  position: fixed;
+  top: var(--space-2);
+  right: max(var(--space-2), env(safe-area-inset-right, 0px));
+  z-index: var(--layer-toast);
+  display: flex;
+  flex-direction: column;
+  width: min(420px, calc(100% - 2 * var(--space-2)));
+  pointer-events: none;
+}
+
+/* 640px matches the "small" breakpoint used in the code. */
+@media (max-width: 640px) {
+  .viewport {
+    right: 0;
+    left: 0;
+    margin-inline: auto;
+  }
+}

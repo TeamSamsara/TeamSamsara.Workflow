@@ -1,0 +1,65 @@
+/* File : /TeamSamsara.Workflow/app/src/features/events/ui/InlineReply.module.css
+   Version : 1.0.0
+   Latest commit: feature/attendance-photos
+   Author : Gerrah
+   Purpose : Replying from a notification: a row of small buttons, the reason box, and the reply given as a tinted pill. */
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1-5);
+}
+
+.reason {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.pill {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+}
+
+.pill[data-answer="going"] {
+  background-color: color-mix(
+    in srgb,
+    var(--color-accent) 22%,
+    var(--color-surface)
+  );
+}
+
+.pill[data-answer="maybe"] {
+  background-color: color-mix(
+    in srgb,
+    var(--color-alert) 28%,
+    var(--color-surface)
+  );
+}
+
+.pill[data-answer="cant"] {
+  background-color: color-mix(
+    in srgb,
+    var(--color-error) 16%,
+    var(--color-surface)
+  );
+  color: var(--color-error-text);
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-accent-text);
+  font: inherit;
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+}
+
+.link:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,83 @@
+/* File : /TeamSamsara.Workflow/app/src/shared/components/Fields/Switch/Switch.module.css
+   Version : 1.0.0
+   Latest commit: core/ui-kit
+   Author : Gerrah
+   Purpose : Look of the switch row: a bold label and muted description on the left, a 42 by 24px track on the right that turns green with the knob sliding over when on. */
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.label {
+  color: var(--color-text);
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-body);
+  cursor: pointer;
+}
+
+.description {
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.switch {
+  position: relative;
+  flex: none;
+  width: var(--switch-width);
+  height: var(--switch-height);
+  padding: 0;
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-raised);
+  transition:
+    background-color var(--motion-fast) ease,
+    border-color var(--motion-fast) ease;
+}
+
+.switch[aria-checked="true"] {
+  border-color: var(--color-accent);
+  background-color: var(--color-accent);
+}
+
+.switch:disabled {
+  opacity: 0.5;
+}
+
+/* The knob sits 2px from the edge; the gap is whatever is left once the knob and borders are in. */
+.knob {
+  --switch-inset: calc(
+    (var(--switch-height) - var(--switch-knob)) / 2 - var(--border-width)
+  );
+  position: absolute;
+  top: var(--switch-inset);
+  left: var(--switch-inset);
+  width: var(--switch-knob);
+  height: var(--switch-knob);
+  border-radius: 50%;
+  background-color: var(--color-text-muted);
+  transition:
+    transform var(--motion-base) var(--ease-spring),
+    background-color var(--motion-fast) ease;
+}
+
+.switch[aria-checked="true"] .knob {
+  background-color: var(--color-surface);
+  transform: translateX(
+    calc(
+      var(--switch-width) - var(--switch-knob) - 2 * var(--switch-inset) - 2 *
+        var(--border-width)
+    )
+  );
+}
