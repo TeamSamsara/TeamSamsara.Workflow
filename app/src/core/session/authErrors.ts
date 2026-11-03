@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/session/authErrors.ts
-// Version : 1.2.0
-// Latest commit: feature/your-account
+// Version : 1.3.0
+// Latest commit: feature/branded-emails
 // Author : Gerrah
 // Purpose : Sorts Firebase sign-in errors into the few reasons people are told
 // about. Wrong email and wrong password are deliberately the same reason, so the
@@ -33,6 +33,9 @@ const kindByCode: Record<string, AuthErrorKind> = {
   "auth/email-already-in-use": "emailInUse",
   "auth/requires-recent-login": "wrongCurrentPassword",
   "auth/network-request-failed": "offline",
+  // Password links come from the server: a bad email is treated like one with no account.
+  "functions/invalid-argument": "wrongCredentials",
+  "functions/unavailable": "offline",
 };
 
 /** The current password given when changing it didn't match. */

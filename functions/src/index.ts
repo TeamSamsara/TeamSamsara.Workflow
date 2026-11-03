@@ -1,13 +1,14 @@
 // File : /TeamSamsara.Workflow/functions/src/index.ts
-// Version : 1.1.0
-// Latest commit: feature/attendance-photos
+// Version : 1.2.0
+// Latest commit: feature/branded-emails
 // Author : Gerrah
 // Purpose : Playbook's server functions. They watch tasks and events and
 // write notifications for the people a change concerns (never the person who
 // made it), send reminders before tasks are due and events start, email the
 // kinds each person asked for (through Resend), ask people to reply to events
-// and tell planners about the replies, send a test email, and sign someone out
-// on every device.
+// and tell planners about the replies, send invites, password links and a test
+// email (all in Playbook's own email design), and sign someone out on every
+// device.
 
 import { initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
@@ -38,7 +39,15 @@ import {
   type NotificationKind,
   type TaskData,
 } from "./model.js";
-import { emailBody, sentence, when, type Formats } from "./text.js";
+import {
+  inviteEmail,
+  notificationEmail,
+  resetEmail,
+  testEmail,
+  type Email,
+  type Sender,
+} from "./emails/templates.js";
+import { when, type Formats } from "./text.js";
 
 initializeApp();
 setGlobalOptions({ maxInstances: 5 });
@@ -189,11 +198,17 @@ interface Note {
   answer?: string | null;
 }
 
-async function sendEmail(
-  to: string,
-  subject: string,
-  body: { text: string; html: string },
-) {
+/** Who the emails say they're from, and where their links and logo point. */
+async function sender(): Promise<Sender> {
+  const data = (await db.doc("config/workspace").get()).data() ?? {};
+  return {
+    workspace: text(data.name) ?? "Your team",
+    appUrl: appUrl.value().replace(/\/+$/, ""),
+  };
+}
+
+async function sendEmail(to: string, email: Email) {
+  const { subject, html, text: plain } = email;
   const key = isEmulator ? "" : resendKey.value();
   if (!key) {
     logger.info("Email not sent (emulator or no key)", { to, subject });
@@ -209,7 +224,8 @@ async function sendEmail(
       from: mailFrom.value(),
       to: [to],
       subject,
-      ...body,
+      html,
+      text: plain,
     }),
   });
   if (!response.ok)
@@ -218,6 +234,8 @@ async function sendEmail(
 
 function linkFor(note: Note): string {
   const base = appUrl.value().replace(/\/+$/, "");
+  // A cancelled event has no page left to open.
+  if (note.kind === "eventCancelled") return base;
   if (note.taskId) return `${base}/tasks/${encodeURIComponent(note.taskId)}`;
   if (note.eventId) return `${base}/events/${encodeURIComponent(note.eventId)}`;
   return base;
@@ -238,6 +256,7 @@ async function deliver(
   const group = SettingGroupOf[note.kind];
   const actor =
     members.find((member) => member.id === note.actorId)?.name ?? null;
+  let from: Sender | null = null;
   await Promise.all(
     ids.map(async (id, index) => {
       const choice = readSettings(settings[index].data());
@@ -252,23 +271,18 @@ async function deliver(
         });
       }
       if (choice.email[group] && member.email) {
-        const line = sentence(note.kind, {
-          actor,
-          title: note.title,
-          detail: note.detail,
-          group: note.groupId ? (groupNames.get(note.groupId) ?? null) : null,
-          answer: note.answer ?? null,
+        const email = notificationEmail(from ?? (from = await sender()), {
+          kind: note.kind,
+          said: {
+            actor,
+            title: note.title,
+            detail: note.detail,
+            group: note.groupId ? (groupNames.get(note.groupId) ?? null) : null,
+            answer: note.answer ?? null,
+          },
+          link: linkFor(note),
         });
-        const quote = ["changesAsked", "replyDeclined", "replied"].includes(
-          note.kind,
-        )
-          ? note.detail
-          : null;
-        await sendEmail(
-          member.email,
-          line,
-          emailBody(line, quote, linkFor(note)),
-        ).catch((error: unknown) =>
+        await sendEmail(member.email, email).catch((error: unknown) =>
           logger.error("Email not sent", { id, error: String(error) }),
         );
       }
@@ -518,19 +532,133 @@ export const sendTestEmail = onCall(
         "failed-precondition",
         "No active member with an email.",
       );
-    const line = "Email from Playbook works";
-    await sendEmail(
-      email,
-      line,
-      emailBody(
-        `${line}. Notifications you switch on for email will arrive here.`,
-        null,
-        appUrl.value(),
-      ),
-    ).catch((error: unknown) => {
-      throw new HttpsError("internal", String(error));
-    });
+    await sendEmail(email, testEmail(await sender(), { email })).catch(
+      (error: unknown) => {
+        throw new HttpsError("internal", String(error));
+      },
+    );
     return { sentTo: email };
+  },
+);
+
+/**
+ * A link to choose a password, opening Playbook's own page (not Firebase's).
+ * Null when there's no account for the email.
+ */
+async function passwordLink(
+  email: string,
+  purpose: "invite" | "reset",
+): Promise<string | null> {
+  const base = appUrl.value().replace(/\/+$/, "");
+  const next = new URL("/sign-in", base);
+  if (purpose === "invite") next.searchParams.set("invite", "1");
+  let made: string;
+  try {
+    made = await getAuth().generatePasswordResetLink(email, {
+      url: next.toString(),
+    });
+  } catch (error) {
+    if ((error as { code?: string }).code === "auth/user-not-found")
+      return null;
+    throw error;
+  }
+  const code = new URL(made).searchParams.get("oobCode");
+  if (!code) throw new Error("Firebase gave a link without a code.");
+  const link = new URL("/auth/link", base);
+  link.searchParams.set("mode", "resetPassword");
+  link.searchParams.set("oobCode", code);
+  link.searchParams.set("continueUrl", next.toString());
+  // The local emulators send nothing, so the link shows in their log instead.
+  if (isEmulator) logger.info(`Password link for ${email}: ${link}`);
+  return link.toString();
+}
+
+/** Whether the member's roles grant one of the permissions (Administrator counts). */
+async function holds(
+  roleIds: readonly string[],
+  permission: string,
+): Promise<boolean> {
+  const grants = ((await db.doc("config/roles").get()).data()?.grants ??
+    {}) as Record<string, unknown>;
+  const allowed = new Set([
+    ...list(grants[permission]),
+    ...list(grants.administrator),
+  ]);
+  return [...roleIds, "everyone"].some((role) => allowed.has(role));
+}
+
+/** Emails an invited person the link to choose their password. Manage members only. */
+export const sendInvite = onCall({ secrets: [resendKey] }, async (request) => {
+  const uid = request.auth?.uid;
+  if (!uid) throw new HttpsError("unauthenticated", "Sign in first.");
+  const email = text((request.data as { email?: unknown })?.email)?.trim();
+  if (!email) throw new HttpsError("invalid-argument", "Which email?");
+  const caller = (await db.doc(`members/${uid}`).get()).data();
+  if (
+    caller?.status !== "active" ||
+    !(await holds(list(caller.roleIds), "manageMembers"))
+  )
+    throw new HttpsError(
+      "permission-denied",
+      "Only Manage members can invite.",
+    );
+  const invited = await db
+    .collection("members")
+    .where("email", "==", email)
+    .where("status", "==", "invited")
+    .limit(1)
+    .get();
+  if (invited.empty)
+    throw new HttpsError("not-found", "Nobody is waiting on an invite there.");
+  const link = await passwordLink(email, "invite");
+  if (!link)
+    throw new HttpsError("not-found", "There's no account for that email.");
+  const inviter =
+    text(caller.gameName) ?? text(caller.displayName) ?? text(caller.email);
+  await sendEmail(
+    email,
+    inviteEmail(await sender(), { email, inviter, link }),
+  ).catch((error: unknown) => {
+    throw new HttpsError("internal", String(error));
+  });
+  return { sentTo: email };
+});
+
+const resetEvery = 2 * 60 * 1000;
+
+/**
+ * Emails a link to choose a new password. Anyone may ask, signed in or not,
+ * and the answer is the same whether or not the email has an account, so it
+ * never tells which emails do. One email per account every two minutes.
+ */
+export const sendPasswordReset = onCall(
+  { secrets: [resendKey] },
+  async (request) => {
+    const email = text((request.data as { email?: unknown })?.email)?.trim();
+    if (!email || !email.includes("@"))
+      throw new HttpsError("invalid-argument", "That isn't an email.");
+    const user = await getAuth()
+      .getUserByEmail(email)
+      .catch(() => null);
+    if (!user?.email) return { ok: true };
+    const member = (await db.doc(`members/${user.uid}`).get()).data();
+    if (!["active", "invited"].includes(String(member?.status)))
+      return { ok: true };
+
+    const marker = db.doc(`sentReminders/reset_${user.uid}`);
+    const last = toDate((await marker.get()).data()?.at);
+    if (last && Date.now() - last.getTime() < resetEvery) return { ok: true };
+    await marker.set({ at: FieldValue.serverTimestamp() });
+
+    const link = await passwordLink(user.email, "reset");
+    if (!link) return { ok: true };
+    await sendEmail(
+      user.email,
+      resetEmail(await sender(), { email: user.email, link }),
+    ).catch((error: unknown) =>
+      logger.error("Reset email not sent", { error: String(error) }),
+    );
+    return { ok: true };
   },
 );
 

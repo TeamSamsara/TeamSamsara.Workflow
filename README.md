@@ -21,12 +21,12 @@ npm run dev
 
 ## Scripts (in `app/`)
 
-| Script | What it does |
-| --- | --- |
-| `npm run dev` | Starts the app with hot reload |
-| `npm run build` | Type-checks and builds into `app/dist` |
-| `npm run lint` | Runs ESLint |
-| `npm run preview` | Serves the built app locally |
+| Script            | What it does                           |
+| ----------------- | -------------------------------------- |
+| `npm run dev`     | Starts the app with hot reload         |
+| `npm run build`   | Type-checks and builds into `app/dist` |
+| `npm run lint`    | Runs ESLint                            |
+| `npm run preview` | Serves the built app locally           |
 
 A commit runs ESLint and Prettier on the staged files.
 
@@ -38,7 +38,7 @@ From the root, on `main`, with `app/.env.production` filled in (the same values 
 npm run deploy         # builds the app and functions, then deploys hosting, rules, indexes, storage and functions
 ```
 
-The first deploy asks for `MAIL_FROM` and `APP_URL`, and lets Storage's rules read Firestore. Firebase email links need the console's action URL set to `<APP_URL>/auth/link`.
+The first deploy asks for `MAIL_FROM` and `APP_URL` (saved in `functions/.env.<project>`, not committed), and lets Storage's rules read Firestore. Every email, invites and password links included, goes out through Resend in Playbook's own design (`functions/src/emails`).
 
 ## Project structure
 
