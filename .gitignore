@@ -39,3 +39,5 @@ Thumbs.db
 *.json.key
 *firebase-adminsdk*.json
 *service-account*.json
+# Firebase saves deploy answers (MAIL_FROM, APP_URL) per project here
+functions/.env.*

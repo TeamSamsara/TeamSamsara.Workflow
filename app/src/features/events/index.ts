@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/index.ts
-// Version : 1.6.0
-// Latest commit: feature/attendance-photos
+// Version : 1.7.0
+// Latest commit: feature/branded-emails
 // Author : Gerrah
 // Purpose : What other layers may use from the events feature.
 
@@ -67,6 +67,7 @@ export {
 export { describeRepeat } from "./model/repeatSummary";
 export { createEvent, deleteEvent, saveEvent } from "./service/eventService";
 export { saveReply } from "./service/replyService";
+export { useReplyFromLink } from "./hooks/useReplyFromLink";
 export { isAsked, myReply, peopleIn } from "./model/attendance";
 export type { ReplyState } from "./model/attendance";
 export { ReplyAnswers } from "./types/attendance";

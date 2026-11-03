@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/attendanceContent.ts
-// Version : 1.0.0
-// Latest commit: feature/attendance-photos
+// Version : 1.1.0
+// Latest commit: feature/branded-emails
 // Author : Gerrah
 // Purpose : The words for asking people to reply: the planning part of the
 // event form, "Are you going?", who's coming, and the calendar's marks.
@@ -60,6 +60,10 @@ export const ReplyText = {
   youReplied: (answer: string) => `You replied: ${answer}`,
   reasonLabel: "Add a reason",
   reasonPlaceholder: "Like: away that weekend",
+  /** Replying with a button in the email. */
+  fromEmail: (answer: string) => `You replied: ${answer}`,
+  fromEmailDetail: "Add a note below if you want.",
+  notAsked: "This event doesn't ask you to reply",
 } as const;
 
 export const AttendanceText = {

@@ -1,10 +1,11 @@
 // File : /TeamSamsara.Workflow/app/src/core/session/authService.ts
-// Version : 1.4.0
-// Latest commit: feature/remember-me
+// Version : 1.5.0
+// Latest commit: feature/branded-emails
 // Author : Gerrah
-// Purpose : Everything the app asks Firebase Auth to do: sign in and out, send
-// the password link, check a link's code, and set the new password from it.
-// Invites and resets use the same password link.
+// Purpose : Everything the app asks Firebase Auth to do: sign in and out, check
+// a password link's code, and set the new password from it. The links
+// themselves (invites and resets) are emailed by the server, in Playbook's
+// own email design.
 
 import {
   browserLocalPersistence,
@@ -15,15 +16,14 @@ import {
   reauthenticateWithCredential,
   updatePassword,
   createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   verifyPasswordResetCode,
   type User,
 } from "firebase/auth";
-import { auth } from "@/lib/firebase";
-import { RoutePaths } from "@/shared/constants/routePaths";
-import { inviteMarkerParameter, type PasswordLinkPurpose } from "./actionLink";
+import { httpsCallable } from "firebase/functions";
+import { auth, functions } from "@/lib/firebase";
+import type { PasswordLinkPurpose } from "./actionLink";
 import { WrongCurrentPassword } from "./authErrors";
 import type { SessionUser } from "./sessionTypes";
 
@@ -78,19 +78,20 @@ export function signOut(): Promise<void> {
 }
 
 /**
- * Sends the email with a link to choose a password. An invite marks the link so
- * the page greets the person; either way they land on sign-in afterwards.
+ * Has the server email a link to choose a password: an invite (Manage members
+ * only, to someone Invited) or a reset (anyone; the answer is the same whether
+ * or not the email has an account).
  */
-export function sendPasswordLink(
+export async function sendPasswordLink(
   email: string,
   purpose: PasswordLinkPurpose = "reset",
 ): Promise<void> {
-  const continueUrl = new URL(RoutePaths.signIn, window.location.origin);
-  if (purpose === "invite") {
-    continueUrl.searchParams.set(inviteMarkerParameter, "1");
-  }
-  return sendPasswordResetEmail(auth, email.trim(), {
-    url: continueUrl.toString(),
+  const name = purpose === "invite" ? "sendInvite" : "sendPasswordReset";
+  await httpsCallable<{ email: string }, unknown>(
+    functions,
+    name,
+  )({
+    email: email.trim(),
   });
 }
 
