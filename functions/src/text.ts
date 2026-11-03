@@ -1,9 +1,10 @@
 // File : /TeamSamsara.Workflow/functions/src/text.ts
-// Version : 1.1.0
-// Latest commit: feature/attendance-photos
+// Version : 1.2.0
+// Latest commit: feature/branded-emails
 // Author : Gerrah
-// Purpose : The words of notification emails, and dates as the workspace
-// writes them. The app words its own list the same way (notificationText).
+// Purpose : The one-line sentence each notification says (an email's
+// subject), and dates as the workspace writes them. The app words its own
+// list the same way (notificationText).
 
 import type { NotificationKind } from "./model.js";
 
@@ -74,30 +75,4 @@ export function when(date: Date, formats: Formats): string {
     minute: "2-digit",
     hourCycle: formats.clock === "24h" ? "h23" : "h12",
   }).format(date);
-}
-
-const escape = (text: string) =>
-  text.replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`);
-
-/** A short plain email: the line, the detail, a button to open it. */
-export function emailBody(
-  line: string,
-  detail: string | null,
-  link: string,
-): { text: string; html: string } {
-  const text = [
-    line,
-    detail ? `“${detail}”` : null,
-    "",
-    `Open Playbook: ${link}`,
-  ]
-    .filter((part) => part !== null)
-    .join("\n");
-  const html = `<div style="font-family:Arial,sans-serif;font-size:15px;color:#151d23;line-height:1.5">
-<p style="margin:0 0 12px">${escape(line)}</p>
-${detail ? `<p style="margin:0 0 16px;padding:10px 14px;background:#f3f3f3;border-radius:8px">${escape(detail)}</p>` : ""}
-<a href="${escape(link)}" style="display:inline-block;padding:10px 18px;background:#95ff50;color:#151d23;border-radius:8px;text-decoration:none;font-weight:bold">Open in Playbook</a>
-<p style="margin:20px 0 0;font-size:12px;color:#5b636a">You get this because of your notification settings in Playbook (Your account › Notifications).</p>
-</div>`;
-  return { text, html };
 }

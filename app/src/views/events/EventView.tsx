@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/EventView.tsx
-// Version : 1.6.0
-// Latest commit: feature/attendance-photos
+// Version : 1.7.0
+// Latest commit: feature/branded-emails
 // Author : Gerrah
 // Purpose : An event's page: when and what it is, its tasks and how far along
 // they are, its details, and the repeat or set it's part of. Planners change it from
@@ -29,6 +29,7 @@ import {
   AttendanceCard,
   ReplyCard,
   isAsked,
+  useReplyFromLink,
   type AttendancePerson,
 } from "@/features/events";
 import { memberName, useMembers } from "@/features/members";
@@ -86,6 +87,7 @@ function EventPage({ event }: { event: EventRecord }) {
   const navigate = useNavigate();
   const now = useNow();
   const [isAddingTask, setIsAddingTask] = useState(false);
+  useReplyFromLink(event, member);
 
   const time = useDisplayTime();
   const taskFormats = useTaskFormats();
