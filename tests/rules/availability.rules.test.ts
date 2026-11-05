@@ -1,11 +1,12 @@
 // File : /TeamSamsara.Workflow/tests/rules/availability.rules.test.ts
-// Version : 1.1.0
-// Latest commit: feature/your-account
+// Version : 1.2.0
+// Latest commit: fix/private-appointments
 // Author : Gerrah
 // Purpose : Tests availability and personal appointments against the rules:
 // every member reads availability and busy times, only the member changes
-// theirs; an appointment's details are for the member and for See everyone's
-// availability, and its busy copy is written and removed with it.
+// theirs; an appointment's details are for the member and for whoever they
+// shared it with (never for a permission alone), and its busy copy is written
+// and removed with it.
 
 import {
   assertFails,
@@ -22,6 +23,7 @@ import {
   serverTimestamp,
   setDoc,
   where,
+  updateDoc,
   writeBatch,
 } from "firebase/firestore";
 import { afterAll, beforeAll, beforeEach, describe, it } from "vitest";
@@ -185,11 +187,12 @@ describe("personal appointments", () => {
     );
   });
 
-  it("show their details to the member and to managers only", async () => {
+  it("show their details to the member only, whatever others' permissions", async () => {
     await assertSucceeds(
       getDoc(doc(signedInAs(env, "rin"), "personal/rinDentist")),
     );
-    await assertSucceeds(
+    // See everyone's availability doesn't open someone's appointments.
+    await assertFails(
       getDoc(doc(signedInAs(env, "lara"), "personal/rinDentist")),
     );
     await assertFails(
@@ -203,10 +206,59 @@ describe("personal appointments", () => {
         ),
       ),
     );
-    await assertSucceeds(
-      getDocs(collection(signedInAs(env, "lara"), "personal")),
-    );
+    await assertFails(getDocs(collection(signedInAs(env, "lara"), "personal")));
     await assertFails(getDocs(collection(signedInAs(env, "kai"), "personal")));
+    // Asking for someone else's by their id is refused too.
+    await assertFails(
+      getDocs(
+        query(
+          collection(signedInAs(env, "kai"), "personal"),
+          where("memberId", "==", "rin"),
+        ),
+      ),
+    );
+  });
+
+  it("show their details to the people they're shared with", async () => {
+    await assertSucceeds(
+      addAppointment(
+        "rin",
+        "rinClass",
+        personal("rin", { title: "Class", visibleTo: ["lara"] }),
+      ),
+    );
+    const shared = doc(signedInAs(env, "lara"), "personal/rinClass");
+    await assertSucceeds(getDoc(shared));
+    await assertFails(getDoc(doc(signedInAs(env, "kai"), "personal/rinClass")));
+    await assertSucceeds(
+      getDocs(
+        query(
+          collection(signedInAs(env, "lara"), "personal"),
+          where("visibleTo", "array-contains", "lara"),
+        ),
+      ),
+    );
+    // Only the owner changes it, and only the owner can take sharing away.
+    await assertFails(updateDoc(shared, { title: "Changed" }));
+    await assertFails(deleteDoc(shared));
+  });
+
+  it("can be shared with a few people, never with the owner", async () => {
+    await assertFails(
+      addAppointment("rin", "rinSelf", personal("rin", { visibleTo: ["rin"] })),
+    );
+    await assertFails(
+      addAppointment(
+        "rin",
+        "rinMany",
+        personal("rin", {
+          visibleTo: Array.from({ length: 31 }, (_, i) => `m${i}`),
+        }),
+      ),
+    );
+    await assertFails(
+      addAppointment("rin", "rinOdd", personal("rin", { visibleTo: "lara" })),
+    );
   });
 
   it("show only busy times to everyone else", async () => {

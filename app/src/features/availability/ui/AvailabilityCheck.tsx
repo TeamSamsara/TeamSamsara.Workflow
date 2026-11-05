@@ -1,13 +1,12 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/ui/AvailabilityCheck.tsx
-// Version : 1.0.0
-// Latest commit: feature/people-time
+// Version : 1.1.0
+// Latest commit: fix/private-appointments
 // Author : Gerrah
 // Purpose : Who can make an event, shown while planning it: how many of the
 // people in it are free, a small timeline per person around the event, who's
 // busy or unavailable, and times when everyone's free to move it to.
 
 import type { CSSProperties } from "react";
-import { usePermissions } from "@/core/access";
 import { useSession } from "@/core/session";
 import { addDayKeys } from "@/shared/time/weekGrid";
 import { dayKey } from "@/shared/time/dates";
@@ -52,7 +51,6 @@ export function AvailabilityCheck({
   slotLabel,
   onPick,
 }: AvailabilityCheckProps) {
-  const access = usePermissions();
   const session = useSession();
   const me = session.status === "active" ? session.member.id : null;
   const firstDay = dayKey(start, timeZone);
@@ -64,11 +62,9 @@ export function AvailabilityCheck({
   const rangeEnd = midnight(addDayKeys(firstDay, 7));
   const availability = useAllAvailability();
   const busy = useBusyInRange(rangeStart, rangeEnd);
-  const titles = usePersonalInRange(
-    access.can("viewAvailability") ? "all" : me,
-    rangeStart,
-    rangeEnd,
-  );
+  const titles = usePersonalInRange(me, rangeStart, rangeEnd, {
+    shared: true,
+  });
 
   const timeOf = (memberId: string): PersonTime => ({
     availability: availability.get(memberId) ?? null,

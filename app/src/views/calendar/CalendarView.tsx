@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/calendar/CalendarView.tsx
-// Version : 1.7.0
-// Latest commit: feature/event-fields
+// Version : 1.8.0
+// Latest commit: fix/private-appointments
 // Author : Gerrah
 // Purpose : The calendar: a month, a week (8 AM to midnight) or a list, of the
 // calendar picked: My calendar (what involves me), my work groups, one group,
@@ -57,7 +57,7 @@ import {
   usePersonalInRange,
   type PersonalEntry,
 } from "@/features/availability";
-import { useMembers } from "@/features/members";
+import { memberName, useMembers } from "@/features/members";
 import { usePlatforms } from "@/features/platforms";
 import {
   startingStatus,
@@ -245,6 +245,15 @@ export function CalendarView() {
     range.end,
   );
   const myAvailability = useAvailability(member?.id ?? null);
+  // Who a personal appointment can be shared with: my groups' leads.
+  const myLeads = [
+    ...new Map(
+      groups.items
+        .filter((item) => member?.workGroupIds.includes(item.group.id))
+        .flatMap((item) => item.leads ?? [])
+        .map((lead) => [lead.id, { id: lead.id, name: memberName(lead) }]),
+    ).values(),
+  ];
   // #endregion
 
   function setParam(changes: Record<string, string | null>) {
@@ -656,6 +665,7 @@ export function CalendarView() {
               : today
           }
           timeZone={tz}
+          leads={myLeads}
           onClose={() => setPersonal(null)}
         />
       ) : null}

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/ui/onboardingContent.ts
-// Version : 1.3.0
-// Latest commit: fix/modal-and-account-notifications
+// Version : 1.4.0
+// Latest commit: fix/private-appointments
 // Author : Gerrah
 // Purpose : The words of the walkthrough: chapter names, each step's note, the
 // welcome, the "make it yours" step, the calendar card and the invite preview.
@@ -60,7 +60,7 @@ export const ChapterText = {
     },
     personal: {
       title: "Personal appointments",
-      body: "Add a dentist visit or a class to your calendar. Only you and managers see what it is; everyone else sees Busy.",
+      body: "Add a dentist visit or a class to your calendar. Only you see what it is (or your group leads, if you share it); everyone else sees Busy.",
     },
     newEvent: {
       title: "Plan an event",

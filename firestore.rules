@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/firestore.rules
-// Version : 1.23.0
-// Latest commit: feature/discord-platform
+// Version : 1.24.0
+// Latest commit: fix/private-appointments
 // Author : Gerrah
 // Purpose : Who may read and write what in Firestore. Everything is denied until
 // a rule below allows it; each PR opens exactly what its feature needs, with a
@@ -1016,13 +1016,15 @@ service cloud.firestore {
         && data.updatedAt == request.time;
     }
 
-    // Personal appointments. The details are for the member and for whoever
-    // can see everyone's availability; the times are copied to /busy, which
-    // every member can read, so others see only "Busy". The two are written
-    // together and must match.
+    // Personal appointments. The details are for the member, and for the
+    // people they shared it with (their group leads, listed in visibleTo);
+    // nobody else, whatever their permissions. The times are copied to /busy,
+    // which every member can read, so others see only "Busy". The two are
+    // written together and must match.
     match /personal/{entryId} {
       allow read: if isActiveMember()
-        && (resource.data.memberId == request.auth.uid || can("viewAvailability"));
+        && (resource.data.memberId == request.auth.uid
+          || request.auth.uid in resource.data.get("visibleTo", []));
       allow create: if isActiveMember()
         && request.resource.data.memberId == request.auth.uid
         && isValidPersonal(request.resource.data)
@@ -1039,8 +1041,12 @@ service cloud.firestore {
 
     function isValidPersonal(entry) {
       let fields = ["memberId", "title", "notes", "startsAt", "endsAt", "createdAt", "updatedAt"];
-      return entry.keys().hasOnly(fields)
+      // Who else may see what it is (the owner's group leads); older ones have none.
+      let shared = entry.get("visibleTo", []);
+      return entry.keys().hasOnly(fields.concat(["visibleTo"]))
         && entry.keys().hasAll(fields)
+        && shared is list && shared.size() <= 30
+        && !(entry.memberId in shared)
         && entry.title is string && entry.title.size() > 0 && entry.title.size() <= 120
         && entry.notes is string && entry.notes.size() <= 1000
         && entry.startsAt is timestamp

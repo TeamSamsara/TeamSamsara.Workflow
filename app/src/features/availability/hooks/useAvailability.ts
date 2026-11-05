@@ -1,10 +1,10 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/hooks/useAvailability.ts
-// Version : 1.1.0
-// Latest commit: feature/your-account
+// Version : 1.2.0
+// Latest commit: fix/private-appointments
 // Author : Gerrah
 // Purpose : Live availability, appointments and busy times: one member's
 // usual week, everyone's, personal appointments in some dates (a member's own,
-// or everyone's for managers), and everyone's busy times in some dates.
+// plus those shared with them as a group lead), and everyone's busy times.
 
 import { useMemo } from "react";
 import { collection, orderBy, query, where } from "firebase/firestore";
@@ -69,33 +69,44 @@ export function useAllAvailability(): Map<string, AvailabilityRecord> {
 }
 
 /**
- * Personal appointments starting in these dates: one member's (their own), or
- * everyone's when memberId is "all" (for See everyone's availability).
+ * The personal appointments starting in these dates that this member may see
+ * what they are: their own, and the ones teammates shared with them as one of
+ * their group leads. Everyone else's show only as busy times.
  */
 export function usePersonalInRange(
-  memberId: string | "all" | null,
+  memberId: string | null,
   start: Date,
   end: Date,
+  { shared = false }: { shared?: boolean } = {},
 ): PersonalEntry[] {
-  const access = usePermissions();
-  const allowed = memberId !== "all" || access.can("viewAvailability");
+  const isReady = usePermissions().status === "ready";
   const key =
-    access.status === "ready" && memberId && allowed
-      ? `personal:${memberId}:${start.getTime()}-${end.getTime()}`
+    isReady && memberId
+      ? `personal:${memberId}:${shared ? "shared" : "own"}:${start.getTime()}-${end.getTime()}`
       : null;
   const result = useLiveQueries(
     key,
-    (database) => [
-      query(
-        collection(database, Collections.personal),
-        ...(memberId && memberId !== "all"
-          ? [where("memberId", "==", memberId)]
-          : []),
+    (database) => {
+      if (!memberId) return [];
+      const inDates = [
         where("startsAt", ">=", new Date(start.getTime() - lookBack)),
         where("startsAt", "<", end),
         orderBy("startsAt"),
-      ).withConverter(personalConverter),
-    ],
+      ];
+      const personal = collection(database, Collections.personal);
+      return [
+        query(personal, where("memberId", "==", memberId), ...inDates),
+        ...(shared
+          ? [
+              query(
+                personal,
+                where("visibleTo", "array-contains", memberId),
+                ...inDates,
+              ),
+            ]
+          : []),
+      ].map((entries) => entries.withConverter(personalConverter));
+    },
     (entry) => entry.id,
   );
   return useMemo(
