@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/calendar/calendarViewContent.ts
-// Version : 1.4.0
-// Latest commit: fix/sets-polish
+// Version : 1.5.0
+// Latest commit: fix/private-appointments
 // Author : Gerrah
 // Purpose : The words on the calendar page.
 
@@ -11,7 +11,8 @@ export const CalendarViewText = {
     several: "Several events",
     severalDetail: "Many dates at once, one row per event.",
     personal: "Personal appointment",
-    personalDetail: "Only you and managers see what it is.",
+    personalDetail:
+      "Only you see what it is, unless you share it with your group leads.",
     personalOnly: "Personal appointment",
   },
   taskCreated: (title: string) => `${title} created`,

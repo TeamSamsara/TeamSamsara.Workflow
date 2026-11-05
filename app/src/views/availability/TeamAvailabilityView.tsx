@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/availability/TeamAvailabilityView.tsx
-// Version : 1.4.0
-// Latest commit: feature/attendance-photos
+// Version : 1.5.0
+// Latest commit: fix/private-appointments
 // Author : Gerrah
 // Purpose : A work group's week of availability, for See everyone's
 // availability: who's free when, their personal appointments, clashes with the
@@ -100,7 +100,12 @@ export function TeamAvailabilityView() {
 
   const availability = useAllAvailability();
   const busy = useBusyInRange(week.start, week.end);
-  const personal = usePersonalInRange("all", week.start, week.end);
+  const personal = usePersonalInRange(
+    member?.id ?? null,
+    week.start,
+    week.end,
+    { shared: true },
+  );
   const viewer = member
     ? { id: member.id, workGroupIds: member.workGroupIds }
     : null;

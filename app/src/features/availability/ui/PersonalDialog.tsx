@@ -1,10 +1,11 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/ui/PersonalDialog.tsx
-// Version : 1.0.0
-// Latest commit: feature/people-time
+// Version : 1.1.0
+// Latest commit: fix/private-appointments
 // Author : Gerrah
 // Purpose : Adding or changing a personal appointment (a class, a shift, a
-// dentist visit): what, when, all day or between two times, notes. Says who
-// sees what. A saved one can be deleted from here.
+// dentist visit): what, when, all day or between two times, notes, and
+// whether to share it with the member's group leads (only they see what it is
+// then; everyone else always sees Busy). A saved one can be deleted from here.
 
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
@@ -34,6 +35,8 @@ interface PersonalDialogProps {
   /** The date it starts on when adding ("2026-11-02"). */
   date?: string;
   timeZone: string;
+  /** The leads of the member's work groups, who it can be shared with. */
+  leads: readonly { id: string; name: string }[];
   onClose: () => void;
 }
 
@@ -42,6 +45,7 @@ export function PersonalDialog({
   entry,
   date,
   timeZone,
+  leads,
   onClose,
 }: PersonalDialogProps) {
   const toast = useToast();
@@ -58,6 +62,9 @@ export function PersonalDialog({
   const [to, setTo] = useState(wasAllDay ? "10:00" : (end?.time ?? "10:00"));
   const [allDay, setAllDay] = useState(wasAllDay);
   const [notes, setNotes] = useState(entry?.notes ?? "");
+  const [shared, setShared] = useState((entry?.visibleTo.length ?? 0) > 0);
+  const others = leads.filter((lead) => lead.id !== memberId);
+  const isShared = shared && others.length > 0;
   const [tried, setTried] = useState(false);
 
   const startsAt = fromDateAndTime(day, allDay ? "00:00" : from, timeZone);
@@ -77,7 +84,13 @@ export function PersonalDialog({
       if (!startsAt || !endsAt) throw new Error("Missing date");
       return savePersonal(
         memberId,
-        { title, notes, startsAt, endsAt },
+        {
+          title,
+          notes,
+          startsAt,
+          endsAt,
+          visibleTo: isShared ? others.map((lead) => lead.id) : [],
+        },
         entry ? { id: entry.id, createdAt: entry.createdAt } : undefined,
       );
     },
@@ -187,10 +200,21 @@ export function PersonalDialog({
           maxLength={AvailabilityLimits.notes}
           onChange={(event) => setNotes(event.target.value)}
         />
+        <Checkbox
+          label={Text.share}
+          description={
+            others.length > 0
+              ? Text.shareDetail(others.map((lead) => lead.name).join(", "))
+              : Text.shareNone
+          }
+          checked={isShared}
+          disabled={others.length === 0}
+          onChange={(event) => setShared(event.target.checked)}
+        />
         <div className={styles.note}>
           <Icon name="lock" />
           <span>
-            <b>{Text.whoSees}.</b> {Text.whoSeesBody(title.trim())}{" "}
+            <b>{Text.whoSees}.</b> {Text.whoSeesBody(title.trim(), isShared)}{" "}
             {Text.busyNote}
           </span>
         </div>
