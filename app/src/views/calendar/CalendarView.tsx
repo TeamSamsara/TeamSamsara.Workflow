@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/calendar/CalendarView.tsx
-// Version : 1.7.0
-// Latest commit: feature/event-fields
+// Version : 1.8.0
+// Latest commit: feature/lean-calendar
 // Author : Gerrah
 // Purpose : The calendar: a month, a week (8 AM to midnight) or a list, of the
 // calendar picked: My calendar (what involves me), my work groups, one group,
@@ -11,6 +11,8 @@
 // repeat. My calendar also shows personal appointments and the hours the
 // member is usually unavailable. New task makes a one-off task; the New event
 // menu plans one event, several at once, or adds a personal appointment.
+// Tasks show only when Show tasks is on (remembered in the browser), and the
+// month view keeps each item to one line so more fit in a day.
 
 import {
   useEffect,
@@ -83,6 +85,7 @@ import { DropdownItem } from "@/shared/components/Dropdown/DropdownItem";
 import { DropdownPanel } from "@/shared/components/Dropdown/DropdownPanel";
 import { DropdownTrigger } from "@/shared/components/Dropdown/DropdownTrigger";
 import { Select } from "@/shared/components/Fields/Select/Select";
+import { Switch } from "@/shared/components/Fields/Switch/Switch";
 import { SegmentedControl } from "@/shared/components/SegmentedControl/SegmentedControl";
 import { Spinner } from "@/shared/components/Spinner/Spinner";
 import { useToast } from "@/shared/components/Toast/useToast";
@@ -119,6 +122,7 @@ type View = (typeof Views)[number];
 const remembered = {
   view: "workflow.calendar.view",
   cal: "workflow.calendar.cal",
+  tasks: "workflow.calendar.tasks",
 } as const;
 
 function recall(key: string): string | null {
@@ -142,7 +146,11 @@ interface Entry {
   id: string;
   start: Date;
   end: Date;
-  render: (layout: CSSProperties | null, compact?: boolean) => ReactNode;
+  render: (
+    layout: CSSProperties | null,
+    compact?: boolean,
+    lean?: boolean,
+  ) => ReactNode;
 }
 
 export function CalendarView() {
@@ -166,6 +174,10 @@ export function CalendarView() {
   const now = useNow();
   const [params, setParams] = useSearchParams();
   const [isCreatingTask, setIsCreatingTask] = useState(false);
+  // Off by default, so the calendar shows events; each event's badge has its tasks.
+  const [showTasks, setShowTasks] = useState(
+    () => recall(remembered.tasks) === "on",
+  );
   // A personal appointment being added (true) or changed.
   const [personal, setPersonal] = useState<PersonalEntry | true | null>(null);
 
@@ -278,10 +290,11 @@ export function CalendarView() {
         id: event.id,
         start: event.startsAt,
         end: event.endsAt,
-        render: (layout, compact) => (
+        render: (layout, compact, lean) => (
           <EventItem
             key={event.id}
             compact={compact}
+            lean={lean}
             event={event}
             color={type?.color ?? null}
             time={
@@ -318,16 +331,17 @@ export function CalendarView() {
                 task.dueAt < range.end &&
                 (scope.kind === "mine" || task.workGroupId !== null),
             );
-    for (const task of tasks) {
+    for (const task of showTasks ? tasks : []) {
       if (!task.dueAt) continue;
       const dueAt = task.dueAt;
       list.push({
         id: `task:${task.id}`,
         start: dueAt,
         end: dueAt,
-        render: (layout) => (
+        render: (layout, _compact, lean) => (
           <TaskItem
             key={task.id}
+            lean={lean}
             task={task}
             statuses={statuses.items}
             time={timeOf(dueAt)}
@@ -394,10 +408,16 @@ export function CalendarView() {
     return list.sort((a, b) => a.start.getTime() - b.start.getTime());
   })();
 
+  // The list shows each item in full; the month keeps them to one line.
   const byStartDay = new Map<string, ReactNode[]>();
+  const leanByStartDay = new Map<string, ReactNode[]>();
   for (const entry of entries) {
     const key = dayKey(entry.start, tz);
     byStartDay.set(key, [...(byStartDay.get(key) ?? []), entry.render(null)]);
+    leanByStartDay.set(key, [
+      ...(leanByStartDay.get(key) ?? []),
+      entry.render(null, false, true),
+    ]);
   }
 
   const weekEntriesFor = (key: string): WeekEntry[] => {
@@ -413,6 +433,7 @@ export function CalendarView() {
   };
 
   const itemsFor = (key: string) => byStartDay.get(key) ?? [];
+  const leanItemsFor = (key: string) => leanByStartDay.get(key) ?? [];
   const dayLabel = (key: string) =>
     formatDate(dayKeyToDate(key), "UTC", time.dateFormat);
   const previous = addMonths(shownMonth.year, shownMonth.month, -1);
@@ -505,6 +526,16 @@ export function CalendarView() {
               onChange={(value) => setParam({ view: value })}
             />
           </TourTarget>
+          <Switch
+            className={styles.showTasks}
+            label={CalendarViewText.showTasks}
+            description={CalendarViewText.showTasksHelp[scope.kind]}
+            checked={showTasks}
+            onCheckedChange={(on) => {
+              setShowTasks(on);
+              remember(remembered.tasks, on ? "on" : "off");
+            }}
+          />
           <span className={styles.actions} data-tour="newMenu">
             {access.can("createStandaloneTasks") ? (
               <Button iconStart="add" onClick={() => setIsCreatingTask(true)}>
@@ -585,7 +616,7 @@ export function CalendarView() {
             <CalendarMonth
               grid={grid}
               weekStartsOn={workspace.weekStartsOn}
-              itemsFor={itemsFor}
+              itemsFor={leanItemsFor}
               addHref={canPlan ? newEventPath : undefined}
               dayLabel={dayLabel}
             />
@@ -639,11 +670,13 @@ export function CalendarView() {
         )}
       </TourTarget>
       <p className={styles.legend}>
-        {scope.kind === "mine"
-          ? CalendarViewText.mineLegend
-          : !seesAllTasks && scope.kind === "group"
-            ? CalendarViewText.groupLegend
-            : Text.legend}
+        {!showTasks
+          ? CalendarViewText.tasksHidden
+          : scope.kind === "mine"
+            ? CalendarViewText.mineLegend
+            : !seesAllTasks && scope.kind === "group"
+              ? CalendarViewText.groupLegend
+              : Text.legend}
       </p>
 
       {personal && member ? (
