@@ -1,11 +1,12 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/CalendarItem.tsx
-// Version : 1.3.0
-// Latest commit: feature/attendance-photos
+// Version : 1.4.0
+// Latest commit: feature/lean-calendar
 // Author : Gerrah
 // Purpose : An item in a calendar day: an event (solid, with its type's colour
 // on the edge, time and how many tasks are done; faded once over, with a ✓ or
 // how many are left; a ⋯ menu for planners), a date a repeat skips, or a
-// one-off task (dashed, with its time and status).
+// one-off task (dashed, with its time and status). In the month view both are
+// lean: one line each, the event's tasks done shown as a small badge.
 
 import type { CSSProperties, ReactNode } from "react";
 import { Link } from "react-router-dom";
@@ -40,6 +41,8 @@ interface EventItemProps {
   layout?: CSSProperties | null;
   /** A short block: title and time on one line each. */
   compact?: boolean;
+  /** The month view: one line, the title and a badge of tasks done. */
+  lean?: boolean;
 }
 
 /** How a past event looks: all done, tasks left, or nothing to do. */
@@ -60,6 +63,7 @@ export function EventItem({
   isMine = false,
   layout,
   compact = false,
+  lean = false,
 }: EventItemProps) {
   const style = {
     ...(color ? { "--item-color": color } : {}),
@@ -91,9 +95,18 @@ export function EventItem({
       data-mine={isMine || undefined}
       data-block={layout ? true : undefined}
       data-compact={compact || undefined}
+      data-lean={lean || undefined}
       data-reply={reply ?? undefined}
     >
-      <Link to={href} className={styles.event}>
+      <Link
+        to={href}
+        className={styles.event}
+        title={
+          lean
+            ? [event.title, time, summary].filter(Boolean).join(" · ")
+            : undefined
+        }
+      >
         <span className={styles.titleRow}>
           {isRepeat ? (
             <>
@@ -117,20 +130,42 @@ export function EventItem({
           ) : null}
           <span className={styles.title}>{event.title}</span>
         </span>
-        <span className={styles.meta}>
-          {time}
-          {summary ? (
-            <>
-              {" · "}
-              <span className={styles.summary}>
-                {state === "done" ? (
+        {lean ? (
+          <>
+            <VisuallyHidden>
+              , {time}
+              {summary ? `, ${summary}` : ""}
+            </VisuallyHidden>
+            {progress && progress.total > 0 ? (
+              <span className={styles.badge} aria-hidden>
+                {done ? (
                   <Icon name="check" className={styles.check} strokeWidth={3} />
-                ) : null}
-                {summary}
+                ) : (
+                  `${progress.done}/${progress.total}`
+                )}
               </span>
-            </>
-          ) : null}
-        </span>
+            ) : null}
+          </>
+        ) : (
+          <span className={styles.meta}>
+            {time}
+            {summary ? (
+              <>
+                {" · "}
+                <span className={styles.summary}>
+                  {state === "done" ? (
+                    <Icon
+                      name="check"
+                      className={styles.check}
+                      strokeWidth={3}
+                    />
+                  ) : null}
+                  {summary}
+                </span>
+              </>
+            ) : null}
+          </span>
+        )}
       </Link>
       {actions ? <span className={styles.actions}>{actions}</span> : null}
     </div>
@@ -172,6 +207,8 @@ interface TaskItemProps {
   href: string;
   /** Where it sits in the week view. */
   layout?: CSSProperties | null;
+  /** The month view: one line, the title and its time. */
+  lean?: boolean;
 }
 
 export function TaskItem({
@@ -181,12 +218,15 @@ export function TaskItem({
   isLate,
   href,
   layout,
+  lean = false,
 }: TaskItemProps) {
   const status = statusOf(task, statuses);
   return (
     <Link
       to={href}
       className={styles.task}
+      title={lean ? `${task.title} · ${time}` : undefined}
+      data-lean={lean || undefined}
       data-late={isLate}
       data-block={layout ? true : undefined}
       style={layout ?? undefined}
@@ -196,7 +236,7 @@ export function TaskItem({
         {time}
         {isLate ? ` · ${Text.late}` : ""}
       </span>
-      {status ? <StatusPill status={status} /> : null}
+      {status && !lean ? <StatusPill status={status} /> : null}
     </Link>
   );
 }

@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/features/events/ui/CalendarItem.module.css
-   Version : 1.3.0
-   Latest commit: feature/attendance-photos
+   Version : 1.4.0
+   Latest commit: feature/lean-calendar
    Author : Gerrah
    Purpose : Calendar items: an event is a filled block with a coloured left edge; a one-off task is a dashed block. Both show a bold title and a muted time line. */
 
@@ -277,5 +277,90 @@
 
 .eventWrap[data-reply="cant"] .title {
   text-decoration: line-through;
+}
+/* #endregion */
+
+/* #region Lean, in the month view: one line each, so more fit in a day */
+.eventWrap[data-lean] .event {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-1-5);
+}
+
+.eventWrap[data-lean] .titleRow {
+  flex: 1 1 auto;
+  align-items: center;
+  min-width: 0;
+}
+
+.eventWrap[data-lean] .title,
+.task[data-lean] .title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.eventWrap[data-lean] .mark,
+.eventWrap[data-lean] .reply {
+  margin-top: 0;
+}
+
+.badge {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 3px;
+  height: 16px;
+  padding: 0 var(--space-1-5);
+  border-radius: 999px;
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: var(--weight-bold);
+  line-height: 1;
+}
+
+.badge .check {
+  width: 11px;
+  height: 11px;
+}
+
+.eventWrap[data-state="done"] .badge {
+  color: var(--color-accent-text);
+}
+
+.eventWrap[data-state="open"] .badge {
+  color: var(--color-text);
+}
+
+.eventWrap[data-state="open"] .badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--color-alert);
+}
+
+.task[data-lean] {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-1-5);
+}
+
+.task[data-lean] .meta {
+  flex: none;
+  margin-left: auto;
+}
+
+@media (hover: none) {
+  .eventWrap[data-lean][data-has-actions] .event {
+    padding-right: 28px;
+  }
+
+  .eventWrap[data-lean][data-has-actions] .titleRow {
+    padding-right: 0;
+  }
 }
 /* #endregion */

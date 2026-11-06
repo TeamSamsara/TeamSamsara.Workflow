@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/articles.ts
-// Version : 1.4.0
-// Latest commit: feature/attendance-photos
+// Version : 1.5.0
+// Latest commit: feature/lean-calendar
 // Author : Gerrah
 // Purpose : The Documentation: one short article per feature, in groups. Each
 // group (or article) is for the people with its permission, the same as the
@@ -53,7 +53,11 @@ export const DocGroups: readonly DocGroup[] = [
         summary: "What shows on your calendar, and month, week or list.",
         body: [
           p(
-            "The calendar opens on My calendar: the events you're in, yourself or through your work groups, events for everyone, the events you made, your open tasks and your personal appointments.",
+            "The calendar opens on My calendar: the events you're in, yourself or through your work groups, events for everyone, the events you made and your personal appointments.",
+          ),
+          h("Showing tasks"),
+          p(
+            "Tasks are hidden at first, so the calendar shows events. The badge on an event (3/10) is how many of its tasks are done; open the event to see them. Turn on Show tasks to put your tasks and your groups' on the calendar at their due time.",
           ),
           h("Seeing a work group's calendar"),
           p(
@@ -61,12 +65,12 @@ export const DocGroups: readonly DocGroup[] = [
           ),
           h("Month, week or list"),
           list(
-            "Month: a month at a glance.",
+            "Month: a month at a glance, one line per item so a busy day still fits.",
             "Week: 8 AM to midnight, so evening matches fit. Anything earlier shows as a small marker at the top of the day.",
             "List: everything in the month, day by day.",
           ),
           p(
-            "The calendar remembers the view and calendar you last used in this browser.",
+            "The calendar remembers the view, the calendar and Show tasks you last used in this browser.",
           ),
         ],
       },
