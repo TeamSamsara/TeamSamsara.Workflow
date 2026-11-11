@@ -1,12 +1,12 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/EventView.tsx
-// Version : 1.7.0
-// Latest commit: feature/branded-emails
+// Version : 1.7.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : An event's page: when and what it is, its tasks and how far along
 // they are, its details, and the repeat or set it's part of. Planners change it from
 // its ⋯ menu (the same as on the calendar) and add tasks to it.
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { usePermissions } from "@/core/access";
 import { DataErrorText, isCurrentMember } from "@/core/data";
@@ -20,6 +20,7 @@ import {
   useEvent,
   useEventSet,
   useEventTasks,
+  useTaskOrder,
   useAudienceOptions,
   useRepeat,
   useSeesEventTasks,
@@ -83,6 +84,8 @@ function EventPage({ event }: { event: EventRecord }) {
   const seesAll = useSeesEventTasks();
   const people = useAudienceOptions();
   const tasks = useEventTasks(event.id, member);
+  const flow = event.workflowIds;
+  const inOrder = useTaskOrder(useCallback(() => flow, [flow]));
   const toast = useToast();
   const navigate = useNavigate();
   const now = useNow();
@@ -212,7 +215,7 @@ function EventPage({ event }: { event: EventRecord }) {
             <TaskGroupCard
               title={Text.tasks}
               note={Text.progress(done, tasks.items.length)}
-              tasks={tasks.items}
+              tasks={inOrder(tasks.items)}
               context={context}
             />
           )}

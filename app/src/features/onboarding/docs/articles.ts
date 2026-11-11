@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/articles.ts
-// Version : 1.7.0
+// Version : 1.7.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The Documentation: one short article per feature, in groups. Each
@@ -164,6 +164,9 @@ export const DocGroups: readonly DocGroup[] = [
             "Focus: what's late, due today, and due in the next 7 days, with how many more are coming up.",
             "Planning: everything still to do, including later and no date.",
             "Done this week: what was finished since the week started, by day, with who did and approved it. The card beside it counts each day.",
+          ),
+          p(
+            "Late tasks come first. Inside each part, an event's tasks stay together in the order of its workflow's steps, then by due time; tasks added by hand come after them. Reordering a workflow's steps reorders the tasks it made.",
           ),
           p(
             "Each task shows its event under its title: click it to open the event. A task planned after its due time had already passed says Late from the start, so nobody's blamed for it. One whose event was deleted says Event deleted, with the event's name.",

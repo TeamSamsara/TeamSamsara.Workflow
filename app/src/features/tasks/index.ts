@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/index.ts
-// Version : 1.2.0
+// Version : 1.2.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : What other layers may use from the tasks feature.
@@ -22,6 +22,8 @@ export {
   startOfWeek,
 } from "./model/groupByDue";
 export { doneByDay, weekCounts } from "./model/doneThisWeek";
+export { flowRank, noFlow, sortByFlow } from "./model/flowOrder";
+export type { FlowRank, FlowTask } from "./model/flowOrder";
 export type { DoneDay } from "./model/doneThisWeek";
 export {
   inScope,

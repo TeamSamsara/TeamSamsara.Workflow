@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/ui/onboardingContent.ts
-// Version : 1.5.0
+// Version : 1.5.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words of the walkthrough: chapter names, each step's note, the
@@ -44,7 +44,7 @@ export const ChapterText = {
     },
     tasks: {
       title: "Your tasks",
-      body: "What's given to you, soonest first: switch to My groups for your groups' too. Focus shows the week ahead, Planning everything, and Done this week what's finished. Tick a task once it's done.",
+      body: "What's given to you, late first, each event's tasks in workflow order: switch to My groups for your groups' too. Focus shows the week ahead, Planning everything, and Done this week what's finished. Tick a task once it's done.",
     },
     review: {
       title: "Reviews and live links",

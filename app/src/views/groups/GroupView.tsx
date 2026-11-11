@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/views/groups/GroupView.tsx
-// Version : 1.0.0
+// Version : 1.0.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : One work group's overview: a band in its colour behind its badge,
@@ -11,7 +11,8 @@
 // group; See all lists every open task.
 
 import type { CSSProperties } from "react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { useTaskOrder } from "@/features/events";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { usePermissions } from "@/core/access";
 import { isCurrentMember, type MemberRecord } from "@/core/data";
@@ -61,6 +62,14 @@ export function GroupView() {
     now,
   );
   const showTasks = params.get("tab") === "tasks";
+  const groupEvents = overview.events;
+  const inOrder = useTaskOrder(
+    useCallback(
+      (eventId: string) =>
+        groupEvents?.find((event) => event.id === eventId)?.workflowIds,
+      [groupEvents],
+    ),
+  );
 
   if (groups.status === "loading") return <Spinner label={Text.loading} />;
   if (!item)
@@ -97,7 +106,7 @@ export function GroupView() {
           now,
         )
       : Text.noDue;
-  const tasks = overview.tasks ?? [];
+  const tasks = inOrder(overview.tasks ?? []);
   const metaOf = (member: MemberRecord) => {
     const tag = tags.items.find((entry) => member.tagIds.includes(entry.id));
     const parts = [

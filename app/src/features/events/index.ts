@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/index.ts
-// Version : 1.9.0
+// Version : 1.9.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : What other layers may use from the events feature.
@@ -126,4 +126,5 @@ export { findLateTasks, lateOf } from "./model/lateTasks";
 export type { LateChoice, LateTask } from "./model/lateTasks";
 export { LateTasksNotice } from "./ui/LateTasksNotice";
 export { useEventLabels } from "./hooks/useEventLabels";
+export { useTaskOrder } from "./hooks/useTaskOrder";
 export type { EventLabel } from "./hooks/useEventLabels";

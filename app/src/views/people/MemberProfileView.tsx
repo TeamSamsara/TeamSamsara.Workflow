@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/views/people/MemberProfileView.tsx
-// Version : 1.1.0
+// Version : 1.1.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Someone's read-only profile, opened from their name anywhere: who
@@ -8,7 +8,7 @@
 // time or the viewer's; what's coming up for them that the viewer can see,
 // with their reply; and their open tasks the viewer can already see.
 
-import { useMemo, useState, type CSSProperties } from "react";
+import { useCallback, useMemo, useState, type CSSProperties } from "react";
 import { Link, useParams } from "react-router-dom";
 import { usePermissions } from "@/core/access";
 import { useSession } from "@/core/session";
@@ -24,6 +24,7 @@ import {
   useEventsInRange,
   useSeesAllEvents,
   useSeesAllTasks,
+  useTaskOrder,
 } from "@/features/events";
 import { memberName, memberSubName, useMembers } from "@/features/members";
 import { TagEditor, usePeopleTags } from "@/features/people-tags";
@@ -94,6 +95,14 @@ export function MemberProfileView() {
     seesAllTasks ? [] : (viewer?.workGroupIds ?? []),
   );
 
+  const inOrder = useTaskOrder(
+    useCallback(
+      (eventId: string) =>
+        events.items.find((event) => event.id === eventId)?.workflowIds,
+      [events.items],
+    ),
+  );
+
   if (members.status === "loading") return <Spinner label={Text.loading} />;
   if (!person) return <p>{Text.notFound}</p>;
 
@@ -111,12 +120,11 @@ export function MemberProfileView() {
         event.groupIds.some((id) => person.workGroupIds.includes(id)),
     )
     .slice(0, 5);
-  const tasks = (seesAllTasks ? theirs.items : mine.items)
-    .filter((task) => task.memberId === person.id)
-    .sort(
-      (a, b) =>
-        (a.dueAt?.getTime() ?? Infinity) - (b.dueAt?.getTime() ?? Infinity),
-    );
+  const tasks = inOrder(
+    (seesAllTasks ? theirs.items : mine.items).filter(
+      (task) => task.memberId === person.id,
+    ),
+  );
   const busyList = busy
     .map(
       (entry) =>

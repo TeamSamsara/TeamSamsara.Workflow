@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/views/tasks/MyTasksView.tsx
-// Version : 1.3.1
+// Version : 1.3.2
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : My tasks. Whose: Mine (the default), My groups, or Pick groups,
@@ -9,13 +9,17 @@
 // its event. Beside it: what's waiting for approval (for approvers) and the
 // Done this week card. New task makes a one-off task.
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { usePermissions } from "@/core/access";
 import { DataErrorText, isCurrentMember } from "@/core/data";
 import { useSession } from "@/core/session";
 import { useDisplayTime, useWorkspaceRecord } from "@/core/workspace";
-import { useEventLabels, useSeesAllTasks } from "@/features/events";
+import {
+  useEventLabels,
+  useSeesAllTasks,
+  useTaskOrder,
+} from "@/features/events";
 import { memberName, useMembers } from "@/features/members";
 import { usePlatforms } from "@/features/platforms";
 import { startingStatus, useStatuses, useTags } from "@/features/task-setup";
@@ -173,6 +177,11 @@ export function MyTasksView() {
   const shownTasks =
     view === "done" ? doneTasks : [...openTasks, ...queue.items];
   const events = useEventLabels(shownTasks.map((task) => task.eventId));
+  const workflowsOf = useCallback(
+    (eventId: string) => events.get(eventId)?.workflowIds,
+    [events],
+  );
+  const inOrder = useTaskOrder(workflowsOf);
 
   const nameOf = (id: string | null) => {
     const found = id
@@ -212,7 +221,10 @@ export function MyTasksView() {
     },
   };
 
-  const grouped = groupByDue(openTasks, now, time.timeZone);
+  const byDue = groupByDue(openTasks, now, time.timeZone);
+  const grouped = Object.fromEntries(
+    DueGroups.map((group) => [group, inOrder(byDue[group])]),
+  ) as typeof byDue;
   const shownGroups = view === "focus" ? FocusGroups : DueGroups;
   const later = [...grouped.later, ...grouped.noDue];
   const laterEvents = new Set(
@@ -388,7 +400,7 @@ export function MyTasksView() {
               queue.items.length > 0 ? (
                 <TaskGroupCard
                   title={Text.approvals}
-                  tasks={queue.items}
+                  tasks={inOrder(queue.items)}
                   context={context}
                 />
               ) : (

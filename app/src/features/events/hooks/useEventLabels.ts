@@ -1,10 +1,11 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/hooks/useEventLabels.ts
-// Version : 1.0.0
+// Version : 1.0.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The title and start of the events a list of tasks belongs to, so
 // each task can link to its event. Read once each (an event someone can't see
-// is left out, and its task just has no link).
+// is left out, and its task just has no link). Also its workflows, which
+// order its tasks.
 
 import { useQuery } from "@tanstack/react-query";
 import { doc, getDoc } from "firebase/firestore";
@@ -16,6 +17,8 @@ import { eventConverter } from "../types/eventTypes";
 export interface EventLabel {
   title: string;
   startsAt: Date;
+  /** Its workflows in order, which orders its tasks. */
+  workflowIds: string[];
 }
 
 async function readLabel(id: string): Promise<EventLabel | null> {
@@ -24,7 +27,13 @@ async function readLabel(id: string): Promise<EventLabel | null> {
       doc(db, Collections.events, id).withConverter(eventConverter),
     );
     const event = found.data();
-    return event ? { title: event.title, startsAt: event.startsAt } : null;
+    return event
+      ? {
+          title: event.title,
+          startsAt: event.startsAt,
+          workflowIds: event.workflowIds,
+        }
+      : null;
   } catch {
     return null;
   }
