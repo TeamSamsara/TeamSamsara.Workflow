@@ -1,14 +1,15 @@
 // File : /TeamSamsara.Workflow/app/src/views/workflows/WorkflowEditView.tsx
-// Version : 1.2.0
-// Latest commit: feature/your-account
+// Version : 1.3.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The workflow editor: its tasks on the left (open one in place to
 // edit it), About and the event details it uses on the right; Save, Export,
-// Archive or Restore, and Delete once archived. Also opens a new workflow,
+// Archive or Restore, and Delete once archived. Saving a workflow that
+// upcoming events use offers to update the tasks it made for them. Also opens a new workflow,
 // blank or from an import. Without Edit workflows, everything is read-only.
 
 import { useMutation } from "@tanstack/react-query";
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   useBlocker,
   useLocation,
@@ -18,6 +19,7 @@ import {
 import { usePermissions } from "@/core/access";
 import { dataErrorMessage, isCurrentMember } from "@/core/data";
 import { useDisplayTime } from "@/core/workspace";
+import { WorkflowSyncDialog } from "@/features/events";
 import { useMembers } from "@/features/members";
 import { usePlatforms } from "@/features/platforms";
 import { useEventTypes, useTags } from "@/features/task-setup";
@@ -37,6 +39,7 @@ import {
   removeStep,
   setWorkflowArchived,
   StepList,
+  tidyWorkflow,
   useWorkflow,
   useWorkflowDraft,
   type StepEditorOptions,
@@ -72,7 +75,11 @@ function downloadFile(name: string, contents: string) {
 }
 
 function WorkflowEditor({ workflow }: { workflow: WorkflowRecord | null }) {
-  const canEdit = usePermissions().can("editWorkflows");
+  const access = usePermissions();
+  const canEdit = access.can("editWorkflows");
+  // Updating the tasks means reading every upcoming event and moving tasks,
+  // so it's offered to planners who see everything.
+  const canSync = access.can("planEvents") && access.can("viewAll");
   const time = useDisplayTime();
   const groups = useWorkGroups();
   const members = useMembers();
@@ -91,6 +98,10 @@ function WorkflowEditor({ workflow }: { workflow: WorkflowRecord | null }) {
   const [openStepId, setOpenStepId] = useState<string | null>(null);
   const [triedToSave, setTriedToSave] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [sync, setSync] = useState<{
+    before: WorkflowRecord;
+    after: WorkflowRecord;
+  } | null>(null);
   const [showNextSteps, setShowNextSteps] = useState(() =>
     cameFromGuide(location.state),
   );
@@ -152,7 +163,10 @@ function WorkflowEditor({ workflow }: { workflow: WorkflowRecord | null }) {
       if (firstStep) setOpenStepId(firstStep.id);
       return;
     }
+    const before = workflow;
+    const after = before ? { ...before, ...tidyWorkflow(fields) } : null;
     draft.save((savedId) => {
+      if (before && after && canSync) setSync({ before, after });
       toast.show({
         tone: "success",
         title: (workflow ? Text.saved : Text.created)(name),
@@ -164,6 +178,8 @@ function WorkflowEditor({ workflow }: { workflow: WorkflowRecord | null }) {
       }
     });
   }
+
+  const closeSync = useCallback(() => setSync(null), []);
 
   function addTask() {
     const step = newStep();
@@ -349,6 +365,14 @@ function WorkflowEditor({ workflow }: { workflow: WorkflowRecord | null }) {
         >
           <p className={styles.text}>{Text.confirmDelete.body}</p>
         </Modal>
+      ) : null}
+
+      {sync ? (
+        <WorkflowSyncDialog
+          before={sync.before}
+          after={sync.after}
+          onClose={closeSync}
+        />
       ) : null}
 
       {blocker.state === "blocked" ? (

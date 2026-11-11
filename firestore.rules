@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/firestore.rules
-// Version : 1.24.0
-// Latest commit: fix/private-appointments
+// Version : 1.25.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Who may read and write what in Firestore. Everything is denied until
 // a rule below allows it; each PR opens exactly what its feature needs, with a
@@ -637,6 +637,30 @@ service cloud.firestore {
       return task.memberId == request.auth.uid
         || (task.workGroupId != null
           && task.workGroupId in memberRecord().data.get("workGroupIds", []));
+    }
+
+    // A record each time a saved workflow was passed on to the tasks it made
+    // for upcoming events; the server tells each person whose tasks moved.
+    // Made by planners who edit workflows; nobody changes or reads them here.
+    match /workflowSyncs/{syncId} {
+      allow create: if can("editWorkflows") && can("planEvents")
+        && isValidWorkflowSync(request.resource.data);
+    }
+
+    function isValidWorkflowSync(data) {
+      return data.keys().hasOnly(["workflowId", "workflowName", "byId",
+          "taskIds", "taskCount", "changes", "at"])
+        && data.keys().hasAll(["workflowId", "workflowName", "byId",
+          "taskIds", "taskCount", "changes", "at"])
+        && data.byId == request.auth.uid
+        && data.at == request.time
+        && data.workflowId is string
+        && exists(/databases/$(database)/documents/workflows/$(data.workflowId))
+        && data.workflowName is string && data.workflowName.size() <= 120
+        && data.taskIds is list && data.taskIds.size() > 0
+        && data.taskIds.size() <= 500
+        && data.taskCount is int && data.taskCount >= data.taskIds.size()
+        && data.changes is list && data.changes.size() <= 5;
     }
 
     match /tasks/{taskId} {

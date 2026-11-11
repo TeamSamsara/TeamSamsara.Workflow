@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/index.ts
-// Version : 1.7.0
-// Latest commit: feature/branded-emails
+// Version : 1.8.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : What other layers may use from the events feature.
 
@@ -121,3 +121,4 @@ export { RepeatFieldsText } from "./ui/repeatFieldsContent";
 export { CalendarText } from "./ui/eventsContent";
 export { TaskPreview } from "./ui/TaskPreview";
 export { WorkflowPicker } from "./ui/WorkflowPicker";
+export { WorkflowSyncDialog } from "./ui/WorkflowSyncDialog";

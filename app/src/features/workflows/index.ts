@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/index.ts
-// Version : 1.3.0
-// Latest commit: feature/repeats
+// Version : 1.4.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : What other layers may use from the workflows feature.
 
@@ -31,6 +31,7 @@ export {
   newStep,
   orderSteps,
   removeStep,
+  tidyWorkflow,
 } from "./model/workflowDraft";
 export { deleteWorkflow, setWorkflowArchived } from "./service/workflowService";
 export {
