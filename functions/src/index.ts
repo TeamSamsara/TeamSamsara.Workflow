@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/functions/src/index.ts
-// Version : 1.3.0
+// Version : 1.4.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Playbook's server functions. They watch tasks and events and
@@ -61,6 +61,12 @@ import {
   type SummaryTask,
 } from "./summaries.js";
 import { when, type Formats } from "./text.js";
+import { readWorkflow } from "./engineData.js";
+import {
+  changedStepTitles,
+  stepsChanged,
+  syncWorkflow,
+} from "./workflowSync.js";
 
 initializeApp();
 setGlobalOptions({ maxInstances: 5 });
@@ -353,6 +359,9 @@ export const onTaskWritten = onDocumentWrittenWithAuthContext(
   async (event) => {
     const before = taskData(event.data?.before.data());
     const after = taskData(event.data?.after.data());
+    // Changes the platform makes itself (keeping tasks in line with their
+    // workflow, updates, clean-ups) send their own summary, if any.
+    if (event.authType === "service_account" || !event.authId) return;
     const planned = taskNotifications(before, after);
     if (planned.length === 0 || !after) return;
 
@@ -591,6 +600,50 @@ export const onWorkflowSyncCreated = onDocumentCreated(
         return summary ? { summary: summaryData(summary, 0) } : {};
       },
     );
+  },
+);
+
+/**
+ * A saved workflow: every upcoming event that uses it gets its open tasks
+ * brought in line in the background (parts changed by hand stay), and a task
+ * for each step added. The people whose tasks changed get one notification,
+ * through a workflowSyncs record (see onWorkflowSyncCreated).
+ */
+export const onWorkflowSaved = onDocumentWrittenWithAuthContext(
+  { document: "workflows/{workflowId}", timeoutSeconds: 300 },
+  async (event) => {
+    const beforeData = event.data?.before.data();
+    const afterData = event.data?.after.data();
+    if (!beforeData || !afterData || afterData.archived === true) return;
+    const id = event.params.workflowId;
+    const before = readWorkflow(id, beforeData);
+    const after = readWorkflow(id, afterData);
+    if (!stepsChanged(before, after)) return;
+    // A member's id (never an email, which a service account would have).
+    const byId =
+      event.authId && !event.authId.includes("@") ? event.authId : null;
+    const result = await syncWorkflow(db, { before, after, byId });
+    const taskIds = [
+      ...result.updated.map((entry) => entry.taskId),
+      ...result.createdIds,
+    ];
+    logger.info("Workflow synced", {
+      workflowId: id,
+      events: result.events,
+      updated: result.updated.length,
+      created: result.createdIds.length,
+      kept: result.held.length,
+    });
+    if (taskIds.length === 0) return;
+    await db.collection("workflowSyncs").add({
+      workflowId: id,
+      workflowName: after.name.slice(0, 120),
+      byId,
+      taskIds: taskIds.slice(0, 500),
+      taskCount: taskIds.length,
+      changes: [changedStepTitles(before, after).join(", ").slice(0, 200)],
+      at: FieldValue.serverTimestamp(),
+    });
   },
 );
 

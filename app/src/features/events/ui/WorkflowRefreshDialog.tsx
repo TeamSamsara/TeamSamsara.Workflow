@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/WorkflowRefreshDialog.tsx
-// Version : 1.0.0
+// Version : 1.1.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : "Update tasks from workflows" on an event: lists its open tasks
@@ -25,7 +25,7 @@ import { planWorkflowRefresh } from "../model/workflowRefresh";
 import { refreshEventTasks } from "../service/eventService";
 import type { EventRecord } from "../types/eventTypes";
 import { EventActionsText } from "./eventActionsContent";
-import styles from "./WorkflowSyncDialog.module.css";
+import styles from "./WorkflowRefreshDialog.module.css";
 
 const Text = EventActionsText.refreshDialog;
 

@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/index.ts
-// Version : 1.10.0
+// Version : 1.11.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : What other layers may use from the events feature.
@@ -124,7 +124,6 @@ export { RepeatFieldsText } from "./ui/repeatFieldsContent";
 export { CalendarText } from "./ui/eventsContent";
 export { TaskPreview } from "./ui/TaskPreview";
 export { WorkflowPicker } from "./ui/WorkflowPicker";
-export { WorkflowSyncDialog } from "./ui/WorkflowSyncDialog";
 export { findLateTasks, lateOf } from "./model/lateTasks";
 export type { LateChoice, LateTask } from "./model/lateTasks";
 export { LateTasksNotice } from "./ui/LateTasksNotice";

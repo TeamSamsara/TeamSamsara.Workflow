@@ -1,8 +1,8 @@
-/* File : /TeamSamsara.Workflow/app/src/features/events/ui/WorkflowSyncDialog.module.css
-   Version : 1.0.0
+/* File : /TeamSamsara.Workflow/app/src/features/events/ui/WorkflowRefreshDialog.module.css
+   Version : 1.1.0
    Latest commit: feature/audit-fixes
    Author : Gerrah
-   Purpose : Look of the "Update the tasks it made?" dialog: a bordered list of the tasks that move (old time, arrow, new time), a yellow box for the ones that would be late, and a plain list of the ones left alone. */
+   Purpose : Look of the "Update tasks from workflows" dialog: a bordered list of the tasks that change, and the steps with no task. */
 
 .body {
   display: flex;

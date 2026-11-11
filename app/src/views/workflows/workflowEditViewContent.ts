@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/workflows/workflowEditViewContent.ts
-// Version : 1.1.0
-// Latest commit: feature/workflow-guide
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words on the workflow editor page.
 
@@ -19,6 +19,7 @@ export const WorkflowEditViewText = {
   save: "Save",
   create: "Create workflow",
   saved: (name: string) => `${name} saved`,
+  upcomingFollow: "Upcoming events that use it update in a moment.",
   created: (name: string) => `${name} created`,
   archived: (name: string) => `${name} archived`,
   restored: (name: string) => `${name} restored`,
