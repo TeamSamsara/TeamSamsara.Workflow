@@ -142,7 +142,7 @@ describe("the newest release a member has seen", () => {
     );
     await assertFails(
       updateDoc(doc(signedInAs(env, "kappa"), "members/okami"), {
-        "prefs.lastSeenRelease": "1.2.0",
+        "prefs.lastSeenRelease": "1.3.0",
       }),
     );
     await assertFails(
