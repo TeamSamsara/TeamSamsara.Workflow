@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/views/people/MemberProfileView.tsx
-// Version : 1.0.1
+// Version : 1.1.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Someone's read-only profile, opened from their name anywhere: who
@@ -26,7 +26,7 @@ import {
   useSeesAllTasks,
 } from "@/features/events";
 import { memberName, memberSubName, useMembers } from "@/features/members";
-import { TagPill, usePeopleTags } from "@/features/people-tags";
+import { TagEditor, usePeopleTags } from "@/features/people-tags";
 import { formatDue, useOpenTasksFor } from "@/features/tasks";
 import { groupColor, useWorkGroups } from "@/features/work-groups";
 import { Avatar } from "@/shared/components/Avatar/Avatar";
@@ -101,7 +101,7 @@ export function MemberProfileView() {
   const theirGroups = groups.items
     .map((item) => item.group)
     .filter((group) => person.workGroupIds.includes(group.id));
-  const theirTags = tags.items.filter((tag) => person.tagIds.includes(tag.id));
+  const canTag = access.can("tagPeople") || access.can("manageMembers");
   const apart = hoursApart(theirZone, time.timeZone, now);
   const coming = events.items
     .filter(
@@ -158,16 +158,17 @@ export function MemberProfileView() {
               <p className={styles.muted}>{person.email}</p>
             ) : null}
           </div>
-          {theirTags.length > 0 ? (
-            <div className={styles.field}>
-              <span className={styles.label}>{Text.tags}</span>
-              <div className={styles.chips}>
-                {theirTags.map((tag) => (
-                  <TagPill key={tag.id} tag={tag} />
-                ))}
-              </div>
-            </div>
-          ) : null}
+          <div className={styles.field}>
+            <span className={styles.label}>{Text.tags}</span>
+            <TagEditor
+              memberId={person.id}
+              name={name}
+              tagIds={person.tagIds}
+              tags={tags.items}
+              canEdit={canTag}
+              compact
+            />
+          </div>
           <div className={styles.field}>
             <span className={styles.label}>{Text.workGroups}</span>
             {theirGroups.length === 0 ? (
