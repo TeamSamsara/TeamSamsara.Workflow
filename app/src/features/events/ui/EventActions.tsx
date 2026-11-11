@@ -1,10 +1,11 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/EventActions.tsx
-// Version : 1.0.0
-// Latest commit: feature/repeats
+// Version : 1.1.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : An event's ⋯ menu, for planners. A one-off event: Edit, Delete.
 // One date of a repeat: Edit this one, Edit this and upcoming, Skip this one,
-// End the repeat, Delete this one (which skips it, so it isn't made again).
+// End the repeat, Delete… (just this one, this and every later one, or the
+// whole series).
 
 import { useState, type CSSProperties } from "react";
 import { buttonLook } from "@/shared/components/Button/buttonLook";
@@ -18,6 +19,7 @@ import { classNames } from "@/lib/classNames";
 import { occurrenceDate } from "../model/repeatRule";
 import type { EventRecord } from "../types/eventTypes";
 import type { RepeatRecord } from "../types/repeatTypes";
+import { DeleteRepeatDialog } from "./DeleteRepeatDialog";
 import {
   DeleteEventDialog,
   EditEventDialog,
@@ -155,12 +157,20 @@ export function EventActions({
       {repeat && date && open === "editUpcoming" ? (
         <EditSeriesDialog repeat={repeat} fromDay={date} onClose={close} />
       ) : null}
-      {repeat && date && (open === "skip" || open === "deleteOne") ? (
+      {repeat && date && open === "skip" ? (
         <SkipDialog
           event={event}
           repeat={repeat}
           date={date}
-          asDelete={open === "deleteOne"}
+          asDelete={false}
+          onClose={close}
+          onGone={onGone}
+        />
+      ) : null}
+      {repeat && date && open === "deleteOne" ? (
+        <DeleteRepeatDialog
+          repeat={repeat}
+          date={date}
           onClose={close}
           onGone={onGone}
         />

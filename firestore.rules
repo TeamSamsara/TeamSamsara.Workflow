@@ -714,8 +714,9 @@ service cloud.firestore {
         || (resource.data.eventId != null && can("planEvents"));
     }
 
-    /** One of the four kinds of change, or Plan events moving an event's task
-        or filling its text again from the event's fields. */
+    /** One of the four kinds of change, or Plan events moving an event's task,
+        filling its text again from the event's fields, or keeping it as
+        history when its event is deleted. */
     function isAllowedTaskChange(grants, held) {
       let changed = changedFields();
       return holds(grants, held, "editAnyTask")
@@ -726,6 +727,12 @@ service cloud.firestore {
           && holds(grants, held, "planEvents"))
         || (changed.hasOnly(["workGroupId", "memberId", "updatedAt"])
           && holds(grants, held, "reassignTasks"))
+        // A finished task kept as history when a planner deletes its event,
+        // in the same batch.
+        || (changed.hasOnly(["eventGone", "updatedAt"])
+          && resource.data.eventId != null
+          && holds(grants, held, "planEvents")
+          && !existsAfter(/databases/$(database)/documents/events/$(resource.data.eventId)))
         || (changed.hasOnly(["statusId", "approvedBy", "approvedAt",
             "changesRequested", "doneAt", "doneBy", "updatedAt"])
           && holds(grants, held, "approveTasks")
@@ -817,11 +824,16 @@ service cloud.firestore {
         "changesRequested", "createdBy", "createdAt", "updatedAt", "doneAt"];
       // Added later, so tasks made before them (or by an open tab from
       // before) are valid without them.
-      let optional = ["lateAtCreation", "doneBy"];
+      let optional = ["lateAtCreation", "doneBy", "eventGone"];
+      let gone = task.get("eventGone", null);
       return task.keys().hasOnly(fields.concat(optional))
         && task.keys().hasAll(fields)
         && task.get("lateAtCreation", false) is bool
         && isNullOr(task.get("doneBy", null), "string")
+        && (gone == null || (gone is map
+          && gone.keys().hasOnly(["title", "startsAt"])
+          && gone.title is string && gone.title.size() <= 200
+          && isNullOr(gone.get("startsAt", null), "timestamp")))
         && task.title is string && task.title.size() > 0 && task.title.size() <= 120
         && task.notes is string && task.notes.size() <= 2000
         && isNullOr(task.workGroupId, "string")

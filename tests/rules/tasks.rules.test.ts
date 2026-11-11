@@ -24,6 +24,7 @@ import {
   serverTimestamp,
   updateDoc,
   where,
+  writeBatch,
 } from "firebase/firestore";
 import { afterAll, beforeAll, beforeEach, describe, it } from "vitest";
 import { seed, signedInAs, startRulesTestEnv } from "./rulesTestEnv";
@@ -50,6 +51,11 @@ const roles = {
       permissions: ["reassignTasks"],
     },
     editor: { name: "Editor", position: 5, permissions: ["editAnyTask"] },
+    eventPlanner: {
+      name: "Event planner",
+      position: 6,
+      permissions: ["planEvents"],
+    },
   },
   grants: {
     doAssignedTasks: ["everyone"],
@@ -58,6 +64,7 @@ const roles = {
     approveTasks: ["reviewer"],
     reassignTasks: ["organiser"],
     editAnyTask: ["editor"],
+    planEvents: ["eventPlanner"],
   },
 };
 
@@ -143,6 +150,7 @@ beforeEach(async () => {
     "members/rae": member(["reviewer"]),
     "members/ollie": member(["organiser"]),
     "members/eddie": member(["editor"]),
+    "members/pia": member(["eventPlanner"]),
     "members/chris": {
       status: "disabled",
       roleIds: ["viewer"],
@@ -295,6 +303,30 @@ async function seedDone() {
     }),
   });
 }
+
+describe("keeping a finished task as history", () => {
+  it("is for planners, in the batch that deletes its event", async () => {
+    await seed(env, { "events/match1": { title: "vs. Orca" } });
+    const db = signedInAs(env, "pia");
+    const batch = writeBatch(db);
+    batch.update(doc(db, "tasks/fromEvent"), {
+      eventGone: { title: "vs. Orca", startsAt: new Date(2026, 10, 6) },
+      ...now(),
+    });
+    batch.delete(doc(db, "events/match1"));
+    await assertSucceeds(batch.commit());
+  });
+
+  it("can't be set while the event still exists", async () => {
+    await seed(env, { "events/match1": { title: "vs. Orca" } });
+    await assertFails(
+      updateDoc(task("pia", "fromEvent"), {
+        eventGone: { title: "vs. Orca", startsAt: null },
+        ...now(),
+      }),
+    );
+  });
+});
 
 describe("doing a task", () => {
   it("lets the group tick the checklist, add the link and finish it", async () => {

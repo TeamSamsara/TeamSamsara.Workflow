@@ -385,13 +385,33 @@ export const onTaskWritten = onDocumentWrittenWithAuthContext(
   },
 );
 
+/** Whether a deleted event went because its whole repeat, or its end, went. */
+async function seriesTakesIt(event: EventData): Promise<boolean> {
+  const repeat = (await db.doc(`repeats/${event.repeatId}`).get()).data();
+  if (!repeat) return true;
+  const endDate = text(repeat.endDate);
+  if (repeat.endKind !== "onDate" || !endDate) return false;
+  const { timeZone } = await workspaceFormats();
+  const day = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(event.startsAt);
+  return day > endDate;
+}
+
 export const onEventWritten = onDocumentWrittenWithAuthContext(
   { document: "events/{eventId}", secrets: [resendKey] },
   async (event) => {
     const before = eventData(event.data?.before.data());
     const after = eventData(event.data?.after.data());
     const members = await activeMembers();
-    const plans = eventNotifications(before, after, members, new Date());
+    let plans = eventNotifications(before, after, members, new Date());
+    // A repeat deleted or ended from this date on takes its events in bulk;
+    // nobody gets one "cancelled" per date.
+    if (before && !after && before.repeatId && (await seriesTakesIt(before)))
+      plans = plans.filter((plan) => plan.kind !== "eventCancelled");
     const replyPlans = replyNotifications(before, after);
     if (plans.length === 0 && replyPlans.length === 0) return;
     const formats = await workspaceFormats();

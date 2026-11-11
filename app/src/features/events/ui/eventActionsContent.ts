@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/eventActionsContent.ts
-// Version : 1.1.0
-// Latest commit: feature/event-fields
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words for an event's ⋯ menu and the dialogs it opens.
 
@@ -13,7 +13,7 @@ export const EventActionsText = {
     editUpcoming: "Edit this and upcoming",
     skip: "Skip this one",
     end: "End the repeat",
-    deleteOne: "Delete this one",
+    deleteOne: "Delete…",
   },
   saved: (title: string) => `${title} saved`,
   deleted: (title: string) => `${title} deleted`,
