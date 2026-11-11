@@ -8,7 +8,8 @@
 // kinds each person asked for (through Resend), ask people to reply to events
 // and tell planners about the replies, send invites, password links and a test
 // email (all in Playbook's own email design), and sign someone out on every
-// device. Work done in bulk (a set or repeat planned, a workflow's changes
+// device. A weekly check-up (src/maintenance) tidies data that points at
+// deleted things. Work done in bulk (a set or repeat planned, a workflow's changes
 // passed on to its tasks) sends one summary per person instead of one each.
 
 import { initializeApp } from "firebase-admin/app";
@@ -923,3 +924,13 @@ export const signOutEverywhere = onCall(async (request) => {
 });
 
 // #endregion
+
+export {
+  onEventSetDeleted,
+  onMemberDeleted,
+  onPeopleTagDeleted,
+  onRepeatDeleted,
+  onWorkGroupDeleted,
+  runCleanup,
+  weeklyCleanup,
+} from "./maintenance/index.js";

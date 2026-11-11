@@ -110,6 +110,21 @@ service cloud.firestore {
         && request.resource.data.createdAt == resource.data.createdAt;
     }
 
+    // Whether the weekly check-up fixes what it finds (Apply) or only
+    // reports it. Administrators only; off until one turns it on.
+    match /config/maintenance {
+      allow get: if can("administrator");
+      allow create, update: if can("administrator")
+        && request.resource.data.keys().hasOnly(["apply", "updatedAt"])
+        && request.resource.data.apply is bool
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    // The check-up's reports. Written only by the server; Administrators read them.
+    match /maintenanceRuns/{runId} {
+      allow read: if can("administrator");
+    }
+
     match /config/roles {
       allow create: if isSignedIn()
         && isSetupBatch()
