@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/ui/onboardingContent.ts
-// Version : 1.4.0
-// Latest commit: fix/private-appointments
+// Version : 1.5.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words of the walkthrough: chapter names, each step's note, the
 // welcome, the "make it yours" step, the calendar card and the invite preview.
@@ -24,7 +24,7 @@ export const ChapterText = {
   steps: {
     nav: {
       title: "The menu",
-      body: "Calendar, My tasks and Documentation are always here. Availability sits under Calendar. Your name at the bottom opens Your account.",
+      body: "Calendar, My tasks, Groups and Documentation are always here. Availability sits under Calendar, and your work groups under Groups. Your name at the bottom opens Your account.",
     },
     bell: {
       title: "Notifications",
@@ -44,7 +44,7 @@ export const ChapterText = {
     },
     tasks: {
       title: "Your tasks",
-      body: "What's given to you or your work groups, soonest first. Tick a task once it's done.",
+      body: "What's given to you, soonest first: switch to My groups for your groups' too. Focus shows the week ahead, Planning everything, and Done this week what's finished. Tick a task once it's done.",
     },
     review: {
       title: "Reviews and live links",
@@ -92,11 +92,11 @@ export const ChapterText = {
     },
     team: {
       title: "A group's week",
-      body: "Everyone in a work group, their usual hours, appointments and the group's events. Anyone booked when they're not free is outlined in red.",
+      body: "How many of the people you're comparing are free each hour. Tick names or tags on the left to choose who counts, and click an hour to see who's free then.",
     },
     best: {
       title: "When everyone's free",
-      body: "Pick one of these to plan an event at that time, with the group already in it.",
+      body: "Stretches of two hours or more when everyone shown is free. Pick one, then Plan an event then.",
     },
     whatIs: {
       title: "What a workflow is",
