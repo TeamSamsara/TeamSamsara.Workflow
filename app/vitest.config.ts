@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/vitest.config.ts
-// Version : 1.2.0
+// Version : 1.2.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Unit tests: the same @/ alias as the app, a browser-like page (jsdom)
@@ -25,6 +25,9 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
+    // The engine has no packages of its own, so its tests use describe, it
+    // and expect without importing them.
+    globals: true,
     include: ["src/**/*.test.{ts,tsx}", "../engine/src/**/*.test.ts"],
     env: {
       VITE_FIREBASE_API_KEY: "test-api-key",

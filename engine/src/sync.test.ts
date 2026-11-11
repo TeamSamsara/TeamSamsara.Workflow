@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/engine/src/sync.test.ts
-// Version : 1.0.0
+// Version : 1.0.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Tests keeping a task in line with its step: untouched parts
@@ -7,7 +7,8 @@
 // tasks), gaps are always filled, finished tasks and passed due times aren't
 // touched.
 
-import { describe, expect, it } from "vitest";
+// describe, it and expect come from Vitest's globals (see app/vitest.config.ts):
+// the engine has no packages of its own to import them from.
 import { planTaskSync, type TaskForSync } from "./sync.js";
 import {
   applyWorkflows,
