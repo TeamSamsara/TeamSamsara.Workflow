@@ -1,8 +1,8 @@
 // File : /TeamSamsara.Workflow/app/vite.config.ts
-// Version : 1.4.0
-// Latest commit: feature/attendance-photos
+// Version : 1.5.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
-// Purpose : Vite setup: React, the @/ alias, and the build split into a few
+// Purpose : Vite setup: React, the @/ and @engine/ aliases, and the build split into a few
 // files. Firebase and React rarely change, so they get files of their own that
 // the browser keeps cached when only the app's code changes.
 
@@ -19,9 +19,15 @@ const largestExpectedChunkKb = 800;
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  server: {
+    // The engine sits beside the app, so the dev server may serve it too.
+    fs: { allow: [path.resolve(__dirname, "..")] },
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // The rules the app shares with the server functions.
+      "@engine": path.resolve(__dirname, "../engine/src"),
     },
   },
   optimizeDeps: {

@@ -18,7 +18,8 @@
 
     /* Path alias */
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@engine/*": ["../engine/src/*"]
     },
 
     /* Strict type checking */
@@ -30,5 +31,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src", "../engine/src"]
 }

@@ -3,13 +3,12 @@
     "target": "ES2023",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "outDir": "lib",
-    "rootDir": "src",
+    "noEmit": true,
     "strict": true,
     "noUnusedLocals": true,
     "skipLibCheck": true,
     "sourceMap": true
   },
-  "include": ["src"],
-  "exclude": ["src/**/*.test.ts"]
+  "include": ["src", "../engine/src"],
+  "exclude": ["src/**/*.test.ts", "../engine/src/**/*.test.ts"]
 }

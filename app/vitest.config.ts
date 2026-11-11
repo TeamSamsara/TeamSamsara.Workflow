@@ -1,9 +1,10 @@
 // File : /TeamSamsara.Workflow/app/vitest.config.ts
-// Version : 1.1.0
-// Latest commit: core/access
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Unit tests: the same @/ alias as the app, a browser-like page (jsdom)
-// for code that touches the DOM, and tests found next to the files they test.
+// for code that touches the DOM, and tests found next to the files they test
+// (the engine's too).
 // Placeholder Firebase settings let modules that import lib/firebase load without
 // an .env file (as in CI); no test talks to Firebase.
 
@@ -14,14 +15,17 @@ import { defineConfig } from "vitest/config";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  server: { fs: { allow: [path.resolve(__dirname, "..")] } },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // The rules the app shares with the server functions.
+      "@engine": path.resolve(__dirname, "../engine/src"),
     },
   },
   test: {
     environment: "jsdom",
-    include: ["src/**/*.test.{ts,tsx}"],
+    include: ["src/**/*.test.{ts,tsx}", "../engine/src/**/*.test.ts"],
     env: {
       VITE_FIREBASE_API_KEY: "test-api-key",
       VITE_FIREBASE_AUTH_DOMAIN: "demo-workflow-test.firebaseapp.com",

@@ -1,41 +1,27 @@
 // File : /TeamSamsara.Workflow/app/src/shared/time/dates.ts
-// Version : 1.1.0
-// Latest commit: feature/workspace-settings
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Writes dates the way the app shows them, in a given time zone:
 // "Oct 3, 2026", and "Today" / "Yesterday" / "Dec 10" for recent activity
 // (the year is added when it isn't this year), and dates and times in the
 // workspace's chosen formats.
 
+import { dayKey } from "@engine/time";
 import { TimeText } from "./timeContent";
 
+// The workspace's date and time formats live in the engine, which the server
+// functions share, so a date reads the same in the app and in a notification.
+export {
+  DateFormats,
+  dayKey,
+  formatDate,
+  formatTime,
+  type ClockFormat,
+  type DateFormat,
+} from "@engine/time";
+
 const locale = "en-US";
-
-/**
- * How a workspace writes dates: "Mon, Dec 14", "Dec 14", "14 Dec" or
- * "2026-12-14". The first is the default.
- */
-export const DateFormats = [
-  "weekdayMonthDay",
-  "monthDay",
-  "dayMonth",
-  "isoDate",
-] as const;
-export type DateFormat = (typeof DateFormats)[number];
-
-/** How a workspace writes times: "7:00 PM" or "19:00". */
-export type ClockFormat = "12h" | "24h";
-
-/** The calendar day in a time zone, as "2026-10-03", for comparing days. */
-export function dayKey(date: Date, timeZone: string): string {
-  // en-CA writes dates as year-month-day.
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(date);
-}
 
 function yearOf(date: Date, timeZone: string): string {
   return dayKey(date, timeZone).slice(0, 4);
@@ -81,42 +67,4 @@ export function formatRecentDay(
     return TimeText.yesterday;
   }
   return formatShortDate(date, timeZone, now);
-}
-
-const dateFormatOptions: Record<
-  Exclude<DateFormat, "isoDate">,
-  Intl.DateTimeFormatOptions
-> = {
-  weekdayMonthDay: { weekday: "short", month: "short", day: "numeric" },
-  monthDay: { month: "short", day: "numeric" },
-  dayMonth: { day: "numeric", month: "short" },
-};
-
-/** A date in the workspace's format ("Mon, Dec 14", "14 Dec", "2026-12-14"…). */
-export function formatDate(
-  date: Date,
-  timeZone: string,
-  format: DateFormat,
-): string {
-  if (format === "isoDate") return dayKey(date, timeZone);
-  // en-GB puts the day first ("14 Dec"); the other formats read the US way.
-  const formatLocale = format === "dayMonth" ? "en-GB" : locale;
-  return new Intl.DateTimeFormat(formatLocale, {
-    timeZone,
-    ...dateFormatOptions[format],
-  }).format(date);
-}
-
-/** A time in the workspace's format: "7:00 PM" or "19:00". */
-export function formatTime(
-  date: Date,
-  timeZone: string,
-  format: ClockFormat,
-): string {
-  return new Intl.DateTimeFormat(locale, {
-    timeZone,
-    hour: "numeric",
-    minute: "2-digit",
-    hourCycle: format === "24h" ? "h23" : "h12",
-  }).format(date);
 }

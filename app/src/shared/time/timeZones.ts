@@ -1,12 +1,15 @@
 // File : /TeamSamsara.Workflow/app/src/shared/time/timeZones.ts
-// Version : 1.1.0
-// Latest commit: feature/your-account
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The time zones a person can pick, with readable labels such as
 // "America/Toronto (UTC−5)", sorted by their offset from UTC, plus the device's
 // own zone and its usual time format to start setup from.
 
 import type { SelectOption } from "@/shared/components/Fields/Select/Select";
+import { utcOffsetMinutes } from "@engine/time";
+
+export { utcOffsetMinutes };
 
 /** Used when the browser can't say where it is. */
 export const universalTimeZone = "UTC";
@@ -44,22 +47,6 @@ export function deviceUses24HourClock(): boolean {
     hour: "numeric",
   }).resolvedOptions().hourCycle;
   return hourCycle === "h23" || hourCycle === "h24";
-}
-
-/** Minutes ahead of UTC (negative when behind) for a zone at a moment. */
-export function utcOffsetMinutes(timeZone: string, at: Date): number {
-  const name = new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    timeZoneName: "longOffset",
-  })
-    .formatToParts(at)
-    .find((part) => part.type === "timeZoneName")?.value;
-  // "GMT-05:00", "GMT+05:30", or just "GMT" for UTC itself.
-  const match = /GMT([+-])(\d{2}):(\d{2})/.exec(name ?? "");
-  if (!match) return 0;
-  const [, sign, hours, minutes] = match;
-  const total = Number(hours) * minutesPerHour + Number(minutes);
-  return sign === "-" ? -total : total;
 }
 
 /** "UTC", "UTC+1", "UTC−5", "UTC+5:30". */
