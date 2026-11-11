@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/functions/src/text.ts
-// Version : 1.3.0
+// Version : 1.3.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The one-line sentence each notification says (an email's
@@ -59,7 +59,8 @@ export function sentence(kind: NotificationKind, said: Said): string {
     case "setPlanned":
       return `${who} planned ${said.title}${said.detail ? `: ${said.detail}` : ""}`;
     case "tasksMoved":
-      return `${who} changed ${said.title}${said.detail ? `: ${said.detail}` : ""}`;
+      // No one by name: Playbook itself (a platform update or the background sync).
+      return `${said.actor ?? "Playbook"} changed ${said.title}${said.detail ? `: ${said.detail}` : ""}`;
   }
 }
 

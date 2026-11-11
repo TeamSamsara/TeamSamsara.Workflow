@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/model/notificationText.ts
-// Version : 1.2.0
+// Version : 1.2.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : How a notification reads in the list: who (bold), what happened,
@@ -69,7 +69,11 @@ export function notificationLine(
     case "setPlanned":
       return line("planned", note.detail ? `: ${note.detail}.` : ".");
     case "tasksMoved":
-      return line("changed", note.detail ? `. ${note.detail}` : ".");
+      // No one by name: Playbook itself (a platform update or the background sync).
+      return {
+        ...line("changed", note.detail ? `. ${note.detail}` : "."),
+        who: actor ?? Text.playbook,
+      };
   }
 }
 

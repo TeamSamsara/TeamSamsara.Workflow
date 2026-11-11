@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/functions/src/updates/tasksFollowWorkflows.ts
-// Version : 1.0.0
+// Version : 1.0.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The first platform update. Events planned before tasks followed
@@ -9,8 +9,10 @@
 // since it was made is fully refreshed; one someone touched only gets its
 // gaps filled (who it's given to, post text, notes, checklist items), and the
 // rest is listed in the report. Finished tasks and past events stay as they
-// are, and no due time moves to one that has already passed.
+// are, and no due time moves to one that has already passed. People whose
+// tasks changed get one notification per workflow.
 
+import { FieldValue } from "firebase-admin/firestore";
 import { engineFormats, readWorkflow } from "../engineData.js";
 import { syncWorkflow } from "../workflowSync.js";
 import type { PlatformUpdate } from "./types.js";
@@ -46,6 +48,20 @@ export const tasksFollowWorkflows: PlatformUpdate = {
         formats,
       });
       changed += result.updated.length;
+      // The people whose tasks changed hear about it once per workflow, from
+      // Playbook (see onWorkflowSyncCreated).
+      if (!dryRun && result.updated.length > 0)
+        await db.collection("workflowSyncs").add({
+          workflowId: after.id,
+          workflowName: after.name.slice(0, 120),
+          byId: null,
+          taskIds: result.updated.map((entry) => entry.taskId).slice(0, 500),
+          taskCount: result.updated.length,
+          changes: [
+            "Playbook update: upcoming tasks now follow the workflow (due times, who it's given to, text)",
+          ],
+          at: FieldValue.serverTimestamp(),
+        });
       events += result.events;
       for (const entry of result.held) {
         const kept = entry.held

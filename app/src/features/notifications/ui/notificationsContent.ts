@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/ui/notificationsContent.ts
-// Version : 1.3.0
+// Version : 1.3.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words of notifications: the bell, the list, each kind of
@@ -29,6 +29,7 @@ export const NotificationListText = {
   failed: "Couldn't load your notifications.",
   unreadMark: "Unread",
   someone: "Someone",
+  playbook: "Playbook",
   answers: {
     going: "Going",
     maybe: "Maybe",
