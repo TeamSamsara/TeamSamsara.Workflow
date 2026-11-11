@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/service/repeatService.ts
-// Version : 1.2.0
-// Latest commit: feature/attendance-photos
+// Version : 1.3.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Repeats and their events. Makes a repeat and its next weeks of
 // events; tops up the weeks ahead (any planner's browser can, and an event's
@@ -18,6 +18,7 @@ import {
   query,
   where,
 } from "firebase/firestore";
+import { recordBulkPlan } from "./bulkPlanService";
 import {
   Collections,
   commitWrites,
@@ -171,10 +172,18 @@ export async function topUpRepeat(
   repeat: RepeatRecord,
   options: TopUpOptions,
 ): Promise<number> {
+  return (await topUp(repeat, options)).length;
+}
+
+/** Makes the missing events; gives back their ids. */
+async function topUp(
+  repeat: RepeatRecord,
+  options: TopUpOptions,
+): Promise<string[]> {
   const from =
     repeat.startDate > options.today ? repeat.startDate : options.today;
   const dates = repeatDates(repeat, from, windowEnd(options.today));
-  if (dates.length === 0) return 0;
+  if (dates.length === 0) return [];
   const found = await findOccurrences(repeat.id, dates);
   const workflows = options.workflows.filter(
     (workflow) =>
@@ -194,7 +203,7 @@ export async function topUpRepeat(
     ),
   );
   await commitWrites(db, writes);
-  return missing.length;
+  return missing.map((date) => occurrenceId(repeat.id, date));
 }
 
 /** Makes a repeat and its events for the weeks ahead; gives back its id. */
@@ -220,7 +229,14 @@ export async function createRepeat(
     createdAt: null,
     updatedAt: null,
   };
-  await topUpRepeat(repeat, { ...options, workflows });
+  const made = await topUp(repeat, { ...options, workflows });
+  await recordBulkPlan({
+    kind: "repeat",
+    sourceId: ref.id,
+    name: fields.title,
+    eventIds: made,
+    byId: options.createdBy,
+  });
   return ref.id;
 }
 

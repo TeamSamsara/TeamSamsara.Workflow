@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/emails/templates.ts
-// Version : 1.0.0
-// Latest commit: feature/branded-emails
+// Version : 1.1.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Every email Playbook sends, built on the shared layout: the
 // invite, the forgot-password email, the test email, and one per kind of
@@ -266,6 +266,16 @@ const kinds: Record<NotificationKind, KindLook> = {
     eyebrow: "New reply",
     button: "See who's coming",
     detail: "quote",
+  },
+  setPlanned: {
+    eyebrow: "Events planned",
+    button: "See your tasks",
+    detail: "none",
+  },
+  tasksMoved: {
+    eyebrow: "Tasks moved",
+    button: "See your tasks",
+    detail: "none",
   },
 };
 

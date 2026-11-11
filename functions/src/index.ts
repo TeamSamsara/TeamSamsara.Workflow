@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/index.ts
-// Version : 1.2.0
-// Latest commit: feature/branded-emails
+// Version : 1.3.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Playbook's server functions. They watch tasks and events and
 // write notifications for the people a change concerns (never the person who
@@ -8,7 +8,8 @@
 // kinds each person asked for (through Resend), ask people to reply to events
 // and tell planners about the replies, send invites, password links and a test
 // email (all in Playbook's own email design), and sign someone out on every
-// device.
+// device. Work done in bulk (a set or repeat planned, a workflow's changes
+// passed on to its tasks) sends one summary per person instead of one each.
 
 import { initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
@@ -19,7 +20,10 @@ import {
   type DocumentData,
 } from "firebase-admin/firestore";
 import { logger, setGlobalOptions } from "firebase-functions/v2";
-import { onDocumentWrittenWithAuthContext } from "firebase-functions/v2/firestore";
+import {
+  onDocumentCreated,
+  onDocumentWrittenWithAuthContext,
+} from "firebase-functions/v2/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { defineSecret, defineString } from "firebase-functions/params";
@@ -47,6 +51,14 @@ import {
   type Email,
   type Sender,
 } from "./emails/templates.js";
+import {
+  firstStart,
+  setSummaries,
+  syncSummaries,
+  type MemberSummary,
+  type SummaryEvent,
+  type SummaryTask,
+} from "./summaries.js";
 import { when, type Formats } from "./text.js";
 
 initializeApp();
@@ -196,6 +208,23 @@ interface Note {
   groupId: string | null;
   /** Someone's reply to an event, for "replied". */
   answer?: string | null;
+  /** Where it opens, for summaries ("/my-tasks", a set's page). */
+  path?: string | null;
+}
+
+/** A summary's counts as the notification keeps them. */
+function summaryData(summary: MemberSummary, eventCount: number) {
+  return {
+    eventCount,
+    mine: summary.mine,
+    groups: summary.groups,
+    inEvents: summary.inEvents,
+    lines: summary.lines.map((line) => ({
+      title: line.title,
+      events: line.events,
+      firstDue: line.firstDue ? Timestamp.fromDate(line.firstDue) : null,
+    })),
+  };
 }
 
 /** Who the emails say they're from, and where their links and logo point. */
@@ -236,6 +265,7 @@ function linkFor(note: Note): string {
   const base = appUrl.value().replace(/\/+$/, "");
   // A cancelled event has no page left to open.
   if (note.kind === "eventCancelled") return base;
+  if (note.path) return `${base}${note.path}`;
   if (note.taskId) return `${base}/tasks/${encodeURIComponent(note.taskId)}`;
   if (note.eventId) return `${base}/events/${encodeURIComponent(note.eventId)}`;
   return base;
@@ -247,6 +277,8 @@ async function deliver(
   note: Note,
   members: readonly Member[],
   groupNames: ReadonlyMap<string, string> = new Map(),
+  /** What only this person's copy says (a summary's counts). */
+  extra: (memberId: string) => Record<string, unknown> = () => ({}),
 ): Promise<void> {
   const ids = [...new Set(memberIds)].filter((id) => id !== note.actorId);
   if (ids.length === 0) return;
@@ -266,6 +298,7 @@ async function deliver(
         await db.collection("notifications").add({
           memberId: id,
           ...note,
+          ...extra(id),
           createdAt: FieldValue.serverTimestamp(),
           readAt: null,
         });
@@ -396,6 +429,147 @@ export const onEventWritten = onDocumentWrittenWithAuthContext(
         members,
       );
     }
+  },
+);
+
+// #endregion
+
+// #region Summaries for work done in bulk
+
+function summaryTask(id: string, data: DocumentData): SummaryTask {
+  const workflowId = text(data.workflowId);
+  const stepId = text(data.stepId);
+  return {
+    id,
+    title: text(data.title) ?? "A task",
+    memberId: text(data.memberId),
+    workGroupId: text(data.workGroupId),
+    stepKey: workflowId && stepId ? `${workflowId}:${stepId}` : null,
+    dueAt: toDate(data.dueAt),
+  };
+}
+
+/** Reads documents by id, in groups the admin SDK takes at once. */
+async function readAll(collection: string, ids: readonly string[]) {
+  const found: { id: string; data: DocumentData }[] = [];
+  for (let start = 0; start < ids.length; start += 100) {
+    const refs = ids
+      .slice(start, start + 100)
+      .map((id) => db.collection(collection).doc(id));
+    if (refs.length === 0) continue;
+    const snapshots = await db.getAll(...refs);
+    for (const snapshot of snapshots) {
+      const data = snapshot.data();
+      if (data) found.push({ id: snapshot.id, data });
+    }
+  }
+  return found;
+}
+
+/** The tasks of these events. */
+async function tasksOfEvents(eventIds: readonly string[]) {
+  const found: SummaryTask[] = [];
+  for (let start = 0; start < eventIds.length; start += 30) {
+    const snapshot = await db
+      .collection("tasks")
+      .where("eventId", "in", eventIds.slice(start, start + 30))
+      .get();
+    for (const doc of snapshot.docs) found.push(summaryTask(doc.id, doc.data()));
+  }
+  return found;
+}
+
+/**
+ * A set or repeat was planned (the app records it once every event and task
+ * is saved): one notification per person it concerns.
+ */
+export const onBulkPlanCreated = onDocumentCreated(
+  { document: "bulkPlans/{planId}", secrets: [resendKey] },
+  async (event) => {
+    const data = event.data?.data();
+    if (!data) return;
+    const eventIds = list(data.eventIds);
+    const events: SummaryEvent[] = (await readAll("events", eventIds)).map(
+      ({ id, data: entry }) => ({
+        id,
+        startsAt: toDate(entry.startsAt) ?? new Date(0),
+        everyone: entry.everyone === true,
+        groupIds: list(entry.groupIds),
+        memberIds: list(entry.memberIds),
+      }),
+    );
+    if (events.length === 0) return;
+    const tasks = await tasksOfEvents(events.map((entry) => entry.id));
+    const members = await activeMembers();
+    const actorId = text(data.byId);
+    const summaries = setSummaries(events, tasks, members, actorId);
+    if (summaries.length === 0) return;
+    const formats = await workspaceFormats();
+    const first = firstStart(events);
+    const count = events.length;
+    const detail = `${count === 1 ? "1 event" : `${count} events`}${first ? `, from ${when(first, formats)}` : ""}`;
+    const setId = data.kind === "set" ? text(data.sourceId) : null;
+    const byMember = new Map(summaries.map((entry) => [entry.memberId, entry]));
+    await deliver(
+      byMember.keys(),
+      {
+        kind: "setPlanned",
+        actorId,
+        title: text(data.name) ?? "Some events",
+        detail,
+        taskId: null,
+        eventId: null,
+        groupId: null,
+        path: setId
+          ? `/events/sets/${encodeURIComponent(setId)}`
+          : "/my-tasks",
+      },
+      members,
+      await groupNames(),
+      (id) => {
+        const summary = byMember.get(id);
+        return summary
+          ? { summary: summaryData(summary, count), setId, repeatId: data.kind === "repeat" ? text(data.sourceId) : null }
+          : {};
+      },
+    );
+  },
+);
+
+/** A saved workflow moved upcoming tasks: one notification per person whose tasks moved. */
+export const onWorkflowSyncCreated = onDocumentCreated(
+  { document: "workflowSyncs/{syncId}", secrets: [resendKey] },
+  async (event) => {
+    const data = event.data?.data();
+    if (!data) return;
+    const tasks = (await readAll("tasks", list(data.taskIds))).map(
+      ({ id, data: entry }) => summaryTask(id, entry),
+    );
+    const members = await activeMembers();
+    const actorId = text(data.byId);
+    const summaries = syncSummaries(tasks, members, actorId);
+    if (summaries.length === 0) return;
+    const changes = list(data.changes);
+    const byMember = new Map(summaries.map((entry) => [entry.memberId, entry]));
+    await deliver(
+      byMember.keys(),
+      {
+        kind: "tasksMoved",
+        actorId,
+        title: text(data.workflowName) ?? "A workflow",
+        detail: changes[0] ?? null,
+        taskId: null,
+        eventId: null,
+        groupId: null,
+        path: "/my-tasks",
+      },
+      members,
+      await groupNames(),
+      (id) => {
+        const summary = byMember.get(id);
+        return summary ? { summary: summaryData(summary, 0) } : {};
+      },
+    );
   },
 );
 

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/model.ts
-// Version : 1.1.0
-// Latest commit: feature/attendance-photos
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The decisions behind notifications, kept free of Firebase so they
 // can be tested: what a change to a task or an event tells whom, which kind of
@@ -19,6 +19,8 @@ export const NotificationKinds = [
   "replyAsked",
   "replyDeclined",
   "replied",
+  "setPlanned",
+  "tasksMoved",
 ] as const;
 export type NotificationKind = (typeof NotificationKinds)[number];
 
@@ -38,6 +40,8 @@ export const SettingGroupOf: Record<NotificationKind, SettingGroup> = {
   replyAsked: "events",
   replyDeclined: "events",
   replied: "events",
+  setPlanned: "events",
+  tasksMoved: "given",
 };
 
 export type TaskReminder = "off" | "1h" | "2h" | "dayBefore";
@@ -212,7 +216,7 @@ export interface EventPlan {
 
 /** Everyone the event is for. */
 export function eventAudience(
-  event: EventData,
+  event: Pick<EventData, "everyone" | "groupIds" | "memberIds">,
   members: readonly { id: string; workGroupIds: readonly string[] }[],
 ): Set<string> {
   if (event.everyone) return new Set(members.map((member) => member.id));

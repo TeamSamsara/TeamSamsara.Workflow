@@ -25,6 +25,8 @@ export const Collections = {
   personal: "personal",
   busy: "busy",
   tasks: "tasks",
+  /** One record per set or repeat planned, so the server sends one summary per person. */
+  bulkPlans: "bulkPlans",
   /** One record each time a workflow's changes were passed on to its upcoming tasks. */
   workflowSyncs: "workflowSyncs",
   /** What the server functions tell each member; they read and clear their own. */

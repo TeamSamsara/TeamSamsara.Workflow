@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/model/notificationText.ts
-// Version : 1.1.0
-// Latest commit: feature/attendance-photos
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : How a notification reads in the list: who (bold), what happened,
 // the task or event (bold) and the rest, plus the reviewer's words when there
@@ -66,6 +66,10 @@ export function notificationLine(
         ...line(Text.replied(Text.answers[note.answer ?? ""] ?? null)),
         quote: note.detail,
       };
+    case "setPlanned":
+      return line("planned", note.detail ? `: ${note.detail}.` : ".");
+    case "tasksMoved":
+      return line("changed", note.detail ? `. ${note.detail}` : ".");
   }
 }
 

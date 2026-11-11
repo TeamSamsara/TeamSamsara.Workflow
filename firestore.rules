@@ -639,6 +639,29 @@ service cloud.firestore {
           && task.workGroupId in memberRecord().data.get("workGroupIds", []));
     }
 
+    // A record each time a set or repeat is planned, written once its events
+    // and tasks are saved; the server sends each person one summary. Made by
+    // planners as themselves; nobody changes or reads them here.
+    match /bulkPlans/{planId} {
+      allow create: if can("planEvents") && isValidBulkPlan(request.resource.data);
+    }
+
+    function isValidBulkPlan(data) {
+      let fields = ["kind", "sourceId", "name", "eventIds", "byId", "at"];
+      return data.keys().hasOnly(fields)
+        && data.keys().hasAll(fields)
+        && data.byId == request.auth.uid
+        && data.at == request.time
+        && data.sourceId is string
+        && ((data.kind == "set"
+            && exists(/databases/$(database)/documents/eventSets/$(data.sourceId)))
+          || (data.kind == "repeat"
+            && exists(/databases/$(database)/documents/repeats/$(data.sourceId))))
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 120
+        && data.eventIds is list && data.eventIds.size() > 0
+        && data.eventIds.size() <= 500;
+    }
+
     // A record each time a saved workflow was passed on to the tasks it made
     // for upcoming events; the server tells each person whose tasks moved.
     // Made by planners who edit workflows; nobody changes or reads them here.

@@ -13,6 +13,7 @@ import {
   getDoc,
   getDocs,
   query,
+  setDoc,
   where,
 } from "firebase/firestore";
 import {
@@ -119,17 +120,20 @@ export async function applyWorkflowSync(
   await commitWrites(db, writes);
   // Recorded once the tasks are saved, so the notification never runs ahead
   // of them. A very large sync lists only the first tasks; the count is exact.
-  await commitWrites(db, [
-    (batch) =>
-      batch.set(doc(collection(db, Collections.workflowSyncs)), {
-        workflowId: record.workflowId,
-        workflowName: record.workflowName,
-        byId: record.byId,
-        taskIds: updates.slice(0, 500).map((entry) => entry.taskId),
-        taskCount: updates.length,
-        changes: record.changes.slice(0, 5),
-        at: serverTime(),
-      }),
-  ]);
+  // The tasks are already updated, so a record that fails only means no
+  // summary notification.
+  try {
+    await setDoc(doc(collection(db, Collections.workflowSyncs)), {
+      workflowId: record.workflowId,
+      workflowName: record.workflowName.slice(0, 120),
+      byId: record.byId,
+      taskIds: updates.slice(0, 500).map((entry) => entry.taskId),
+      taskCount: updates.length,
+      changes: record.changes.slice(0, 5),
+      at: serverTime(),
+    });
+  } catch (error) {
+    console.warn("The workflow sync wasn't recorded", error);
+  }
   return updates.length;
 }

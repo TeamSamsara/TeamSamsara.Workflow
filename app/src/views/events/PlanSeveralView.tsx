@@ -191,7 +191,7 @@ function PlanSeveral({ set }: { set: EventSetRecord | null }) {
         now: new Date(),
       };
       if (set) {
-        await addToEventSet(set.id, events, options);
+        await addToEventSet(set.id, events, options, set.name);
         return set.id;
       }
       return createEventSet(

@@ -1,14 +1,18 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/types/notificationTypes.ts
-// Version : 1.1.0
-// Latest commit: feature/attendance-photos
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : A notification (written by the server functions, see
 // functions/src/model.ts, which keeps the same kinds and settings) and each
 // person's notification settings: which kinds, where, and when to remind.
+// Summaries (a set or repeat planned, tasks moved by a workflow) carry their
+// counts for the person they're for.
 
+import type { DocumentData } from "firebase/firestore";
 import {
   createConverter,
   readDate,
+  readNumber,
   readOptionalString,
   readString,
 } from "@/core/data";
@@ -26,8 +30,30 @@ export const NotificationKinds = [
   "replyAsked",
   "replyDeclined",
   "replied",
+  "setPlanned",
+  "tasksMoved",
 ] as const;
 export type NotificationKind = (typeof NotificationKinds)[number];
+
+/** One of the person's tasks across the events: its title, how many, the first due. */
+export interface SummaryLine {
+  title: string;
+  events: number;
+  firstDue: Date | null;
+}
+
+/** What a summary tells this person. */
+export interface NotificationSummary {
+  /** How many events were planned (0 for tasks moved). */
+  eventCount: number;
+  /** Tasks given to them by name. */
+  mine: number;
+  /** Tasks given to each of their groups. */
+  groups: { id: string; count: number }[];
+  /** How many of the events they're in. */
+  inEvents: number;
+  lines: SummaryLine[];
+}
 
 export interface NotificationRecord {
   id: string;
@@ -45,8 +71,42 @@ export interface NotificationRecord {
   groupId: string | null;
   /** Someone's reply to an event ("going", "maybe", "cant"), for "replied". */
   answer: string | null;
+  /** For summaries; null for every other kind. */
+  summary: NotificationSummary | null;
+  /** The set a "setPlanned" is about, to open its page. */
+  setId: string | null;
   createdAt: Date | null;
   readAt: Date | null;
+}
+
+function readList(data: DocumentData, field: string): DocumentData[] {
+  const value: unknown = data[field];
+  return Array.isArray(value)
+    ? value.filter(
+        (entry): entry is DocumentData =>
+          typeof entry === "object" && entry !== null,
+      )
+    : [];
+}
+
+function readSummary(data: DocumentData): NotificationSummary | null {
+  const value: unknown = data.summary;
+  if (typeof value !== "object" || value === null) return null;
+  const summary = value as DocumentData;
+  return {
+    eventCount: readNumber(summary, "eventCount"),
+    mine: readNumber(summary, "mine"),
+    groups: readList(summary, "groups").flatMap((group) => {
+      const id = readString(group, "id");
+      return id ? [{ id, count: readNumber(group, "count") }] : [];
+    }),
+    inEvents: readNumber(summary, "inEvents"),
+    lines: readList(summary, "lines").map((line) => ({
+      title: readString(line, "title"),
+      events: readNumber(line, "events"),
+      firstDue: readDate(line, "firstDue"),
+    })),
+  };
 }
 
 export const notificationConverter = createConverter<NotificationRecord>({
@@ -65,6 +125,8 @@ export const notificationConverter = createConverter<NotificationRecord>({
       eventId: readOptionalString(data, "eventId"),
       groupId: readOptionalString(data, "groupId"),
       answer: readOptionalString(data, "answer"),
+      summary: readSummary(data),
+      setId: readOptionalString(data, "setId"),
       createdAt: readDate(data, "createdAt"),
       readAt: readDate(data, "readAt"),
     };
