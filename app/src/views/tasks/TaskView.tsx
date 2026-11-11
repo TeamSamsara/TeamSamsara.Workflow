@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/views/tasks/TaskView.tsx
-// Version : 1.3.0
+// Version : 1.4.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : A task's page: where it is (the status steps), how to do it, the
@@ -23,6 +23,7 @@ import {
   deleteTask,
   draftFromTask,
   DueText,
+  editedPartsAfter,
   fieldsFromDraft,
   formatDue,
   HowToCard,
@@ -72,8 +73,10 @@ function TaskPage({ task }: { task: TaskRecord }) {
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   const save = useMutation({
-    mutationFn: (next: TaskDraft) =>
-      saveTaskFields(task.id, fieldsFromDraft(next, workspace.timeZone)),
+    mutationFn: (next: TaskDraft) => {
+      const fields = fieldsFromDraft(next, workspace.timeZone);
+      return saveTaskFields(task.id, fields, editedPartsAfter(task, fields));
+    },
     onSuccess: (_result, next) => {
       toast.show({ tone: "success", title: Text.saved(next.title.trim()) });
       setDraft(null);

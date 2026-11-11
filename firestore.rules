@@ -791,10 +791,11 @@ service cloud.firestore {
       return holds(grants, held, "editAnyTask")
         || (resource.data.createdBy == request.auth.uid && resource.data.eventId == null)
         || (changed.hasOnly(["dueAt", "title", "notes", "posts", "checklist",
-            "updatedAt"])
+            "editedParts", "updatedAt"])
           && resource.data.eventId != null
           && holds(grants, held, "planEvents"))
-        || (changed.hasOnly(["workGroupId", "memberId", "updatedAt"])
+        || (changed.hasOnly(["workGroupId", "memberId", "editedParts",
+            "updatedAt"])
           && holds(grants, held, "reassignTasks"))
         // A finished task kept as history when a planner deletes its event,
         // in the same batch.
@@ -893,12 +894,16 @@ service cloud.firestore {
         "changesRequested", "createdBy", "createdAt", "updatedAt", "doneAt"];
       // Added later, so tasks made before them (or by an open tab from
       // before) are valid without them.
-      let optional = ["lateAtCreation", "doneBy", "eventGone"];
+      let optional = ["lateAtCreation", "doneBy", "eventGone", "editedParts"];
       let gone = task.get("eventGone", null);
+      let edited = task.get("editedParts", null);
       return task.keys().hasOnly(fields.concat(optional))
         && task.keys().hasAll(fields)
         && task.get("lateAtCreation", false) is bool
         && isNullOr(task.get("doneBy", null), "string")
+        && (edited == null || (edited is list && edited.size() <= 6
+          && edited.toSet().difference(["due", "assignee", "title", "notes",
+            "checklist", "posts"].toSet()).size() == 0))
         && (gone == null || (gone is map
           && gone.keys().hasOnly(["title", "startsAt"])
           && gone.title is string && gone.title.size() <= 200

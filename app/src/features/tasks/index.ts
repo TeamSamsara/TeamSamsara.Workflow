@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/index.ts
-// Version : 1.2.1
+// Version : 1.3.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : What other layers may use from the tasks feature.
@@ -14,6 +14,7 @@ export {
 } from "./hooks/useTasks";
 export type { TaskList } from "./hooks/useTasks";
 export { isAssignedTo, isGivenToMe } from "./model/assignment";
+export { editedPartsAfter } from "./model/editedParts";
 export { formatDue, fromDateAndTime, toDateAndTime } from "./model/formatDue";
 export {
   DueGroups,

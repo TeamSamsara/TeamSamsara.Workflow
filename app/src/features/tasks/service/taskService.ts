@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/service/taskService.ts
-// Version : 1.2.0
+// Version : 1.3.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Every change to a task: make one, edit it, move it on (send for
@@ -104,8 +104,13 @@ function update(id: string, changes: UpdateData<DocumentData>) {
   return updateDoc(doc(tasks(), id), { ...changes, updatedAt: serverTime() });
 }
 
-export function saveTaskFields(id: string, fields: TaskFields): Promise<void> {
-  return update(id, tidy(fields));
+/** Saves an edit, with the parts it changed by hand (see editedPartsAfter). */
+export function saveTaskFields(
+  id: string,
+  fields: TaskFields,
+  editedParts: readonly string[],
+): Promise<void> {
+  return update(id, { ...tidy(fields), editedParts: [...editedParts] });
 }
 
 interface MoveOptions {
@@ -199,8 +204,9 @@ export function reassignTask(
   id: string,
   workGroupId: string | null,
   memberId: string | null,
+  editedParts: readonly string[],
 ): Promise<void> {
-  return update(id, { workGroupId, memberId });
+  return update(id, { workGroupId, memberId, editedParts: [...editedParts] });
 }
 
 export function deleteTask(id: string): Promise<void> {

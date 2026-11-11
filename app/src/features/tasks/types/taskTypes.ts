@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/types/taskTypes.ts
-// Version : 1.1.0
+// Version : 1.2.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : A task: something one work group or person has to do by a time.
@@ -68,6 +68,12 @@ export interface TaskRecord {
   doneBy: string | null;
   /** Kept as history when its event was deleted: what the event was. */
   eventGone: { title: string; startsAt: Date | null } | null;
+  /**
+   * The parts people changed by hand ("due", "assignee", "title", "notes",
+   * "checklist", "posts"), which stay when its workflow changes; null for
+   * tasks from before this was kept.
+   */
+  editedParts: string[] | null;
 }
 
 /** The part of a task its edit form changes. */
@@ -151,6 +157,11 @@ function parse(id: string, data: DocumentData): TaskRecord {
     lateAtCreation: readBoolean(data, "lateAtCreation"),
     doneBy: readOptionalString(data, "doneBy"),
     eventGone: readEventGone(data),
+    editedParts: Array.isArray(data.editedParts)
+      ? (data.editedParts as unknown[]).filter(
+          (part): part is string => typeof part === "string",
+        )
+      : null,
   };
 }
 

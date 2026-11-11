@@ -1,11 +1,12 @@
 // File : /TeamSamsara.Workflow/tests/rules/tasks.rules.test.ts
-// Version : 1.1.0
+// Version : 1.2.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Tests tasks against the rules: who reads them (everything with
 // View all, else what's theirs), who makes standalone ones, and the four kinds
 // of change: doing (status, checklist, link, review; no finishing before
-// approval), approving, reassigning and editing. Plus deleting, and the
+// approval), approving, reassigning and editing (and the parts edited by
+// hand). Plus deleting, and the
 // "Late from the start" mark: only on a task already due, and never changed.
 
 import {
@@ -460,6 +461,30 @@ describe("reassigning and editing", () => {
     );
     await assertFails(
       updateDoc(task("eddie"), { createdBy: "eddie", ...now() }),
+    );
+  });
+
+  it("records which parts were changed by hand, from a known list", async () => {
+    await assertSucceeds(
+      updateDoc(task("ollie"), {
+        workGroupId: null,
+        memberId: "gwen",
+        editedParts: ["assignee"],
+        ...now(),
+      }),
+    );
+    await assertSucceeds(
+      updateDoc(task("eddie"), {
+        title: "Mine now",
+        editedParts: ["assignee", "title"],
+        ...now(),
+      }),
+    );
+    await assertFails(
+      updateDoc(task("eddie"), { editedParts: ["status"], ...now() }),
+    );
+    await assertFails(
+      updateDoc(task("eddie"), { editedParts: "title", ...now() }),
     );
   });
 

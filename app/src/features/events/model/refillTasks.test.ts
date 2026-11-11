@@ -72,6 +72,7 @@ function made(): TaskRecord[] {
       lateAtCreation: false,
       doneBy: null,
       eventGone: null,
+      editedParts: null,
     }),
   );
 }

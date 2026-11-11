@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/ui/AssignedCard.tsx
-// Version : 1.2.0
+// Version : 1.3.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Who a task is given to (a work group, a person, or both), who made
@@ -19,6 +19,7 @@ import { Chip } from "@/shared/components/Chip/Chip";
 import { Modal } from "@/shared/components/Modal/Modal";
 import { useToast } from "@/shared/components/Toast/useToast";
 import { groupPath, personPath } from "@/shared/constants/routePaths";
+import { editedPartsAfter } from "../model/editedParts";
 import { reassignTask } from "../service/taskService";
 import type { TaskRecord } from "../types/taskTypes";
 import { GiveToFields } from "./GiveToFields";
@@ -114,7 +115,12 @@ function ReassignDialog({
   });
   const save = useMutation({
     mutationFn: () =>
-      reassignTask(task.id, assignee.workGroupId, assignee.memberId),
+      reassignTask(
+        task.id,
+        assignee.workGroupId,
+        assignee.memberId,
+        editedPartsAfter(task, assignee),
+      ),
     onSuccess: () => {
       toast.show({ tone: "success", title: ReassignText.done(task.title) });
       onClose();
