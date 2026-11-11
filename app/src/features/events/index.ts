@@ -125,3 +125,5 @@ export { WorkflowSyncDialog } from "./ui/WorkflowSyncDialog";
 export { findLateTasks, lateOf } from "./model/lateTasks";
 export type { LateChoice, LateTask } from "./model/lateTasks";
 export { LateTasksNotice } from "./ui/LateTasksNotice";
+export { useEventLabels } from "./hooks/useEventLabels";
+export type { EventLabel } from "./hooks/useEventLabels";

@@ -70,6 +70,8 @@ function made(): TaskRecord[] {
       updatedAt: null,
       doneAt: null,
       lateAtCreation: false,
+      doneBy: null,
+      eventGone: null,
     }),
   );
 }

@@ -1,13 +1,18 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/model/groupByDue.test.ts
-// Version : 1.0.0
-// Latest commit: feature/tasks
+// Version : 1.1.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
-// Purpose : Tests sorting tasks into Late, Today, This week, Later and No due
-// date in Toronto, with weeks starting Monday or Sunday.
+// Purpose : Tests sorting tasks into Late, Today, Next 7 days, Later and No
+// due date in Toronto, and where weeks start (Monday or Sunday).
 
 import { describe, expect, it } from "vitest";
 import { isAssignedTo, isGivenToMe } from "./assignment";
-import { dueGroup, groupByDue, startOfNextWeek } from "./groupByDue";
+import {
+  dueGroup,
+  groupByDue,
+  startOfNextWeek,
+  startOfWeek,
+} from "./groupByDue";
 
 const toronto = "America/Toronto";
 // Wednesday 4 November 2026, 2:00 PM in Toronto.
@@ -16,35 +21,29 @@ const at = (iso: string) => new Date(iso);
 
 describe("dueGroup", () => {
   it("puts each due time in its group", () => {
-    expect(dueGroup(null, now, toronto, "monday")).toBe("noDue");
-    expect(dueGroup(at("2026-11-04T14:00:00Z"), now, toronto, "monday")).toBe(
-      "late",
-    );
-    expect(dueGroup(at("2026-11-04T23:00:00Z"), now, toronto, "monday")).toBe(
-      "today",
-    );
-    expect(dueGroup(at("2026-11-08T23:00:00Z"), now, toronto, "monday")).toBe(
-      "thisWeek",
-    );
-    expect(dueGroup(at("2026-11-09T15:00:00Z"), now, toronto, "monday")).toBe(
-      "later",
-    );
-  });
-
-  it("ends the week on Saturday when weeks start on Sunday", () => {
-    // Sunday 8 November, 6:00 PM: next week when weeks start on Sunday.
-    expect(dueGroup(at("2026-11-08T23:00:00Z"), now, toronto, "sunday")).toBe(
-      "later",
-    );
-    expect(dueGroup(at("2026-11-07T23:00:00Z"), now, toronto, "sunday")).toBe(
-      "thisWeek",
-    );
+    expect(dueGroup(null, now, toronto)).toBe("noDue");
+    expect(dueGroup(at("2026-11-04T14:00:00Z"), now, toronto)).toBe("late");
+    expect(dueGroup(at("2026-11-04T23:00:00Z"), now, toronto)).toBe("today");
+    expect(dueGroup(at("2026-11-08T23:00:00Z"), now, toronto)).toBe("next7");
+    // Wednesday 11 November, 11:00 PM: the 7th day from today.
+    expect(dueGroup(at("2026-11-12T04:00:00Z"), now, toronto)).toBe("next7");
+    // Thursday 12 November: past the next 7 days.
+    expect(dueGroup(at("2026-11-12T15:00:00Z"), now, toronto)).toBe("later");
   });
 
   it("treats a time late tonight in Toronto as today", () => {
     // 11:30 PM in Toronto is already the next day in UTC.
-    expect(dueGroup(at("2026-11-05T04:30:00Z"), now, toronto, "monday")).toBe(
-      "today",
+    expect(dueGroup(at("2026-11-05T04:30:00Z"), now, toronto)).toBe("today");
+  });
+});
+
+describe("startOfWeek", () => {
+  it("is midnight on this week's first day", () => {
+    expect(startOfWeek(now, toronto, "monday")).toEqual(
+      at("2026-11-02T05:00:00Z"),
+    );
+    expect(startOfWeek(now, toronto, "sunday")).toEqual(
+      at("2026-11-01T04:00:00Z"),
     );
   });
 });
@@ -68,7 +67,7 @@ describe("groupByDue", () => {
       { id: "a", dueAt: at("2026-11-04T21:00:00Z") },
       { id: "late", dueAt: at("2026-11-02T15:00:00Z") },
     ];
-    const groups = groupByDue(tasks, now, toronto, "monday");
+    const groups = groupByDue(tasks, now, toronto);
     expect(groups.today.map((task) => task.id)).toEqual(["a", "b"]);
     expect(groups.late.map((task) => task.id)).toEqual(["late"]);
     expect(groups.noDue.map((task) => task.id)).toEqual(["none"]);

@@ -705,6 +705,7 @@ service cloud.firestore {
       allow update: if isActiveMember()
         && request.resource.data.updatedAt == request.time
         && keepsOrigin()
+        && isHonestDoneBy()
         && isAllowedTaskChange(rolesGrants(), heldRoleIds())
         && isValidTask(request.resource.data);
 
@@ -726,12 +727,12 @@ service cloud.firestore {
         || (changed.hasOnly(["workGroupId", "memberId", "updatedAt"])
           && holds(grants, held, "reassignTasks"))
         || (changed.hasOnly(["statusId", "approvedBy", "approvedAt",
-            "changesRequested", "doneAt", "updatedAt"])
+            "changesRequested", "doneAt", "doneBy", "updatedAt"])
           && holds(grants, held, "approveTasks")
           && isApprovingTask())
         || (changed.hasOnly(["statusId", "checklist", "liveLink",
             "sentForReviewBy", "sentForReviewAt", "changesRequested", "doneAt",
-            "approvedBy", "approvedAt", "updatedAt"])
+            "doneBy", "approvedBy", "approvedAt", "updatedAt"])
           && holds(grants, held, "doAssignedTasks")
           && isGivenToMe(resource.data)
           && isDoingTask());
@@ -750,6 +751,14 @@ service cloud.firestore {
         // "Late from the start" only when its due time has really passed.
         && (task.get("lateAtCreation", false) == false
           || (task.dueAt != null && task.dueAt < request.time));
+    }
+
+    /** Who finished a task is only ever whoever is finishing it (or cleared). */
+    function isHonestDoneBy() {
+      let after = request.resource.data.get("doneBy", null);
+      return after == null
+        || after == resource.data.get("doneBy", null)
+        || after == request.auth.uid;
     }
 
     /** Where a task came from, who made it and whether it started late never change. */
@@ -808,10 +817,11 @@ service cloud.firestore {
         "changesRequested", "createdBy", "createdAt", "updatedAt", "doneAt"];
       // Added later, so tasks made before them (or by an open tab from
       // before) are valid without them.
-      let optional = ["lateAtCreation"];
+      let optional = ["lateAtCreation", "doneBy"];
       return task.keys().hasOnly(fields.concat(optional))
         && task.keys().hasAll(fields)
         && task.get("lateAtCreation", false) is bool
+        && isNullOr(task.get("doneBy", null), "string")
         && task.title is string && task.title.size() > 0 && task.title.size() <= 120
         && task.notes is string && task.notes.size() <= 2000
         && isNullOr(task.workGroupId, "string")

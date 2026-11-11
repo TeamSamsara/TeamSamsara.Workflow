@@ -22,13 +22,16 @@ export const DueText = {
 export const DueGroupText: Record<DueGroup, string> = {
   late: "Late",
   today: "Today",
-  thisWeek: "This week",
+  next7: "Next 7 days",
   later: "Later",
   noDue: "No due date",
 };
 
 export const TaskRowText = {
   unassigned: "No one yet",
+  doneAt: (when: string) => `Done ${when}`,
+  eventGone: (title: string, when: string | null) =>
+    when ? `Event deleted: ${title}, ${when}` : `Event deleted: ${title}`,
   open: (title: string) => `Open ${title}`,
 } as const;
 
@@ -153,4 +156,12 @@ export const GiveToText = {
     "Pick a work group and anyone in it can take the task, or pick one person. To give it to someone in a group, pick the group, then the person.",
   whoInGroup: (group: string) => `Who in ${group}`,
   anyoneInGroup: (group: string) => `Anyone in ${group}`,
+} as const;
+
+export const DoneThisWeekText = {
+  title: "Done this week",
+  byDay: "Done each day",
+  dayCount: (day: string, count: number) =>
+    `${day}: ${count === 1 ? "1 task" : `${count} tasks`}`,
+  open: "See what was done",
 } as const;

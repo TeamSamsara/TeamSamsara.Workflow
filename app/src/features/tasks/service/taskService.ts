@@ -124,6 +124,7 @@ export function moveTask(
   { by, finishes, note }: MoveOptions,
 ): Promise<void> {
   const doneAt = finishes ? serverTime() : null;
+  const doneBy = finishes ? by : null;
   switch (action.kind) {
     case "sendForReview":
       return update(id, {
@@ -132,6 +133,7 @@ export function moveTask(
         sentForReviewAt: serverTime(),
         changesRequested: null,
         doneAt: null,
+        doneBy: null,
       });
     case "approve":
       return update(id, {
@@ -140,6 +142,8 @@ export function moveTask(
         approvedAt: serverTime(),
         changesRequested: null,
         doneAt,
+        // Who did the work is who sent it for review; this is who closed it.
+        doneBy,
       });
     case "askForChanges":
       return update(id, {
@@ -148,15 +152,17 @@ export function moveTask(
         approvedAt: null,
         changesRequested: note?.trim() || null,
         doneAt: null,
+        doneBy: null,
       });
     case "markDone":
-      return update(id, { statusId: action.statusId, doneAt });
+      return update(id, { statusId: action.statusId, doneAt, doneBy });
     case "reopen":
       return update(id, {
         statusId: action.statusId,
         approvedBy: null,
         approvedAt: null,
         doneAt: null,
+        doneBy: null,
       });
   }
 }
@@ -166,8 +172,13 @@ export function setTaskStatus(
   id: string,
   statusId: string,
   finishes: boolean,
+  by: string,
 ): Promise<void> {
-  return update(id, { statusId, doneAt: finishes ? serverTime() : null });
+  return update(id, {
+    statusId,
+    doneAt: finishes ? serverTime() : null,
+    doneBy: finishes ? by : null,
+  });
 }
 
 export function setChecklist(

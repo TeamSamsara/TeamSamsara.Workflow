@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/ui/NextStepCard.tsx
-// Version : 1.0.0
-// Latest commit: feature/tasks
+// Version : 1.1.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : What the viewer can do next with a task: the one or two buttons
 // that move it on (send for review, mark as done, approve, ask for changes,
@@ -79,7 +79,12 @@ export function NextStepCard({
   });
   const status = useMutation({
     mutationFn: (statusId: string) =>
-      setTaskStatus(task.id, statusId, finishes(statusId)),
+      setTaskStatus(
+        task.id,
+        statusId,
+        finishes(statusId),
+        abilities.viewerId ?? "",
+      ),
     onError: (error) =>
       toast.show({
         tone: "error",

@@ -124,3 +124,42 @@
     justify-content: flex-start;
   }
 }
+
+/* The title with what it belongs to under it. */
+.lead {
+  display: flex;
+  flex: 1 1 220px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.lead .title {
+  flex: none;
+}
+
+.event,
+.gone {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  align-self: flex-start;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  text-decoration: none;
+  --icon-size: var(--icon-size-small);
+}
+
+.event:hover {
+  color: var(--color-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.gone {
+  font-style: italic;
+}
+
+.row[data-done] .title {
+  color: var(--color-text-muted);
+}

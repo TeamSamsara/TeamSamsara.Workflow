@@ -258,6 +258,44 @@ describe("late from the start", () => {
   });
 });
 
+describe("who finished it", () => {
+  it("is recorded as whoever finishes it, never someone else", async () => {
+    await assertSucceeds(
+      updateDoc(task("sam"), {
+        statusId: "done",
+        doneAt: serverTimestamp(),
+        doneBy: "sam",
+        ...now(),
+      }),
+    );
+    await assertFails(
+      updateDoc(task("sam", "graphic"), { doneBy: "gwen", ...now() }),
+    );
+  });
+
+  it("is cleared when it's reopened", async () => {
+    await seedDone();
+    await assertSucceeds(
+      updateDoc(task("sam"), {
+        statusId: "todo",
+        doneAt: null,
+        doneBy: null,
+        ...now(),
+      }),
+    );
+  });
+});
+
+async function seedDone() {
+  await seed(env, {
+    "tasks/graphic": stored({
+      statusId: "done",
+      doneAt: new Date(2026, 10, 5),
+      doneBy: "sam",
+    }),
+  });
+}
+
 describe("doing a task", () => {
   it("lets the group tick the checklist, add the link and finish it", async () => {
     await assertSucceeds(
