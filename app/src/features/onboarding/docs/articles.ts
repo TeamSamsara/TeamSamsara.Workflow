@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/articles.ts
-// Version : 1.7.2
+// Version : 1.7.3
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The Documentation: one short article per feature, in groups. Each
@@ -457,6 +457,9 @@ export const DocGroups: readonly DocGroup[] = [
           ),
           p(
             "Updating changes due times, titles, notes, checklists and post text. Who a task is given to only changes for new events. People whose tasks moved get one notification about it.",
+          ),
+          p(
+            "For an event planned before a change (a step that got post text later, say), open the event's ⋯ menu › Update tasks from workflows. It lists the open tasks that differ from their steps and what differs. Ticks on checklist items stay. Due times only move if you tick that too, and steps with no task on the event can be added.",
           ),
         ],
       },

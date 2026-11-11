@@ -1,10 +1,11 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/service/eventService.ts
-// Version : 1.6.0
+// Version : 1.7.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Makes an event together with the tasks of its workflows (one batch,
 // so it's all or nothing), saves changes (moving its tasks by the same amount
-// when the start moves), adds a task to it, and deletes it with its tasks.
+// when the start moves), adds a task to it, brings its tasks in line with its
+// workflows, and deletes it with its tasks.
 
 import { collection, doc } from "firebase/firestore";
 import {
@@ -17,9 +18,14 @@ import {
 import { newTaskData, type TaskRecord } from "@/features/tasks";
 import type { WorkflowRecord } from "@/features/workflows";
 import { db } from "@/lib/firebase";
-import { applyWorkflows, type Formats } from "../model/applyWorkflows";
+import {
+  applyWorkflows,
+  type Formats,
+  type PlannedTask,
+} from "../model/applyWorkflows";
 import { isLateAtCreation, type LateChoice } from "../model/lateTasks";
 import type { TaskRefill } from "../model/refillTasks";
+import { refreshWrite, type TaskRefresh } from "../model/workflowRefresh";
 import { attendanceData } from "../types/attendance";
 import { audienceData } from "../types/audience";
 import type { EventFields } from "../types/eventTypes";
@@ -195,6 +201,51 @@ export function saveEvent(
             ...change,
             updatedAt: serverTime(),
           }),
+    ),
+  ];
+  return commitWrites(db, writes);
+}
+
+/**
+ * Brings tasks in line with the event's workflows: the chosen updates (with
+ * their due times or not) and new tasks for the chosen steps that had none.
+ */
+export function refreshEventTasks(
+  eventId: string,
+  updates: readonly TaskRefresh[],
+  withDue: boolean,
+  newSteps: readonly PlannedTask[],
+  options: { startingStatusId: string; createdBy: string; now?: Date },
+): Promise<void> {
+  const now = options.now ?? new Date();
+  const writes: BatchWrite[] = [
+    ...updates.map((refresh): BatchWrite => (batch) => {
+      const { dueAt, ...text } = refreshWrite(refresh, withDue);
+      batch.update(doc(db, Collections.tasks, refresh.taskId), {
+        ...text,
+        ...(dueAt !== undefined
+          ? { dueAt: dueAt ? fromDate(dueAt) : null }
+          : {}),
+        updatedAt: serverTime(),
+      });
+    }),
+    ...newSteps.map(
+      ({ workflowId, stepId, ...task }): BatchWrite =>
+        (batch) =>
+          batch.set(
+            doc(
+              db,
+              Collections.tasks,
+              eventTaskId(eventId, workflowId, stepId),
+            ),
+            newTaskData(
+              task,
+              options.startingStatusId,
+              options.createdBy,
+              { eventId, workflowId, stepId },
+              isLateAtCreation(task.dueAt, now),
+            ),
+          ),
     ),
   ];
   return commitWrites(db, writes);
