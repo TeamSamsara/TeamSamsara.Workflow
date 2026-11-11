@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/vite.config.ts
-// Version : 1.5.0
-// Latest commit: feature/audit-fixes
+// Version : 1.6.0
+// Latest commit: feature/whats-new
 // Author : Gerrah
 // Purpose : Vite setup: React, the @/ and @engine/ aliases, and the build split into a few
 // files. Firebase and React rarely change, so they get files of their own that
@@ -28,6 +28,8 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
       // The rules the app shares with the server functions.
       "@engine": path.resolve(__dirname, "../engine/src"),
+      // The release notes the app and the server both read.
+      "@releases": path.resolve(__dirname, "../releases"),
     },
   },
   optimizeDeps: {

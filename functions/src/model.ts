@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/model.ts
-// Version : 1.2.0
-// Latest commit: feature/audit-fixes
+// Version : 1.3.0
+// Latest commit: feature/whats-new
 // Author : Gerrah
 // Purpose : The decisions behind notifications, kept free of Firebase so they
 // can be tested: what a change to a task or an event tells whom, which kind of
@@ -21,11 +21,12 @@ export const NotificationKinds = [
   "replied",
   "setPlanned",
   "tasksMoved",
+  "release",
 ] as const;
 export type NotificationKind = (typeof NotificationKinds)[number];
 
 /** The rows of a member's notification settings. */
-export type SettingGroup = "given" | "mine" | "review" | "events";
+export type SettingGroup = "given" | "mine" | "review" | "events" | "news";
 
 export const SettingGroupOf: Record<NotificationKind, SettingGroup> = {
   taskGiven: "given",
@@ -42,6 +43,7 @@ export const SettingGroupOf: Record<NotificationKind, SettingGroup> = {
   replied: "events",
   setPlanned: "events",
   tasksMoved: "given",
+  release: "news",
 };
 
 export type TaskReminder = "off" | "1h" | "2h" | "dayBefore";
@@ -55,13 +57,25 @@ export interface NotificationSettings {
 }
 
 export const defaultSettings: NotificationSettings = {
-  app: { given: true, mine: true, review: true, events: true },
-  email: { given: false, mine: false, review: true, events: false },
+  app: { given: true, mine: true, review: true, events: true, news: true },
+  email: {
+    given: false,
+    mine: false,
+    review: true,
+    events: false,
+    news: false,
+  },
   taskReminder: "2h",
   eventReminder: "1h",
 };
 
-const groups: readonly SettingGroup[] = ["given", "mine", "review", "events"];
+const groups: readonly SettingGroup[] = [
+  "given",
+  "mine",
+  "review",
+  "events",
+  "news",
+];
 
 /** A member's saved settings, with anything missing or odd as the defaults. */
 export function readSettings(data: unknown): NotificationSettings {

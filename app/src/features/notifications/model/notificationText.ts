@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/model/notificationText.ts
-// Version : 1.2.1
-// Latest commit: feature/audit-fixes
+// Version : 1.3.0
+// Latest commit: feature/whats-new
 // Author : Gerrah
 // Purpose : How a notification reads in the list: who (bold), what happened,
 // the task or event (bold) and the rest, plus the reviewer's words when there
@@ -68,6 +68,11 @@ export function notificationLine(
       };
     case "setPlanned":
       return line("planned", note.detail ? `: ${note.detail}.` : ".");
+    case "release":
+      return {
+        ...line("released", note.detail ? `. ${note.detail}` : "."),
+        who: Text.playbook,
+      };
     case "tasksMoved":
       // No one by name: Playbook itself (a platform update or the background sync).
       return {
