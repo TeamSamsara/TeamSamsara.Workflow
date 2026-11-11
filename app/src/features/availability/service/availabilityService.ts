@@ -1,10 +1,11 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/service/availabilityService.ts
-// Version : 1.1.0
-// Latest commit: feature/your-account
+// Version : 1.2.0
+// Latest commit: fix/private-appointments
 // Author : Gerrah
 // Purpose : Saves a member's usual week and exceptions, and adds, changes and
 // removes personal appointments together with their busy copies (one batch,
-// so the two always match).
+// so the two always match). An appointment is private unless its owner
+// shares it with their group leads.
 
 import { collection, doc } from "firebase/firestore";
 import { Collections, commitWrites, fromDate, serverTime } from "@/core/data";
@@ -50,7 +51,12 @@ export interface PersonalFields {
   notes: string;
   startsAt: Date;
   endsAt: Date;
+  /** Who else sees what it is (the owner's group leads), or nobody. */
+  visibleTo: readonly string[];
 }
+
+/** The most people one appointment can be shared with (firestore.rules checks the same). */
+export const sharedWithAtMost = 30;
 
 /** Adds an appointment (no id) or changes one; gives back its id. */
 export async function savePersonal(
@@ -69,6 +75,9 @@ export async function savePersonal(
         memberId,
         title: fields.title.trim(),
         notes: fields.notes.trim(),
+        visibleTo: [...new Set(fields.visibleTo)]
+          .filter((id) => id !== memberId)
+          .slice(0, sharedWithAtMost),
         ...times,
         createdAt: existing?.createdAt
           ? fromDate(existing.createdAt)

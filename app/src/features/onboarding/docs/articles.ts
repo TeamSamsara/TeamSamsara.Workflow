@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/articles.ts
-// Version : 1.5.0
-// Latest commit: feature/lean-calendar
+// Version : 1.6.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The Documentation: one short article per feature, in groups. Each
 // group (or article) is for the people with its permission, the same as the
@@ -339,7 +339,7 @@ export const DocGroups: readonly DocGroup[] = [
         summary: "Who's free when, for a work group.",
         body: [
           p(
-            "Calendar › Availability › Team availability shows everyone in a work group: their usual hours, their personal appointments (by name) and the group's events. Anyone booked when they're not free is outlined in red.",
+            "Calendar › Availability › Team availability shows everyone in a work group: their usual hours, their personal appointments (as Busy, or by name when they've shared them with you as their group lead) and the group's events. Anyone booked when they're not free is outlined in red.",
           ),
           p(
             "When everyone's free lists times to plan at: pick one and New event opens there, with the group already in it.",
