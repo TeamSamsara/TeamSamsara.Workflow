@@ -32,7 +32,7 @@ A commit runs ESLint and Prettier on the staged files.
 
 ## Deploying
 
-From the root, on `main`, with `app/.env.production` filled in (the same values as `.env.development`, with `VITE_USE_FIREBASE_EMULATORS=false`):
+From the root, on `main` after a release is merged, with `app/.env.production` filled in (the same values as `.env.development`, with `VITE_USE_FIREBASE_EMULATORS=false`):
 
 ```bash
 npm run deploy         # builds the app and functions, then deploys hosting, rules, indexes, storage and functions
@@ -54,8 +54,16 @@ app/src/
 
 Each layer imports only from the layers below it: `app → views → features → core → shared → lib`.
 
-## Branches
+## Branches and releases
 
-- `main`: what is live
-- `dev`: where PRs are merged
-- `core/<name>` for foundation work, `feature/<name>` for features, `task/<name>` for small changes
+- `main`: releases, and only releases. What's on `main` is what's live.
+- `dev`: the pre-release. Every feature lands here first, and the next release builds up here.
+- `feature/<name>` (or `core/<name>`, `task/<name>`, `chore/<name>`): one piece of work, branched from `dev` and merged back into `dev` by a pull request once CI passes and it's been tried locally.
+
+A release:
+
+1. Test the pre-release: `dev` locally, against a copy of the live data in the emulators (`npm run emulators -- --import ./emulator-data`), including Settings › General › Platform updates › Check.
+2. Open a pull request from `dev` to `main` named `Release vX.Y.Z` and merge it.
+3. Deploy from `main` (see Deploying), then tag it: `git tag vX.Y.Z && git push origin vX.Y.Z`.
+
+Nothing is deployed from `dev` or a feature branch.
