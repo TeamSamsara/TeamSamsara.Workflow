@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/ui/tasksContent.ts
-// Version : 1.1.0
+// Version : 1.1.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words for tasks: rows and groups, the task page's cards, the
@@ -58,7 +58,6 @@ export const TaskCardText = {
 export const NextStepText = {
   title: "Next step",
   sendForReview: "Send for review",
-  sendForReviewHint: "Someone with Approve tasks checks it before it's done.",
   markDone: "Mark as done",
   reopen: "Reopen",
   approve: "Approve",
@@ -89,7 +88,7 @@ export const NextStepText = {
 
 export const ApprovalText = {
   title: "Approval",
-  needed: "Needs approval from someone with Approve tasks before it's done.",
+  needed: "Needs approval before it's done.",
   sentBy: (name: string, when: string) =>
     `Sent for review by ${name} · ${when}`,
   approvedBy: (name: string, when: string) => `Approved by ${name} · ${when}`,

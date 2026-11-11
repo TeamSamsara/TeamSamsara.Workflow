@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/ui/HourPanel.tsx
-// Version : 1.0.0
+// Version : 1.0.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The side panel of Team availability for the picked hour: who's
@@ -97,7 +97,6 @@ export function HourPanel({
             ))}
           </div>
         )}
-        <span className={styles.muted}>{Text.bestNote}</span>
       </section>
     </aside>
   );

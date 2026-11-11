@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/planContent.ts
-// Version : 1.2.0
-// Latest commit: feature/event-fields
+// Version : 1.2.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words for planning several events at once and for sets.
 
@@ -187,8 +187,6 @@ export const SetText = {
   limited:
     "Only the events you can see show here. The set may have others for groups you're not in.",
   selected: (count: number) => `${plural(count, "event")} selected`,
-  tickHelp:
-    "Tick events to move or delete several at once. Each event's page says which set it's part of and links back here.",
   noEvents: "This set has no events left.",
   partOf: "Part of",
 

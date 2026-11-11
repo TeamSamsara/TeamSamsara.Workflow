@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/EventSetView.tsx
-// Version : 1.2.0
-// Latest commit: feature/event-fields
+// Version : 1.2.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : One set's page: what its events share, how far along it is
 // (played, tasks done, what's next, gaps still TBD), and its events in a
@@ -551,9 +551,6 @@ function SetPage({ set }: { set: EventSetRecord }) {
           </Table>
         </div>
       )}
-      {canPlan && items.length > 0 ? (
-        <p className={plan.note}>{Text.tickHelp}</p>
-      ) : null}
 
       {dialog === "rename" ? (
         <RenameDialog set={set} onClose={() => setDialog(null)} />

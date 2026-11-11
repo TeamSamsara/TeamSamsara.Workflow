@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/fields/fieldsViewContent.ts
-// Version : 1.0.0
-// Latest commit: feature/event-fields
+// Version : 1.0.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words of Settings › Fields.
 
@@ -22,7 +22,6 @@ export const FieldsViewText = {
   builtIn: "Built in",
   builtInNote:
     "Every event fills these by itself. They can't be changed or deleted.",
-  adminsOnly: "Only admins can change or delete a field.",
   failed: "Couldn't load the fields",
   deleteDialog: {
     title: (name: string) => `Delete ${name}?`,

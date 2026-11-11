@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/account/accountViewContent.ts
-// Version : 1.4.0
-// Latest commit: fix/modal-and-account-notifications
+// Version : 1.4.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words on Your account.
 
@@ -23,7 +23,6 @@ export const AccountViewText = {
   gameNameHelp:
     "Shown first wherever you appear, with your name under it. Leave it empty to show just your name.",
   email: "Email",
-  emailHint: "An admin changes this in Settings › Members.",
   time: "Time and dates",
   timeIntro: (city: string) =>
     `How you see times and dates. Events and tasks are still planned in ${city} time, the workspace's.`,
@@ -47,7 +46,6 @@ export const AccountViewText = {
     dark: "Dark",
     device: "Same as device",
   } satisfies Record<ThemeChoice, string>,
-  themeNote: "The theme changes right away, on this device.",
   reset: "Undo changes",
   save: "Save changes",
   notifications: "Notifications",

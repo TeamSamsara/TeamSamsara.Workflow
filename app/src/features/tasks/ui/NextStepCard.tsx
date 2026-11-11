@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/ui/NextStepCard.tsx
-// Version : 1.1.0
+// Version : 1.1.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : What the viewer can do next with a task: the one or two buttons
@@ -205,9 +205,6 @@ export function NextStepCard({
         (action) => action.kind === "markDone" && action.blockedBy,
       ) ? (
         <p className={styles.muted}>{Text.needsLiveLink}</p>
-      ) : null}
-      {actions.some((action) => action.kind === "sendForReview") ? (
-        <p className={styles.muted}>{Text.sendForReviewHint}</p>
       ) : null}
       {task.doneAt ? (
         <p className={styles.muted}>{Text.doneOn(formatWhen(task.doneAt))}</p>

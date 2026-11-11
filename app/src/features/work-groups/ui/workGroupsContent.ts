@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/ui/workGroupsContent.ts
-// Version : 1.3.0
+// Version : 1.3.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words on the work group cards, form, picker and dialogs.
@@ -14,7 +14,6 @@ export const WorkGroupCardText = {
 } as const;
 
 export const WorkGroupFormText = {
-  colorHint: "Its badge on the Groups pages and its dot in the menu.",
   name: "Group name",
   description: "What this group does",
   descriptionHint: "A sentence, so people know when to give it a task.",

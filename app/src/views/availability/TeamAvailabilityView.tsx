@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/views/availability/TeamAvailabilityView.tsx
-// Version : 2.0.0
+// Version : 2.0.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : A work group's week of availability, for See everyone's
@@ -430,9 +430,6 @@ export function TeamAvailabilityView() {
           </div>
           {shown.length === 0 && people.length > 0 ? (
             <p className={styles.muted}>{Team.noneShown}</p>
-          ) : null}
-          {seeBy === "people" ? (
-            <p className={styles.muted}>{Team.peopleNote}</p>
           ) : null}
         </>
       )}

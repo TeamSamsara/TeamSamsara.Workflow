@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/fields/ui/fieldsContent.ts
-// Version : 1.0.0
-// Latest commit: feature/event-fields
+// Version : 1.0.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words of the field dialog and the field inputs.
 
@@ -45,7 +45,6 @@ export const FieldDialogText = {
   help: "Help",
   optional: "(optional)",
   helpPlaceholder: "Shown under the field when planning",
-  adminsOnly: "Only admins can rename or delete a field once it's made.",
   typeChange:
     "Values already saved stay as they are, so changing the type can leave some that don't fit.",
   cancel: "Cancel",

@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/views/people/MemberProfileView.tsx
-// Version : 1.0.0
+// Version : 1.0.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Someone's read-only profile, opened from their name anywhere: who
@@ -205,7 +205,6 @@ export function MemberProfileView() {
                 : Text.apart(zoneCity(theirZone), apart)}
             </span>
           </div>
-          <p className={styles.muted}>{Text.readOnly}</p>
         </section>
 
         <div className={styles.main}>
@@ -233,9 +232,9 @@ export function MemberProfileView() {
               timeZone={shownZone}
               clock={time.timeFormat}
             />
-            <p className={styles.muted}>
-              {Text.busyNote(busy.length, busyList)}
-            </p>
+            {busy.length > 0 ? (
+              <p className={styles.muted}>{Text.busyNote(busyList)}</p>
+            ) : null}
           </section>
 
           <section className={styles.section} aria-labelledby="coming-up">
@@ -281,7 +280,6 @@ export function MemberProfileView() {
               <h2 id="their-tasks" className={styles.sectionTitle}>
                 {Text.theirTasks}
               </h2>
-              <span className={styles.muted}>{Text.onlyVisible}</span>
             </div>
             {tasks.length === 0 ? (
               <p className={styles.muted}>{Text.noTasks}</p>

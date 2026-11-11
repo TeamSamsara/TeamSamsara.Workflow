@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/ui/teamViewContent.ts
-// Version : 1.0.0
+// Version : 1.0.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words of Team availability: the switches, the people list,
@@ -64,10 +64,6 @@ export const TeamViewText = {
   everyoneFilled: "Everyone has",
   planThen: "Plan an event then",
   bestTitle: "When everyone shown is free",
-  bestNote:
-    "Only counts the people ticked on the left, so someone away doesn't hide these.",
   noBest: "No two hours this week when everyone shown is free.",
   noneShown: "Tick some people to compare them.",
-  peopleNote:
-    "One row per person, in your order. Times follow the switch at the top. Drag names to reorder; it's just for you.",
 } as const;

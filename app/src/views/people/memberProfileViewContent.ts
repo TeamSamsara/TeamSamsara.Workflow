@@ -1,8 +1,8 @@
 // File : /TeamSamsara.Workflow/app/src/views/people/memberProfileViewContent.ts
-// Version : 1.0.0
+// Version : 1.0.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
-// Purpose : The words on a member's read-only profile.
+// Purpose : The words on a member's profile.
 
 export const MemberProfileText = {
   loading: "Loading their profile",
@@ -18,16 +18,11 @@ export const MemberProfileText = {
     const amount = size === 1 ? "1 hour" : `${size} hours`;
     return `${city} · ${amount} ${hours < 0 ? "behind" : "ahead of"} you`;
   },
-  readOnly:
-    "Nothing here is editable; they change their own name and photo on Your account.",
   usualWeek: "Usual week",
   zoneLabel: "Show times in",
   theirTime: "Their time",
   myTime: "My time",
-  busyNote: (count: number, list: string) =>
-    count === 0
-      ? "Personal appointments show as Busy. None this week."
-      : `Personal appointments show as Busy. This week: ${list}.`,
+  busyNote: (list: string) => `Busy this week: ${list}.`,
   comingUp: "Coming up",
   nothingComingUp: "Nothing coming up that you can see.",
   replies: {
@@ -38,7 +33,6 @@ export const MemberProfileText = {
     none: "No reply asked",
   },
   theirTasks: "Their tasks",
-  onlyVisible: "Only ones you can already see",
   noTasks: "No open tasks you can see.",
   noDue: "No due date",
 } as const;

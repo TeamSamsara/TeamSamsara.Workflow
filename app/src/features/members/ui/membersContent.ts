@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/members/ui/membersContent.ts
-// Version : 1.2.0
+// Version : 1.2.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words in the members feature: the table, status pills, the
@@ -79,8 +79,6 @@ export const MemberHeaderText = {
 
 export const MemberCardsText = {
   tagsTitle: "People tags",
-  tagsNote:
-    "Saved as soon as you click. Tags help pick who to compare on Team availability; they don't give permissions.",
   rolesTitle: "Roles",
   /** name is null until the member has one. */
   rolesNote: (name: string | null) =>

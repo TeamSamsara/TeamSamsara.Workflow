@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/views/tasks/myTasksViewContent.ts
-// Version : 1.1.0
+// Version : 1.1.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words on My tasks.
@@ -41,8 +41,6 @@ export const MyTasksViewText = {
       : events === 1
         ? "across 1 event · open Planning"
         : `across ${events} events · open Planning`,
-  doneNote:
-    "From the start of the week until now. Undo a tick from the task itself if it was done by mistake.",
   doneEmptyTitle: "Nothing done yet this week",
   doneEmptyBody: "Tasks show here as soon as they're done.",
   today: "Today",
@@ -51,10 +49,7 @@ export const MyTasksViewText = {
   approvedBy: (name: string) => `approved by ${name}`,
   approvedByStart: (name: string) => `Approved by ${name}`,
   approvals: "Waiting for your approval",
-  approvalsNote: "Shows because you have the Approve tasks permission.",
   noApprovals: "Nothing waiting for approval.",
-  orderTitle: "How it's ordered",
-  orderBody: "Late first, then by due time.",
   dayLetters: {
     monday: ["M", "T", "W", "T", "F", "S", "S"],
     sunday: ["S", "M", "T", "W", "T", "F", "S"],

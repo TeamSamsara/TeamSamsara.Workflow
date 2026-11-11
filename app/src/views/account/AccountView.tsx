@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/account/AccountView.tsx
-// Version : 1.4.0
-// Latest commit: feature/attendance-photos
+// Version : 1.4.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Your account: who you are (name, in-game name, email), how you see
 // times and dates (your own time zone, date format and clock, or the
@@ -247,7 +247,6 @@ function Account({ member }: { member: MemberRecord }) {
             label={Text.email}
             value={member.email}
             readOnly
-            hint={Text.emailHint}
             className={styles.wide}
           />
         </div>
@@ -360,7 +359,6 @@ function Account({ member }: { member: MemberRecord }) {
           onChange={theme.setChoice}
           className={styles.theme}
         />
-        <span className={styles.note}>{Text.themeNote}</span>
       </section>
 
       <div className={styles.saveRow}>

@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/ui/WorkGroupForm.tsx
-// Version : 1.2.0
+// Version : 1.2.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : A work group's name, "what this group does" and its colour (the
@@ -54,7 +54,6 @@ export function WorkGroupForm({
       <ColorPicker
         value={fields.color ?? DefaultColor}
         onChange={(color) => onChange({ color })}
-        hint={WorkGroupFormText.colorHint}
         disabled={disabled}
       />
     </div>

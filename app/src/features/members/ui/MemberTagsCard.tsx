@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/members/ui/MemberTagsCard.tsx
-// Version : 1.0.0
+// Version : 1.0.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : A member's people tags on their settings page. A click puts a
@@ -30,7 +30,6 @@ export function MemberTagsCard({
         tags={tags.items}
         canEdit={access.can("tagPeople") || access.can("manageMembers")}
       />
-      <p className={styles.muted}>{MemberCardsText.tagsNote}</p>
     </section>
   );
 }

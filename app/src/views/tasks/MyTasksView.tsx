@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/views/tasks/MyTasksView.tsx
-// Version : 1.3.0
+// Version : 1.3.1
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : My tasks. Whose: Mine (the default), My groups, or Pick groups,
@@ -315,9 +315,6 @@ export function MyTasksView() {
               pickable.length > 0 ? (
                 <p className={styles.muted}>{Text.pickNone}</p>
               ) : null}
-              {view === "done" ? (
-                <p className={styles.muted}>{Text.doneNote}</p>
-              ) : null}
               {list.status === "loading" ? (
                 <div className={styles.loading}>
                   <Spinner label={Text.loading} />
@@ -391,7 +388,6 @@ export function MyTasksView() {
               queue.items.length > 0 ? (
                 <TaskGroupCard
                   title={Text.approvals}
-                  note={Text.approvalsNote}
                   tasks={queue.items}
                   context={context}
                 />
@@ -408,10 +404,6 @@ export function MyTasksView() {
               todayIndex={todayIndex}
               onOpen={() => setView("done")}
             />
-            <section className={styles.quiet}>
-              <b>{Text.orderTitle}</b>
-              <p className={styles.muted}>{Text.orderBody}</p>
-            </section>
           </aside>
         </div>
 
