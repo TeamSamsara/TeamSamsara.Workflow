@@ -474,3 +474,61 @@
   line-height: var(--leading-meta);
 }
 /* #endregion */
+
+/* #region A person's week, on their profile */
+.strip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-1-5);
+}
+
+.stripDay {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.stripName {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  text-align: center;
+}
+
+.stripCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: var(--space-1);
+  border-radius: var(--radius-small);
+  font-size: var(--text-small);
+  line-height: 1.2;
+  text-align: center;
+}
+
+.stripCell[data-kind="free"] {
+  background-color: color-mix(
+    in srgb,
+    var(--color-accent) 30%,
+    var(--color-surface)
+  );
+}
+
+.stripCell[data-kind="unavailable"] {
+  background-color: var(--color-surface-raised);
+  color: var(--color-text-muted);
+}
+
+.stripCell[data-kind="unknown"] {
+  border: 1px dashed var(--palette-amber);
+  color: var(--palette-amber);
+}
+
+@media (max-width: 560px) {
+  .strip {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+/* #endregion */

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/constants/routePaths.ts
-// Version : 1.15.0
-// Latest commit: fix/modal-and-account-notifications
+// Version : 1.16.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Every address in the app, in one place, so links and routes can
 // never disagree about where a page lives.
@@ -35,6 +35,12 @@ export const RoutePaths = {
   docsArticle: "/docs/:articleId",
   availability: "/availability",
   availabilityTeam: "/availability/team",
+  /** Every work group, as cards. */
+  groups: "/groups",
+  /** One group's overview. */
+  group: "/groups/:groupId",
+  /** Someone's read-only profile. */
+  person: "/people/:memberId",
   // #endregion
 
   // #region Settings
@@ -90,6 +96,16 @@ export function rolePath(roleId: string, tab?: RoleTab): string {
 /** /settings/groups/:groupId */
 export function workGroupPath(groupId: string): string {
   return `${RoutePaths.settingsGroups}/${encodeURIComponent(groupId)}`;
+}
+
+/** /groups/:groupId, the group's overview. */
+export function groupPath(groupId: string): string {
+  return `/groups/${encodeURIComponent(groupId)}`;
+}
+
+/** /people/:memberId, someone's read-only profile. */
+export function personPath(memberId: string): string {
+  return `/people/${encodeURIComponent(memberId)}`;
 }
 
 /** /settings/members/:memberId */

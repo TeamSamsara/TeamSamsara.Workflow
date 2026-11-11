@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/ui/NewWorkGroupDialog.tsx
-// Version : 1.1.0
-// Latest commit: task/group-leads-and-x-premium
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Creates a work group from its name and what it does; the caller
 // opens it straight after.
@@ -35,6 +35,7 @@ export function NewWorkGroupDialog({
     description: "",
     leadIds: [],
     links: [],
+    color: null,
   });
   const [tried, setTried] = useState(false);
 

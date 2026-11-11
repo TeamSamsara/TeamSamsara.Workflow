@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/router.tsx
-// Version : 1.19.0
-// Latest commit: fix/modal-and-account-notifications
+// Version : 1.20.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Every route in the app. Layouts and the not-found page load with the
 // app; every other page loads only when it is first opened. Pages not built yet show ComingSoonView, and each
@@ -154,6 +154,21 @@ const eventView = () =>
     Component: module.EventView,
   }));
 
+const groupsView = () =>
+  import("@/views/groups/GroupsView").then((module) => ({
+    Component: module.GroupsView,
+  }));
+
+const groupView = () =>
+  import("@/views/groups/GroupView").then((module) => ({
+    Component: module.GroupView,
+  }));
+
+const memberProfileView = () =>
+  import("@/views/people/MemberProfileView").then((module) => ({
+    Component: module.MemberProfileView,
+  }));
+
 const myTasksView = () =>
   import("@/views/tasks/MyTasksView").then((module) => ({
     Component: module.MyTasksView,
@@ -276,6 +291,9 @@ export const router = createBrowserRouter([
                 ],
               },
               { path: RoutePaths.myTasks, lazy: myTasksView },
+              { path: RoutePaths.groups, lazy: groupsView },
+              { path: RoutePaths.group, lazy: groupView },
+              { path: RoutePaths.person, lazy: memberProfileView },
               { path: RoutePaths.task, lazy: taskView },
               { path: RoutePaths.workflows, lazy: workflowsView },
               { path: RoutePaths.workflowGuide, lazy: workflowGuideView },

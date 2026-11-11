@@ -47,5 +47,6 @@ export { TeamHourGrid } from "./ui/TeamHourGrid";
 export { TeamPeopleList } from "./ui/TeamPeopleList";
 export type { DayCell, TeamRowPerson } from "./ui/TeamPeopleList";
 export { TeamViewText } from "./ui/teamViewContent";
+export { UsualWeekStrip } from "./ui/UsualWeekStrip";
 export { ZoneSwitch } from "./ui/ZoneSwitch";
 export { WeekPainter } from "./ui/WeekPainter";

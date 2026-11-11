@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/index.ts
-// Version : 1.2.0
-// Latest commit: task/group-leads-and-x-premium
+// Version : 1.3.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : What other layers may use from the work groups feature.
 
@@ -18,7 +18,11 @@ export {
   checkLink,
   LeadPermissions,
 } from "./service/groupRules";
-export { WorkGroupLimits, workGroupConverter } from "./types/workGroupTypes";
+export {
+  groupColor,
+  WorkGroupLimits,
+  workGroupConverter,
+} from "./types/workGroupTypes";
 export type {
   WorkGroupFields,
   WorkGroupLink,

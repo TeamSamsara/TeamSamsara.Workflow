@@ -511,11 +511,11 @@ service cloud.firestore {
     }
 
     // Same lengths as TextLimits in app/src/shared/validation/textLimits.ts.
-    // Leads and links came later, so older groups may not have them. Each
+    // Leads, links and colour came later, so older groups may not have them. Each
     // lead's permissions and each link's address are checked by the app.
     function isValidWorkGroup(data) {
       return data.keys().hasOnly(["name", "description", "createdAt",
-          "leadIds", "links"])
+          "leadIds", "links", "color"])
         && data.keys().hasAll(["name", "description", "createdAt"])
         && isValidName(data.name)
         && data.description is string
@@ -524,6 +524,8 @@ service cloud.firestore {
         && data.get("leadIds", []).size() <= 10
         && data.get("links", []) is list
         && data.get("links", []).size() <= 10
+        && (data.get("color", null) == null
+          || (data.color is string && data.color.size() <= 20))
         && data.createdAt is timestamp;
     }
     // #endregion

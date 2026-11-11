@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/types/workGroupTypes.ts
-// Version : 1.1.0
-// Latest commit: task/group-leads-and-x-premium
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : A work group (workGroups/{id}): a team that tasks can be given to,
 // with a name, what it does, its leads (who approve and hand out its tasks)
@@ -13,6 +13,7 @@ import {
   createConverter,
   fromDate,
   readDate,
+  readOptionalString,
   readString,
   readStringList,
   type MemberRecord,
@@ -32,6 +33,8 @@ export interface WorkGroupRecord {
   /** Members responsible for the group; each can approve or reassign tasks. */
   leadIds: string[];
   links: WorkGroupLink[];
+  /** Its badge colour; null until one is picked (a neutral one shows). */
+  color: string | null;
   createdAt: Date | null;
 }
 
@@ -41,6 +44,12 @@ export interface WorkGroupFields {
   description: string;
   leadIds: string[];
   links: WorkGroupLink[];
+  color: string | null;
+}
+
+/** The colour of a group's badge and dot: its own, or a neutral grey. */
+export function groupColor(group: Pick<WorkGroupRecord, "color">): string {
+  return group.color ?? "var(--color-text-muted)";
 }
 
 /** The most leads and links a group can have (firestore.rules checks the same). */
@@ -78,6 +87,7 @@ function parse(id: string, data: DocumentData): WorkGroupRecord {
     // Groups made before leads and links existed read as having none.
     leadIds: readStringList(data, "leadIds"),
     links: readLinks(data),
+    color: readOptionalString(data, "color"),
     createdAt: readDate(data, "createdAt"),
   };
 }
