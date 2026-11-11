@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/members/MemberView.tsx
-// Version : 1.3.0
-// Latest commit: feature/attendance-photos
+// Version : 1.4.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : One member's page: their name, roles and work groups (saved
 // together with Save changes), what their roles let them do, and their access.
@@ -16,6 +16,7 @@ import { PhotoText, removePhoto } from "@/features/account";
 import {
   MemberAccessCard,
   MemberGroupsCard,
+  MemberTagsCard,
   MemberHeader,
   memberName,
   MemberPermissionsCard,
@@ -154,6 +155,7 @@ function MemberEditor({ item }: { item: MemberListItem }) {
             onChange={(workGroupIds) => draft.change({ workGroupIds })}
             disabled={locked || draft.isSaving}
           />
+          <MemberTagsCard member={member} name={name} />
           <MemberAccessCard
             member={member}
             isSelf={isSelf}

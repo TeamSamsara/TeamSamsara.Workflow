@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/members/ui/membersContent.ts
-// Version : 1.1.0
-// Latest commit: fix/invite-and-fields
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words in the members feature: the table, status pills, the
 // email field, the invite dialog, a member's cards, the member picker, and the
@@ -17,6 +17,7 @@ export const MemberStatusText: Record<MemberStatus, string> = {
 };
 
 export const MembersTableText = {
+  tags: "Tags",
   caption: "Members",
   member: "Member",
   roles: "Roles",
@@ -77,6 +78,9 @@ export const MemberHeaderText = {
 } as const;
 
 export const MemberCardsText = {
+  tagsTitle: "People tags",
+  tagsNote:
+    "Saved as soon as you click. Tags help pick who to compare on Team availability; they don't give permissions.",
   rolesTitle: "Roles",
   /** name is null until the member has one. */
   rolesNote: (name: string | null) =>

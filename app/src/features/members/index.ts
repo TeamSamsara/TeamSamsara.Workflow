@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/members/index.ts
-// Version : 1.1.0
-// Latest commit: feature/your-account
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : What other layers may use from the members feature.
 
@@ -20,6 +20,7 @@ export type { MemberDetails, MemberListItem } from "./types/memberTypes";
 export { InviteDialog } from "./ui/InviteDialog";
 export { MemberAccessCard } from "./ui/MemberAccessCard";
 export { MemberGroupsCard } from "./ui/MemberGroupsCard";
+export { MemberTagsCard } from "./ui/MemberTagsCard";
 export { MemberHeader } from "./ui/MemberHeader";
 export { MemberPermissionsCard } from "./ui/MemberPermissionsCard";
 export { MemberPicker } from "./ui/MemberPicker";

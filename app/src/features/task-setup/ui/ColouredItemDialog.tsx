@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/task-setup/ui/ColouredItemDialog.tsx
-// Version : 1.0.0
-// Latest commit: feature/task-setup
+// Version : 1.1.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Adds or edits an event type or a tag: a name and a colour. Both
 // lists start empty; each workspace makes its own.
@@ -22,11 +22,12 @@ import {
 import { SetupItemDialog } from "./SetupItemDialog";
 import { ColouredItemDialogText, DialogText } from "./taskSetupContent";
 
-export type ColouredListName = "eventType" | "tag";
+export type ColouredListName = "eventType" | "tag" | "peopleTag";
 
 const collectionFor = {
   eventType: Collections.eventTypes,
   tag: Collections.tags,
+  peopleTag: Collections.peopleTags,
 } as const;
 
 interface ColouredItemDialogProps {
@@ -35,6 +36,8 @@ interface ColouredItemDialogProps {
   item: ColouredItem | null;
   items: readonly ColouredItem[];
   onClose: () => void;
+  /** Deletes it with whatever else needs tidying; just the item when left out. */
+  onDelete?: (item: ColouredItem) => Promise<void>;
 }
 
 type Action = "save" | "delete";
@@ -44,6 +47,7 @@ export function ColouredItemDialog({
   item,
   items,
   onClose,
+  onDelete,
 }: ColouredItemDialogProps) {
   const text = ColouredItemDialogText[list];
   const toast = useToast();
@@ -56,7 +60,7 @@ export function ColouredItemDialog({
     mutationFn: async (action: Action) => {
       const target = collectionFor[list];
       if (action === "delete" && item) {
-        await deleteSetupItem(target, item.id);
+        await (onDelete ? onDelete(item) : deleteSetupItem(target, item.id));
         return;
       }
       if (item) await saveSetupItem(target, item.id, { name, color });

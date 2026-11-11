@@ -15,6 +15,8 @@ export const Collections = {
   eventTypes: "eventTypes",
   /** Labels a workspace makes for its tasks, like Trello's. */
   tags: "tags",
+  /** Labels for people (Starter, Coach…), to pick who to compare on Team availability. */
+  peopleTags: "peopleTags",
   workflows: "workflows",
   /** The details an event can have (Opponent, League…), keyed by how text writes them. */
   fields: "fields",

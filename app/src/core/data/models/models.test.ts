@@ -72,6 +72,8 @@ describe("member record", () => {
     dateFormat: null,
     timeFormat: null,
     walkthrough: null,
+    tagIds: [],
+    teamView: { hidden: [], order: [], zone: "team" },
     invitedBy: "uid-0",
     invitedAt: new Date("2026-10-02T12:00:00Z"),
     joinedAt: new Date("2026-10-03T12:00:00Z"),

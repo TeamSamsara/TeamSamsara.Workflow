@@ -132,7 +132,7 @@ service cloud.firestore {
           "manageMembers", "manageRoles", "manageWorkGroups", "editWorkflows",
           "planEvents", "createStandaloneTasks", "doAssignedTasks",
           "editAnyTask", "approveTasks", "reassignTasks", "viewAll",
-          "viewAvailability"])
+          "viewAvailability", "tagPeople"])
         && "everyone" in data.roles
         && !("administrator" in data.roles.everyone.permissions)
         && data.grants.get("administrator", []).size() > 0
@@ -161,7 +161,8 @@ service cloud.firestore {
           && grantUnchangedOrHeld(grants, held, "approveTasks")
           && grantUnchangedOrHeld(grants, held, "reassignTasks")
           && grantUnchangedOrHeld(grants, held, "viewAll")
-          && grantUnchangedOrHeld(grants, held, "viewAvailability"));
+          && grantUnchangedOrHeld(grants, held, "viewAvailability")
+          && grantUnchangedOrHeld(grants, held, "tagPeople"));
     }
 
     // Same lengths as TextLimits in app/src/shared/validation/textLimits.ts.
@@ -237,6 +238,12 @@ service cloud.firestore {
       // Someone managing members, roles or groups changing another record.
       allow update: if isManagedChange();
 
+      // Tag people (or Manage members) putting people tags on a member.
+      allow update: if isTaggingPeople();
+
+      // A member saving how Team availability looks for them.
+      allow update: if isSelf(memberId) && isSavingTeamView();
+
       // An Administrator taking down someone's profile photo.
       allow update: if isRemovingPhoto();
 
@@ -282,7 +289,8 @@ service cloud.firestore {
           && gainIsHeld(grants, held, before, after, "approveTasks")
           && gainIsHeld(grants, held, before, after, "reassignTasks")
           && gainIsHeld(grants, held, before, after, "viewAll")
-          && gainIsHeld(grants, held, before, after, "viewAvailability"));
+          && gainIsHeld(grants, held, before, after, "viewAvailability")
+          && gainIsHeld(grants, held, before, after, "tagPeople"));
     }
 
     /** A new member from an invite: Invited, from the inviter, with the server's time. */
@@ -438,11 +446,55 @@ service cloud.firestore {
         && walk.hidden is bool;
     }
 
+    /** People tags on a member: at most 20, each an existing tag's id. */
+    function isTaggingPeople() {
+      let tags = request.resource.data.tagIds;
+      return (can("tagPeople") || can("manageMembers"))
+        && changedFields().hasOnly(["tagIds"])
+        && tags is list && tags.size() <= 20;
+    }
+
+    /**
+     * Team availability, as one member likes it: who they hide, their order
+     * and whose time it shows in. Only ever their own.
+     */
+    function isSavingTeamView() {
+      let prefs = request.resource.data.prefs;
+      let view = prefs.get("teamView", {});
+      return resource.data.status == "active"
+        && changedFields().hasOnly(["prefs"])
+        && prefs is map && prefs.keys().hasOnly(["teamView"])
+        && view is map && view.keys().hasOnly(["hidden", "order", "zone"])
+        && view.get("hidden", []) is list && view.get("hidden", []).size() <= 300
+        && view.get("order", []) is list && view.get("order", []).size() <= 300
+        && view.get("zone", "team") in ["team", "mine"];
+    }
+
     /** An active member opening the app: only "last active" changes, to the server's time. */
     function isRecordingLastActive() {
       return resource.data.status == "active"
         && request.resource.data.lastActiveAt == request.time
         && changedFields().hasOnly(["lastActiveAt"]);
+    }
+    // #endregion
+
+    // #region People tags
+    // Labels for people (Starter, Coach, Lead editor…) to pick who to compare
+    // on Team availability. Everyone reads them; Tag people or Manage
+    // members makes, changes and deletes them. They grant nothing.
+    match /peopleTags/{tagId} {
+      allow read: if isActiveMember();
+      allow create, update: if (can("tagPeople") || can("manageMembers"))
+        && isValidPeopleTag(request.resource.data);
+      allow delete: if can("tagPeople") || can("manageMembers");
+    }
+
+    function isValidPeopleTag(data) {
+      return data.keys().hasOnly(["name", "color", "position"])
+        && data.keys().hasAll(["name", "color", "position"])
+        && isValidName(data.name)
+        && data.color is string && data.color.size() <= 20
+        && data.position is number && data.position >= 0 && data.position <= 1000;
     }
     // #endregion
 

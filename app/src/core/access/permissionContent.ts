@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/access/permissionContent.ts
-// Version : 1.2.0
-// Latest commit: fix/private-appointments
+// Version : 1.3.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The name and one-line description of every permission and group, as
 // the Roles page and member pages show them.
@@ -14,6 +14,7 @@ export const PermissionGroupText: Record<PermissionGroup, string> = {
   planning: "Planning",
   tasks: "Tasks",
   viewing: "Viewing",
+  people: "People",
 };
 
 export const PermissionText: Record<
@@ -79,5 +80,10 @@ export const PermissionText: Record<
     label: "See everyone's availability",
     description:
       "Open the team availability page: who's free when. Personal appointments show as Busy unless their owner shared them with you as their group lead.",
+  },
+  tagPeople: {
+    label: "Tag people",
+    description:
+      "Make people tags and put them on members. Everyone can filter by them.",
   },
 };

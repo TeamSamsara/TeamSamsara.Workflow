@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/models/memberModel.ts
-// Version : 1.4.0
-// Latest commit: feature/attendance-photos
+// Version : 1.5.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The member record (members/{account id}): who the person is, whether
 // they may use the app, and which roles and work groups they are in. A record
@@ -58,6 +58,26 @@ function readWalkthrough(data: DocumentData): Walkthrough | null {
   };
 }
 
+export interface TeamViewPrefs {
+  hidden: string[];
+  order: string[];
+  zone: "team" | "mine";
+}
+
+function readTeamView(data: DocumentData): TeamViewPrefs {
+  const prefs: unknown = data.prefs;
+  const view =
+    prefs && typeof prefs === "object"
+      ? (prefs as DocumentData).teamView
+      : undefined;
+  const value = (view && typeof view === "object" ? view : {}) as DocumentData;
+  return {
+    hidden: readStringList(value, "hidden"),
+    order: readStringList(value, "order"),
+    zone: value.zone === "mine" ? "mine" : "team",
+  };
+}
+
 export interface MemberRecord {
   /** The member's sign-in account id, which is also the document id. */
   id: string;
@@ -80,6 +100,10 @@ export interface MemberRecord {
    * its card. null until they first see it, which is when it offers itself.
    */
   walkthrough: Walkthrough | null;
+  /** People tags on them (Starter, Coach…); empty for most. */
+  tagIds: string[];
+  /** How they like Team availability: who they hide, their order, whose time. */
+  teamView: TeamViewPrefs;
   /** Account id of the member who sent the invite, if any. */
   invitedBy: string | null;
   invitedAt: Date | null;
@@ -106,6 +130,8 @@ function parse(id: string, data: DocumentData): MemberRecord {
       ? (data.timeFormat as TimeFormat)
       : null,
     walkthrough: readWalkthrough(data),
+    tagIds: readStringList(data, "tagIds"),
+    teamView: readTeamView(data),
     invitedBy: readOptionalString(data, "invitedBy"),
     invitedAt: readDate(data, "invitedAt"),
     joinedAt: readDate(data, "joinedAt"),

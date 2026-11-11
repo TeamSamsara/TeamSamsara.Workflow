@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/task-setup/ui/taskSetupContent.ts
-// Version : 1.1.0
-// Latest commit: fix/general-wording
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words for the workspace's lists: what each status counts as,
 // the list cards, and the dialogs for statuses, event types and tags.
@@ -75,6 +75,13 @@ export const ColouredItemDialogText = {
     namePlaceholder: "Sponsor",
     colorHint: "Shown on every task with this tag.",
     deleteNote: "Tasks with this tag just lose it.",
+  },
+  peopleTag: {
+    newTitle: "New people tag",
+    editTitle: (name: string) => `Edit ${name}`,
+    namePlaceholder: "Starter",
+    colorHint: "Shown on the people with this tag.",
+    deleteNote: "The people with this tag just lose it.",
   },
 } as const;
 
