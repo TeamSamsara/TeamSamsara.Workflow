@@ -237,3 +237,56 @@
 .hidden {
   composes: hidden from "../../../shared/components/VisuallyHidden/VisuallyHidden.module.css";
 }
+
+/* A summary's counts and its tasks, under its sentence. */
+.summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1-5);
+}
+
+.chip {
+  padding: 2px var(--space-2);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-text);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+}
+
+.toggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-accent-text);
+  font: inherit;
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+}
+
+.toggle:hover {
+  text-decoration: underline;
+}
+
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding-left: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+}
+
+.lines a {
+  color: var(--color-accent-text);
+  font-weight: var(--weight-bold);
+}

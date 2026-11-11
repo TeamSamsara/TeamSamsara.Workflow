@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/articles.ts
-// Version : 1.5.0
-// Latest commit: feature/lean-calendar
+// Version : 1.7.4
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The Documentation: one short article per feature, in groups. Each
 // group (or article) is for the people with its permission, the same as the
@@ -116,12 +116,28 @@ export const DocGroups: readonly DocGroup[] = [
         ],
       },
       {
+        id: "groups-and-profiles",
+        title: "Groups and profiles",
+        summary: "Your teams, and who's in them.",
+        body: [
+          p(
+            "Groups in the menu lists every work group, yours first, with your own groups under it. A group's page shows its members (filter them by people tag), its open tasks, what it's about, its key links and what's coming up, with Calendar and Availability tabs for that group.",
+          ),
+          p(
+            "Click anyone's name to open their profile: their tags and groups, what time it is for them, their usual week in their time or yours, what's coming up for them and their tasks you can already see. Nothing there can be changed; people edit their own on Your account.",
+          ),
+        ],
+      },
+      {
         id: "notifications",
         title: "Notifications",
         summary: "The bell: what needs you, and reminders.",
         body: [
           p(
             "The bell at the top of the menu counts what's new: a task given to you or your group, a task sent to you to review, yours approved or sent back, events you're added to, moved or cancelled, and events asking you to reply (answer right in the notification). Reminders come before a task is due and before an event starts. Nothing you do yourself notifies you.",
+          ),
+          p(
+            "Work done in bulk sends one notification, not one per task: when a set or repeat is planned you get a summary (how many tasks are yours and your groups', and how many of the events you're in, with Show the tasks), and when someone changes a workflow you get one saying how many of your upcoming tasks moved.",
           ),
           p(
             "Open one to go to its task or event. Choose which kinds you get, by email too, and when you're reminded on Your account › Notifications, where a test email checks that email reaches you.",
@@ -139,10 +155,21 @@ export const DocGroups: readonly DocGroup[] = [
       {
         id: "my-tasks",
         title: "My tasks",
-        summary: "Your tasks and your work groups', soonest first.",
+        summary: "What's yours to do next, coming up, and done this week.",
         body: [
           p(
-            "My tasks lists what's given to you or to one of your work groups, grouped by when it's due: late, today, this week, later and no date.",
+            "My tasks opens on Mine: what's given to you by name. Switch to My groups to add everything given to your work groups, or Pick groups to choose which. Your choice is remembered.",
+          ),
+          list(
+            "Focus: what's late, due today, and due in the next 7 days, with how many more are coming up.",
+            "Planning: everything still to do, including later and no date.",
+            "Done this week: what was finished since the week started, by day, with who did and approved it. The card beside it counts each day.",
+          ),
+          p(
+            "Late tasks come first. Inside each part, an event's tasks stay together in the order of its workflow's steps, then by due time; tasks added by hand come after them. Reordering a workflow's steps reorders the tasks it made.",
+          ),
+          p(
+            "Each task shows its event under its title: click it to open the event. A task planned after its due time had already passed says Late from the start, so nobody's blamed for it. One whose event was deleted says Event deleted, with the event's name.",
           ),
           steps(
             "Open a task to see its notes, checklist, links and posts.",
@@ -240,6 +267,9 @@ export const DocGroups: readonly DocGroup[] = [
           p(
             "Words in {curly brackets} in the title (vs. {opponent}) are asked for below, and filled in.",
           ),
+          p(
+            "If some of the workflow's tasks would already be due (a Friday match planned on Thursday night), a warning lists them. Create them as late (they're marked Late from the start) or leave them out.",
+          ),
         ],
       },
       {
@@ -252,6 +282,9 @@ export const DocGroups: readonly DocGroup[] = [
           ),
           p(
             "Nearby times when everyone's free are listed below: click one to move the event there.",
+          ),
+          p(
+            "Mark who's Required or Optional with the chip by each name (the same switch as in Asking people to reply). Then only required people count, and the suggested times are when they're free: a coach being away doesn't hide a time that works for the players.",
           ),
         ],
       },
@@ -284,6 +317,10 @@ export const DocGroups: readonly DocGroup[] = [
           p(
             "From an event's ⋯ menu you can change just that one, change the ones coming up, skip a date, or end the repeat.",
           ),
+          h("Deleting"),
+          p(
+            "Delete… asks which to delete: just this one, this and every later one, or the whole series. It counts the events and tasks first. Finished tasks are kept as history unless you untick it: they stay in people's done lists, marked Event deleted.",
+          ),
         ],
       },
     ],
@@ -307,7 +344,7 @@ export const DocGroups: readonly DocGroup[] = [
             "Create: each row becomes an event with its own tasks.",
           ),
           p(
-            "A field can stay TBD: the event keeps {opponent} in its title until you fill it in on the event.",
+            "A field can stay TBD: the event keeps {opponent} in its title until you fill it in, on the set's page or on the event.",
           ),
         ],
       },
@@ -318,6 +355,12 @@ export const DocGroups: readonly DocGroup[] = [
         body: [
           p(
             "Calendar › Sets lists them. A set's page shows how many events are played, tasks done, what's next and what's still TBD.",
+          ),
+          p(
+            "Click a field in the table, like a TBD opponent, to fill it in for that event. The title and the tasks' text fill in too, except text someone changed by hand.",
+          ),
+          p(
+            "Edit set (in the ⋯ menu) changes the set's name, its event titles and fields for every event at once. A field that's different on each event stays as it is unless you type a value.",
           ),
           p(
             "Tick events to move several at once (their tasks move too) or delete them. Add events adds more the same way.",
@@ -339,10 +382,30 @@ export const DocGroups: readonly DocGroup[] = [
         summary: "Who's free when, for a work group.",
         body: [
           p(
-            "Calendar › Availability › Team availability shows everyone in a work group: their usual hours, their personal appointments (by name) and the group's events. Anyone booked when they're not free is outlined in red.",
+            "Calendar › Availability › Team availability shows a work group's week. On the left are its people, grouped by people tag (Starter, Coach…). Tick a tag or click a name to show or hide them, and drag names to reorder. Only the people shown are compared, and it's all saved for you only.",
+          ),
+          list(
+            "Hours: each hour of each day, shaded by how many of the people shown are free (bright when all of them are). Click an hour to pick it.",
+            "People: one row per person, with when they're free each day.",
           ),
           p(
-            "When everyone's free lists times to plan at: pick one and New event opens there, with the group already in it.",
+            "The panel on the right shows the picked hour: who's free, who's busy (a personal appointment shows as Busy, or by name when it was shared with you as their group lead) and who hasn't filled in their availability (they're not counted). Plan an event then opens New event at that time, with the group in it. When everyone shown is free lists stretches of two hours or more.",
+          ),
+          p(
+            "Show times in switches between the team's time zone and yours; the hours and labels move together.",
+          ),
+        ],
+      },
+      {
+        id: "people-tags",
+        title: "People tags",
+        summary: "Starter, Sub, Coach: who to compare.",
+        body: [
+          p(
+            "People tags are labels for people, to pick who to compare on Team availability. They don't give anyone permissions. Each team makes its own in Settings › Members › People tags: add, rename, recolour, drag to reorder, or delete.",
+          ),
+          p(
+            "People with the Tag people permission (or Manage members) put tags on members from a member's settings page, or with Edit tags on Team availability. Everyone sees the tags.",
           ),
         ],
       },
@@ -381,6 +444,22 @@ export const DocGroups: readonly DocGroup[] = [
           ),
           p(
             "Left empty, a field shows as its name in brackets, like [Match link]. Change a value later and the event's unfinished tasks follow, except text someone edited by hand.",
+          ),
+        ],
+      },
+      {
+        id: "workflow-changes",
+        title: "Changing a workflow",
+        summary: "Upcoming events follow your changes by themselves.",
+        body: [
+          p(
+            "Save a workflow and every upcoming event that uses it updates its open tasks in a moment: due times, who they're given to, titles, notes, checklists and post text. A step you add becomes a task on each of those events.",
+          ),
+          p(
+            "Anything someone changed by hand on a task stays as they left it, like a due time moved or a task given to someone else. Finished tasks and past events don't change, and a due time never moves to one that has already passed. People whose tasks changed get one notification about it.",
+          ),
+          p(
+            "To bring one event's tasks back in line yourself, open its ⋯ menu › Update tasks from workflows. It lists the open tasks that differ from their steps and what differs. Ticks on checklist items stay. Due times only move if you tick that too, and steps with no task on the event can be added.",
           ),
         ],
       },
@@ -447,7 +526,7 @@ export const DocGroups: readonly DocGroup[] = [
         summary: "Teams, like Bloom or Design.",
         body: [
           p(
-            "Work groups act as teams: tasks can be given to a group, events can be for a group, and each person sees their groups' calendars.",
+            "Work groups act as teams: tasks can be given to a group, events can be for a group, and each person sees their groups' calendars. Give each a colour for its badge and its dot in the menu.",
           ),
         ],
       },
@@ -461,6 +540,14 @@ export const DocGroups: readonly DocGroup[] = [
           ),
           p(
             "Administrators also choose the sign-in page's pictures there: add up to 8, put them in order, or remove one. They take turns behind the welcome, and anyone with the link can see them.",
+          ),
+          h("Platform updates"),
+          p(
+            "Some new versions of Playbook come with a one-time update to the data already stored, like bringing tasks planned before a change in line with their workflows. They run by themselves shortly after a release, and each is listed on Settings › General with when it ran and what it changed. Check shows what a pending one would change; Apply now runs it straight away.",
+          ),
+          h("Database maintenance"),
+          p(
+            "Every Sunday a check-up looks for data pointing at deleted things (a task whose event is gone, a group that no longer exists) and photos nothing uses, and saves a report. It only reports until an Administrator turns on Apply the fixes; Run now runs it straight away. It never deletes real work: finished tasks stay as history.",
           ),
         ],
       },

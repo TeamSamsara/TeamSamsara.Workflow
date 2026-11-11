@@ -1,0 +1,534 @@
+/* File : /TeamSamsara.Workflow/app/src/features/availability/ui/TeamView.module.css
+   Version : 1.0.0
+   Latest commit: feature/audit-fixes
+   Author : Gerrah
+   Purpose : Look of Team availability: the people list (tag groups with a tick, rows with a handle, a shown dot, the name and their state), the People view's day cells on each row, the Hours grid shaded by how many are free (accent when everyone is), and the side panel for the picked hour. */
+
+/* #region People list */
+.listCard {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.listHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: var(--space-1-5) var(--space-3);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.comparing {
+  flex: 1 1 auto;
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+}
+
+.stateHead {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.section {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border-bottom: var(--border-width) solid var(--color-border);
+  background-color: var(--color-page);
+}
+
+.sectionToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+}
+
+.sectionToggle:focus-visible,
+.name:focus-visible,
+.handle:focus-visible,
+.dayCell:focus-visible,
+.hourCell:focus-visible,
+.bestChip:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.box {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--color-border-control);
+  border-radius: 4px;
+  --icon-size: 12px;
+}
+
+.box[data-on] {
+  border-color: var(--color-accent);
+  background-color: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+
+.tagDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 3px;
+  background-color: var(--tag-color);
+}
+
+.count {
+  color: var(--color-text-muted);
+  font-weight: var(--weight-regular);
+}
+
+.person {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 48px;
+  padding: var(--space-1) var(--space-3) var(--space-1) var(--space-1-5);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.person:last-child {
+  border-bottom: 0;
+}
+
+.person[data-dragging="true"] {
+  opacity: 0.5;
+}
+
+.person[data-drop-target="true"] {
+  box-shadow: inset 0 2px 0 var(--color-accent);
+}
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.person[data-off] .who {
+  opacity: 0.55;
+}
+
+.handle {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 24px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-small);
+  background: none;
+  color: var(--color-text-muted);
+  cursor: grab;
+  --icon-size: 16px;
+}
+
+.name {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  height: 36px;
+  padding: 0 var(--space-1-5);
+  border: 0;
+  border-radius: var(--radius-field);
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-weight: var(--weight-medium, 500);
+  text-align: left;
+  cursor: pointer;
+}
+
+.name:hover {
+  background-color: var(--color-surface-raised);
+}
+
+.nameText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shownDot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid var(--color-border-control);
+  border-radius: 3px;
+}
+
+.shownDot[data-on] {
+  border-color: var(--color-accent);
+  background-color: var(--color-accent);
+}
+
+.state {
+  flex: none;
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-muted);
+}
+
+.state[data-state="free"] {
+  color: var(--color-accent-text);
+}
+
+.state[data-state="busy"] {
+  color: var(--color-error-text);
+}
+
+.state[data-state="unknown"] {
+  color: var(--palette-amber);
+}
+
+.tagRow {
+  padding: var(--space-1) 0 var(--space-1) 32px;
+}
+/* #endregion */
+
+/* #region People view: a day cell per weekday on each row */
+.listCard[data-people] .listHead,
+.person[data-people] {
+  display: grid;
+  grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--space-2);
+}
+
+.listCard[data-people] .listHead > :not(.days) {
+  grid-column: 1;
+}
+
+.listCard[data-people] .listHead > .days {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.person[data-people] .who {
+  grid-row: 1;
+  grid-column: 1;
+}
+
+.person[data-people] .days {
+  grid-row: 1;
+  grid-column: 2;
+}
+
+.person[data-people] .tagRow {
+  grid-row: 2;
+  grid-column: 1 / -1;
+}
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-1);
+}
+
+.dayHead {
+  padding: var(--space-1) 0;
+  border: 0;
+  border-radius: var(--radius-small);
+  background: none;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  text-align: center;
+  cursor: pointer;
+}
+
+.dayHead[data-picked] {
+  color: var(--color-text);
+  background-color: var(--color-surface-raised);
+}
+
+.dayCell {
+  min-width: 0;
+  height: 34px;
+  padding: 0 2px;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-small);
+  font: inherit;
+  font-size: var(--text-small);
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.dayCell[data-kind="free"] {
+  background-color: color-mix(
+    in srgb,
+    var(--color-accent) 35%,
+    var(--color-surface)
+  );
+  color: var(--color-text);
+}
+
+.dayCell[data-kind="unavailable"] {
+  background-color: var(--color-surface-raised);
+  color: var(--color-text-muted);
+}
+
+.dayCell[data-kind="unknown"] {
+  border: 1px dashed var(--palette-amber);
+  background: none;
+  color: var(--palette-amber);
+  font-weight: var(--weight-bold);
+}
+
+.dayCell[data-picked] {
+  box-shadow: inset 0 0 0 2px var(--color-text);
+}
+
+.person[data-off] .days {
+  opacity: 0.35;
+}
+/* #endregion */
+
+/* #region Hours grid */
+.hours {
+  display: grid;
+  grid-template-columns: 56px repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  align-content: start;
+  min-width: 0;
+  padding: var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.hoursDay {
+  padding-bottom: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  text-align: center;
+}
+
+.hoursDay[data-today] {
+  color: var(--color-text);
+}
+
+.hourLabel {
+  align-self: center;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  text-align: right;
+  padding-right: var(--space-1);
+  white-space: nowrap;
+}
+
+.hourCell {
+  height: 30px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background-color: var(--color-page);
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+}
+
+.hourCell[data-tone="none"] {
+  background-color: var(--color-surface-raised);
+}
+
+.hourCell[data-tone="some"] {
+  background-color: color-mix(
+    in srgb,
+    var(--color-accent) 18%,
+    var(--color-surface)
+  );
+  color: var(--color-text);
+}
+
+.hourCell[data-tone="most"] {
+  background-color: color-mix(
+    in srgb,
+    var(--color-accent) 42%,
+    var(--color-surface)
+  );
+  color: var(--color-text);
+}
+
+.hourCell[data-tone="all"] {
+  background-color: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+
+.hourCell[data-picked] {
+  box-shadow: inset 0 0 0 2px var(--color-text);
+}
+/* #endregion */
+
+/* #region Side panel */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.panelCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.panelTitle {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-section-heading);
+  text-transform: uppercase;
+}
+
+.panelGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--text-meta);
+}
+
+.freeHead {
+  color: var(--color-accent-text);
+}
+
+.busyHead {
+  color: var(--color-error-text);
+}
+
+.unknownHead {
+  color: var(--palette-amber);
+}
+
+.bestTitle {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+}
+
+.bestList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1-5);
+}
+
+.bestChip {
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-accent);
+  color: var(--color-text-on-accent);
+  font: inherit;
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+/* #endregion */
+
+/* #region A person's week, on their profile */
+.strip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-1-5);
+}
+
+.stripDay {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.stripName {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  text-align: center;
+}
+
+.stripCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: var(--space-1);
+  border-radius: var(--radius-small);
+  font-size: var(--text-small);
+  line-height: 1.2;
+  text-align: center;
+}
+
+.stripCell[data-kind="free"] {
+  background-color: color-mix(
+    in srgb,
+    var(--color-accent) 30%,
+    var(--color-surface)
+  );
+}
+
+.stripCell[data-kind="unavailable"] {
+  background-color: var(--color-surface-raised);
+  color: var(--color-text-muted);
+}
+
+.stripCell[data-kind="unknown"] {
+  border: 1px dashed var(--palette-amber);
+  color: var(--palette-amber);
+}
+
+@media (max-width: 560px) {
+  .strip {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+/* #endregion */

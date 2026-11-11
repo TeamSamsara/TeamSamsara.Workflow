@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/model/eventDraft.ts
-// Version : 1.4.0
-// Latest commit: feature/attendance-photos
+// Version : 1.5.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : An event as its form holds it (a date box, start and end time
 // boxes, who's in it), what's wrong with it, and back to an event's fields.
@@ -135,7 +135,7 @@ export function checkEventDraft(draft: EventDraft): EventDraftProblems {
 }
 
 /** The details that have a value, each as it reads (see valueText). */
-function filledDetails(
+export function filledDetails(
   details: Readonly<Record<string, string>>,
   text?: ValueText,
 ) {

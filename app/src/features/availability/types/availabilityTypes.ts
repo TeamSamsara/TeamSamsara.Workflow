@@ -1,10 +1,11 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/types/availabilityTypes.ts
-// Version : 1.1.0
-// Latest commit: feature/your-account
+// Version : 1.2.0
+// Latest commit: fix/private-appointments
 // Author : Gerrah
 // Purpose : When people are free. Availability is a member's usual week (the
 // hours they're unavailable, per weekday) and the dates that differ. A
-// personal appointment has its details (for the member and managers) and a
+// personal appointment has its details (for the member, and the group leads
+// they share it with) and a
 // busy copy with only its times (for everyone).
 
 import type { DocumentData } from "firebase/firestore";
@@ -14,6 +15,7 @@ import {
   readDate,
   readOptionalString,
   readString,
+  readStringList,
 } from "@/core/data";
 
 /** A date unlike the usual week: unavailable or available, all day or between two times. */
@@ -47,6 +49,11 @@ export interface PersonalEntry {
   startsAt: Date;
   endsAt: Date;
   createdAt: Date | null;
+  /**
+   * Who else may see what it is: the owner's group leads, when the owner
+   * shares it. Empty means only the owner (everyone else sees Busy).
+   */
+  visibleTo: string[];
 }
 
 /** A personal appointment as everyone else sees it: just when. */
@@ -134,6 +141,7 @@ export const personalConverter = createConverter<PersonalEntry>({
     startsAt: readDate(data, "startsAt") ?? new Date(0),
     endsAt: readDate(data, "endsAt") ?? new Date(0),
     createdAt: readDate(data, "createdAt"),
+    visibleTo: readStringList(data, "visibleTo"),
   }),
   serialize: (entry) =>
     Object.fromEntries(Object.entries(entry).filter(([key]) => key !== "id")),

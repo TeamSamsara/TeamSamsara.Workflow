@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/ui/notificationsContent.ts
-// Version : 1.2.0
-// Latest commit: feature/attendance-photos
+// Version : 1.3.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words of notifications: the bell, the list, each kind of
 // notification, and the settings page.
@@ -29,6 +29,7 @@ export const NotificationListText = {
   failed: "Couldn't load your notifications.",
   unreadMark: "Unread",
   someone: "Someone",
+  playbook: "Playbook",
   answers: {
     going: "Going",
     maybe: "Maybe",
@@ -40,6 +41,32 @@ export const NotificationListText = {
   minutesAgo: (count: number) => `${count} min ago`,
   hoursAgo: (count: number) => `${count} h ago`,
   yesterday: "Yesterday",
+  summary: {
+    forYou: (count: number) =>
+      count === 1 ? "1 task for you" : `${count} tasks for you`,
+    forGroup: (count: number, group: string) => `${count} for ${group}`,
+    inEvents: (count: number, total: number) =>
+      count === total && total > 1
+        ? `You're in all ${total}`
+        : count === 1
+          ? "You're in 1"
+          : `You're in ${count}`,
+    moved: (count: number) =>
+      count === 1
+        ? "1 of your upcoming tasks moved"
+        : `${count} of your upcoming tasks moved`,
+    show: "Show the tasks",
+    hide: "Hide the tasks",
+    line: (title: string, events: number, due: string | null) =>
+      [
+        title,
+        events === 1 ? "1 event" : `${events} events`,
+        due ? `first due ${due}` : null,
+      ]
+        .filter(Boolean)
+        .join(" · "),
+    seeAll: "See all in My tasks",
+  },
 } as const;
 
 export const NotificationSettingsText = {

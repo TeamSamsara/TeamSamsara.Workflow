@@ -1,12 +1,14 @@
 // File : /TeamSamsara.Workflow/app/src/features/members/ui/MembersTable.tsx
-// Version : 1.2.0
-// Latest commit: feature/attendance-photos
+// Version : 1.3.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The members table: who they are, their roles and work groups,
 // status, and when they were last active (or when the invite went out). Each
 // row opens the member's page.
 
 import { Link } from "react-router-dom";
+import type { ColouredItem } from "@/core/data";
+import { TagPill } from "@/features/people-tags";
 import { RoleChip } from "@/features/roles";
 import { Avatar } from "@/shared/components/Avatar/Avatar";
 import { Chip } from "@/shared/components/Chip/Chip";
@@ -30,6 +32,8 @@ interface MembersTableProps {
   hrefFor: (memberId: string) => string;
   /** The workspace's time zone, for dates. */
   timeZone: string;
+  /** People tags; a Tags column shows once there are some. */
+  tags?: readonly ColouredItem[];
 }
 
 function lastSeen(item: MemberListItem, timeZone: string): string {
@@ -42,7 +46,13 @@ function lastSeen(item: MemberListItem, timeZone: string): string {
   return formatRecentDay(member.lastActiveAt, timeZone);
 }
 
-export function MembersTable({ items, hrefFor, timeZone }: MembersTableProps) {
+export function MembersTable({
+  items,
+  hrefFor,
+  timeZone,
+  tags = [],
+}: MembersTableProps) {
+  const showTags = tags.length > 0;
   if (items.length === 0) {
     return <p className={styles.empty}>{MembersTableText.none}</p>;
   }
@@ -54,6 +64,7 @@ export function MembersTable({ items, hrefFor, timeZone }: MembersTableProps) {
           <th scope="col">{MembersTableText.member}</th>
           <th scope="col">{MembersTableText.roles}</th>
           <th scope="col">{MembersTableText.groups}</th>
+          {showTags ? <th scope="col">{MembersTableText.tags}</th> : null}
           <th scope="col">{MembersTableText.status}</th>
           <th scope="col">{MembersTableText.lastActive}</th>
           <th scope="col">
@@ -109,6 +120,17 @@ export function MembersTable({ items, hrefFor, timeZone }: MembersTableProps) {
                   </span>
                 )}
               </td>
+              {showTags ? (
+                <td>
+                  <span className={styles.chips}>
+                    {tags
+                      .filter((tag) => item.member.tagIds.includes(tag.id))
+                      .map((tag) => (
+                        <TagPill key={tag.id} tag={tag} />
+                      ))}
+                  </span>
+                </td>
+              ) : null}
               <td>
                 <MemberStatusPill status={item.member.status} />
               </td>

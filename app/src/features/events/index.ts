@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/index.ts
-// Version : 1.7.0
-// Latest commit: feature/branded-emails
+// Version : 1.11.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : What other layers may use from the events feature.
 
@@ -91,7 +91,10 @@ export {
   deleteEventSet,
   moveEvents,
   renameEventSet,
+  saveEventEdits,
 } from "./service/setService";
+export { EditSetDialog, FillFieldDialog } from "./ui/SetEditDialogs";
+export { useSetGaps } from "./hooks/useSetGaps";
 export type { EventMove } from "./service/setService";
 export { EventSetLimits } from "./types/setTypes";
 export type { EventSetRecord } from "./types/setTypes";
@@ -121,3 +124,9 @@ export { RepeatFieldsText } from "./ui/repeatFieldsContent";
 export { CalendarText } from "./ui/eventsContent";
 export { TaskPreview } from "./ui/TaskPreview";
 export { WorkflowPicker } from "./ui/WorkflowPicker";
+export { findLateTasks, lateOf } from "./model/lateTasks";
+export type { LateChoice, LateTask } from "./model/lateTasks";
+export { LateTasksNotice } from "./ui/LateTasksNotice";
+export { useEventLabels } from "./hooks/useEventLabels";
+export { useTaskOrder } from "./hooks/useTaskOrder";
+export type { EventLabel } from "./hooks/useEventLabels";

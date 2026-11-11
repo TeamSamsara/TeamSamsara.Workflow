@@ -1,12 +1,14 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/ui/AssignedCard.tsx
-// Version : 1.1.0
-// Latest commit: feature/attendance-photos
+// Version : 1.3.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Who a task is given to (a work group, a person, or both), who made
-// it, and Reassign for people who may.
+// it, and Reassign for people who may. The group and the person link to
+// their pages.
 
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { dataErrorMessage, type MemberRecord } from "@/core/data";
 import { Avatar } from "@/shared/components/Avatar/Avatar";
 import { memberName } from "@/features/members";
@@ -16,6 +18,8 @@ import { Button } from "@/shared/components/Button/Button";
 import { Chip } from "@/shared/components/Chip/Chip";
 import { Modal } from "@/shared/components/Modal/Modal";
 import { useToast } from "@/shared/components/Toast/useToast";
+import { groupPath, personPath } from "@/shared/constants/routePaths";
+import { editedPartsAfter } from "../model/editedParts";
 import { reassignTask } from "../service/taskService";
 import type { TaskRecord } from "../types/taskTypes";
 import { GiveToFields } from "./GiveToFields";
@@ -47,7 +51,9 @@ export function AssignedCard({
       </h2>
       {group ? (
         <span className={styles.person}>
-          <Chip label={group.name} />
+          <Link to={groupPath(group.id)} className={styles.plainLink}>
+            <Chip label={group.name} />
+          </Link>
           {member ? null : (
             <span className={styles.muted}>{Text.anyoneInGroup}</span>
           )}
@@ -60,7 +66,9 @@ export function AssignedCard({
             src={member.photoUrl}
             size="small"
           />
-          {memberName(member)}
+          <Link to={personPath(member.id)} className={styles.plainLink}>
+            {memberName(member)}
+          </Link>
         </span>
       ) : null}
       {!group && !member ? <p className={styles.muted}>{Text.nobody}</p> : null}
@@ -107,7 +115,12 @@ function ReassignDialog({
   });
   const save = useMutation({
     mutationFn: () =>
-      reassignTask(task.id, assignee.workGroupId, assignee.memberId),
+      reassignTask(
+        task.id,
+        assignee.workGroupId,
+        assignee.memberId,
+        editedPartsAfter(task, assignee),
+      ),
     onSuccess: () => {
       toast.show({ tone: "success", title: ReassignText.done(task.title) });
       onClose();

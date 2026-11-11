@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/model/notificationText.test.ts
-// Version : 1.1.0
-// Latest commit: feature/attendance-photos
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Tests how notifications read, and when they say they happened.
 
@@ -18,6 +18,40 @@ const note = (
 });
 
 describe("notificationLine", () => {
+  it("sums up a planned set and moved tasks in one line", () => {
+    expect(
+      notificationLine(
+        {
+          ...note("setPlanned", "12 events, from Fri, Nov 13, 5:00 PM"),
+          title: "ACL Fall 2026",
+        },
+        "Jordan",
+        null,
+      ),
+    ).toMatchObject({
+      who: "Jordan",
+      what: "planned",
+      thing: "ACL Fall 2026",
+      rest: ": 12 events, from Fri, Nov 13, 5:00 PM.",
+    });
+    expect(
+      notificationLine(
+        {
+          ...note(
+            "tasksMoved",
+            "Prep caption is now due 2 days before at 11:30 PM.",
+          ),
+          title: "Match day",
+        },
+        "Sam",
+        null,
+      ),
+    ).toMatchObject({
+      what: "changed",
+      rest: ". Prep caption is now due 2 days before at 11:30 PM.",
+    });
+  });
+
   it("says who did what to which task", () => {
     expect(notificationLine(note("taskGiven"), "Jordan", null)).toMatchObject({
       who: "Jordan",

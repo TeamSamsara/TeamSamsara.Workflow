@@ -1,11 +1,13 @@
 // File : /TeamSamsara.Workflow/tests/rules/tasks.rules.test.ts
-// Version : 1.0.0
-// Latest commit: feature/tasks
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Tests tasks against the rules: who reads them (everything with
 // View all, else what's theirs), who makes standalone ones, and the four kinds
 // of change: doing (status, checklist, link, review; no finishing before
-// approval), approving, reassigning and editing. Plus deleting.
+// approval), approving, reassigning and editing (and the parts edited by
+// hand). Plus deleting, and the
+// "Late from the start" mark: only on a task already due, and never changed.
 
 import {
   assertFails,
@@ -23,6 +25,7 @@ import {
   serverTimestamp,
   updateDoc,
   where,
+  writeBatch,
 } from "firebase/firestore";
 import { afterAll, beforeAll, beforeEach, describe, it } from "vitest";
 import { seed, signedInAs, startRulesTestEnv } from "./rulesTestEnv";
@@ -49,6 +52,11 @@ const roles = {
       permissions: ["reassignTasks"],
     },
     editor: { name: "Editor", position: 5, permissions: ["editAnyTask"] },
+    eventPlanner: {
+      name: "Event planner",
+      position: 6,
+      permissions: ["planEvents"],
+    },
   },
   grants: {
     doAssignedTasks: ["everyone"],
@@ -57,6 +65,7 @@ const roles = {
     approveTasks: ["reviewer"],
     reassignTasks: ["organiser"],
     editAnyTask: ["editor"],
+    planEvents: ["eventPlanner"],
   },
 };
 
@@ -142,6 +151,7 @@ beforeEach(async () => {
     "members/rae": member(["reviewer"]),
     "members/ollie": member(["organiser"]),
     "members/eddie": member(["editor"]),
+    "members/pia": member(["eventPlanner"]),
     "members/chris": {
       status: "disabled",
       roleIds: ["viewer"],
@@ -223,6 +233,99 @@ describe("making standalone tasks", () => {
     await assertFails(addDoc(tasks, fresh("pat", { title: "" })));
     await assertFails(addDoc(tasks, fresh("pat", { dueAt: "tomorrow" })));
     await assertFails(addDoc(tasks, fresh("pat", { colour: "red" })));
+  });
+});
+
+describe("late from the start", () => {
+  it("can be set only when the task is already due", async () => {
+    const tasks = collection(signedInAs(env, "pat"), "tasks");
+    await assertSucceeds(
+      addDoc(tasks, fresh("pat", { lateAtCreation: true })),
+    );
+    await assertSucceeds(
+      addDoc(tasks, fresh("pat", { lateAtCreation: false })),
+    );
+    await assertFails(
+      addDoc(
+        tasks,
+        fresh("pat", {
+          lateAtCreation: true,
+          dueAt: new Date(Date.now() + 86_400_000),
+        }),
+      ),
+    );
+    await assertFails(addDoc(tasks, fresh("pat", { lateAtCreation: "yes" })));
+  });
+
+  it("never changes afterwards, and older tasks without it still save", async () => {
+    await assertFails(
+      updateDoc(task("eddie"), { lateAtCreation: true, ...now() }),
+    );
+    await assertSucceeds(
+      updateDoc(task("eddie"), { title: "Older task, no mark", ...now() }),
+    );
+  });
+});
+
+describe("who finished it", () => {
+  it("is recorded as whoever finishes it, never someone else", async () => {
+    await assertSucceeds(
+      updateDoc(task("sam"), {
+        statusId: "done",
+        doneAt: serverTimestamp(),
+        doneBy: "sam",
+        ...now(),
+      }),
+    );
+    await assertFails(
+      updateDoc(task("sam", "graphic"), { doneBy: "gwen", ...now() }),
+    );
+  });
+
+  it("is cleared when it's reopened", async () => {
+    await seedDone();
+    await assertSucceeds(
+      updateDoc(task("sam"), {
+        statusId: "todo",
+        doneAt: null,
+        doneBy: null,
+        ...now(),
+      }),
+    );
+  });
+});
+
+async function seedDone() {
+  await seed(env, {
+    "tasks/graphic": stored({
+      statusId: "done",
+      doneAt: new Date(2026, 10, 5),
+      doneBy: "sam",
+    }),
+  });
+}
+
+describe("keeping a finished task as history", () => {
+  it("is for planners, in the batch that deletes its event", async () => {
+    await seed(env, { "events/match1": { title: "vs. Orca" } });
+    const db = signedInAs(env, "pia");
+    const batch = writeBatch(db);
+    batch.update(doc(db, "tasks/fromEvent"), {
+      eventGone: { title: "vs. Orca", startsAt: new Date(2026, 10, 6) },
+      ...now(),
+    });
+    batch.delete(doc(db, "events/match1"));
+    await assertSucceeds(batch.commit());
+  });
+
+  it("can't be set while the event still exists", async () => {
+    await seed(env, { "events/match1": { title: "vs. Orca" } });
+    await assertFails(
+      updateDoc(task("pia", "fromEvent"), {
+        eventGone: { title: "vs. Orca", startsAt: null },
+        ...now(),
+      }),
+    );
   });
 });
 
@@ -358,6 +461,30 @@ describe("reassigning and editing", () => {
     );
     await assertFails(
       updateDoc(task("eddie"), { createdBy: "eddie", ...now() }),
+    );
+  });
+
+  it("records which parts were changed by hand, from a known list", async () => {
+    await assertSucceeds(
+      updateDoc(task("ollie"), {
+        workGroupId: null,
+        memberId: "gwen",
+        editedParts: ["assignee"],
+        ...now(),
+      }),
+    );
+    await assertSucceeds(
+      updateDoc(task("eddie"), {
+        title: "Mine now",
+        editedParts: ["assignee", "title"],
+        ...now(),
+      }),
+    );
+    await assertFails(
+      updateDoc(task("eddie"), { editedParts: ["status"], ...now() }),
+    );
+    await assertFails(
+      updateDoc(task("eddie"), { editedParts: "title", ...now() }),
     );
   });
 

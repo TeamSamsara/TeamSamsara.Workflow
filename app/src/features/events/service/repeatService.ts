@@ -1,13 +1,15 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/service/repeatService.ts
-// Version : 1.2.0
-// Latest commit: feature/attendance-photos
+// Version : 1.3.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Repeats and their events. Makes a repeat and its next weeks of
 // events; tops up the weeks ahead (any planner's browser can, and an event's
 // id is its date, so it's never made twice); skips one date; ends the repeat
 // after a date; and changes it from a date onward, moving, adding or removing
-// upcoming events to match. A repeat's events are found by their ids, since a
-// planner may not be allowed to see all of them.
+// upcoming events to match; and deletes this one, this and every later one,
+// or the whole series, keeping finished tasks as history if asked. A repeat's
+// events are found by their ids, since a planner may not be allowed to see
+// all of them (people who see everything also find past ones by repeat).
 
 import {
   arrayUnion,
@@ -17,6 +19,7 @@ import {
   getDocs,
   query,
   where,
+  writeBatch,
 } from "firebase/firestore";
 import {
   Collections,
@@ -24,6 +27,7 @@ import {
   dataErrorKind,
   fromDate,
   serverTime,
+  maxWritesPerBatch,
   splitIntoChunks,
   type BatchWrite,
 } from "@/core/data";
@@ -46,6 +50,13 @@ import {
   type RepeatRecord,
   type RepeatSchedule,
 } from "../types/repeatTypes";
+import {
+  lastDateBefore,
+  planSeriesDeletion,
+  seriesDates,
+  type SeriesChoice,
+} from "../model/seriesDeletion";
+import { recordBulkPlan } from "./bulkPlanService";
 import {
   deleteEventWrites,
   eventDetailsWrite,
@@ -171,10 +182,18 @@ export async function topUpRepeat(
   repeat: RepeatRecord,
   options: TopUpOptions,
 ): Promise<number> {
+  return (await topUp(repeat, options)).length;
+}
+
+/** Makes the missing events; gives back their ids. */
+async function topUp(
+  repeat: RepeatRecord,
+  options: TopUpOptions,
+): Promise<string[]> {
   const from =
     repeat.startDate > options.today ? repeat.startDate : options.today;
   const dates = repeatDates(repeat, from, windowEnd(options.today));
-  if (dates.length === 0) return 0;
+  if (dates.length === 0) return [];
   const found = await findOccurrences(repeat.id, dates);
   const workflows = options.workflows.filter(
     (workflow) =>
@@ -194,7 +213,7 @@ export async function topUpRepeat(
     ),
   );
   await commitWrites(db, writes);
-  return missing.length;
+  return missing.map((date) => occurrenceId(repeat.id, date));
 }
 
 /** Makes a repeat and its events for the weeks ahead; gives back its id. */
@@ -220,7 +239,14 @@ export async function createRepeat(
     createdAt: null,
     updatedAt: null,
   };
-  await topUpRepeat(repeat, { ...options, workflows });
+  const made = await topUp(repeat, { ...options, workflows });
+  await recordBulkPlan({
+    kind: "repeat",
+    sourceId: ref.id,
+    name: fields.title,
+    eventIds: made,
+    byId: options.createdBy,
+  });
   return ref.id;
 }
 
@@ -380,3 +406,141 @@ export function previewRepeat(schedule: RepeatSchedule, today: string) {
   const from = schedule.startDate > today ? schedule.startDate : today;
   return repeatDates(schedule, from, windowEnd(today));
 }
+
+// #region Deleting a repeat
+
+/** An event the deletion takes, as its kept tasks remember it. */
+export interface SeriesEvent {
+  id: string;
+  title: string;
+  startsAt: Date;
+}
+
+export interface SeriesSource {
+  events: SeriesEvent[];
+  tasks: TaskRecord[];
+}
+
+/**
+ * The events the choice takes, and their tasks, read once. People who see
+ * every event find all of a repeat's events (even ones made on an older
+ * schedule); others find them by date, from the repeat's schedule.
+ */
+export async function readSeries(
+  repeat: RepeatRecord,
+  choice: SeriesChoice,
+  date: string,
+  today: string,
+  timeZone: string,
+  seesAllEvents: boolean,
+): Promise<SeriesSource> {
+  let events: SeriesEvent[];
+  if (choice === "all" && seesAllEvents) {
+    const snapshot = await getDocs(
+      query(
+        collection(db, Collections.events),
+        where("repeatId", "==", repeat.id),
+      ).withConverter(eventConverter),
+    );
+    events = snapshot.docs.map((entry) => {
+      const event = entry.data();
+      return { id: event.id, title: event.title, startsAt: event.startsAt };
+    });
+  } else {
+    const found = await findOccurrences(
+      repeat.id,
+      seriesDates(repeat, choice, date, windowEnd(today)),
+    );
+    events = [...found].map(([day, event]) => ({
+      id: occurrenceId(repeat.id, day),
+      title: event === "hidden" ? repeat.title : event.title,
+      startsAt:
+        event === "hidden"
+          ? occurrenceStart(day, repeat.time, timeZone)
+          : event.startsAt,
+    }));
+  }
+  events.sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
+  const tasks = await tasksOf(events.map((event) => event.id));
+  return { events, tasks };
+}
+
+/** Commits groups of writes, never splitting a group across two batches. */
+async function commitGroups(groups: readonly BatchWrite[][]): Promise<void> {
+  let batch: BatchWrite[] = [];
+  const flush = async () => {
+    if (batch.length === 0) return;
+    const writes = writeBatch(db);
+    batch.forEach((write) => write(writes));
+    await writes.commit();
+    batch = [];
+  };
+  for (const group of groups) {
+    if (batch.length + group.length > maxWritesPerBatch) await flush();
+    batch.push(...group);
+  }
+  await flush();
+}
+
+/**
+ * Deletes what the choice takes. Just this one skips its date; this and every
+ * later one ends the repeat the day before; the whole series deletes the
+ * repeat too. Each event goes with its open tasks; finished ones stay marked
+ * "Event deleted" unless keepDone is off. Gives back how many events went.
+ */
+export async function deleteSeries(
+  repeat: RepeatRecord,
+  choice: SeriesChoice,
+  date: string,
+  source: SeriesSource,
+  keepDone: boolean,
+): Promise<number> {
+  const plan = planSeriesDeletion(
+    source.events.map((event) => event.id),
+    source.tasks,
+    keepDone,
+  );
+  const repeatRef = doc(db, Collections.repeats, repeat.id);
+  const ends = choice === "all" || date <= repeat.startDate;
+  const repeatWrite: BatchWrite =
+    choice === "one"
+      ? (batch) =>
+          batch.update(repeatRef, {
+            skipDates: arrayUnion(date),
+            updatedAt: serverTime(),
+          })
+      : ends
+        ? (batch) => batch.delete(repeatRef)
+        : (batch) =>
+            batch.update(repeatRef, {
+              endKind: "onDate",
+              endDate: lastDateBefore(date),
+              endCount: null,
+              updatedAt: serverTime(),
+            });
+  const kept = new Set(plan.keepTaskIds);
+  const groups = source.events.map((event): BatchWrite[] => {
+    const tasks = source.tasks.filter((task) => task.eventId === event.id);
+    return [
+      ...tasks.map((task): BatchWrite =>
+        kept.has(task.id)
+          ? (batch) =>
+              batch.update(doc(db, Collections.tasks, task.id), {
+                eventGone: {
+                  title: event.title,
+                  startsAt: fromDate(event.startsAt),
+                },
+                updatedAt: serverTime(),
+              })
+          : (batch) => batch.delete(doc(db, Collections.tasks, task.id)),
+      ),
+      (batch) => batch.delete(doc(db, Collections.events, event.id)),
+    ];
+  });
+  // The repeat changes first, so a top-up running meanwhile doesn't make
+  // the deleted dates again.
+  await commitGroups([[repeatWrite], ...groups]);
+  return source.events.length;
+}
+
+// #endregion

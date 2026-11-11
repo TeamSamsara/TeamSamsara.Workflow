@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/EventForm.tsx
-// Version : 1.8.0
-// Latest commit: feature/attendance-photos
+// Version : 1.9.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : An event's details as a form: title, type, date, start and end,
 // who's in it (and who of them can make it), link, a box per {gap} its
@@ -166,6 +166,17 @@ export function EventForm({
           spanLabel={(start, end) => `${timeOf(start)} – ${timeOf(end)}`}
           slotLabel={(start, end) =>
             `${weekday(start)} ${timeOf(start)} – ${timeOf(end)}`
+          }
+          requiredIds={draft.attendance.requiredIds}
+          onToggleRequired={(id) =>
+            onChange({
+              attendance: {
+                ...draft.attendance,
+                requiredIds: draft.attendance.requiredIds.includes(id)
+                  ? draft.attendance.requiredIds.filter((entry) => entry !== id)
+                  : [...draft.attendance.requiredIds, id],
+              },
+            })
           }
           onPick={(start) => {
             const wall = toWallTime(start, tz);

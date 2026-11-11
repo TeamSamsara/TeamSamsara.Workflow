@@ -1,11 +1,12 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/service/setService.ts
-// Version : 1.0.0
-// Latest commit: feature/event-sets
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Sets of events: makes a set with its events and their tasks (the
 // set first, so each event can point at it), adds more events to one, renames
-// it, moves several of its events at once (their tasks move with them), and
-// deletes events or the whole set with their tasks.
+// it, fills in its events' fields (their tasks' text follows), moves several of its events at once (their tasks move with them), and
+// deletes events or the whole set with their tasks. Planning records itself
+// once saved, for the summary people get.
 
 import { collection, doc, getDocs, query, where } from "firebase/firestore";
 import {
@@ -27,6 +28,8 @@ import {
   eventWrites,
   type CreateOptions,
 } from "./eventService";
+import { recordBulkPlan } from "./bulkPlanService";
+import type { EventEdit } from "../model/setEdit";
 
 export interface SetFields extends Audience {
   name: string;
@@ -50,13 +53,14 @@ function eventsWrites(
   setId: string,
   events: readonly EventFields[],
   options: CreateOptions,
-): BatchWrite[] {
-  return events.flatMap((fields) =>
-    eventWrites(doc(collection(db, Collections.events)).id, fields, null, {
-      ...options,
-      setId,
-    }),
-  );
+): { ids: string[]; writes: BatchWrite[] } {
+  const ids = events.map(() => doc(collection(db, Collections.events)).id);
+  return {
+    ids,
+    writes: events.flatMap((fields, index) =>
+      eventWrites(ids[index], fields, null, { ...options, setId }),
+    ),
+  };
 }
 
 /** Makes the set, its events and their tasks; gives back the set's id. */
@@ -66,6 +70,7 @@ export async function createEventSet(
   options: CreateOptions,
 ): Promise<string> {
   const ref = doc(collection(db, Collections.eventSets));
+  const made = eventsWrites(ref.id, events, options);
   await commitWrites(db, [
     (batch) =>
       batch.set(ref, {
@@ -74,18 +79,35 @@ export async function createEventSet(
         createdAt: serverTime(),
         updatedAt: serverTime(),
       }),
-    ...eventsWrites(ref.id, events, options),
+    ...made.writes,
   ]);
+  await recordBulkPlan({
+    kind: "set",
+    sourceId: ref.id,
+    name: fields.name,
+    eventIds: made.ids,
+    byId: options.createdBy,
+  });
   return ref.id;
 }
 
 /** Adds events (and their tasks) to a set that exists. */
-export function addToEventSet(
+export async function addToEventSet(
   setId: string,
   events: readonly EventFields[],
   options: CreateOptions,
+  /** The set's name, for the summary people get. */
+  name: string,
 ): Promise<void> {
-  return commitWrites(db, eventsWrites(setId, events, options));
+  const made = eventsWrites(setId, events, options);
+  await commitWrites(db, made.writes);
+  await recordBulkPlan({
+    kind: "set",
+    sourceId: setId,
+    name,
+    eventIds: made.ids,
+    byId: options.createdBy,
+  });
 }
 
 export function renameEventSet(setId: string, name: string): Promise<void> {
@@ -96,6 +118,42 @@ export function renameEventSet(setId: string, name: string): Promise<void> {
         updatedAt: serverTime(),
       }),
   ]);
+}
+
+/**
+ * Saves filled-in fields on events (and their tasks' text that follows), and
+ * the set's name and title pattern when they change too.
+ */
+export function saveEventEdits(
+  edits: readonly EventEdit[],
+  set?: { id: string; name: string; titlePattern: string },
+): Promise<void> {
+  const writes: BatchWrite[] = [];
+  if (set)
+    writes.push((batch) =>
+      batch.update(doc(db, Collections.eventSets, set.id), {
+        name: set.name.trim().slice(0, EventSetLimits.name),
+        titlePattern: set.titlePattern.trim(),
+        updatedAt: serverTime(),
+      }),
+    );
+  for (const edit of edits) {
+    writes.push((batch) =>
+      batch.update(doc(db, Collections.events, edit.eventId), {
+        title: edit.title,
+        details: edit.details,
+        updatedAt: serverTime(),
+      }),
+    );
+    for (const refill of edit.refills)
+      writes.push((batch) =>
+        batch.update(doc(db, Collections.tasks, refill.taskId), {
+          ...refill.changes,
+          updatedAt: serverTime(),
+        }),
+      );
+  }
+  return commitWrites(db, writes);
 }
 
 /** The tasks of these events, read once. */

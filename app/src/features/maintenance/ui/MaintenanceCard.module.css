@@ -1,0 +1,82 @@
+/* File : /TeamSamsara.Workflow/app/src/features/maintenance/ui/MaintenanceCard.module.css
+   Version : 1.0.0
+   Latest commit: feature/audit-fixes
+   Author : Gerrah
+   Purpose : Look of the Database maintenance card: heading with Run now, the Apply switch, and each run as a row with its date, mode and counts. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-section-heading);
+  text-transform: uppercase;
+}
+
+.subtitle {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-body);
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.runs {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.run {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+  padding: var(--space-2-5, 10px) 0;
+  border-top: var(--border-width) solid var(--color-border);
+}
+
+.runHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.counts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding-left: var(--space-5);
+  font-size: var(--text-meta);
+}
+
+.examples {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  overflow-wrap: anywhere;
+}

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/layouts/AppLayout/navItems.ts
-// Version : 1.4.0
-// Latest commit: feature/onboarding
+// Version : 1.5.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The main menu, in order: where each item goes, its label, its icon,
 // and the permissions it needs to show.
@@ -44,6 +44,7 @@ export const navItems: readonly NavItem[] = [
   },
   { to: RoutePaths.myTasks, label: SidebarText.myTasks, icon: "myTasks" },
   { to: RoutePaths.workflows, label: SidebarText.workflows, icon: "workflows" },
+  { to: RoutePaths.groups, label: SidebarText.groups, icon: "members" },
   { to: RoutePaths.docs, label: SidebarText.docs, icon: "help" },
   {
     to: RoutePaths.settings,

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/hooks/useWorkGroupDraft.ts
-// Version : 1.1.0
-// Latest commit: task/group-leads-and-x-premium
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The unsaved edits to one work group: its name, what it does, its
 // leads and links; whether anything changed, Reset, or Save. Follows the saved group
@@ -28,7 +28,8 @@ const same = (a: WorkGroupFields, b: WorkGroupFields) =>
   a.name === b.name &&
   a.description === b.description &&
   a.leadIds.join() === b.leadIds.join() &&
-  linksKey(a) === linksKey(b);
+  linksKey(a) === linksKey(b) &&
+  a.color === b.color;
 
 export interface WorkGroupDraft {
   fields: WorkGroupFields;
@@ -49,6 +50,7 @@ export function useWorkGroupDraft(group: WorkGroupRecord): WorkGroupDraft {
     description: group.description,
     leadIds: group.leadIds,
     links: group.links,
+    color: group.color,
   };
   const [edits, setEdits] = useState<Edits | null>(null);
 
@@ -92,6 +94,7 @@ export function useWorkGroupDraft(group: WorkGroupRecord): WorkGroupDraft {
           label: link.label.trim(),
           url: link.url.trim(),
         })),
+        color: fields.color,
       };
       mutation.mutate(toSave, {
         onSuccess: () => {

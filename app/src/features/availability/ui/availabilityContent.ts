@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/ui/availabilityContent.ts
-// Version : 1.2.0
-// Latest commit: feature/your-account
+// Version : 1.4.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words for availability, personal appointments and who can
 // make an event.
@@ -55,8 +55,11 @@ export const PersonalText = {
   notes: "Notes",
   notesPlaceholder: "Anything to remember",
   whoSees: "Who sees it",
-  whoSeesBody: (title: string) =>
-    `You and managers see ${title ? `"${title}"` : "what it is"}. Everyone else sees Busy on those hours.`,
+  whoSeesBody: (title: string, shared: boolean) =>
+    `${shared ? "You and your group leads see" : "Only you see"} ${title ? `"${title}"` : "what it is"}. Everyone else sees Busy on those hours.`,
+  share: "Share with my group leads",
+  shareDetail: (names: string) => `${names} will see what it is.`,
+  shareNone: "Your work groups have no leads to share it with.",
   busyNote:
     "It counts as busy when someone plans an event with you, so you won't get booked over it.",
   cancel: "Cancel",
@@ -67,7 +70,9 @@ export const PersonalText = {
   saved: (title: string) => `${title} saved`,
   deleted: (title: string) => `${title} deleted`,
   busy: "Busy",
-  private: "Only you and managers see what it is",
+  private: "Only you see what it is; others see Busy",
+  /** One shared with you as a group lead. */
+  sharedBy: (name: string) => `Shared by ${name}`,
 } as const;
 
 export const CheckText = {
@@ -81,6 +86,17 @@ export const CheckText = {
   freeTimesNote: "Same length, the next few days",
   noFreeTimes: "No time this week when everyone's free.",
   pickTime: (label: string) => `Move the event to ${label}`,
+  requiredCanMake: (free: number, total: number) =>
+    free === total
+      ? `All ${total} required are free`
+      : `${free} of ${total} required can make it`,
+  optionalFree: (free: number, total: number) =>
+    `${free} of ${total} optional are free (shown, not counted)`,
+  required: "Required",
+  optional: "Optional",
+  requiredToggle: (name: string) => `${name} is required`,
+  optionalNote: "(optional)",
+  requiredFreeTimes: "Everyone required is free",
   checking: "Checking who's free…",
   everyoneNote: "Everyone is in it, so there's no check of who's free.",
 } as const;
@@ -122,7 +138,7 @@ export const MyAvailabilityText = {
     `Hours are in your time zone (${zone}). Change it on Your account.`,
   whoSees: "Who sees it",
   whoSeesBody:
-    "Everyone can see when you're free or not, so events land when you can make them. Only you and managers see what your personal appointments are.",
+    "Everyone can see when you're free or not, so events land when you can make them. Only you see what your personal appointments are, unless you share one with your group leads.",
   loading: "Loading your availability",
   discard: {
     title: "Leave without saving?",

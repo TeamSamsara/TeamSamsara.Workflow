@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/fields/FieldsView.tsx
-// Version : 1.0.0
-// Latest commit: feature/event-fields
+// Version : 1.0.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Settings › Fields: every field with how text writes it, its type
 // and the workflows that use it; then the built-in ones. Edit workflows makes
@@ -108,9 +108,6 @@ export function FieldsView() {
 
       {fields.status === "error" ? (
         <Banner tone="error">{Text.failed}</Banner>
-      ) : null}
-      {!isAdmin && fields.items.length > 0 ? (
-        <Banner tone="info">{Text.adminsOnly}</Banner>
       ) : null}
 
       <section className={styles.card}>

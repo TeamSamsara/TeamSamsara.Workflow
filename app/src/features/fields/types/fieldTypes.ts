@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/fields/types/fieldTypes.ts
-// Version : 1.0.0
-// Latest commit: feature/event-fields
+// Version : 1.1.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : A field: a detail events can have (Opponent, League, Co-streamer),
 // kept under the key text writes it as ({opponent}). The key is the document's
@@ -13,6 +13,18 @@ import {
   readString,
   readStringList,
 } from "@/core/data";
+import {
+  BuiltInFieldKeys,
+  nameFromKey,
+  type BuiltInFieldKey,
+} from "@engine/gaps";
+
+// The fields every event fills itself, and a key's name, live in the engine.
+export {
+  BuiltInFieldKeys,
+  nameFromKey,
+  type BuiltInFieldKey,
+} from "@engine/gaps";
 
 export const FieldTypes = [
   "text",
@@ -56,15 +68,6 @@ export const FieldLimits = {
 } as const;
 
 /** The details every event fills by itself, in the order they're listed. */
-export const BuiltInFieldKeys = [
-  "title",
-  "date",
-  "time",
-  "end_time",
-  "link",
-  "event_type",
-] as const;
-export type BuiltInFieldKey = (typeof BuiltInFieldKeys)[number];
 
 export function isBuiltInField(key: string): key is BuiltInFieldKey {
   return (BuiltInFieldKeys as readonly string[]).includes(key);
@@ -86,11 +89,6 @@ export function keyFromName(name: string): string {
 }
 
 /** "opponent" → "Opponent", "co_streamer" → "Co streamer": for a key with no field. */
-export function nameFromKey(key: string): string {
-  const words = key.replace(/[_-]+/g, " ");
-  return words.charAt(0).toUpperCase() + words.slice(1);
-}
-
 function readFieldType(value: string): FieldType {
   return (FieldTypes as readonly string[]).includes(value)
     ? (value as FieldType)

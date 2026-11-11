@@ -1,9 +1,10 @@
 // File : /TeamSamsara.Workflow/app/src/app/layouts/AppLayout/Sidebar.tsx
-// Version : 1.8.0
-// Latest commit: feature/attendance-photos
+// Version : 1.9.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The dark sidebar: the logo with the workspace's name, the main menu
-// (only the items the member may use), and the account link with the theme
+// (only the items the member may use, with their own work groups under
+// Groups), and the account link with the theme
 // toggle at the bottom. On narrow screens it slides in as a menu and is out of
 // reach (inert) while closed.
 
@@ -14,10 +15,11 @@ import { ThemeToggle } from "@/core/theme";
 import { useWorkspaceRecord } from "@/core/workspace";
 import { memberName } from "@/features/members";
 import { NotificationBell } from "@/features/notifications";
+import { groupColor, useWorkGroups } from "@/features/work-groups";
 import { classNames } from "@/lib/classNames";
 import { Avatar } from "@/shared/components/Avatar/Avatar";
 import { Branding } from "@/shared/constants/branding";
-import { RoutePaths } from "@/shared/constants/routePaths";
+import { groupPath, RoutePaths } from "@/shared/constants/routePaths";
 import { Icon } from "@/shared/icons/Icon";
 import { navItems } from "./navItems";
 import { SidebarText } from "./sidebarContent";
@@ -40,6 +42,11 @@ export function Sidebar({ id, isCompact, isOpen, className }: SidebarProps) {
   const visibleItems = navItems.filter(
     (item) => !item.requiresAnyOf || canAny(item.requiresAnyOf),
   );
+  const groups = useWorkGroups();
+  const myGroups = groups.items
+    .map((item) => item.group)
+    .filter((group) => member?.workGroupIds.includes(group.id))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <aside
@@ -74,6 +81,26 @@ export function Sidebar({ id, isCompact, isOpen, className }: SidebarProps) {
                 <Icon name={item.icon} />
                 <span>{item.label}</span>
               </NavLink>
+              {item.to === RoutePaths.groups && myGroups.length > 0 ? (
+                <ul className={styles.list}>
+                  {myGroups.map((group) => (
+                    <li key={group.id}>
+                      <NavLink
+                        to={groupPath(group.id)}
+                        className={styles.link}
+                        data-sub
+                      >
+                        <span
+                          className={styles.groupDot}
+                          style={{ backgroundColor: groupColor(group) }}
+                          aria-hidden="true"
+                        />
+                        <span>{group.name}</span>
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
             </li>
           ))}
         </ul>

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/task-setup/service/setupListService.ts
-// Version : 1.0.0
-// Latest commit: feature/task-setup
+// Version : 1.1.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Saves the workspace's lists (statuses, event types, tags): add an
 // item at the end, edit it, delete it, and save a new order in one batch.
@@ -20,7 +20,8 @@ import { db } from "@/lib/firebase";
 export type SetupListName =
   | typeof Collections.statuses
   | typeof Collections.eventTypes
-  | typeof Collections.tags;
+  | typeof Collections.tags
+  | typeof Collections.peopleTags;
 
 function tidy<TData extends { name?: string }>(data: TData): TData {
   return data.name === undefined ? data : { ...data, name: data.name.trim() };

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/ui/workGroupsContent.ts
-// Version : 1.2.0
-// Latest commit: fix/invite-and-fields
+// Version : 1.3.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words on the work group cards, form, picker and dialogs.
 

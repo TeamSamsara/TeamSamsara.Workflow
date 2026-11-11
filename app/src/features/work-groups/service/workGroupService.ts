@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/service/workGroupService.ts
-// Version : 1.2.0
-// Latest commit: task/group-leads-and-x-premium
+// Version : 1.3.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Creates, edits and deletes work groups. Names and descriptions are
 // trimmed on the way in. Who is in a group is kept on member records, so adding
@@ -24,15 +24,17 @@ import type { WorkGroupFields } from "../types/workGroupTypes";
 
 const groupsCollection = () => collection(db, Collections.workGroups);
 
-function tidy(fields: WorkGroupFields): WorkGroupFields {
+function tidy(fields: WorkGroupFields) {
   return {
+    // Left out until one is picked, so groups stay as they were.
+    ...(fields.color ? { color: fields.color } : {}),
     name: fields.name.trim(),
     description: fields.description.trim(),
     leadIds: [...new Set(fields.leadIds)],
     links: fields.links
       .map((link) => ({ label: link.label.trim(), url: link.url.trim() }))
       .filter((link) => link.url),
-  };
+  } as Omit<WorkGroupFields, "color"> & { color?: string };
 }
 
 /** Adds a group and gives back its id. */

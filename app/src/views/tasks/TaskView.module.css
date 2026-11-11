@@ -93,3 +93,16 @@
   font-size: var(--text-body);
   line-height: var(--leading-body);
 }
+
+/* The event the task belongs to, as a link. */
+.event {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: inherit;
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+  --icon-size: var(--icon-size-small);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/members/MembersView.tsx
-// Version : 1.2.0
-// Latest commit: feature/onboarding
+// Version : 1.3.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Settings → Members: everyone in the workspace with search and a
 // status filter, and Invite people.
@@ -19,6 +19,7 @@ import {
   type StatusFilter,
 } from "@/features/members";
 import { OnboardingPreview, TourTarget } from "@/features/onboarding";
+import { PeopleTagsCard, usePeopleTags } from "@/features/people-tags";
 import { Banner } from "@/shared/components/Banner/Banner";
 import { Button } from "@/shared/components/Button/Button";
 import { TextField } from "@/shared/components/Fields/TextField/TextField";
@@ -32,6 +33,7 @@ export function MembersView() {
   const time = useDisplayTime();
   const access = usePermissions();
   const members = useMembers();
+  const tags = usePeopleTags();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [isInviting, setIsInviting] = useState(false);
@@ -96,9 +98,12 @@ export function MembersView() {
             items={filterMembers(members.items, filter, search)}
             hrefFor={memberPath}
             timeZone={time.timeZone}
+            tags={tags.items}
           />
         )}
       </section>
+
+      <PeopleTagsCard members={members.records} />
 
       {isInviting ? (
         <InviteDialog

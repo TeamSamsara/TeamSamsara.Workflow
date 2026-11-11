@@ -1,0 +1,193 @@
+/* File : /TeamSamsara.Workflow/app/src/views/people/MemberProfile.module.css
+   Version : 1.0.0
+   Latest commit: feature/audit-fixes
+   Author : Gerrah
+   Purpose : Look of a member's profile: a card on the left with their photo, name, tags, groups and local time; their week, what's coming up and their tasks on the right. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--content-gap);
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-4);
+}
+
+.card,
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.photo {
+  width: 88px;
+  height: 88px;
+  font-size: 28px;
+}
+
+.name {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 34px;
+  font-weight: var(--weight-regular);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.label {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1-5);
+}
+
+.groupLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  height: 26px;
+  padding: 0 var(--space-2-5, 10px);
+  border-radius: var(--radius-small);
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+  font-size: var(--text-meta);
+  text-decoration: none;
+}
+
+.groupLink:hover {
+  text-decoration: underline;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.clock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3);
+  border-radius: var(--radius-field);
+  background-color: var(--color-page);
+}
+
+.clockTime {
+  font-size: 20px;
+  font-weight: var(--weight-bold);
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.sectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.sectionTitle {
+  flex: 1 1 auto;
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-section-heading);
+  text-transform: uppercase;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-2) 0;
+  border-top: var(--border-width) solid var(--color-border);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.when {
+  flex: none;
+  width: 150px;
+  white-space: nowrap;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+}
+
+.what {
+  display: flex;
+  flex: 1 1 160px;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.reply {
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+}
+
+.reply[data-answer="going"] {
+  color: var(--color-accent-text);
+}
+
+.reply[data-answer="waiting"],
+.reply[data-answer="maybe"] {
+  color: var(--palette-amber);
+}
+
+.reply[data-answer="cant"] {
+  color: var(--color-error-text);
+}
+
+.reply[data-answer="none"] {
+  color: var(--color-text-muted);
+  font-weight: var(--weight-regular);
+}
+
+.due {
+  min-width: 90px;
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+  text-align: right;
+}
+
+@media (max-width: 860px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

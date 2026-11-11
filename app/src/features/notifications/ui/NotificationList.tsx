@@ -1,12 +1,13 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/ui/NotificationList.tsx
-// Version : 1.2.0
-// Latest commit: feature/attendance-photos
+// Version : 1.3.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The notification list, in the bell's panel and on its own page:
 // a header with Mark all read and the settings, All / Unread, then Today and
 // Earlier. Each one says who did what, with an icon for its kind; unread ones
 // are tinted with a dot. Opening one marks it read and goes to its task or event.
-// Being asked to reply to an event can be answered right there.
+// Being asked to reply to an event can be answered right there. Summaries
+// (a set planned, tasks moved) add their counts and Show the tasks.
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -17,11 +18,18 @@ import { useWorkGroups } from "@/features/work-groups";
 import { Icon } from "@/shared/icons/Icon";
 import type { IconName } from "@/shared/icons/iconRegistry";
 import { useNow } from "@/shared/hooks/useNow";
-import { eventPath, RoutePaths, taskPath } from "@/shared/constants/routePaths";
+import {
+  eventPath,
+  eventSetPath,
+  RoutePaths,
+  taskPath,
+} from "@/shared/constants/routePaths";
+import { formatDue } from "@/features/tasks";
 import { dayKey, formatShortDate } from "@/shared/time/dates";
 import { useNotifications } from "../hooks/useNotifications";
 import { byDay, notificationLine, timeAgo } from "../model/notificationText";
 import { markRead } from "../service/notificationService";
+import { SummaryItem } from "./SummaryItem";
 import type {
   NotificationKind,
   NotificationRecord,
@@ -45,6 +53,8 @@ const look: Record<NotificationKind, { icon: IconName; tone: string }> = {
   replyAsked: { icon: "check", tone: "task" },
   replyDeclined: { icon: "warning", tone: "alert" },
   replied: { icon: "members", tone: "event" },
+  setPlanned: { icon: "eventSets", tone: "event" },
+  tasksMoved: { icon: "time", tone: "task" },
 };
 
 interface NotificationListProps {
@@ -84,7 +94,11 @@ export function NotificationList({
       ? taskPath(note.taskId)
       : note.eventId
         ? eventPath(note.eventId)
-        : null;
+        : note.kind === "setPlanned" && note.setId
+          ? eventSetPath(note.setId)
+          : note.kind === "setPlanned" || note.kind === "tasksMoved"
+            ? RoutePaths.myTasks
+            : null;
     onOpen?.();
     if (to) navigate(to);
   }
@@ -192,6 +206,28 @@ export function NotificationList({
                         </span>
                       ) : null}
                     </button>
+                    {note.summary ? (
+                      <div className={styles.inline}>
+                        <SummaryItem
+                          summary={note.summary}
+                          moved={note.kind === "tasksMoved"}
+                          groupName={(id) =>
+                            groups.items.find((item) => item.group.id === id)
+                              ?.group.name ?? null
+                          }
+                          formatDue={(date) =>
+                            formatDue(
+                              date,
+                              time.timeZone,
+                              time.timeFormat,
+                              time.dateFormat,
+                              now,
+                            )
+                          }
+                          onOpen={onOpen}
+                        />
+                      </div>
+                    ) : null}
                     {note.kind === "replyAsked" && note.eventId ? (
                       <div className={styles.inline}>
                         <InlineReply eventId={note.eventId} />

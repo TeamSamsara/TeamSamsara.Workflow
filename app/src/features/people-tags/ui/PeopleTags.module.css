@@ -1,0 +1,69 @@
+/* File : /TeamSamsara.Workflow/app/src/features/people-tags/ui/PeopleTags.module.css
+   Version : 1.0.0
+   Latest commit: feature/audit-fixes
+   Author : Gerrah
+   Purpose : People tag pills: solid with the tag's colour edge and dot when on, dashed with a + when off (to put it on); a compact size for rows. */
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1-5);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  height: 28px;
+  padding: 0 var(--space-2-5, 10px);
+  border: var(--border-width) dashed var(--color-border-control);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+  white-space: nowrap;
+  --icon-size: 14px;
+}
+
+button.pill {
+  cursor: pointer;
+}
+
+.pill[data-on] {
+  border-style: solid;
+  border-color: var(--tag-color, var(--color-border-control));
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+}
+
+.pill:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.pills[data-compact] .pill,
+.pill[data-compact] {
+  height: 22px;
+  padding: 0 var(--space-2);
+  font-size: var(--text-small);
+}
+
+.dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 3px;
+  background-color: var(--tag-color, var(--color-text-muted));
+}
+
+.plus {
+  flex: none;
+}
+
+.none {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+}

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/types/taskTypes.ts
-// Version : 1.0.0
-// Latest commit: feature/tasks
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : A task: something one work group or person has to do by a time.
 // It has the same basics and sections as a workflow's task, plus where it is
@@ -62,6 +62,18 @@ export interface TaskRecord {
   updatedAt: Date | null;
   /** Set when it moves to a finished or closed status; null while it's still to do. */
   doneAt: Date | null;
+  /** Made after its due time had passed (planned late), so it's late through no one's fault. */
+  lateAtCreation: boolean;
+  /** Who marked it done or closed it; null while open, or for tasks done before this was kept. */
+  doneBy: string | null;
+  /** Kept as history when its event was deleted: what the event was. */
+  eventGone: { title: string; startsAt: Date | null } | null;
+  /**
+   * The parts people changed by hand ("due", "assignee", "title", "notes",
+   * "checklist", "posts"), which stay when its workflow changes; null for
+   * tasks from before this was kept.
+   */
+  editedParts: string[] | null;
 }
 
 /** The part of a task its edit form changes. */
@@ -102,6 +114,16 @@ function readChecklist(data: DocumentData): TaskChecklistItem[] | null {
   });
 }
 
+function readEventGone(data: DocumentData): TaskRecord["eventGone"] {
+  const value: unknown = data.eventGone;
+  if (typeof value !== "object" || value === null) return null;
+  const gone = value as DocumentData;
+  return {
+    title: readString(gone, "title"),
+    startsAt: readDate(gone, "startsAt"),
+  };
+}
+
 function parse(id: string, data: DocumentData): TaskRecord {
   // The shared parts read the same way as a workflow's task.
   const step = readStep(data, 0);
@@ -132,6 +154,14 @@ function parse(id: string, data: DocumentData): TaskRecord {
     createdAt: readDate(data, "createdAt"),
     updatedAt: readDate(data, "updatedAt"),
     doneAt: readDate(data, "doneAt"),
+    lateAtCreation: readBoolean(data, "lateAtCreation"),
+    doneBy: readOptionalString(data, "doneBy"),
+    eventGone: readEventGone(data),
+    editedParts: Array.isArray(data.editedParts)
+      ? (data.editedParts as unknown[]).filter(
+          (part): part is string => typeof part === "string",
+        )
+      : null,
   };
 }
 
@@ -145,5 +175,11 @@ export const taskConverter = createConverter<TaskRecord>({
     createdAt: fromDate(task.createdAt),
     updatedAt: fromDate(task.updatedAt),
     doneAt: fromDate(task.doneAt),
+    eventGone: task.eventGone
+      ? {
+          title: task.eventGone.title,
+          startsAt: fromDate(task.eventGone.startsAt),
+        }
+      : null,
   }),
 });

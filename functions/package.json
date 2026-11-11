@@ -1,14 +1,14 @@
 {
   "name": "playbook-functions",
   "private": true,
-  "description": "Playbook's server functions: notifications, reminders, email and signing out everywhere.",
+  "description": "Playbook's server functions: notifications, reminders, email, signing out everywhere, keeping tasks in line with their workflows, and platform updates.",
   "type": "module",
   "main": "lib/index.js",
   "engines": {
     "node": "22"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --noEmit && esbuild src/index.ts --bundle --platform=node --target=node22 --format=esm --packages=external --sourcemap --outfile=lib/index.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
@@ -17,6 +17,7 @@
     "firebase-functions": "^7.4.0"
   },
   "devDependencies": {
+    "esbuild": "^0.27.7",
     "typescript": "~6.0.2",
     "vitest": "^5.0.5"
   }

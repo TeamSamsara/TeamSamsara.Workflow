@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/model/placeholders.ts
-// Version : 1.2.0
-// Latest commit: feature/event-fields
+// Version : 1.3.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Fields written in a workflow's text, like {title} or {opponent},
 // filled from the event when its tasks are made. The built-in ones ({title},
@@ -8,33 +8,15 @@
 // itself; any other is asked for when planning it.
 
 import { BuiltInFieldKeys, type BuiltInFieldKey } from "@/features/fields";
+import { findGaps } from "@engine/gaps";
 import type { WorkflowStep } from "../types/workflowTypes";
+
+// Finding and filling gaps live in the engine, which the server shares.
+export { fillGaps, findGaps } from "@engine/gaps";
 
 /** Fields every event fills on its own. */
 export const EventGaps = BuiltInFieldKeys;
 export type EventGap = BuiltInFieldKey;
-
-const gapPattern = /\{([A-Za-z][A-Za-z0-9_-]{0,29})\}/g;
-
-/** The gaps in a text, lower-cased, each once, in the order they appear. */
-export function findGaps(text: string): string[] {
-  const found = new Set<string>();
-  for (const match of text.matchAll(gapPattern)) {
-    found.add(match[1].toLowerCase());
-  }
-  return [...found];
-}
-
-/** Fills the gaps it has values for; leaves any others as they are. */
-export function fillGaps(
-  text: string,
-  values: Readonly<Record<string, string>>,
-): string {
-  return text.replace(gapPattern, (whole, name: string) => {
-    const value = values[name.toLowerCase()];
-    return value === undefined ? whole : value;
-  });
-}
 
 /** Every text in a step that may hold gaps. */
 function stepTexts(step: WorkflowStep): string[] {

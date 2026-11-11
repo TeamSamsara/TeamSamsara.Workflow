@@ -1,11 +1,16 @@
 // File : /TeamSamsara.Workflow/app/src/features/task-setup/index.ts
-// Version : 1.0.0
-// Latest commit: feature/task-setup
+// Version : 1.1.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : What other layers may use from the task setup feature: the
 // workspace's statuses, event types and tags.
 
-export { useEventTypes, useStatuses, useTags } from "./hooks/useSetupLists";
+export {
+  useEventTypes,
+  usePeopleTags,
+  useStatuses,
+  useTags,
+} from "./hooks/useSetupLists";
 export type { SetupList } from "./hooks/useSetupLists";
 export { saveSetupOrder } from "./service/setupListService";
 export type { SetupListName } from "./service/setupListService";

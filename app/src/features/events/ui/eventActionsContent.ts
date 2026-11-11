@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/eventActionsContent.ts
-// Version : 1.1.0
-// Latest commit: feature/event-fields
+// Version : 1.3.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words for an event's ⋯ menu and the dialogs it opens.
 
@@ -13,7 +13,30 @@ export const EventActionsText = {
     editUpcoming: "Edit this and upcoming",
     skip: "Skip this one",
     end: "End the repeat",
-    deleteOne: "Delete this one",
+    deleteOne: "Delete…",
+    refresh: "Update tasks from workflows",
+  },
+  refreshDialog: {
+    title: "Update tasks from workflows",
+    description: (title: string) =>
+      `Makes ${title}'s open tasks match its workflows as they are now.`,
+    loading: "Comparing with the workflows",
+    changes: "Tasks that change",
+    parts: {
+      title: "title",
+      notes: "notes",
+      checklist: "checklist",
+      posts: "post text",
+      due: "due time",
+    },
+    withDue: "Also move due times to the workflow's",
+    newSteps: "Steps with no task on this event",
+    newStepsHelp: "Added to the workflow since, or deleted from this event.",
+    upToDate: "Its open tasks already match its workflows.",
+    cancel: "Cancel",
+    save: "Update tasks",
+    saved: (count: number) =>
+      count === 1 ? "1 task updated" : `${count} tasks updated`,
   },
   saved: (title: string) => `${title} saved`,
   deleted: (title: string) => `${title} deleted`,

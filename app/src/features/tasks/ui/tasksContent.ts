@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/ui/tasksContent.ts
-// Version : 1.0.0
-// Latest commit: feature/tasks
+// Version : 1.1.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words for tasks: rows and groups, the task page's cards, the
 // moves a task can make, the edit form, and the new task and reassign dialogs.
@@ -15,18 +15,23 @@ export const DueText = {
   due: (when: string) => `Due ${when}`,
   noDue: "No due date",
   late: "Late",
+  /** On a task planned after its due time had passed. */
+  lateFromStart: "Late from the start",
 } as const;
 
 export const DueGroupText: Record<DueGroup, string> = {
   late: "Late",
   today: "Today",
-  thisWeek: "This week",
+  next7: "Next 7 days",
   later: "Later",
   noDue: "No due date",
 };
 
 export const TaskRowText = {
   unassigned: "No one yet",
+  doneAt: (when: string) => `Done ${when}`,
+  eventGone: (title: string, when: string | null) =>
+    when ? `Event deleted: ${title}, ${when}` : `Event deleted: ${title}`,
   open: (title: string) => `Open ${title}`,
 } as const;
 
@@ -53,7 +58,6 @@ export const TaskCardText = {
 export const NextStepText = {
   title: "Next step",
   sendForReview: "Send for review",
-  sendForReviewHint: "Someone with Approve tasks checks it before it's done.",
   markDone: "Mark as done",
   reopen: "Reopen",
   approve: "Approve",
@@ -84,7 +88,7 @@ export const NextStepText = {
 
 export const ApprovalText = {
   title: "Approval",
-  needed: "Needs approval from someone with Approve tasks before it's done.",
+  needed: "Needs approval before it's done.",
   sentBy: (name: string, when: string) =>
     `Sent for review by ${name} · ${when}`,
   approvedBy: (name: string, when: string) => `Approved by ${name} · ${when}`,
@@ -151,4 +155,12 @@ export const GiveToText = {
     "Pick a work group and anyone in it can take the task, or pick one person. To give it to someone in a group, pick the group, then the person.",
   whoInGroup: (group: string) => `Who in ${group}`,
   anyoneInGroup: (group: string) => `Anyone in ${group}`,
+} as const;
+
+export const DoneThisWeekText = {
+  title: "Done this week",
+  byDay: "Done each day",
+  dayCount: (day: string, count: number) =>
+    `${day}: ${count === 1 ? "1 task" : `${count} tasks`}`,
+  open: "See what was done",
 } as const;

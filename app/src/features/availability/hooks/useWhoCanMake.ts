@@ -1,10 +1,11 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/hooks/useWhoCanMake.ts
-// Version : 1.0.0
-// Latest commit: feature/event-sets
+// Version : 1.1.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Who can make each of several planned events: how many of the
 // people in them are free, and who isn't (busy with a personal appointment or
-// usually unavailable then). Reads everyone's busy times once for all of them.
+// usually unavailable then). With required people, only they count; the
+// optional ones being away doesn't matter. Reads everyone's busy times once.
 
 import { useAllAvailability, useBusyInRange } from "./useAvailability";
 import { checkPerson } from "../model/freeBusy";
@@ -28,7 +29,12 @@ export function useWhoCanMake(
   people: readonly { id: string; name: string }[],
   spans: readonly Span[],
   timeZone: string,
+  /** When some are required, only they count. */
+  requiredIds: readonly string[] = [],
 ): Map<string, WhoCanMake> {
+  const counted = requiredIds.length
+    ? people.filter((person) => requiredIds.includes(person.id))
+    : people;
   const availability = useAllAvailability();
   const times = spans.flatMap((span) => [
     span.start.getTime(),
@@ -44,7 +50,7 @@ export function useWhoCanMake(
   const busy = useBusyInRange(from, to, people.length > 0 && spans.length > 0);
   const checks = new Map<string, WhoCanMake>();
   for (const span of spans) {
-    const away = people.filter((person) => {
+    const away = counted.filter((person) => {
       const state = checkPerson(
         {
           availability: availability.get(person.id) ?? null,
@@ -57,8 +63,8 @@ export function useWhoCanMake(
       return state !== "free";
     });
     checks.set(span.key, {
-      free: people.length - away.length,
-      total: people.length,
+      free: counted.length - away.length,
+      total: counted.length,
       away: away.map((person) => person.name),
     });
   }

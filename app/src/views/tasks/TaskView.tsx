@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/tasks/TaskView.tsx
-// Version : 1.1.0
-// Latest commit: feature/your-account
+// Version : 1.4.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : A task's page: where it is (the status steps), how to do it, the
 // post text to copy and the checklist to tick; beside them, the next step,
@@ -8,9 +8,10 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
-import { useBlocker, useNavigate, useParams } from "react-router-dom";
+import { Link, useBlocker, useNavigate, useParams } from "react-router-dom";
 import { dataErrorMessage, isCurrentMember } from "@/core/data";
 import { useDisplayTime, useWorkspaceRecord } from "@/core/workspace";
+import { useEventLabels } from "@/features/events";
 import { memberName, useMembers } from "@/features/members";
 import { usePlatforms } from "@/features/platforms";
 import { StatusPill, useStatuses, useTags } from "@/features/task-setup";
@@ -22,6 +23,7 @@ import {
   deleteTask,
   draftFromTask,
   DueText,
+  editedPartsAfter,
   fieldsFromDraft,
   formatDue,
   HowToCard,
@@ -40,14 +42,16 @@ import { useWorkGroups } from "@/features/work-groups";
 import { Banner } from "@/shared/components/Banner/Banner";
 import { Button } from "@/shared/components/Button/Button";
 import { Chip } from "@/shared/components/Chip/Chip";
+import { Pill } from "@/shared/components/Pill/Pill";
 import { LinkButton } from "@/shared/components/Button/LinkButton";
 import { Modal } from "@/shared/components/Modal/Modal";
 import { PageHeader } from "@/shared/components/PageHeader/PageHeader";
 import { Spinner } from "@/shared/components/Spinner/Spinner";
 import { useToast } from "@/shared/components/Toast/useToast";
-import { RoutePaths } from "@/shared/constants/routePaths";
+import { eventPath, RoutePaths } from "@/shared/constants/routePaths";
 import { useNow } from "@/shared/hooks/useNow";
 import { Icon } from "@/shared/icons/Icon";
+import { formatDate } from "@/shared/time/dates";
 import { TaskViewText as Text } from "./taskViewContent";
 import styles from "./TaskView.module.css";
 
@@ -63,13 +67,16 @@ function TaskPage({ task }: { task: TaskRecord }) {
   const toast = useToast();
   const navigate = useNavigate();
   const now = useNow();
+  const event = useEventLabels([task.eventId]).get(task.eventId ?? "");
   const [draft, setDraft] = useState<TaskDraft | null>(null);
   const [tried, setTried] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   const save = useMutation({
-    mutationFn: (next: TaskDraft) =>
-      saveTaskFields(task.id, fieldsFromDraft(next, workspace.timeZone)),
+    mutationFn: (next: TaskDraft) => {
+      const fields = fieldsFromDraft(next, workspace.timeZone);
+      return saveTaskFields(task.id, fields, editedPartsAfter(task, fields));
+    },
     onSuccess: (_result, next) => {
       toast.show({ tone: "success", title: Text.saved(next.title.trim()) });
       setDraft(null);
@@ -166,6 +173,20 @@ function TaskPage({ task }: { task: TaskRecord }) {
         ]}
         description={
           <span className={styles.meta}>
+            {task.eventId && event ? (
+              <Link to={eventPath(task.eventId)} className={styles.event}>
+                <Icon name="calendar" />
+                {Text.forEvent(
+                  event.title,
+                  formatDate(event.startsAt, time.timeZone, time.dateFormat),
+                )}
+              </Link>
+            ) : task.eventGone ? (
+              <span className={styles.due}>
+                <Icon name="calendar" />
+                {Text.eventGone(task.eventGone.title)}
+              </span>
+            ) : null}
             {status ? <StatusPill status={status} /> : null}
             {group ? <Chip label={group.name} /> : null}
             {member ? (
@@ -180,6 +201,9 @@ function TaskPage({ task }: { task: TaskRecord }) {
             ) : (
               <span className={styles.due}>{DueText.noDue}</span>
             )}
+            {task.lateAtCreation ? (
+              <Pill tone="muted">{DueText.lateFromStart}</Pill>
+            ) : null}
             {taskTags.map((tag) => (
               <Chip key={tag.id} label={tag.name} color={tag.color} />
             ))}

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/EventAttendance.tsx
-// Version : 1.0.0
-// Latest commit: feature/attendance-photos
+// Version : 1.1.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Attendance on an event's page. "Are you going?" for each person
 // asked: Going, Maybe or Can't go, saved as soon as it's picked, with an
@@ -198,6 +198,7 @@ export function AttendanceCard({
       ? [{ key: event.id, start: event.startsAt, end: event.endsAt }]
       : [],
     timeZone,
+    event.requiredIds,
   ).get(event.id);
   const waiting = summary.waitingIds.length;
 

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/fields/ui/FieldDialog.tsx
-// Version : 1.0.0
-// Latest commit: feature/event-fields
+// Version : 1.0.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Makes a field, or changes one (admins): its name (which gives the
 // key text writes it as, kept once made), its type, the choices of a choice
@@ -120,9 +120,6 @@ export function FieldDialog({
       onClose={save.isPending ? undefined : onClose}
       footer={
         <>
-          {field ? null : (
-            <span className={styles.footNote}>{Text.adminsOnly}</span>
-          )}
           <Button variant="ghost" onClick={onClose} disabled={save.isPending}>
             {Text.cancel}
           </Button>

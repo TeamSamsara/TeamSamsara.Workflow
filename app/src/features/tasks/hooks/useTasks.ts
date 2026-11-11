@@ -1,12 +1,13 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/hooks/useTasks.ts
-// Version : 1.0.0
-// Latest commit: feature/tasks
+// Version : 1.1.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Live task lists: the ones still to do that are given to me (and
-// my work groups), the ones waiting for approval, and one task by id.
+// my work groups), the ones finished since a moment (Done this week), the
+// ones waiting for approval, and one task by id.
 
 import { useMemo } from "react";
-import { collection, query, where } from "firebase/firestore";
+import { collection, query, Timestamp, where } from "firebase/firestore";
 import { usePermissions } from "@/core/access";
 import {
   Collections,
@@ -58,6 +59,41 @@ export function useOpenTasksFor(
       return [
         ...(memberId ? [open("memberId", memberId)] : []),
         ...groups.map((groupId) => open("workGroupId", groupId)),
+      ];
+    },
+    (task) => task.id,
+  );
+  return useMemo(() => toList(result), [result]);
+}
+
+/**
+ * Tasks finished since `since` given to this member and to each of these
+ * groups. One query each, as the rules require; `since` is the start of the
+ * week, so it stays the same all week and the queries aren't redone.
+ */
+export function useDoneTasksSince(
+  memberId: string | null,
+  workGroupIds: readonly string[],
+  since: Date,
+): TaskList {
+  const isReady = usePermissions().status === "ready";
+  const groups = [...workGroupIds].sort();
+  const key =
+    isReady && memberId
+      ? `tasks:done:${since.getTime()}:${memberId}:${groups.join(",")}`
+      : null;
+  const result = useLiveQueries(
+    key,
+    (database) => {
+      const done = (field: string, value: string) =>
+        query(
+          collection(database, Collections.tasks),
+          where(field, "==", value),
+          where("doneAt", ">=", Timestamp.fromDate(since)),
+        ).withConverter(taskConverter);
+      return [
+        ...(memberId ? [done("memberId", memberId)] : []),
+        ...groups.map((groupId) => done("workGroupId", groupId)),
       ];
     },
     (task) => task.id,

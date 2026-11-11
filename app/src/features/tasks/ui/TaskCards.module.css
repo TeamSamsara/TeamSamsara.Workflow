@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/features/tasks/ui/TaskCards.module.css
-   Version : 1.0.0
-   Latest commit: feature/tasks
+   Version : 1.1.0
+   Latest commit: feature/audit-fixes
    Author : Gerrah
    Purpose : The cards on a task page: a heading, then text, links, post text in a soft box with its count and Copy, the checklist (ticked items struck through), and the next step's buttons and fields. */
 
@@ -172,4 +172,15 @@
 
 .start {
   align-self: flex-start;
+}
+
+/* A name or group that opens its page, looking like the text around it. */
+.plainLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.plainLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }

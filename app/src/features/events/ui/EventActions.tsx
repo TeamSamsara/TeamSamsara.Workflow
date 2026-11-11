@@ -1,12 +1,14 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/EventActions.tsx
-// Version : 1.0.0
-// Latest commit: feature/repeats
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : An event's ⋯ menu, for planners. A one-off event: Edit, Delete.
 // One date of a repeat: Edit this one, Edit this and upcoming, Skip this one,
-// End the repeat, Delete this one (which skips it, so it isn't made again).
+// End the repeat, Delete… (just this one, this and every later one, or the
+// whole series).
 
 import { useState, type CSSProperties } from "react";
+import { usePermissions } from "@/core/access";
 import { buttonLook } from "@/shared/components/Button/buttonLook";
 import { Dropdown } from "@/shared/components/Dropdown/Dropdown";
 import { DropdownItem } from "@/shared/components/Dropdown/DropdownItem";
@@ -18,6 +20,7 @@ import { classNames } from "@/lib/classNames";
 import { occurrenceDate } from "../model/repeatRule";
 import type { EventRecord } from "../types/eventTypes";
 import type { RepeatRecord } from "../types/repeatTypes";
+import { DeleteRepeatDialog } from "./DeleteRepeatDialog";
 import {
   DeleteEventDialog,
   EditEventDialog,
@@ -26,6 +29,7 @@ import {
   SkipDialog,
 } from "./EventDialogs";
 import { EventActionsText as Text } from "./eventActionsContent";
+import { WorkflowRefreshDialog } from "./WorkflowRefreshDialog";
 import styles from "./EventActions.module.css";
 
 type Action = keyof typeof Text.actions;
@@ -67,6 +71,7 @@ const icons: Record<Action, IconName> = {
   skip: "skip",
   end: "close",
   deleteOne: "trash",
+  refresh: "reset",
 };
 
 interface EventActionsProps {
@@ -90,10 +95,13 @@ export function EventActions({
   const [open, setOpen] = useState<Action | null>(null);
   const [place, setPlace] = useState<CSSProperties | undefined>(undefined);
   const date = repeat ? occurrenceDate(event.id, repeat.id) : null;
+  const canRefresh = usePermissions().can("planEvents");
+  const refresh: Action[] =
+    canRefresh && event.workflowIds.length > 0 ? ["refresh"] : [];
   const actions: Action[] =
     repeat && date
-      ? ["editOne", "editUpcoming", "skip", "end", "deleteOne"]
-      : ["edit", "delete"];
+      ? ["editOne", "editUpcoming", ...refresh, "skip", "end", "deleteOne"]
+      : ["edit", ...refresh, "delete"];
   const close = () => setOpen(null);
 
   return (
@@ -149,18 +157,29 @@ export function EventActions({
           onClose={close}
         />
       ) : null}
+      {open === "refresh" ? (
+        <WorkflowRefreshDialog event={event} onClose={close} />
+      ) : null}
       {open === "delete" ? (
         <DeleteEventDialog event={event} onClose={close} onGone={onGone} />
       ) : null}
       {repeat && date && open === "editUpcoming" ? (
         <EditSeriesDialog repeat={repeat} fromDay={date} onClose={close} />
       ) : null}
-      {repeat && date && (open === "skip" || open === "deleteOne") ? (
+      {repeat && date && open === "skip" ? (
         <SkipDialog
           event={event}
           repeat={repeat}
           date={date}
-          asDelete={open === "deleteOne"}
+          asDelete={false}
+          onClose={close}
+          onGone={onGone}
+        />
+      ) : null}
+      {repeat && date && open === "deleteOne" ? (
+        <DeleteRepeatDialog
+          repeat={repeat}
+          date={date}
           onClose={close}
           onGone={onGone}
         />

@@ -27,6 +27,8 @@ const item = (
     dateFormat: null,
     timeFormat: null,
     walkthrough: null,
+    tagIds: [],
+    teamView: { hidden: [], order: [], zone: "team" },
     invitedBy: null,
     invitedAt: null,
     joinedAt: null,

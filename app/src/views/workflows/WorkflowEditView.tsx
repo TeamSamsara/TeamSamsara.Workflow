@@ -1,10 +1,11 @@
 // File : /TeamSamsara.Workflow/app/src/views/workflows/WorkflowEditView.tsx
-// Version : 1.2.0
-// Latest commit: feature/your-account
+// Version : 1.4.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The workflow editor: its tasks on the left (open one in place to
 // edit it), About and the event details it uses on the right; Save, Export,
-// Archive or Restore, and Delete once archived. Also opens a new workflow,
+// Archive or Restore, and Delete once archived. Saving a workflow that
+// upcoming events use offers to update the tasks it made for them. Also opens a new workflow,
 // blank or from an import. Without Edit workflows, everything is read-only.
 
 import { useMutation } from "@tanstack/react-query";
@@ -72,7 +73,10 @@ function downloadFile(name: string, contents: string) {
 }
 
 function WorkflowEditor({ workflow }: { workflow: WorkflowRecord | null }) {
-  const canEdit = usePermissions().can("editWorkflows");
+  const access = usePermissions();
+  const canEdit = access.can("editWorkflows");
+  // Updating the tasks means reading every upcoming event and moving tasks,
+  // so it's offered to planners who see everything.
   const time = useDisplayTime();
   const groups = useWorkGroups();
   const members = useMembers();
@@ -156,6 +160,8 @@ function WorkflowEditor({ workflow }: { workflow: WorkflowRecord | null }) {
       toast.show({
         tone: "success",
         title: (workflow ? Text.saved : Text.created)(name),
+        // Upcoming events follow in the background (see onWorkflowSaved).
+        detail: workflow ? Text.upcomingFollow : undefined,
       });
       setTriedToSave(false);
       if (!workflow) {

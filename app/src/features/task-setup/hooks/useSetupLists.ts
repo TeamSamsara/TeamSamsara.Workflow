@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/task-setup/hooks/useSetupLists.ts
-// Version : 1.0.0
-// Latest commit: feature/task-setup
+// Version : 1.1.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The workspace's statuses, event types and tags, live and in their
 // order. Every signed-in member reads them (tasks and the calendar use them).
@@ -65,6 +65,15 @@ export function useEventTypes(): SetupList<ColouredItem> {
   return useOrdered<ColouredItem>(
     "setup:eventTypes",
     Collections.eventTypes,
+    colouredItemConverter,
+  );
+}
+
+/** People tags (Starter, Coach…), for Team availability and member pages. */
+export function usePeopleTags(): SetupList<ColouredItem> {
+  return useOrdered<ColouredItem>(
+    "setup:peopleTags",
+    Collections.peopleTags,
     colouredItemConverter,
   );
 }

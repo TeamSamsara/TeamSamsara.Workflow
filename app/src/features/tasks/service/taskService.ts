@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/service/taskService.ts
-// Version : 1.1.0
-// Latest commit: feature/calendar-events
+// Version : 1.3.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Every change to a task: make one, edit it, move it on (send for
 // review, approve, ask for changes, mark done, reopen, set a status), tick its
@@ -65,6 +65,8 @@ export function newTaskData(
   startingStatusId: string,
   createdBy: string,
   origin: TaskOrigin = standalone,
+  /** True when it's made after its due time has passed. */
+  lateAtCreation = false,
 ) {
   return {
     ...tidy(fields),
@@ -80,6 +82,7 @@ export function newTaskData(
     createdAt: serverTime(),
     updatedAt: serverTime(),
     doneAt: null,
+    lateAtCreation,
   };
 }
 
@@ -101,8 +104,13 @@ function update(id: string, changes: UpdateData<DocumentData>) {
   return updateDoc(doc(tasks(), id), { ...changes, updatedAt: serverTime() });
 }
 
-export function saveTaskFields(id: string, fields: TaskFields): Promise<void> {
-  return update(id, tidy(fields));
+/** Saves an edit, with the parts it changed by hand (see editedPartsAfter). */
+export function saveTaskFields(
+  id: string,
+  fields: TaskFields,
+  editedParts: readonly string[],
+): Promise<void> {
+  return update(id, { ...tidy(fields), editedParts: [...editedParts] });
 }
 
 interface MoveOptions {
@@ -121,6 +129,7 @@ export function moveTask(
   { by, finishes, note }: MoveOptions,
 ): Promise<void> {
   const doneAt = finishes ? serverTime() : null;
+  const doneBy = finishes ? by : null;
   switch (action.kind) {
     case "sendForReview":
       return update(id, {
@@ -129,6 +138,7 @@ export function moveTask(
         sentForReviewAt: serverTime(),
         changesRequested: null,
         doneAt: null,
+        doneBy: null,
       });
     case "approve":
       return update(id, {
@@ -137,6 +147,8 @@ export function moveTask(
         approvedAt: serverTime(),
         changesRequested: null,
         doneAt,
+        // Who did the work is who sent it for review; this is who closed it.
+        doneBy,
       });
     case "askForChanges":
       return update(id, {
@@ -145,15 +157,17 @@ export function moveTask(
         approvedAt: null,
         changesRequested: note?.trim() || null,
         doneAt: null,
+        doneBy: null,
       });
     case "markDone":
-      return update(id, { statusId: action.statusId, doneAt });
+      return update(id, { statusId: action.statusId, doneAt, doneBy });
     case "reopen":
       return update(id, {
         statusId: action.statusId,
         approvedBy: null,
         approvedAt: null,
         doneAt: null,
+        doneBy: null,
       });
   }
 }
@@ -163,8 +177,13 @@ export function setTaskStatus(
   id: string,
   statusId: string,
   finishes: boolean,
+  by: string,
 ): Promise<void> {
-  return update(id, { statusId, doneAt: finishes ? serverTime() : null });
+  return update(id, {
+    statusId,
+    doneAt: finishes ? serverTime() : null,
+    doneBy: finishes ? by : null,
+  });
 }
 
 export function setChecklist(
@@ -185,8 +204,9 @@ export function reassignTask(
   id: string,
   workGroupId: string | null,
   memberId: string | null,
+  editedParts: readonly string[],
 ): Promise<void> {
-  return update(id, { workGroupId, memberId });
+  return update(id, { workGroupId, memberId, editedParts: [...editedParts] });
 }
 
 export function deleteTask(id: string): Promise<void> {

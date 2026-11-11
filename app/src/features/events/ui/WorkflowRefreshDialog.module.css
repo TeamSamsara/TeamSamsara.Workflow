@@ -1,0 +1,122 @@
+/* File : /TeamSamsara.Workflow/app/src/features/events/ui/WorkflowRefreshDialog.module.css
+   Version : 1.1.0
+   Latest commit: feature/audit-fixes
+   Author : Gerrah
+   Purpose : Look of the "Update tasks from workflows" dialog: a bordered list of the tasks that change, and the steps with no task. */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text-muted);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.heading {
+  margin: 0;
+  font-size: var(--text-field-label);
+  font-weight: var(--weight-bold);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 52px;
+  padding: var(--space-2) var(--space-3-5, 14px);
+  box-sizing: border-box;
+}
+
+.row + .row {
+  border-top: var(--border-width) solid var(--color-border);
+}
+
+.what {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.move {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+  --icon-size: 16px;
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}
+
+.more {
+  align-self: flex-start;
+}
+
+.late {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3-5, 14px);
+  border: var(--border-width) solid var(--color-alert);
+  border-radius: var(--radius-card);
+  background-color: color-mix(in srgb, var(--color-alert) 12%, transparent);
+}
+
+.lateItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.lateItem + .lateItem {
+  padding-top: var(--space-3);
+  border-top: var(--border-width) solid var(--color-border);
+}
+
+.plain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding-left: var(--space-5);
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}
+
+.note {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}
+
+@media (max-width: 560px) {
+  .row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

@@ -1,10 +1,11 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/service/eventService.ts
-// Version : 1.5.0
-// Latest commit: feature/attendance-photos
+// Version : 1.7.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Makes an event together with the tasks of its workflows (one batch,
 // so it's all or nothing), saves changes (moving its tasks by the same amount
-// when the start moves), adds a task to it, and deletes it with its tasks.
+// when the start moves), adds a task to it, brings its tasks in line with its
+// workflows, and deletes it with its tasks.
 
 import { collection, doc } from "firebase/firestore";
 import {
@@ -17,8 +18,14 @@ import {
 import { newTaskData, type TaskRecord } from "@/features/tasks";
 import type { WorkflowRecord } from "@/features/workflows";
 import { db } from "@/lib/firebase";
-import { applyWorkflows, type Formats } from "../model/applyWorkflows";
+import {
+  applyWorkflows,
+  type Formats,
+  type PlannedTask,
+} from "../model/applyWorkflows";
+import { isLateAtCreation, type LateChoice } from "../model/lateTasks";
 import type { TaskRefill } from "../model/refillTasks";
+import { refreshWrite, type TaskRefresh } from "../model/workflowRefresh";
 import { attendanceData } from "../types/attendance";
 import { audienceData } from "../types/audience";
 import type { EventFields } from "../types/eventTypes";
@@ -61,6 +68,13 @@ export interface CreateOptions {
   eventMaker?: string;
   /** The set it's planned in. */
   setId?: string;
+  /**
+   * Tasks whose due time has already passed: made and marked "Late from the
+   * start" (the default), or left out.
+   */
+  lateTasks?: LateChoice;
+  /** When "already passed" is counted from; now unless given. */
+  now?: Date;
 }
 
 /** A task's id for an event: the same whoever makes it, so it's never made twice. */
@@ -84,9 +98,11 @@ export function eventWrites(
     createdBy,
     eventMaker,
     setId,
+    lateTasks = "late",
+    now = new Date(),
   }: CreateOptions,
 ): BatchWrite[] {
-  const planned = applyWorkflows(
+  const all = applyWorkflows(
     {
       title: fields.title,
       startsAt: fields.startsAt,
@@ -97,6 +113,9 @@ export function eventWrites(
     },
     workflows,
     formats,
+  );
+  const planned = all.filter(
+    (task) => lateTasks === "late" || !isLateAtCreation(task.dueAt, now),
   );
   return [
     (batch) =>
@@ -118,11 +137,13 @@ export function eventWrites(
               Collections.tasks,
               eventTaskId(eventId, workflowId, stepId),
             ),
-            newTaskData(task, startingStatusId, createdBy, {
-              eventId,
-              workflowId,
-              stepId,
-            }),
+            newTaskData(
+              task,
+              startingStatusId,
+              createdBy,
+              { eventId, workflowId, stepId },
+              isLateAtCreation(task.dueAt, now),
+            ),
           ),
     ),
   ];
@@ -180,6 +201,51 @@ export function saveEvent(
             ...change,
             updatedAt: serverTime(),
           }),
+    ),
+  ];
+  return commitWrites(db, writes);
+}
+
+/**
+ * Brings tasks in line with the event's workflows: the chosen updates (with
+ * their due times or not) and new tasks for the chosen steps that had none.
+ */
+export function refreshEventTasks(
+  eventId: string,
+  updates: readonly TaskRefresh[],
+  withDue: boolean,
+  newSteps: readonly PlannedTask[],
+  options: { startingStatusId: string; createdBy: string; now?: Date },
+): Promise<void> {
+  const now = options.now ?? new Date();
+  const writes: BatchWrite[] = [
+    ...updates.map((refresh): BatchWrite => (batch) => {
+      const { dueAt, ...text } = refreshWrite(refresh, withDue);
+      batch.update(doc(db, Collections.tasks, refresh.taskId), {
+        ...text,
+        ...(dueAt !== undefined
+          ? { dueAt: dueAt ? fromDate(dueAt) : null }
+          : {}),
+        updatedAt: serverTime(),
+      });
+    }),
+    ...newSteps.map(
+      ({ workflowId, stepId, ...task }): BatchWrite =>
+        (batch) =>
+          batch.set(
+            doc(
+              db,
+              Collections.tasks,
+              eventTaskId(eventId, workflowId, stepId),
+            ),
+            newTaskData(
+              task,
+              options.startingStatusId,
+              options.createdBy,
+              { eventId, workflowId, stepId },
+              isLateAtCreation(task.dueAt, now),
+            ),
+          ),
     ),
   ];
   return commitWrites(db, writes);

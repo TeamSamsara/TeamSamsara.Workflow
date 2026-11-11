@@ -1,8 +1,8 @@
 /* File : /TeamSamsara.Workflow/app/src/views/tasks/MyTasksView.module.css
-   Version : 1.0.0
-   Latest commit: feature/tasks
+   Version : 1.1.0
+   Latest commit: feature/audit-fixes
    Author : Gerrah
-   Purpose : Layout of My tasks: the groups of tasks stacked on the left, what's waiting for approval on the right (below on narrow screens), and the empty state. */
+   Purpose : Layout of My tasks: the whose / how much bar (scope switch, group picks, tabs), the groups of tasks stacked on the left, approvals and Done this week on the right (below on narrow screens), the Coming up link and the empty state. */
 
 .page {
   display: flex;
@@ -87,4 +87,86 @@
   padding: var(--space-4) var(--card-padding);
   border: var(--border-width) dashed var(--color-border-control);
   border-radius: var(--radius-card);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.spacer {
+  flex: 1 1 0;
+}
+
+.picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1-5);
+}
+
+.pick {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 30px;
+  padding: 0 var(--space-3);
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+  --icon-size: var(--icon-size-small);
+}
+
+.pick[aria-pressed="true"] {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.pick:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.views {
+  flex: none;
+}
+
+.comingUp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--card-padding);
+  border: var(--border-width) dashed var(--color-border-control);
+  border-radius: var(--radius-card);
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.comingUp:hover {
+  border-color: var(--color-accent);
+}
+
+.comingUp:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.comingUp > :last-child {
+  margin-left: auto;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
 }
