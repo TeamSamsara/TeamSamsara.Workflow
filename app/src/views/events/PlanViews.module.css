@@ -286,3 +286,28 @@
   font-size: var(--text-body);
   line-height: var(--leading-body);
 }
+
+/* A field's cell in the set's table: click to fill it in. */
+.cellButton {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  margin: calc(var(--space-1) * -1) calc(var(--space-2) * -1);
+  padding: var(--space-1) var(--space-2);
+  border: 1px dashed transparent;
+  border-radius: var(--radius-small);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.cellButton:hover {
+  border-color: var(--color-border);
+}
+
+.cellButton:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}

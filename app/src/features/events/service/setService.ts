@@ -1,10 +1,10 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/service/setService.ts
-// Version : 1.1.0
+// Version : 1.2.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Sets of events: makes a set with its events and their tasks (the
 // set first, so each event can point at it), adds more events to one, renames
-// it, moves several of its events at once (their tasks move with them), and
+// it, fills in its events' fields (their tasks' text follows), moves several of its events at once (their tasks move with them), and
 // deletes events or the whole set with their tasks. Planning records itself
 // once saved, for the summary people get.
 
@@ -29,6 +29,7 @@ import {
   type CreateOptions,
 } from "./eventService";
 import { recordBulkPlan } from "./bulkPlanService";
+import type { EventEdit } from "../model/setEdit";
 
 export interface SetFields extends Audience {
   name: string;
@@ -117,6 +118,42 @@ export function renameEventSet(setId: string, name: string): Promise<void> {
         updatedAt: serverTime(),
       }),
   ]);
+}
+
+/**
+ * Saves filled-in fields on events (and their tasks' text that follows), and
+ * the set's name and title pattern when they change too.
+ */
+export function saveEventEdits(
+  edits: readonly EventEdit[],
+  set?: { id: string; name: string; titlePattern: string },
+): Promise<void> {
+  const writes: BatchWrite[] = [];
+  if (set)
+    writes.push((batch) =>
+      batch.update(doc(db, Collections.eventSets, set.id), {
+        name: set.name.trim().slice(0, EventSetLimits.name),
+        titlePattern: set.titlePattern.trim(),
+        updatedAt: serverTime(),
+      }),
+    );
+  for (const edit of edits) {
+    writes.push((batch) =>
+      batch.update(doc(db, Collections.events, edit.eventId), {
+        title: edit.title,
+        details: edit.details,
+        updatedAt: serverTime(),
+      }),
+    );
+    for (const refill of edit.refills)
+      writes.push((batch) =>
+        batch.update(doc(db, Collections.tasks, refill.taskId), {
+          ...refill.changes,
+          updatedAt: serverTime(),
+        }),
+      );
+  }
+  return commitWrites(db, writes);
 }
 
 /** The tasks of these events, read once. */

@@ -1,11 +1,12 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/EventSetView.tsx
-// Version : 1.2.1
+// Version : 1.3.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : One set's page: what its events share, how far along it is
 // (played, tasks done, what's next, gaps still TBD), and its events in a
-// table. Planners tick events to move or delete several at once, add more
-// events the same way, rename the set or delete it with its events.
+// table. Planners fill in a field by clicking its cell, tick events to move
+// or delete several at once, add more events the same way, edit the set (its
+// name, titles and fields for every event) or delete it with its events.
 
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
@@ -18,17 +19,17 @@ import {
   AudienceText,
   deleteEvents,
   deleteEventSet,
-  EventSetLimits,
+  EditSetDialog,
+  FillFieldDialog,
   gapLabel,
   moveEvents,
-  planGaps,
-  renameEventSet,
   SetText as Text,
   useAudienceOptions,
   useEventProgress,
   useEventSet,
   useSeesAllEvents,
   useSetEvents,
+  useSetGaps,
   type EventRecord,
   type EventSetRecord,
   useTaskFormats,
@@ -64,59 +65,9 @@ import { addCalendarDays } from "@/shared/time/zonedTime";
 import styles from "./EventViews.module.css";
 import plan from "./PlanViews.module.css";
 
-type Dialog = "rename" | "move" | "delete" | "deleteSet";
+type Dialog = "edit" | "move" | "delete" | "deleteSet";
 
 const hasGap = (title: string) => /\{[A-Za-z][A-Za-z0-9_-]*\}/.test(title);
-
-function RenameDialog({
-  set,
-  onClose,
-}: {
-  set: EventSetRecord;
-  onClose: () => void;
-}) {
-  const toast = useToast();
-  const [name, setName] = useState(set.name);
-  const save = useMutation({
-    mutationFn: () => renameEventSet(set.id, name),
-    onSuccess: () => {
-      toast.show({ tone: "success", title: Text.renameDialog.saved });
-      onClose();
-    },
-  });
-  return (
-    <Modal
-      title={Text.renameDialog.title}
-      onClose={save.isPending ? undefined : onClose}
-      footer={
-        <>
-          <Button variant="ghost" onClick={onClose} disabled={save.isPending}>
-            {Text.renameDialog.cancel}
-          </Button>
-          <Button
-            variant="primary"
-            disabled={!name.trim()}
-            isLoading={save.isPending}
-            onClick={() => save.mutate()}
-          >
-            {Text.renameDialog.save}
-          </Button>
-        </>
-      }
-    >
-      {save.error ? (
-        <Banner tone="error">{dataErrorMessage(save.error)}</Banner>
-      ) : null}
-      <TextField
-        label={Text.renameDialog.label}
-        value={name}
-        maxLength={EventSetLimits.name}
-        onChange={(event) => setName(event.target.value)}
-        autoFocus
-      />
-    </Modal>
-  );
-}
 
 function MoveDialog({
   events,
@@ -279,11 +230,15 @@ function SetPage({ set }: { set: EventSetRecord }) {
   const progress = useEventProgress(events.items.map((event) => event.id));
   const [picked, setPicked] = useState<ReadonlySet<string>>(new Set());
   const [dialog, setDialog] = useState<Dialog | null>(null);
+  const [filling, setFilling] = useState<{
+    event: EventRecord;
+    key: string;
+  } | null>(null);
 
   const tz = time.timeZone;
   const canPlan = access.can("planEvents");
   const type = eventTypes.items.find((entry) => entry.id === set.eventTypeId);
-  const gaps = planGaps(set.titlePattern, []);
+  const gaps = useSetGaps(set);
   const audience = [
     ...(set.everyone ? [AudienceText.everyone] : []),
     ...set.groupIds.map(
@@ -376,10 +331,10 @@ function SetPage({ set }: { set: EventSetRecord }) {
                   <DropdownItem
                     role="menuitem"
                     className={plan.menuItem}
-                    onSelect={() => setDialog("rename")}
+                    onSelect={() => setDialog("edit")}
                   >
                     <Icon name="edit" className={plan.menuIcon} />
-                    {Text.rename}
+                    {Text.editSet}
                   </DropdownItem>
                   <DropdownItem
                     role="menuitem"
@@ -522,19 +477,36 @@ function SetPage({ set }: { set: EventSetRecord }) {
                         {event.title}
                       </Link>
                     </td>
-                    {gaps.map((gap) => (
-                      <td key={gap}>
-                        {event.details[gap] ? (
-                          fieldText(fields.byKey(gap), event.details[gap], {
-                            ...taskFormats,
-                            dateFormat: time.dateFormat,
-                            clock: time.timeFormat,
-                          })
-                        ) : (
-                          <span className={plan.pill}>{Text.tbdPill}</span>
-                        )}
-                      </td>
-                    ))}
+                    {gaps.map((gap) => {
+                      const shown = event.details[gap] ? (
+                        fieldText(fields.byKey(gap), event.details[gap], {
+                          ...taskFormats,
+                          dateFormat: time.dateFormat,
+                          clock: time.timeFormat,
+                        })
+                      ) : (
+                        <span className={plan.pill}>{Text.tbdPill}</span>
+                      );
+                      return (
+                        <td key={gap}>
+                          {canPlan ? (
+                            <button
+                              type="button"
+                              className={plan.cellButton}
+                              aria-label={Text.fillCell(
+                                gapLabel(gap, fields.items),
+                                event.title,
+                              )}
+                              onClick={() => setFilling({ event, key: gap })}
+                            >
+                              {shown}
+                            </button>
+                          ) : (
+                            shown
+                          )}
+                        </td>
+                      );
+                    })}
                     <td
                       className={
                         entry && entry.total > 0 && entry.done === entry.total
@@ -552,8 +524,21 @@ function SetPage({ set }: { set: EventSetRecord }) {
         </div>
       )}
 
-      {dialog === "rename" ? (
-        <RenameDialog set={set} onClose={() => setDialog(null)} />
+      {dialog === "edit" ? (
+        <EditSetDialog
+          set={set}
+          events={items}
+          onClose={() => setDialog(null)}
+        />
+      ) : null}
+      {filling ? (
+        <FillFieldDialog
+          set={set}
+          event={filling.event}
+          fieldKey={filling.key}
+          when={`${day(filling.event.startsAt)} · ${formatTime(filling.event.startsAt, tz, time.timeFormat)}`}
+          onClose={() => setFilling(null)}
+        />
       ) : null}
       {dialog === "move" ? (
         <MoveDialog

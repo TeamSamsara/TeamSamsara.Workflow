@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/planContent.ts
-// Version : 1.2.1
+// Version : 1.3.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words for planning several events at once and for sets.
@@ -159,6 +159,8 @@ export const SetText = {
   workflowsNone: "No workflows",
   more: (name: string) => `More for ${name}`,
   rename: "Rename",
+  editSet: "Edit set",
+  fillCell: (field: string, title: string) => `Fill in ${field} for ${title}`,
   deleteSet: "Delete the set",
   moveSeveral: "Move…",
   deleteSeveral: "Delete…",
@@ -190,6 +192,30 @@ export const SetText = {
   noEvents: "This set has no events left.",
   partOf: "Part of",
 
+  fillDialog: {
+    cancel: "Cancel",
+    save: "Save",
+    saved: (title: string, tasks: number) =>
+      tasks === 0
+        ? `${title} saved`
+        : `${title} saved · ${plural(tasks, "task")} updated`,
+  },
+  editDialog: {
+    title: "Edit set",
+    name: "Name",
+    pattern: "Event titles",
+    patternHelp: "Fields in braces, like {opponent}, fill from each event.",
+    fields: "Fields for every event",
+    differs: "Different on each event; leave it empty to keep them.",
+    cancel: "Cancel",
+    save: "Save",
+    saved: (events: number, tasks: number) =>
+      events === 0
+        ? "Set saved"
+        : tasks === 0
+          ? `Set saved · ${plural(events, "event")} updated`
+          : `Set saved · ${plural(events, "event")} and ${plural(tasks, "task")} updated`,
+  },
   renameDialog: {
     title: "Rename the set",
     label: "Name",

@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/articles.ts
-// Version : 1.7.1
+// Version : 1.7.2
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The Documentation: one short article per feature, in groups. Each
@@ -344,7 +344,7 @@ export const DocGroups: readonly DocGroup[] = [
             "Create: each row becomes an event with its own tasks.",
           ),
           p(
-            "A field can stay TBD: the event keeps {opponent} in its title until you fill it in on the event.",
+            "A field can stay TBD: the event keeps {opponent} in its title until you fill it in, on the set's page or on the event.",
           ),
         ],
       },
@@ -355,6 +355,12 @@ export const DocGroups: readonly DocGroup[] = [
         body: [
           p(
             "Calendar › Sets lists them. A set's page shows how many events are played, tasks done, what's next and what's still TBD.",
+          ),
+          p(
+            "Click a field in the table, like a TBD opponent, to fill it in for that event. The title and the tasks' text fill in too, except text someone changed by hand.",
+          ),
+          p(
+            "Edit set (in the ⋯ menu) changes the set's name, its event titles and fields for every event at once. A field that's different on each event stays as it is unless you type a value.",
           ),
           p(
             "Tick events to move several at once (their tasks move too) or delete them. Add events adds more the same way.",

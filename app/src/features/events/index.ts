@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/index.ts
-// Version : 1.9.1
+// Version : 1.10.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : What other layers may use from the events feature.
@@ -91,7 +91,10 @@ export {
   deleteEventSet,
   moveEvents,
   renameEventSet,
+  saveEventEdits,
 } from "./service/setService";
+export { EditSetDialog, FillFieldDialog } from "./ui/SetEditDialogs";
+export { useSetGaps } from "./hooks/useSetGaps";
 export type { EventMove } from "./service/setService";
 export { EventSetLimits } from "./types/setTypes";
 export type { EventSetRecord } from "./types/setTypes";
