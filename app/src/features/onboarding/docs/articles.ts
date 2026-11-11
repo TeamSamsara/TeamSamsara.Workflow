@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/articles.ts
-// Version : 1.7.3
+// Version : 1.7.4
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The Documentation: one short article per feature, in groups. Each
@@ -450,16 +450,16 @@ export const DocGroups: readonly DocGroup[] = [
       {
         id: "workflow-changes",
         title: "Changing a workflow",
-        summary: "Upcoming events can follow your changes.",
+        summary: "Upcoming events follow your changes by themselves.",
         body: [
           p(
-            "Save a workflow that upcoming events use and Playbook asks whether to update the tasks it already made for them. It lists what will move, what would already be late (each with Move it anyway), and what's left as it is: finished tasks, and anything someone changed by hand. Only new events uses the new version for events planned from now on.",
+            "Save a workflow and every upcoming event that uses it updates its open tasks in a moment: due times, who they're given to, titles, notes, checklists and post text. A step you add becomes a task on each of those events.",
           ),
           p(
-            "Updating changes due times, titles, notes, checklists and post text. Who a task is given to only changes for new events. People whose tasks moved get one notification about it.",
+            "Anything someone changed by hand on a task stays as they left it, like a due time moved or a task given to someone else. Finished tasks and past events don't change, and a due time never moves to one that has already passed. People whose tasks changed get one notification about it.",
           ),
           p(
-            "For an event planned before a change (a step that got post text later, say), open the event's ⋯ menu › Update tasks from workflows. It lists the open tasks that differ from their steps and what differs. Ticks on checklist items stay. Due times only move if you tick that too, and steps with no task on the event can be added.",
+            "To bring one event's tasks back in line yourself, open its ⋯ menu › Update tasks from workflows. It lists the open tasks that differ from their steps and what differs. Ticks on checklist items stay. Due times only move if you tick that too, and steps with no task on the event can be added.",
           ),
         ],
       },
@@ -540,6 +540,10 @@ export const DocGroups: readonly DocGroup[] = [
           ),
           p(
             "Administrators also choose the sign-in page's pictures there: add up to 8, put them in order, or remove one. They take turns behind the welcome, and anyone with the link can see them.",
+          ),
+          h("Platform updates"),
+          p(
+            "Some new versions of Playbook come with a one-time update to the data already stored, like bringing tasks planned before a change in line with their workflows. They run by themselves shortly after a release, and each is listed on Settings › General with when it ran and what it changed. Check shows what a pending one would change; Apply now runs it straight away.",
           ),
           h("Database maintenance"),
           p(

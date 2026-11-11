@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/general/GeneralSettingsView.tsx
-// Version : 1.4.0
+// Version : 1.5.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Settings → General: the workspace's name, time and date settings
@@ -18,7 +18,7 @@ import {
   useWorkspaceRecord,
   type WorkspaceSettings,
 } from "@/core/workspace";
-import { MaintenanceCard } from "@/features/maintenance";
+import { MaintenanceCard, PlatformUpdatesCard } from "@/features/maintenance";
 import { SignInPhotosCard } from "@/features/sign-in-photos";
 import { Banner } from "@/shared/components/Banner/Banner";
 import { Button } from "@/shared/components/Button/Button";
@@ -137,6 +137,7 @@ export function GeneralSettingsView() {
 
       {/* Saves on its own, picture by picture: not part of Save above. */}
       {can("administrator") ? <SignInPhotosCard /> : null}
+      {can("administrator") ? <PlatformUpdatesCard /> : null}
       {can("administrator") ? <MaintenanceCard /> : null}
 
       {blocker.state === "blocked" ? (

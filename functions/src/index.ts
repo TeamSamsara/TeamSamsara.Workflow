@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/functions/src/index.ts
-// Version : 1.4.0
+// Version : 1.5.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Playbook's server functions. They watch tasks and events and
@@ -977,6 +977,11 @@ export const signOutEverywhere = onCall(async (request) => {
 });
 
 // #endregion
+
+export {
+  applyPlatformUpdates,
+  platformUpdatesNow,
+} from "./updates/index.js";
 
 export {
   onEventSetDeleted,

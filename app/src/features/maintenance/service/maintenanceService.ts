@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/maintenance/service/maintenanceService.ts
-// Version : 1.0.0
+// Version : 1.1.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The database check-up from the app: run it now (on the server,
@@ -27,4 +27,24 @@ export function setApply(apply: boolean): Promise<void> {
     apply,
     updatedAt: serverTime(),
   });
+}
+
+export interface UpdateRow {
+  id: string;
+  title: string;
+  /** When it ran, as an ISO date; null while it's pending. */
+  appliedAt: string | null;
+  /** What it did, or (pending) what it would do. */
+  report: { summary: string; changed: number; notes: string[] } | null;
+}
+
+/** Platform updates: each one, run or pending, with what it did or would do. */
+export async function platformUpdates(
+  action: "check" | "apply",
+): Promise<UpdateRow[]> {
+  const call = httpsCallable<
+    { action: "check" | "apply" },
+    { updates: UpdateRow[] }
+  >(functions, "platformUpdatesNow", { timeout: 540_000 });
+  return (await call({ action })).data.updates;
 }

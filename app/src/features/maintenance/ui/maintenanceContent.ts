@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/maintenance/ui/maintenanceContent.ts
-// Version : 1.0.0
+// Version : 1.1.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words of the Database maintenance card.
@@ -40,4 +40,25 @@ export const MaintenanceText = {
     workflowSyncs: "sync records",
     bulkPlans: "planning records",
   } as Record<string, string>,
+} as const;
+
+export const PlatformUpdatesText = {
+  title: "Platform updates",
+  description:
+    "Changes to the stored data that come with a new version of Playbook. They run by themselves shortly after a release.",
+  check: "Check",
+  checking: "Checking what each update would change",
+  apply: "Apply now",
+  applied: (count: number) =>
+    count === 0
+      ? "Nothing to apply"
+      : count === 1
+        ? "1 update applied"
+        : `${count} updates applied`,
+  failed: "The updates couldn't run",
+  notChecked:
+    "Check to see which updates have run and what any pending ones would change.",
+  pending: "Pending",
+  done: "Applied",
+  more: (count: number) => `and ${count} more`,
 } as const;

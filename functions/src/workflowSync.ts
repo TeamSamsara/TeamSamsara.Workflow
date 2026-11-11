@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/functions/src/workflowSync.ts
-// Version : 1.0.0
+// Version : 1.1.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Keeps upcoming events' tasks in line with their workflows, in the
@@ -36,8 +36,8 @@ export interface SyncResult {
   updated: TaskSync[];
   /** Tasks made for steps added in this save. */
   createdIds: string[];
-  /** Tasks with parts kept because someone changed them by hand. */
-  held: TaskSync[];
+  /** Tasks with parts kept (changed by hand, or a due time already passed). */
+  held: (TaskSync & { eventTitle: string })[];
   events: number;
 }
 
@@ -127,7 +127,8 @@ export async function syncWorkflow(
       }
       const sync = planTaskSync(task, next, previous, { now });
       if (!sync) continue;
-      if (sync.held.length > 0) result.held.push(sync);
+      if (sync.held.length > 0)
+        result.held.push({ ...sync, eventTitle: event.title });
       if (sync.parts.length === 0) continue;
       result.updated.push(sync);
       if (!dryRun)
