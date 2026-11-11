@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/views/availability/AvailabilityViews.module.css
-   Version : 1.1.0
-   Latest commit: feature/event-sets
+   Version : 1.2.0
+   Latest commit: feature/audit-fixes
    Author : Gerrah
    Purpose : The availability pages: a header, then the week grid with cards beside it (stacked on phones), or the team grid with its controls and best times. */
 
@@ -156,3 +156,54 @@
   justify-content: center;
   padding: var(--space-10) 0;
 }
+
+/* #region Team availability: list, Hours or People, and the hour panel */
+.switches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.switchLabel {
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+}
+
+.teamLayout {
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr) minmax(
+      240px,
+      300px
+    );
+  align-items: start;
+  gap: var(--space-4);
+}
+
+.teamLayout[data-by="people"] {
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+}
+
+/* Breakpoints.large */
+@media (max-width: 1180px) {
+  .teamLayout {
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  }
+
+  .teamLayout > aside {
+    grid-column: 1 / -1;
+  }
+
+  .teamLayout[data-by="people"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Breakpoints.small */
+@media (max-width: 720px) {
+  .teamLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* #endregion */

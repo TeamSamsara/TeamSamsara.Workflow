@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/index.ts
-// Version : 1.1.0
-// Latest commit: feature/event-sets
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : What other layers may use from the availability feature.
 
@@ -30,7 +30,22 @@ export {
 export { ExceptionsCard } from "./ui/ExceptionsCard";
 export { PersonalDialog } from "./ui/PersonalDialog";
 export { PersonalItem } from "./ui/PersonalItem";
-export { bestTimes } from "./model/teamTimes";
-export { TeamAvailabilityGrid } from "./ui/TeamAvailabilityGrid";
-export type { TeamEvent, TeamPerson } from "./ui/TeamAvailabilityGrid";
+export { useTeamViewPrefs } from "./hooks/useTeamViewPrefs";
+export {
+  everyoneFree,
+  FirstHour,
+  freeStretches,
+  hourRows,
+} from "./model/hourGrid";
+export type { GridPerson, HourCell } from "./model/hourGrid";
+export { reorderSection, sectionsOf } from "./model/teamSections";
+export { hoursApart, zoneFor } from "./model/viewZone";
+export type { ZoneChoice } from "./model/viewZone";
+export { HourPanel } from "./ui/HourPanel";
+export type { PanelPerson } from "./ui/HourPanel";
+export { TeamHourGrid } from "./ui/TeamHourGrid";
+export { TeamPeopleList } from "./ui/TeamPeopleList";
+export type { DayCell, TeamRowPerson } from "./ui/TeamPeopleList";
+export { TeamViewText } from "./ui/teamViewContent";
+export { ZoneSwitch } from "./ui/ZoneSwitch";
 export { WeekPainter } from "./ui/WeekPainter";

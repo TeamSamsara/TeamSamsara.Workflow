@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/ui/availabilityContent.ts
-// Version : 1.3.0
-// Latest commit: fix/private-appointments
+// Version : 1.4.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words for availability, personal appointments and who can
 // make an event.
@@ -86,6 +86,17 @@ export const CheckText = {
   freeTimesNote: "Same length, the next few days",
   noFreeTimes: "No time this week when everyone's free.",
   pickTime: (label: string) => `Move the event to ${label}`,
+  requiredCanMake: (free: number, total: number) =>
+    free === total
+      ? `All ${total} required are free`
+      : `${free} of ${total} required can make it`,
+  optionalFree: (free: number, total: number) =>
+    `${free} of ${total} optional are free (shown, not counted)`,
+  required: "Required",
+  optional: "Optional",
+  requiredToggle: (name: string) => `${name} is required`,
+  optionalNote: "(optional)",
+  requiredFreeTimes: "Everyone required is free",
   checking: "Checking who's free…",
   everyoneNote: "Everyone is in it, so there's no check of who's free.",
 } as const;
