@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/articles.ts
-// Version : 1.7.4
-// Latest commit: feature/audit-fixes
+// Version : 1.8.0
+// Latest commit: feature/docs-refresh
 // Author : Gerrah
 // Purpose : The Documentation: one short article per feature, in groups. Each
 // group (or article) is for the people with its permission, the same as the
@@ -8,12 +8,39 @@
 
 import type { PermissionKey } from "@/core/access";
 import type { ChapterId } from "../model/chapters";
+import type { PictureName } from "./pictures";
+
+/** One thing a picture's numbered mark points at. */
+export interface Callout {
+  title: string;
+  text: string;
+}
 
 export type Block =
   | { kind: "p"; text: string }
   | { kind: "h"; text: string }
   | { kind: "steps"; items: readonly string[] }
-  | { kind: "list"; items: readonly string[] };
+  | { kind: "list"; items: readonly string[] }
+  /** A picture, with what its numbered marks point at beside it. */
+  | {
+      kind: "figure";
+      picture: PictureName;
+      caption: string;
+      callouts: readonly Callout[];
+    }
+  /** Steps side by side, each with its own small picture. */
+  | {
+      kind: "frames";
+      items: readonly { picture: PictureName; text: string }[];
+    }
+  /** The same thing before and after. */
+  | {
+      kind: "compare";
+      before: PictureName;
+      after: PictureName;
+      note: string;
+    }
+  | { kind: "tip"; text: string };
 
 export interface Article {
   id: string;
@@ -39,6 +66,22 @@ const p = (text: string): Block => ({ kind: "p", text });
 const h = (text: string): Block => ({ kind: "h", text });
 const steps = (...items: string[]): Block => ({ kind: "steps", items });
 const list = (...items: string[]): Block => ({ kind: "list", items });
+const figure = (
+  picture: PictureName,
+  caption: string,
+  ...callouts: Callout[]
+): Block => ({ kind: "figure", picture, caption, callouts });
+const callout = (title: string, text: string): Callout => ({ title, text });
+const frames = (...items: [PictureName, string][]): Block => ({
+  kind: "frames",
+  items: items.map(([picture, text]) => ({ picture, text })),
+});
+const compare = (
+  before: PictureName,
+  after: PictureName,
+  note: string,
+): Block => ({ kind: "compare", before, after, note });
+const tip = (text: string): Block => ({ kind: "tip", text });
 
 export const DocGroups: readonly DocGroup[] = [
   {
@@ -158,18 +201,35 @@ export const DocGroups: readonly DocGroup[] = [
         summary: "What's yours to do next, coming up, and done this week.",
         body: [
           p(
-            "My tasks opens on Mine: what's given to you by name. Switch to My groups to add everything given to your work groups, or Pick groups to choose which. Your choice is remembered.",
+            "My tasks is what's yours to do. It opens on Mine: what's given to you by name.",
           ),
-          list(
-            "Focus: what's late, due today, and due in the next 7 days, with how many more are coming up.",
-            "Planning: everything still to do, including later and no date.",
-            "Done this week: what was finished since the week started, by day, with who did and approved it. The card beside it counts each day.",
+          figure(
+            "myTasksPage",
+            "My tasks, showing Mine in Focus.",
+            callout(
+              "Whose tasks",
+              "Mine, My groups (adds what's given to your work groups) or Pick groups. Your choice is remembered.",
+            ),
+            callout(
+              "How much",
+              "Focus: late, today and the next 7 days. Planning: everything still to do. Done this week: what's finished, by day.",
+            ),
+            callout("Late first", "Anything late is always at the top."),
+            callout(
+              "Its event",
+              "Under each task, the event it's for. Click it to open the event.",
+            ),
+          ),
+          h("The order of your tasks"),
+          p(
+            "An event's tasks stay together, in the order of its workflow's steps, then by due time. Tasks added by hand come after them. Reordering a workflow's steps reorders the tasks it made.",
+          ),
+          figure(
+            "taskOrder",
+            "One event's tasks, in the order of its workflow.",
           ),
           p(
-            "Late tasks come first. Inside each part, an event's tasks stay together in the order of its workflow's steps, then by due time; tasks added by hand come after them. Reordering a workflow's steps reorders the tasks it made.",
-          ),
-          p(
-            "Each task shows its event under its title: click it to open the event. A task planned after its due time had already passed says Late from the start, so nobody's blamed for it. One whose event was deleted says Event deleted, with the event's name.",
+            "A task planned after its due time had already passed says Late from the start, so nobody's blamed for it. One whose event was deleted says Event deleted, with the event's name.",
           ),
           steps(
             "Open a task to see its notes, checklist, links and posts.",
@@ -354,13 +414,37 @@ export const DocGroups: readonly DocGroup[] = [
         summary: "Events planned together, managed together.",
         body: [
           p(
-            "Calendar › Sets lists them. A set's page shows how many events are played, tasks done, what's next and what's still TBD.",
+            "Calendar › Sets lists the events you planned together. A set's page shows how many are played, how many tasks are done, what's next and what's still TBD.",
           ),
-          p(
-            "Click a field in the table, like a TBD opponent, to fill it in for that event. The title and the tasks' text fill in too, except text someone changed by hand.",
+          figure(
+            "setPage",
+            "A set's page, with two opponents still to come.",
+            callout(
+              "A field to fill in",
+              "TBD means that event doesn't have it yet. Click it to fill it in.",
+            ),
+            callout(
+              "The set's ⋯ menu",
+              "Edit set fills a field for every event at once, renames the set, or changes how its titles read.",
+            ),
+            callout(
+              "A title waiting for it",
+              "A title still showing {opponent} fills in as soon as the opponent is known.",
+            ),
           ),
-          p(
-            "Edit set (in the ⋯ menu) changes the set's name, its event titles and fields for every event at once. A field that's different on each event stays as it is unless you type a value.",
+          h("Fill in one event"),
+          frames(
+            ["fillClick", "Click the TBD in that event's row."],
+            ["fillType", "Type it, or pick a person, and save."],
+            ["fillDone", "The title and the tasks' text fill in."],
+          ),
+          compare(
+            "taskBeforeFill",
+            "taskAfterFill",
+            "Text that came from the workflow fills in. Text someone wrote themselves stays as it is, and finished tasks don't change.",
+          ),
+          tip(
+            "Same value for every event? Use Edit set in the ⋯ menu. A field that's different on each event stays as it is unless you type a value.",
           ),
           p(
             "Tick events to move several at once (their tasks move too) or delete them. Add events adds more the same way.",
@@ -455,12 +539,31 @@ export const DocGroups: readonly DocGroup[] = [
           p(
             "Save a workflow and every upcoming event that uses it updates its open tasks in a moment: due times, who they're given to, titles, notes, checklists and post text. A step you add becomes a task on each of those events.",
           ),
-          p(
-            "Anything someone changed by hand on a task stays as they left it, like a due time moved or a task given to someone else. Finished tasks and past events don't change, and a due time never moves to one that has already passed. People whose tasks changed get one notification about it.",
+          frames(
+            ["stepChanged", "Change a step and save the workflow."],
+            ["eventsFollow", "Every upcoming event's task follows."],
+            ["notified", "The people whose tasks moved get one notification."],
           ),
-          p(
-            "To bring one event's tasks back in line yourself, open its ⋯ menu › Update tasks from workflows. It lists the open tasks that differ from their steps and what differs. Ticks on checklist items stay. Due times only move if you tick that too, and steps with no task on the event can be added.",
+          h("What stays as it is"),
+          compare(
+            "handEditBefore",
+            "handEditAfter",
+            "Anything someone changed by hand on a task stays as they left it. Finished tasks and past events don't change, and a due time never moves to one that has already passed.",
           ),
+          h("Updating one event yourself"),
+          figure(
+            "updateFromWorkflows",
+            "An event's ⋯ menu › Update tasks from workflows.",
+            callout(
+              "The event's ⋯ menu",
+              "Update tasks from workflows lists its open tasks that differ from their steps, and what differs.",
+            ),
+            callout(
+              "Due times too?",
+              "Due times only move if you tick this. Ticks on checklist items always stay.",
+            ),
+          ),
+          p("Steps with no task on the event can be added from the same list."),
         ],
       },
     ],
@@ -594,13 +697,7 @@ export function searchDocs(
   const words = search.toLowerCase().split(/\s+/).filter(Boolean);
   if (words.length === 0) return [...groups];
   const text = (article: Article) =>
-    [
-      article.title,
-      article.summary,
-      ...article.body.flatMap((block) =>
-        "text" in block ? [block.text] : block.items,
-      ),
-    ]
+    [article.title, article.summary, ...article.body.flatMap(blockWords)]
       .join(" ")
       .toLowerCase();
   return groups
@@ -611,4 +708,26 @@ export function searchDocs(
       ),
     }))
     .filter((group) => group.articles.length > 0);
+}
+
+/** The words in a block, for search: pictures count by what's said about them. */
+function blockWords(block: Block): string[] {
+  switch (block.kind) {
+    case "p":
+    case "h":
+    case "tip":
+      return [block.text];
+    case "steps":
+    case "list":
+      return [...block.items];
+    case "figure":
+      return [
+        block.caption,
+        ...block.callouts.flatMap((entry) => [entry.title, entry.text]),
+      ];
+    case "frames":
+      return block.items.map((item) => item.text);
+    case "compare":
+      return [block.note];
+  }
 }

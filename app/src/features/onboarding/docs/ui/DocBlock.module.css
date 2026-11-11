@@ -1,0 +1,159 @@
+/* File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/ui/DocBlock.module.css
+   Version : 1.0.0
+   Latest commit: feature/docs-refresh
+   Author : Gerrah
+   Purpose : Look of a help article's pictures: a picture with its numbered
+   callouts, steps side by side, before and after, and tips. */
+
+.figure {
+  margin: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(220px, 2fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.caption {
+  grid-column: 1 / -1;
+  font-size: var(--text-meta);
+  color: var(--color-text-muted);
+}
+
+.callouts {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.callout {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.callout:hover,
+.callout[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--color-accent) 22%, var(--color-surface));
+}
+
+.callout:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.number {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+  background: var(--color-text);
+  color: var(--color-surface);
+}
+
+.callout[aria-pressed="true"] .number {
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+
+.calloutText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.45;
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.frames {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-3);
+}
+
+.frame {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  line-height: 1.45;
+}
+
+.compare {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sideLabel {
+  font-size: var(--text-label-caps);
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.between {
+  color: var(--color-text-muted);
+  font-size: 20px;
+}
+
+.note {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.tip {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-small);
+  background: color-mix(in srgb, var(--color-info) 14%, var(--color-surface));
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+.tip b {
+  color: var(--color-info-text);
+}
+
+@media (max-width: 760px) {
+  .figure,
+  .compare {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .between {
+    justify-self: center;
+    transform: rotate(90deg);
+  }
+}
