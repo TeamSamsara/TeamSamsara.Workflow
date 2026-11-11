@@ -1,11 +1,13 @@
 // File : /TeamSamsara.Workflow/app/src/views/tasks/taskViewContent.ts
-// Version : 1.0.0
-// Latest commit: feature/tasks
+// Version : 1.1.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words on a task's page.
 
 export const TaskViewText = {
   myTasks: "My tasks",
+  forEvent: (title: string, day: string) => `${title} · ${day}`,
+  eventGone: (title: string) => `Event deleted: ${title}`,
   loading: "Loading task",
   notFound: "This task doesn't exist any more, or it isn't shared with you.",
   back: "Back to My tasks",
