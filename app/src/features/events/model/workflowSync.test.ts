@@ -79,6 +79,7 @@ function made(workflow = before, forEvent: SyncEvent = event): TaskRecord[] {
       createdAt: null,
       updatedAt: null,
       doneAt: null,
+      lateAtCreation: false,
     }),
   );
 }

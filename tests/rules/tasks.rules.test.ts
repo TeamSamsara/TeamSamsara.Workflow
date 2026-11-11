@@ -1,11 +1,12 @@
 // File : /TeamSamsara.Workflow/tests/rules/tasks.rules.test.ts
-// Version : 1.0.0
-// Latest commit: feature/tasks
+// Version : 1.1.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Tests tasks against the rules: who reads them (everything with
 // View all, else what's theirs), who makes standalone ones, and the four kinds
 // of change: doing (status, checklist, link, review; no finishing before
-// approval), approving, reassigning and editing. Plus deleting.
+// approval), approving, reassigning and editing. Plus deleting, and the
+// "Late from the start" mark: only on a task already due, and never changed.
 
 import {
   assertFails,
@@ -223,6 +224,37 @@ describe("making standalone tasks", () => {
     await assertFails(addDoc(tasks, fresh("pat", { title: "" })));
     await assertFails(addDoc(tasks, fresh("pat", { dueAt: "tomorrow" })));
     await assertFails(addDoc(tasks, fresh("pat", { colour: "red" })));
+  });
+});
+
+describe("late from the start", () => {
+  it("can be set only when the task is already due", async () => {
+    const tasks = collection(signedInAs(env, "pat"), "tasks");
+    await assertSucceeds(
+      addDoc(tasks, fresh("pat", { lateAtCreation: true })),
+    );
+    await assertSucceeds(
+      addDoc(tasks, fresh("pat", { lateAtCreation: false })),
+    );
+    await assertFails(
+      addDoc(
+        tasks,
+        fresh("pat", {
+          lateAtCreation: true,
+          dueAt: new Date(Date.now() + 86_400_000),
+        }),
+      ),
+    );
+    await assertFails(addDoc(tasks, fresh("pat", { lateAtCreation: "yes" })));
+  });
+
+  it("never changes afterwards, and older tasks without it still save", async () => {
+    await assertFails(
+      updateDoc(task("eddie"), { lateAtCreation: true, ...now() }),
+    );
+    await assertSucceeds(
+      updateDoc(task("eddie"), { title: "Older task, no mark", ...now() }),
+    );
   });
 });
 

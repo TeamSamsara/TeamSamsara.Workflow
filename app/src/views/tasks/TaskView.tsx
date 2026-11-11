@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/tasks/TaskView.tsx
-// Version : 1.1.0
-// Latest commit: feature/your-account
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : A task's page: where it is (the status steps), how to do it, the
 // post text to copy and the checklist to tick; beside them, the next step,
@@ -40,6 +40,7 @@ import { useWorkGroups } from "@/features/work-groups";
 import { Banner } from "@/shared/components/Banner/Banner";
 import { Button } from "@/shared/components/Button/Button";
 import { Chip } from "@/shared/components/Chip/Chip";
+import { Pill } from "@/shared/components/Pill/Pill";
 import { LinkButton } from "@/shared/components/Button/LinkButton";
 import { Modal } from "@/shared/components/Modal/Modal";
 import { PageHeader } from "@/shared/components/PageHeader/PageHeader";
@@ -180,6 +181,9 @@ function TaskPage({ task }: { task: TaskRecord }) {
             ) : (
               <span className={styles.due}>{DueText.noDue}</span>
             )}
+            {task.lateAtCreation ? (
+              <Pill tone="muted">{DueText.lateFromStart}</Pill>
+            ) : null}
             {taskTags.map((tag) => (
               <Chip key={tag.id} label={tag.name} color={tag.color} />
             ))}

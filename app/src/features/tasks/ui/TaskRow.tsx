@@ -1,9 +1,10 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/ui/TaskRow.tsx
-// Version : 1.0.0
-// Latest commit: feature/tasks
+// Version : 1.1.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : One task in a list: its title (opens the task), who it's given
-// to, when it's due (red once late), and its status.
+// to, when it's due (red once late, with "Late from the start" when it was
+// planned after that), and its status.
 
 import { Link } from "react-router-dom";
 import type { MemberRecord, StatusRecord } from "@/core/data";
@@ -11,10 +12,11 @@ import { StatusPill } from "@/features/task-setup";
 import { memberName } from "@/features/members";
 import type { WorkGroupRecord } from "@/features/work-groups";
 import { Chip } from "@/shared/components/Chip/Chip";
+import { Pill } from "@/shared/components/Pill/Pill";
 import { Icon } from "@/shared/icons/Icon";
 import { statusOf } from "../model/taskStatusFlow";
 import type { TaskRecord } from "../types/taskTypes";
-import { TaskRowText as Text } from "./tasksContent";
+import { DueText, TaskRowText as Text } from "./tasksContent";
 import styles from "./TaskRow.module.css";
 
 export interface TaskListContext {
@@ -56,6 +58,9 @@ export function TaskRow({
             <Icon name="time" />
             {context.formatDue(task.dueAt)}
           </span>
+        ) : null}
+        {task.lateAtCreation ? (
+          <Pill tone="muted">{DueText.lateFromStart}</Pill>
         ) : null}
         {status ? <StatusPill status={status} /> : null}
       </span>

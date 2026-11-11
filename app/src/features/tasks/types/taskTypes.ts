@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/types/taskTypes.ts
-// Version : 1.0.0
-// Latest commit: feature/tasks
+// Version : 1.1.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : A task: something one work group or person has to do by a time.
 // It has the same basics and sections as a workflow's task, plus where it is
@@ -62,6 +62,8 @@ export interface TaskRecord {
   updatedAt: Date | null;
   /** Set when it moves to a finished or closed status; null while it's still to do. */
   doneAt: Date | null;
+  /** Made after its due time had passed (planned late), so it's late through no one's fault. */
+  lateAtCreation: boolean;
 }
 
 /** The part of a task its edit form changes. */
@@ -132,6 +134,7 @@ function parse(id: string, data: DocumentData): TaskRecord {
     createdAt: readDate(data, "createdAt"),
     updatedAt: readDate(data, "updatedAt"),
     doneAt: readDate(data, "doneAt"),
+    lateAtCreation: readBoolean(data, "lateAtCreation"),
   };
 }
 

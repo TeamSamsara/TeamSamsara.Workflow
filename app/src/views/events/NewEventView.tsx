@@ -1,12 +1,13 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/NewEventView.tsx
-// Version : 1.7.0
-// Latest commit: feature/event-fields
+// Version : 1.8.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Planning an event: its details on the left; on the right the
 // workflows to apply (the ones made for its type ticked to start with) and
 // the tasks they'll add with their real due times. An event happens once
 // unless "Repeat…" is opened. Create makes the event (or the repeat and its
-// coming weeks of events) and the tasks together, then opens it.
+// coming weeks of events) and the tasks together, then opens it. Tasks
+// already due when it's planned are made as late or left out.
 
 import { useMutation } from "@tanstack/react-query";
 import { useRef, useState } from "react";
@@ -31,6 +32,8 @@ import {
   emptyEventDraft,
   EventForm,
   fieldsFromDraft,
+  lateOf,
+  LateTasksNotice,
   occurrenceId,
   previewRepeat,
   RepeatFields,
@@ -43,6 +46,7 @@ import {
   weekdayOf,
   WorkflowPicker,
   type EventDraft,
+  type LateChoice,
   type RepeatDraft,
   useTaskFormats,
   valueText,
@@ -103,6 +107,7 @@ export function NewEventView() {
   const [pickedIds, setPickedIds] = useState<string[] | null>(null);
   const now = useNow();
   const [tried, setTried] = useState(false);
+  const [lateChoice, setLateChoice] = useState<LateChoice>("late");
   const leaving = useRef(false);
 
   const available = workflows.items.filter((workflow) => !workflow.archived);
@@ -131,6 +136,10 @@ export function NewEventView() {
     selected,
     formats,
   );
+  const late = fields
+    ? lateOf(planned, { title: fields.title, startsAt: fields.startsAt }, now)
+    : [];
+  const taskCount = planned.length - (lateChoice === "skip" ? late.length : 0);
   const problems = checkEventDraft(draft);
   const startId = startingStatus(statuses.items)?.id ?? null;
   const today = dayKey(now, workspace.timeZone);
@@ -167,6 +176,8 @@ export function NewEventView() {
         formats,
         startingStatusId: startId ?? "",
         createdBy: member.id,
+        lateTasks: lateChoice,
+        now: new Date(),
       };
       if (!schedule) return eventPath(await createEvent(fields, options));
       const series = { ...fields, minutes: draftMinutes(draft) };
@@ -233,7 +244,7 @@ export function NewEventView() {
               isLoading={create.isPending}
             >
               {!repeat
-                ? Text.create(planned.length)
+                ? Text.create(taskCount)
                 : upcoming && upcoming.length > 0
                   ? Text.createRepeat(
                       upcoming.length,
@@ -299,6 +310,15 @@ export function NewEventView() {
               groups={groups.items.map((item) => item.group)}
             />
           </TourTarget>
+          <LateTasksNotice
+            tasks={late}
+            choice={lateChoice}
+            onChange={setLateChoice}
+            formatWhen={(date) =>
+              formatDue(date, time.timeZone, time.timeFormat, time.dateFormat)
+            }
+            disabled={create.isPending}
+          />
           <TaskPreview
             tasks={planned}
             hasDate={fields !== null}

@@ -723,10 +723,13 @@ service cloud.firestore {
         && task.sentForReviewBy == null && task.sentForReviewAt == null
         && task.approvedBy == null && task.approvedAt == null
         && task.changesRequested == null
-        && task.doneAt == null;
+        && task.doneAt == null
+        // "Late from the start" only when its due time has really passed.
+        && (task.get("lateAtCreation", false) == false
+          || (task.dueAt != null && task.dueAt < request.time));
     }
 
-    /** Where a task came from and who made it never change. */
+    /** Where a task came from, who made it and whether it started late never change. */
     function keepsOrigin() {
       let before = resource.data;
       let after = request.resource.data;
@@ -734,7 +737,8 @@ service cloud.firestore {
         && after.createdAt == before.createdAt
         && after.eventId == before.eventId
         && after.workflowId == before.workflowId
-        && after.stepId == before.stepId;
+        && after.stepId == before.stepId
+        && after.get("lateAtCreation", false) == before.get("lateAtCreation", false);
     }
 
     /**
@@ -779,8 +783,12 @@ service cloud.firestore {
         "asksForLiveLink", "liveLink", "eventId", "workflowId", "stepId",
         "sentForReviewBy", "sentForReviewAt", "approvedBy", "approvedAt",
         "changesRequested", "createdBy", "createdAt", "updatedAt", "doneAt"];
-      return task.keys().hasOnly(fields)
+      // Added later, so tasks made before them (or by an open tab from
+      // before) are valid without them.
+      let optional = ["lateAtCreation"];
+      return task.keys().hasOnly(fields.concat(optional))
         && task.keys().hasAll(fields)
+        && task.get("lateAtCreation", false) is bool
         && task.title is string && task.title.size() > 0 && task.title.size() <= 120
         && task.notes is string && task.notes.size() <= 2000
         && isNullOr(task.workGroupId, "string")

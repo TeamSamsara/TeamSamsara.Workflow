@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/PlanSeveralView.tsx
-// Version : 1.3.0
-// Latest commit: feature/event-fields
+// Version : 1.4.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Planning several events at once, as a set: what they share (the
 // set's name, type, usual times, a title with {gaps}, who's in them), then
@@ -36,6 +36,8 @@ import {
   emptyGaps,
   emptyPlan,
   EventLimits,
+  findLateTasks,
+  LateTasksNotice,
   nextRow,
   PasteDialog,
   PatternDialog,
@@ -51,6 +53,7 @@ import {
   WorkflowPicker,
   type EventFields,
   type EventSetRecord,
+  type LateChoice,
   type PlanDraft,
   type PlanRow,
   useTaskFormats,
@@ -61,6 +64,7 @@ import {
   useEventTypes,
   useStatuses,
 } from "@/features/task-setup";
+import { formatDue } from "@/features/tasks";
 import { useWorkGroups } from "@/features/work-groups";
 import { useWorkflows } from "@/features/workflows";
 import { Banner } from "@/shared/components/Banner/Banner";
@@ -103,6 +107,7 @@ function PlanSeveral({ set }: { set: EventSetRecord | null }) {
   );
   const [dialog, setDialog] = useState<"pattern" | "paste" | null>(null);
   const [tried, setTried] = useState(false);
+  const [lateChoice, setLateChoice] = useState<LateChoice>("late");
   const leaving = useRef(false);
 
   const available = workflows.items.filter((workflow) => !workflow.archived);
@@ -127,6 +132,9 @@ function PlanSeveral({ set }: { set: EventSetRecord | null }) {
   const events = draft.rows
     .map((row) => rowFields(draft, row, tz, valueText(formats)))
     .filter((fields): fields is EventFields => fields !== null);
+  const late = findLateTasks(events, selected, formats, now);
+  const taskCount =
+    events.length * tasksEach - (lateChoice === "skip" ? late.length : 0);
   const today = dayKey(now, tz);
 
   // Who's in them, as people: everyone in their groups and the people added.
@@ -179,6 +187,8 @@ function PlanSeveral({ set }: { set: EventSetRecord | null }) {
         formats,
         startingStatusId: startId ?? "",
         createdBy: member.id,
+        lateTasks: lateChoice,
+        now: new Date(),
       };
       if (set) {
         await addToEventSet(set.id, events, options);
@@ -256,7 +266,7 @@ function PlanSeveral({ set }: { set: EventSetRecord | null }) {
               isLoading={create.isPending}
             >
               {events.length > 0
-                ? Text.create(events.length, events.length * tasksEach)
+                ? Text.create(events.length, taskCount)
                 : Text.createPlain}
             </Button>
           </>
@@ -367,7 +377,7 @@ function PlanSeveral({ set }: { set: EventSetRecord | null }) {
                 {Text.events}
               </span>
               <span>
-                <b>{events.length * tasksEach}</b>
+                <b>{taskCount}</b>
                 {Text.tasks}
               </span>
             </div>
@@ -385,6 +395,15 @@ function PlanSeveral({ set }: { set: EventSetRecord | null }) {
               </span>
             ) : null}
           </section>
+          <LateTasksNotice
+            tasks={late}
+            choice={lateChoice}
+            onChange={setLateChoice}
+            formatWhen={(date) =>
+              formatDue(date, time.timeZone, time.timeFormat, time.dateFormat)
+            }
+            disabled={create.isPending}
+          />
           <WorkflowPicker
             workflows={available}
             selectedIds={selectedIds}

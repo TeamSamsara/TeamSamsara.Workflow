@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/ui/tasksContent.ts
-// Version : 1.0.0
-// Latest commit: feature/tasks
+// Version : 1.1.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words for tasks: rows and groups, the task page's cards, the
 // moves a task can make, the edit form, and the new task and reassign dialogs.
@@ -15,6 +15,8 @@ export const DueText = {
   due: (when: string) => `Due ${when}`,
   noDue: "No due date",
   late: "Late",
+  /** On a task planned after its due time had passed. */
+  lateFromStart: "Late from the start",
 } as const;
 
 export const DueGroupText: Record<DueGroup, string> = {
