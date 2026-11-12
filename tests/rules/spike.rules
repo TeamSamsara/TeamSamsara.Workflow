@@ -1,0 +1,42 @@
+// Temporary rules for tests/rules/spike.rules.test.ts (see there).
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function me() {
+      return get(/databases/$(database)/documents/members/$(request.auth.uid)).data;
+    }
+    function rankOf(id) {
+      return get(/databases/$(database)/documents/members/$(id)).data.rank;
+    }
+    function grants() {
+      return get(/databases/$(database)/documents/config/roles).data.grants;
+    }
+    function canSeeEvent(e) {
+      return e.everyone == true
+        || request.auth.uid in e.memberIds
+        || e.groupIds.hasAny(me().workGroupIds)
+        || e.createdBy == request.auth.uid;
+    }
+    function eventOf(task) {
+      return get(/databases/$(database)/documents/events/$(task.eventId)).data;
+    }
+    match /members/{id} { allow read: if request.auth != null; }
+    match /events/{id} { allow read: if request.auth != null && canSeeEvent(resource.data); }
+    match /tasks/{id} {
+      allow read: if request.auth != null && (
+        resource.data.memberId == request.auth.uid
+        || (me().planner == true && resource.data.eventId != null
+            && canSeeEvent(eventOf(resource.data))));
+      // Approving: never your own work, doer at or below your rank, and a
+      // status lookup and the roles read to use up the budget like the real rule.
+      allow update: if request.auth != null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["approvedBy"])
+        && request.resource.data.approvedBy == request.auth.uid
+        && resource.data.memberId != request.auth.uid
+        && grants().approveTasks.hasAny(me().roleIds)
+        && get(/databases/$(database)/documents/statuses/$(resource.data.statusId)).data.category == "awaitingApproval"
+        && canSeeEvent(eventOf(resource.data))
+        && rankOf(resource.data.memberId) <= me().rank;
+    }
+  }
+}
