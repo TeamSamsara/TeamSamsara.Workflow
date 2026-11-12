@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/docs/DocsView.tsx
-// Version : 1.1.0
-// Latest commit: fix/docs-and-brush
+// Version : 1.2.0
+// Latest commit: feature/docs-refresh
 // Author : Gerrah
 // Purpose : Documentation: the articles for what your roles let you do, in
 // groups, with a search; one article open beside the list, with "Show me in
@@ -15,6 +15,7 @@ import {
   usePermissions,
 } from "@/core/access";
 import {
+  DocPicture,
   docsFor,
   searchDocs,
   useWalkthrough,
@@ -53,6 +54,8 @@ function BlockView({ block }: { block: Block }) {
           ))}
         </ul>
       );
+    default:
+      return <DocPicture block={block} />;
   }
 }
 

@@ -1,0 +1,143 @@
+// File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/pictures/index.ts
+// Version : 1.0.5
+// Latest commit: feature/audit-fixes
+// Author : Gerrah
+// Purpose : Every picture the help can show, by the name an article uses.
+
+import type { ComponentType } from "react";
+import {
+  FillClick,
+  FillDone,
+  FillType,
+  SetPage,
+  TaskAfterFill,
+  TaskBeforeFill,
+} from "./setPictures";
+import {
+  AskReplyCounts,
+  AskReplyNotice,
+  AskReplyOn,
+  DeleteRepeat,
+  LateWarning,
+  NewEventForm,
+  RepeatPicker,
+  SeveralMade,
+  SeveralRows,
+  SeveralShared,
+  WhoCanMake,
+} from "./planningPictures";
+import {
+  Exception,
+  GroupPage,
+  PersonalOthers,
+  PersonalYours,
+  Profile,
+  TagsOnPerson,
+  TagsSettings,
+  TeamAvailability,
+  UsualWeek,
+} from "./peoplePictures";
+import { MyTasksPage, TaskOrder } from "./taskPictures";
+import {
+  AccountPage,
+  GeneralSettings,
+  InviteDialog,
+  Maintenance,
+  MemberAccess,
+  PlatformUpdates,
+  RolesList,
+  WorkGroupsList,
+} from "./adminPictures";
+import {
+  AskChanges,
+  DueTimeline,
+  FieldFilled,
+  FieldInWorkflow,
+  FieldTypes,
+  LiveLink,
+  ReviewBack,
+  ReviewDecide,
+  ReviewSend,
+  WorkflowTasks,
+} from "./workPictures";
+import {
+  CalendarControls,
+  EventPage,
+  NotificationList,
+  ReplyBox,
+  ReplyMarks,
+  TimesOnEvent,
+  TimesOnForm,
+} from "./aroundPictures";
+import {
+  EventsFollow,
+  HandEditAfter,
+  HandEditBefore,
+  Notified,
+  StepChanged,
+  UpdateFromWorkflows,
+} from "./workflowPictures";
+
+export const docPictures = {
+  inviteDialog: InviteDialog,
+  memberAccess: MemberAccess,
+  rolesList: RolesList,
+  workGroupsList: WorkGroupsList,
+  generalSettings: GeneralSettings,
+  platformUpdates: PlatformUpdates,
+  maintenance: Maintenance,
+  accountPage: AccountPage,
+  reviewSend: ReviewSend,
+  reviewDecide: ReviewDecide,
+  reviewBack: ReviewBack,
+  askChanges: AskChanges,
+  liveLink: LiveLink,
+  workflowTasks: WorkflowTasks,
+  dueTimeline: DueTimeline,
+  fieldInWorkflow: FieldInWorkflow,
+  fieldFilled: FieldFilled,
+  fieldTypes: FieldTypes,
+  calendarControls: CalendarControls,
+  eventPage: EventPage,
+  replyBox: ReplyBox,
+  replyMarks: ReplyMarks,
+  timesOnForm: TimesOnForm,
+  timesOnEvent: TimesOnEvent,
+  notificationList: NotificationList,
+  setPage: SetPage,
+  fillClick: FillClick,
+  fillType: FillType,
+  fillDone: FillDone,
+  taskBeforeFill: TaskBeforeFill,
+  taskAfterFill: TaskAfterFill,
+  myTasksPage: MyTasksPage,
+  taskOrder: TaskOrder,
+  stepChanged: StepChanged,
+  eventsFollow: EventsFollow,
+  notified: Notified,
+  handEditBefore: HandEditBefore,
+  handEditAfter: HandEditAfter,
+  updateFromWorkflows: UpdateFromWorkflows,
+  newEventForm: NewEventForm,
+  lateWarning: LateWarning,
+  whoCanMake: WhoCanMake,
+  askReplyOn: AskReplyOn,
+  askReplyNotice: AskReplyNotice,
+  askReplyCounts: AskReplyCounts,
+  repeatPicker: RepeatPicker,
+  deleteRepeat: DeleteRepeat,
+  severalShared: SeveralShared,
+  severalRows: SeveralRows,
+  severalMade: SeveralMade,
+  usualWeek: UsualWeek,
+  exception: Exception,
+  personalYours: PersonalYours,
+  personalOthers: PersonalOthers,
+  teamAvailability: TeamAvailability,
+  tagsSettings: TagsSettings,
+  tagsOnPerson: TagsOnPerson,
+  groupPage: GroupPage,
+  profile: Profile,
+} satisfies Record<string, ComponentType>;
+
+export type PictureName = keyof typeof docPictures;

@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/ui/onboardingContent.ts
-// Version : 1.5.1
+// Version : 1.5.2
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words of the walkthrough: chapter names, each step's note, the
@@ -36,7 +36,7 @@ export const ChapterText = {
     },
     views: {
       title: "Month, week or list",
-      body: "Week runs from 8 AM to midnight, so evening matches fit. Times show in your own time zone.",
+      body: "Week runs from 8 AM to midnight, so evening events fit. Times show in your own time zone.",
     },
     events: {
       title: "Open an event",
@@ -56,7 +56,7 @@ export const ChapterText = {
     },
     exceptions: {
       title: "Exceptions",
-      body: "Away for a tournament, an exam or a trip? Add the dates here and they override your usual week.",
+      body: "Away for a conference, an exam or a trip? Add the dates here and they override your usual week.",
     },
     personal: {
       title: "Personal appointments",
@@ -76,11 +76,11 @@ export const ChapterText = {
     },
     repeat: {
       title: "Repeats",
-      body: "Weekly scrims or a Monday meeting: make it repeat and the coming weeks are planned for you.",
+      body: "A weekly check-in or a Monday meeting: make it repeat and the coming weeks are planned for you.",
     },
     shared: {
       title: "Several at once",
-      body: "For a split or a month of content: set what the events share once. Words in {curly brackets} in the title become a column, filled in per event.",
+      body: "For a series or a month of content: set what the events share once. Words in {curly brackets} in the title become a column, filled in per event.",
     },
     rows: {
       title: "One row per event",
@@ -104,7 +104,7 @@ export const ChapterText = {
     },
     make: {
       title: "Make one",
-      body: "A short guide asks a question at a time and builds it for you. Fields like {opponent} are filled in from each event.",
+      body: "A short guide asks a question at a time and builds it for you. Fields like {speaker} are filled in from each event.",
     },
     approvals: {
       title: "Reviews wait here",
