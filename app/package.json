@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "typecheck": "tsc -b && tsc -p ../engine/tsconfig.json",
+    "typecheck": "tsc -b && tsc -p ../engine/tsconfig.json && tsc -p ../releases/tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "preview": "vite preview"
