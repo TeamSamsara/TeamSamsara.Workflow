@@ -63,7 +63,7 @@ Each layer imports only from the layers below it: `app → views → features �
 A release:
 
 1. Test the pre-release: `dev` locally, against a copy of the live data in the emulators (`npm run emulators -- --import ./emulator-data`), including Settings › General › Platform updates › Check.
-2. Open a pull request from `dev` to `main` named `Release vX.Y.Z` and merge it.
-3. Deploy from `main` (see Deploying), then tag it: `git tag vX.Y.Z && git push origin vX.Y.Z`.
+2. Write the release notes in `releases/` (see its README) and merge them into `dev`. Then open a pull request from `dev` to `main` named `Release vX.Y.Z` and merge it.
+3. Deploy from `main` (see Deploying), then tag it: `git tag vX.Y.Z && git push origin vX.Y.Z`. Within about 10 minutes, the server runs any platform updates and announces the release to everyone once, and each person sees What's new the next time they open Playbook.
 
 Nothing is deployed from `dev` or a feature branch.

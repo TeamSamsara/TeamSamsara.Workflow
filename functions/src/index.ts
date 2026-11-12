@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/index.ts
-// Version : 1.5.0
-// Latest commit: feature/audit-fixes
+// Version : 1.6.0
+// Latest commit: feature/whats-new
 // Author : Gerrah
 // Purpose : Playbook's server functions. They watch tasks and events and
 // write notifications for the people a change concerns (never the person who
@@ -62,6 +62,11 @@ import {
 } from "./summaries.js";
 import { when, type Formats } from "./text.js";
 import { readWorkflow } from "./engineData.js";
+import {
+  compareVersions,
+  latestRelease,
+  releases,
+} from "../../releases/index.js";
 import {
   changedStepTitles,
   stepsChanged,
@@ -504,7 +509,8 @@ async function tasksOfEvents(eventIds: readonly string[]) {
       .collection("tasks")
       .where("eventId", "in", eventIds.slice(start, start + 30))
       .get();
-    for (const doc of snapshot.docs) found.push(summaryTask(doc.id, doc.data()));
+    for (const doc of snapshot.docs)
+      found.push(summaryTask(doc.id, doc.data()));
   }
   return found;
 }
@@ -550,16 +556,18 @@ export const onBulkPlanCreated = onDocumentCreated(
         taskId: null,
         eventId: null,
         groupId: null,
-        path: setId
-          ? `/events/sets/${encodeURIComponent(setId)}`
-          : "/my-tasks",
+        path: setId ? `/events/sets/${encodeURIComponent(setId)}` : "/my-tasks",
       },
       members,
       await groupNames(),
       (id) => {
         const summary = byMember.get(id);
         return summary
-          ? { summary: summaryData(summary, count), setId, repeatId: data.kind === "repeat" ? text(data.sourceId) : null }
+          ? {
+              summary: summaryData(summary, count),
+              setId,
+              repeatId: data.kind === "repeat" ? text(data.sourceId) : null,
+            }
           : {};
       },
     );
@@ -646,6 +654,52 @@ export const onWorkflowSaved = onDocumentWrittenWithAuthContext(
     });
   },
 );
+
+/** "1.2.0" → "1.2"; "1.2.1" stays as it is. */
+const shortVersion = (version: string) => version.replace(/\.0$/, "");
+
+/**
+ * A new release, once: everyone active hears what's new in it (in Playbook,
+ * and by email for those who chose it). Runs with the platform updates after
+ * a deploy (see updates/index.ts); the notes are in /releases.
+ */
+export async function announceLatestRelease(): Promise<string | null> {
+  const latest = latestRelease(releases);
+  if (!latest) return null;
+  const ref = db.doc("config/releases");
+  const claimed = await db.runTransaction(async (transaction) => {
+    const announced = (await transaction.get(ref)).data()?.announced;
+    if (
+      typeof announced === "string" &&
+      compareVersions(announced, latest.version) >= 0
+    )
+      return false;
+    transaction.set(
+      ref,
+      { announced: latest.version, announcedAt: FieldValue.serverTimestamp() },
+      { merge: true },
+    );
+    return true;
+  });
+  if (!claimed) return null;
+  const members = await activeMembers();
+  await deliver(
+    members.map((member) => member.id),
+    {
+      kind: "release",
+      actorId: null,
+      title: shortVersion(latest.version),
+      detail: latest.summary.slice(0, 300),
+      taskId: null,
+      eventId: null,
+      groupId: null,
+      path: "/docs/whats-new",
+    },
+    members,
+  );
+  logger.info("Release announced", { version: latest.version });
+  return latest.version;
+}
 
 // #endregion
 
@@ -978,10 +1032,7 @@ export const signOutEverywhere = onCall(async (request) => {
 
 // #endregion
 
-export {
-  applyPlatformUpdates,
-  platformUpdatesNow,
-} from "./updates/index.js";
+export { applyPlatformUpdates, platformUpdatesNow } from "./updates/index.js";
 
 export {
   onEventSetDeleted,

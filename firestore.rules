@@ -470,15 +470,18 @@ service cloud.firestore {
     }
 
     /**
-     * Team availability, as one member likes it: who they hide, their order
-     * and whose time it shows in. Only ever their own.
+     * Their own preferences: Team availability (who they hide, their order,
+     * whose time it shows in) and the newest release they've seen in What's
+     * new. Only ever their own.
      */
     function isSavingTeamView() {
       let prefs = request.resource.data.prefs;
       let view = prefs.get("teamView", {});
+      let seen = prefs.get("lastSeenRelease", "");
       return resource.data.status == "active"
         && changedFields().hasOnly(["prefs"])
-        && prefs is map && prefs.keys().hasOnly(["teamView"])
+        && prefs is map && prefs.keys().hasOnly(["teamView", "lastSeenRelease"])
+        && seen is string && seen.size() <= 20
         && view is map && view.keys().hasOnly(["hidden", "order", "zone"])
         && view.get("hidden", []) is list && view.get("hidden", []).size() <= 300
         && view.get("order", []) is list && view.get("order", []).size() <= 300
@@ -577,7 +580,7 @@ service cloud.firestore {
     }
 
     function isValidNotificationSettings(data) {
-      let kinds = ["given", "mine", "review", "events"];
+      let kinds = ["given", "mine", "review", "events", "news"];
       return data.keys().hasOnly(["app", "email", "taskReminder", "eventReminder",
           "updatedAt"])
         && data.app is map && data.app.keys().hasOnly(kinds)

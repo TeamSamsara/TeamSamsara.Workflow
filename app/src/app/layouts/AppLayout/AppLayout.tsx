@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/layouts/AppLayout/AppLayout.tsx
-// Version : 1.2.0
-// Latest commit: feature/remember-me
+// Version : 1.3.0
+// Latest commit: feature/whats-new
 // Author : Gerrah
 // Purpose : The frame around every signed-in page: the sidebar and the page area.
 // On narrow screens the sidebar becomes a slide-in menu behind a top bar button,
@@ -10,6 +10,7 @@ import { useCallback, useEffect, useId, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { useWorkspaceRecord } from "@/core/workspace";
 import { WalkthroughProvider } from "@/features/onboarding";
+import { WhatsNewDialog } from "@/features/whats-new";
 import { atOrBelow } from "@/shared/constants/breakpoints";
 import { useMediaQuery } from "@/shared/hooks/useMediaQuery";
 import { MobileTopBar } from "./MobileTopBar";
@@ -73,6 +74,8 @@ export function AppLayout() {
 
         <main id={mainContentId} className={styles.main} tabIndex={-1}>
           <Outlet />
+          {/* After a release, once: what's new in it. */}
+          <WhatsNewDialog />
         </main>
       </div>
     </WalkthroughProvider>

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/members/service/memberFilters.test.ts
-// Version : 1.3.0
-// Latest commit: feature/attendance-photos
+// Version : 1.4.0
+// Latest commit: feature/whats-new
 // Author : Gerrah
 // Purpose : Tests the Members page's status filter, search and counts.
 
@@ -29,6 +29,7 @@ const item = (
     walkthrough: null,
     tagIds: [],
     teamView: { hidden: [], order: [], zone: "team" },
+    lastSeenRelease: null,
     invitedBy: null,
     invitedAt: null,
     joinedAt: null,

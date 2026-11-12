@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/ui/notificationsContent.ts
-// Version : 1.3.1
-// Latest commit: feature/audit-fixes
+// Version : 1.4.0
+// Latest commit: feature/whats-new
 // Author : Gerrah
 // Purpose : The words of notifications: the bell, the list, each kind of
 // notification, and the settings page.
@@ -97,6 +97,10 @@ export const NotificationSettingsText = {
     events: {
       name: "I'm added to an event, or one I'm in changes",
       help: "Moved or cancelled, asked to reply, replies to yours, and its reminder.",
+    },
+    news: {
+      name: "Playbook has a new version",
+      help: "What's new in it, once per release.",
     },
   } satisfies Record<SettingGroup, { name: string; help: string }>,
   switchLabel: (name: string, where: string) => `${name}, ${where}`,

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/updates/index.ts
-// Version : 1.0.0
-// Latest commit: feature/audit-fixes
+// Version : 1.1.0
+// Latest commit: feature/whats-new
 // Author : Gerrah
 // Purpose : Platform updates: one-time changes to the stored data that ship
 // with a release. Each is listed here in order; config/platformUpdates keeps
@@ -8,17 +8,25 @@
 // pending ones shortly after a deploy (every 10 minutes it checks, one read),
 // and Administrators can check them (report only) or apply them now from
 // Settings › General, which is also how to run them in the local emulators.
+// After them, a new release is announced once (see announceLatestRelease).
 // A run takes a lock, so two can't overlap, and stops at the first failure.
 
 import { FieldValue, getFirestore, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
+import { defineSecret } from "firebase-functions/params";
+import { announceLatestRelease } from "../index.js";
 import { tasksFollowWorkflows } from "./tasksFollowWorkflows.js";
 import type { PlatformUpdate, UpdateReport } from "./types.js";
 
+/** The same secret the email sender uses (see index.ts). */
+const resendKey = defineSecret("RESEND_API_KEY");
+
 /** Every update, oldest first. Add new ones at the end; never reorder. */
-export const platformUpdates: readonly PlatformUpdate[] = [tasksFollowWorkflows];
+export const platformUpdates: readonly PlatformUpdate[] = [
+  tasksFollowWorkflows,
+];
 
 const stateDoc = "config/platformUpdates";
 /** A run that hasn't finished in this long is taken to have died. */
@@ -49,8 +57,7 @@ async function lock(): Promise<boolean> {
   return db.runTransaction(async (transaction) => {
     const ref = db.doc(stateDoc);
     const running = (await transaction.get(ref)).data()?.runningSince as
-      | Timestamp
-      | undefined;
+      Timestamp | undefined;
     if (running && Date.now() - running.toMillis() < lockMinutes * 60_000)
       return false;
     transaction.set(
@@ -99,10 +106,15 @@ export async function applyPending(): Promise<UpdateRow[]> {
     }
   } catch (error) {
     logger.error("Platform update failed", error);
-    await db.doc(stateDoc).set(
-      { lastError: String(error).slice(0, 500), lastErrorAt: FieldValue.serverTimestamp() },
-      { merge: true },
-    );
+    await db
+      .doc(stateDoc)
+      .set(
+        {
+          lastError: String(error).slice(0, 500),
+          lastErrorAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
     throw error;
   } finally {
     await unlock();
@@ -131,15 +143,17 @@ export async function checkUpdates(): Promise<UpdateRow[]> {
 
 /** Shortly after a deploy, whatever's pending runs. */
 export const applyPlatformUpdates = onSchedule(
-  { schedule: "every 10 minutes", timeoutSeconds: 540 },
+  { schedule: "every 10 minutes", timeoutSeconds: 540, secrets: [resendKey] },
   async () => {
     await applyPending();
+    // Then a new release, once: what's new in it (see announceLatestRelease).
+    await announceLatestRelease();
   },
 );
 
 /** Settings › General: check (report only) or apply now. Administrators only. */
 export const platformUpdatesNow = onCall(
-  { timeoutSeconds: 540 },
+  { timeoutSeconds: 540, secrets: [resendKey] },
   async (request) => {
     const uid = request.auth?.uid;
     if (!uid) throw new HttpsError("unauthenticated", "Sign in first.");
@@ -161,7 +175,10 @@ export const platformUpdatesNow = onCall(
         "permission-denied",
         "Only Administrators can run platform updates.",
       );
-    if (request.data?.action === "apply") await applyPending();
+    if (request.data?.action === "apply") {
+      await applyPending();
+      await announceLatestRelease();
+    }
     return { updates: await checkUpdates() };
   },
 );

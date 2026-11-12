@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/emails/templates.ts
-// Version : 1.1.0
-// Latest commit: feature/audit-fixes
+// Version : 1.2.0
+// Latest commit: feature/whats-new
 // Author : Gerrah
 // Purpose : Every email Playbook sends, built on the shared layout: the
 // invite, the forgot-password email, the test email, and one per kind of
@@ -196,6 +196,7 @@ const settingNames: Record<SettingGroup, string> = {
   mine: "My task is approved or sent back",
   review: "A task is sent to me to review",
   events: "I'm added to an event, or one I'm in changes",
+  news: "Playbook has a new version",
 };
 
 interface KindLook {
@@ -275,6 +276,11 @@ const kinds: Record<NotificationKind, KindLook> = {
   tasksMoved: {
     eyebrow: "Tasks moved",
     button: "See your tasks",
+    detail: "none",
+  },
+  release: {
+    eyebrow: "What's new",
+    button: "See what's new",
     detail: "none",
   },
 };

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/ui/NotificationList.tsx
-// Version : 1.3.0
-// Latest commit: feature/audit-fixes
+// Version : 1.4.0
+// Latest commit: feature/whats-new
 // Author : Gerrah
 // Purpose : The notification list, in the bell's panel and on its own page:
 // a header with Mark all read and the settings, All / Unread, then Today and
@@ -19,10 +19,12 @@ import { Icon } from "@/shared/icons/Icon";
 import type { IconName } from "@/shared/icons/iconRegistry";
 import { useNow } from "@/shared/hooks/useNow";
 import {
+  docsPath,
   eventPath,
   eventSetPath,
   RoutePaths,
   taskPath,
+  WhatsNewArticle,
 } from "@/shared/constants/routePaths";
 import { formatDue } from "@/features/tasks";
 import { dayKey, formatShortDate } from "@/shared/time/dates";
@@ -55,6 +57,7 @@ const look: Record<NotificationKind, { icon: IconName; tone: string }> = {
   replied: { icon: "members", tone: "event" },
   setPlanned: { icon: "eventSets", tone: "event" },
   tasksMoved: { icon: "time", tone: "task" },
+  release: { icon: "info", tone: "event" },
 };
 
 interface NotificationListProps {
@@ -98,7 +101,9 @@ export function NotificationList({
           ? eventSetPath(note.setId)
           : note.kind === "setPlanned" || note.kind === "tasksMoved"
             ? RoutePaths.myTasks
-            : null;
+            : note.kind === "release"
+              ? docsPath(WhatsNewArticle)
+              : null;
     onOpen?.();
     if (to) navigate(to);
   }

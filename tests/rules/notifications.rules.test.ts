@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/notifications.rules.test.ts
-// Version : 1.0.0
-// Latest commit: feature/notifications
+// Version : 1.1.0
+// Latest commit: feature/whats-new
 // Author : Gerrah
 // Purpose : Tests notifications against the rules: each person reads, marks
 // read and clears their own, nobody writes one from the app (the server
@@ -44,8 +44,14 @@ const note = (memberId: string) => ({
 });
 
 const settings = (changes: Record<string, unknown> = {}) => ({
-  app: { given: true, mine: true, review: true, events: true },
-  email: { given: false, mine: false, review: true, events: false },
+  app: { given: true, mine: true, review: true, events: true, news: true },
+  email: {
+    given: false,
+    mine: false,
+    review: true,
+    events: false,
+    news: false,
+  },
   taskReminder: "2h",
   eventReminder: "1h",
   updatedAt: serverTimestamp(),

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/vitest.config.ts
-// Version : 1.2.1
-// Latest commit: feature/audit-fixes
+// Version : 1.3.0
+// Latest commit: feature/whats-new
 // Author : Gerrah
 // Purpose : Unit tests: the same @/ alias as the app, a browser-like page (jsdom)
 // for code that touches the DOM, and tests found next to the files they test
@@ -21,6 +21,8 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
       // The rules the app shares with the server functions.
       "@engine": path.resolve(__dirname, "../engine/src"),
+      // The release notes the app and the server both read.
+      "@releases": path.resolve(__dirname, "../releases"),
     },
   },
   test: {
@@ -28,7 +30,11 @@ export default defineConfig({
     // The engine has no packages of its own, so its tests use describe, it
     // and expect without importing them.
     globals: true,
-    include: ["src/**/*.test.{ts,tsx}", "../engine/src/**/*.test.ts"],
+    include: [
+      "src/**/*.test.{ts,tsx}",
+      "../engine/src/**/*.test.ts",
+      "../releases/**/*.test.ts",
+    ],
     env: {
       VITE_FIREBASE_API_KEY: "test-api-key",
       VITE_FIREBASE_AUTH_DOMAIN: "demo-workflow-test.firebaseapp.com",

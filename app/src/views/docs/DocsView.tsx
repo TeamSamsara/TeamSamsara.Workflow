@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/docs/DocsView.tsx
-// Version : 1.1.0
-// Latest commit: fix/docs-and-brush
+// Version : 1.2.0
+// Latest commit: feature/whats-new
 // Author : Gerrah
 // Purpose : Documentation: the articles for what your roles let you do, in
 // groups, with a search; one article open beside the list, with "Show me in
@@ -22,12 +22,13 @@ import {
   type Block,
   type DocGroup,
 } from "@/features/onboarding";
+import { WhatsNewPage, WhatsNewText } from "@/features/whats-new";
 import { Banner } from "@/shared/components/Banner/Banner";
 import { Button } from "@/shared/components/Button/Button";
 import { Select } from "@/shared/components/Fields/Select/Select";
 import { TextField } from "@/shared/components/Fields/TextField/TextField";
 import { PageHeader } from "@/shared/components/PageHeader/PageHeader";
-import { docsPath } from "@/shared/constants/routePaths";
+import { docsPath, WhatsNewArticle } from "@/shared/constants/routePaths";
 import { DocsViewText as Text } from "./docsViewContent";
 import styles from "./DocsView.module.css";
 
@@ -76,9 +77,12 @@ export function DocsView() {
   const all = groups.flatMap((group) =>
     group.articles.map((article) => ({ group, article })),
   );
-  const open = articleId
-    ? all.find((entry) => entry.article.id === articleId)
-    : all[0];
+  const isWhatsNew = articleId === WhatsNewArticle;
+  const open = isWhatsNew
+    ? undefined
+    : articleId
+      ? all.find((entry) => entry.article.id === articleId)
+      : all[0];
   const nextEntry = open ? all[all.indexOf(open) + 1] : undefined;
   const myChapters = new Set(walkthrough.chapters.map((chapter) => chapter.id));
 
@@ -123,6 +127,13 @@ export function DocsView() {
 
       <div className={styles.columns}>
         <nav aria-label={Text.articles} className={styles.list}>
+          <Link
+            to={docsPath(WhatsNewArticle)}
+            className={styles.link}
+            aria-current={isWhatsNew ? "page" : undefined}
+          >
+            {WhatsNewText.pageTitle}
+          </Link>
           {shown.length === 0 ? (
             <p className={styles.muted}>{Text.noResults}</p>
           ) : null}
@@ -151,7 +162,9 @@ export function DocsView() {
         </nav>
 
         <article className={styles.article}>
-          {open ? (
+          {isWhatsNew ? (
+            <WhatsNewPage />
+          ) : open ? (
             <ArticleView
               group={open.group}
               article={open.article}

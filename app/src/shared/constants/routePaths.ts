@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/constants/routePaths.ts
-// Version : 1.16.0
-// Latest commit: feature/audit-fixes
+// Version : 1.17.0
+// Latest commit: feature/whats-new
 // Author : Gerrah
 // Purpose : Every address in the app, in one place, so links and routes can
 // never disagree about where a page lives.
@@ -147,6 +147,9 @@ export function planSeveralPath(setId?: string): string {
     ? `/events/new/several?set=${encodeURIComponent(setId)}`
     : "/events/new/several";
 }
+
+/** The help page that lists every release: /docs/whats-new. */
+export const WhatsNewArticle = "whats-new";
 
 /** /docs/:articleId */
 export function docsPath(articleId?: string): string {

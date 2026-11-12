@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/peopleTags.rules.test.ts
-// Version : 1.0.0
-// Latest commit: feature/audit-fixes
+// Version : 1.1.0
+// Latest commit: feature/whats-new
 // Author : Gerrah
 // Purpose : Tests people tags against the rules: everyone reads them; Tag
 // people or Manage members makes, changes and deletes them and puts them on
@@ -128,6 +128,26 @@ describe("tags on members", () => {
       updateDoc(doc(signedInAs(env, "kappa"), "members/okami"), {
         tagIds: ["starter"],
         roleIds: ["tagger"],
+      }),
+    );
+  });
+});
+
+describe("the newest release a member has seen", () => {
+  it("is saved by the member, beside their Team availability view", async () => {
+    await assertSucceeds(
+      updateDoc(doc(signedInAs(env, "okami"), "members/okami"), {
+        "prefs.lastSeenRelease": "1.2.0",
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(signedInAs(env, "kappa"), "members/okami"), {
+        "prefs.lastSeenRelease": "1.3.0",
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(signedInAs(env, "okami"), "members/okami"), {
+        "prefs.lastSeenRelease": 12,
       }),
     );
   });
