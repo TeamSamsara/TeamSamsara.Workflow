@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/articles.ts
-// Version : 1.8.2
+// Version : 1.8.3
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The Documentation: one short article per feature, in groups. Each
@@ -101,19 +101,25 @@ export const DocGroups: readonly DocGroup[] = [
           p(
             "The calendar opens on My calendar: the events you're in, yourself or through your work groups, events for everyone, the events you made and your personal appointments.",
           ),
-          h("Showing tasks"),
-          p(
-            "Tasks are hidden at first, so the calendar shows events. The badge on an event (3/10) is how many of its tasks are done; open the event to see them. Turn on Show tasks to put your tasks and your groups' on the calendar at their due time.",
-          ),
-          h("Seeing a work group's calendar"),
-          p(
-            "Pick one of your work groups in the Calendar box. People who can see everything also get Everything.",
-          ),
-          h("Month, week or list"),
-          list(
-            "Month: a month at a glance, one line per item so a busy day still fits.",
-            "Week: 8 AM to midnight, so evening matches fit. Anything earlier shows as a small marker at the top of the day.",
-            "List: everything in the month, day by day.",
+          figure(
+            "calendarControls",
+            "The calendar, on a week.",
+            callout(
+              "Which calendar",
+              "My calendar, or one of your work groups'. People who can see everything also get Everything.",
+            ),
+            callout(
+              "Show tasks",
+              "Off at first, so the calendar shows events. Turn it on to put your tasks and your groups' on it at their due time.",
+            ),
+            callout(
+              "Month, week or list",
+              "Month: one line per item, so a busy day still fits. Week: 8 AM to midnight, with anything earlier as a small marker at the top. List: everything in the month, day by day.",
+            ),
+            callout(
+              "An event",
+              "Outlined when you're in it yourself. 3/10 is how many of its tasks are done; open it to see them.",
+            ),
           ),
           p(
             "The calendar remembers the view, the calendar and Show tasks you last used in this browser.",
@@ -125,13 +131,26 @@ export const DocGroups: readonly DocGroup[] = [
         title: "Events and their pages",
         summary: "Open an event to see who's in it, its details and its tasks.",
         body: [
-          p(
-            "Click an event to open its page: when it is, who's in it, its type, its link, the details its workflows asked for, and its tasks with how far along they are.",
+          p("Click an event to open its page."),
+          figure(
+            "eventPage",
+            "A match's page.",
+            callout(
+              "Who's in it",
+              "People and work groups. Only they (and whoever made it, and people who see everything) can see it, unless it's for Everyone.",
+            ),
+            callout(
+              "Its details",
+              "What its workflows asked for, like the opponent. They fill in its title and its tasks' text.",
+            ),
+            callout(
+              "Its tasks",
+              "Every task it has, who has it and how far along it is.",
+            ),
           ),
           p(
-            "Events you're in yourself are outlined on the calendar. Only the people and work groups in an event (and whoever made it, and people who see everything) can see it, unless it's for Everyone.",
+            "Events that are part of a set say so at the top, with a link to the set. Its ⋯ menu edits or deletes it (or, for a repeat, this one or the ones after it), and Update tasks from workflows brings its open tasks in line with its workflows.",
           ),
-          p("Events that are part of a set say so, with a link to the set."),
         ],
       },
       {
@@ -140,11 +159,26 @@ export const DocGroups: readonly DocGroup[] = [
         summary: "Going, Maybe or Can't go, when an event asks.",
         body: [
           p(
-            "Some events ask the people in them to reply. Answer Going, Maybe or Can't go on the event's page, or straight from the notification. A note is optional, like \"15 min late\" or why you can't make it. You can change your reply any time.",
+            "Some events ask the people in them to reply. Answer on the event's page, or straight from the notification.",
           ),
-          p(
-            "The event's page says whether you're required or optional, and shows everyone's answer. On the calendar a ✓ means you're going, ? maybe, a dot that it's waiting on you, and a struck-through event that you can't go.",
+          figure(
+            "replyBox",
+            "Replying on an event's page.",
+            callout(
+              "Your answer",
+              "Going, Maybe or Can't go. Change it any time. The page says whether you're required or optional.",
+            ),
+            callout(
+              "A note",
+              'Optional, like "15 min late" or why you can\'t make it.',
+            ),
+            callout(
+              "Everyone's answers",
+              "How many are going, and who's still to answer.",
+            ),
           ),
+          h("On the calendar"),
+          figure("replyMarks", "How your answer shows on an event."),
         ],
       },
       {
@@ -156,8 +190,11 @@ export const DocGroups: readonly DocGroup[] = [
           p(
             "Everything is planned in the workspace's time zone (set in Settings › General). You can see times in your own instead: pick your time zone, date format and clock on Your account.",
           ),
-          p(
-            'When your time zone differs, forms that set times say "Times here are in Toronto time", and an event\'s page shows both times.',
+          compare(
+            "timesOnForm",
+            "timesOnEvent",
+            "Someone in London planning a Toronto match: the form says which time it uses, and the event shows both.",
+            ["Planning it", "On its page"],
           ),
         ],
       },
@@ -209,14 +246,32 @@ export const DocGroups: readonly DocGroup[] = [
         title: "Notifications",
         summary: "The bell: what needs you, and reminders.",
         body: [
-          p(
-            "The bell at the top of the menu counts what's new: a task given to you or your group, a task sent to you to review, yours approved or sent back, events you're added to, moved or cancelled, and events asking you to reply (answer right in the notification). Reminders come before a task is due and before an event starts. Nothing you do yourself notifies you.",
+          p("The bell at the top of the menu counts what's new:"),
+          list(
+            "A task given to you or your group, or sent to you to review.",
+            "Yours approved, or sent back with changes.",
+            "Events you're added to, moved or cancelled, and events asking you to reply.",
+            "Reminders before a task is due and before an event starts.",
+          ),
+          p("Nothing you do yourself notifies you."),
+          figure(
+            "notificationList",
+            "The notifications list.",
+            callout(
+              "What's new",
+              "Unread ones are tinted green. Open one to go to its task or event; All or Unread filters the list.",
+            ),
+            callout(
+              "Answer right there",
+              "An event asking you to reply has Going, Maybe and Can't go on it.",
+            ),
+            callout(
+              "One for work done in bulk",
+              "A planned set or repeat sends one summary, not one per task. So does a changed workflow, saying how many of your upcoming tasks moved.",
+            ),
           ),
           p(
-            "Work done in bulk sends one notification, not one per task: when a set or repeat is planned you get a summary (how many tasks are yours and your groups', and how many of the events you're in, with Show the tasks), and when someone changes a workflow you get one saying how many of your upcoming tasks moved.",
-          ),
-          p(
-            "Open one to go to its task or event. Choose which kinds you get, by email too, and when you're reminded on Your account › Notifications, where a test email checks that email reaches you.",
+            "Choose which kinds you get, by email too, and when you're reminded on Your account › Notifications, where a test email checks that email reaches you.",
           ),
         ],
       },
