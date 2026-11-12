@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/pictures/kit.tsx
-// Version : 1.0.0
-// Latest commit: feature/docs-refresh
+// Version : 1.0.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The pieces the help's pictures are drawn from: small versions of
 // Playbook's cards, rows, pills, faces and tabs, plus numbered marks that
@@ -173,3 +173,46 @@ export function Spot({ n, children }: { n: number; children: ReactNode }) {
     </span>
   );
 }
+
+/** A tick box or a choice, ticked or not, with its words. */
+export const Check = ({
+  on,
+  round,
+  children,
+}: {
+  on?: boolean;
+  round?: boolean;
+  children: ReactNode;
+}) => (
+  <span className={styles.check}>
+    <span
+      className={styles.box}
+      data-on={on ?? false}
+      data-round={round ?? false}
+    />
+    {children}
+  </span>
+);
+
+/** An on/off switch. */
+export const Switch = ({ on }: { on?: boolean }) => (
+  <span className={styles.switch} data-on={on ?? false}>
+    <span className={styles.knob} />
+  </span>
+);
+
+/** A count with its label, as on an event's replies. */
+export const Count = ({
+  n,
+  label,
+  tone,
+}: {
+  n: number;
+  label: string;
+  tone?: Tone;
+}) => (
+  <span className={styles.count} data-tone={tone ?? "neutral"}>
+    <b>{n}</b>
+    <span>{label}</span>
+  </span>
+);

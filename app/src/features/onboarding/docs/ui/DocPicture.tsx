@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/ui/DocPicture.tsx
-// Version : 1.0.0
-// Latest commit: feature/docs-refresh
+// Version : 1.0.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The picture blocks of a help article: a picture with its numbered
 // callouts beside it (picking one lights up its spot), steps side by side
@@ -33,7 +33,7 @@ function Figure({ block }: { block: Extract<Block, { kind: "figure" }> }) {
     block.callouts.length > 0 ? 1 : null,
   );
   return (
-    <figure className={styles.figure}>
+    <figure className={styles.figure} data-plain={block.callouts.length === 0}>
       <ActiveCallout.Provider value={active}>
         <Picture name={block.picture} label={block.caption} />
       </ActiveCallout.Provider>

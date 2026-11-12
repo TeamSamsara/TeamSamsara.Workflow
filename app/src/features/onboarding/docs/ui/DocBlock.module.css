@@ -13,6 +13,11 @@
   align-items: start;
 }
 
+/* A picture with nothing pointed at: on its own, not too wide. */
+.figure[data-plain="true"] {
+  grid-template-columns: minmax(0, 560px);
+}
+
 .caption {
   grid-column: 1 / -1;
   font-size: var(--text-meta);

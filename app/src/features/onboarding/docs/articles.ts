@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/articles.ts
-// Version : 1.8.0
-// Latest commit: feature/docs-refresh
+// Version : 1.8.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The Documentation: one short article per feature, in groups. Each
 // group (or article) is for the people with its permission, the same as the
@@ -317,18 +317,27 @@ export const DocGroups: readonly DocGroup[] = [
         title: "Planning an event",
         summary: "Title, time, who's in it and its workflows.",
         body: [
-          steps(
-            "New event › Event.",
-            "Give it a title, a type, a date, and a start and end.",
-            "Add who's in it: people, work groups or Everyone.",
-            "Tick the workflows whose tasks it needs.",
-            "Create: the event and its tasks are made together.",
+          figure(
+            "newEventForm",
+            "New event › Event: a match against Final Boss Black.",
+            callout(
+              "Its title",
+              "Words in {curly brackets} (vs. {opponent}) are asked for beside it and filled in, in the title and in the tasks.",
+            ),
+            callout(
+              "Who's in it",
+              "People, work groups or Everyone. They see it on their calendar.",
+            ),
+            callout(
+              "Its workflows",
+              "Tick the ones whose tasks it needs. Workflows suggested for its type are ticked for you.",
+            ),
+            callout("Create", "The event and all its tasks are made together."),
           ),
+          h("Tasks that would already be late"),
+          figure("lateWarning", "Planning a Friday match on Thursday night."),
           p(
-            "Words in {curly brackets} in the title (vs. {opponent}) are asked for below, and filled in.",
-          ),
-          p(
-            "If some of the workflow's tasks would already be due (a Friday match planned on Thursday night), a warning lists them. Create them as late (they're marked Late from the start) or leave them out.",
+            "If some tasks would already be due, a warning lists them. Create them anyway (they're marked Late from the start, so nobody's blamed for it) or leave them out.",
           ),
         ],
       },
@@ -338,13 +347,27 @@ export const DocGroups: readonly DocGroup[] = [
         summary: "Everyone's availability, while you plan.",
         body: [
           p(
-            "Once people are in an event, Playbook checks their usual week, exceptions and personal appointments and says how many can make it, and why someone can't.",
+            "Once people are in an event, Playbook checks their usual week, exceptions and personal appointments while you plan.",
           ),
-          p(
-            "Nearby times when everyone's free are listed below: click one to move the event there.",
-          ),
-          p(
-            "Mark who's Required or Optional with the chip by each name (the same switch as in Asking people to reply). Then only required people count, and the suggested times are when they're free: a coach being away doesn't hide a time that works for the players.",
+          figure(
+            "whoCanMake",
+            "Who can make it, beside the event's form.",
+            callout(
+              "How many",
+              "How many of the people who have to be there can make it.",
+            ),
+            callout(
+              "Why someone can't",
+              "Away, busy, or outside their usual week. Personal appointments only ever show as Busy.",
+            ),
+            callout(
+              "Required or Optional",
+              "Click the chip by each name. Only required people count, so a coach being away doesn't hide a time that works for the players.",
+            ),
+            callout(
+              "Times that work",
+              "Nearby times when everyone required is free. Click one to move the event there.",
+            ),
           ),
         ],
       },
@@ -353,16 +376,19 @@ export const DocGroups: readonly DocGroup[] = [
         title: "Asking people to reply",
         summary: "Who's coming, and who's required.",
         body: [
-          steps(
-            "In the event's form, turn on Ask people to reply.",
-            "Everyone in it starts as Required: set the ones who don't have to come to Optional (or use All required and All optional).",
-            "Tick Tell me about every reply to hear each answer; otherwise you're told only when someone required can't go.",
+          frames(
+            ["askReplyOn", "In the event's form, turn on Ask people to reply."],
+            ["askReplyNotice", "Everyone in it gets a notification to answer."],
+            [
+              "askReplyCounts",
+              "The event's page counts the answers. Remind nudges who hasn't replied.",
+            ],
           ),
           p(
-            "People get a notification to reply. The event's page shows the counts and everyone's answer, grouped by required and optional, with what their availability says. Remind who hasn't replied sends them another notification (once an hour at most).",
+            "Everyone starts as Required: set the ones who don't have to come to Optional, or use All required and All optional. Tick Tell me about every reply to hear each answer; otherwise you're told only when someone required can't go.",
           ),
           p(
-            "People added later are asked too, as optional until you change it. Each date of a repeating event gets its own replies.",
+            "Remind sends another notification at most once an hour. People added later are asked too, as optional until you change it. Each date of a repeating event gets its own replies.",
           ),
         ],
       },
@@ -371,15 +397,20 @@ export const DocGroups: readonly DocGroup[] = [
         title: "Repeating events",
         summary: "Weekly scrims or a Monday meeting.",
         body: [
+          figure(
+            "repeatPicker",
+            "New event › Repeat…: scrims every Tuesday and Thursday.",
+          ),
           p(
-            "Press Repeat… on New event, pick the days, and when it ends (never, on a date, or after a number of events). The coming weeks are made for you.",
+            "Pick the days and when it ends: never, on a date, or after a number of events. The coming weeks are made for you, each with its own tasks.",
           ),
           p(
             "From an event's ⋯ menu you can change just that one, change the ones coming up, skip a date, or end the repeat.",
           ),
           h("Deleting"),
+          figure("deleteRepeat", "Delete… on a repeating event."),
           p(
-            "Delete… asks which to delete: just this one, this and every later one, or the whole series. It counts the events and tasks first. Finished tasks are kept as history unless you untick it: they stay in people's done lists, marked Event deleted.",
+            "Choose just this one, this and every later one, or the whole series. It counts the events and tasks first. Finished tasks are kept as history unless you untick it: they stay in people's done lists, marked Event deleted.",
           ),
         ],
       },
@@ -397,14 +428,22 @@ export const DocGroups: readonly DocGroup[] = [
         title: "Planning several events at once",
         summary: "A split or a month of content, one row per event.",
         body: [
-          steps(
-            "New event › Several events.",
-            "Set what they share: the set's name, type, usual times, who's in them, and a title with fields like vs. {opponent}.",
-            "Fill the rows: Add dates on a pattern, Paste from a spreadsheet, or Add a row.",
-            "Create: each row becomes an event with its own tasks.",
+          frames(
+            [
+              "severalShared",
+              "New event › Several events. Set what they share, with a title like vs. {opponent}.",
+            ],
+            [
+              "severalRows",
+              "Fill the rows: dates on a pattern, pasted from a spreadsheet, or one by one.",
+            ],
+            [
+              "severalMade",
+              "Create: each row becomes an event with its own tasks, kept together as a set.",
+            ],
           ),
-          p(
-            "A field can stay TBD: the event keeps {opponent} in its title until you fill it in, on the set's page or on the event.",
+          tip(
+            "Don't know every opponent yet? Leave it TBD. Fill it in later from the set's page, and the title and tasks follow.",
           ),
         ],
       },

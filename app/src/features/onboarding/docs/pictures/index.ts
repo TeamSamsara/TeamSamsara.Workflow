@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/pictures/index.ts
-// Version : 1.0.0
-// Latest commit: feature/docs-refresh
+// Version : 1.0.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Every picture the help can show, by the name an article uses.
 
@@ -13,6 +13,19 @@ import {
   TaskAfterFill,
   TaskBeforeFill,
 } from "./setPictures";
+import {
+  AskReplyCounts,
+  AskReplyNotice,
+  AskReplyOn,
+  DeleteRepeat,
+  LateWarning,
+  NewEventForm,
+  RepeatPicker,
+  SeveralMade,
+  SeveralRows,
+  SeveralShared,
+  WhoCanMake,
+} from "./planningPictures";
 import { MyTasksPage, TaskOrder } from "./taskPictures";
 import {
   EventsFollow,
@@ -38,6 +51,17 @@ export const docPictures = {
   handEditBefore: HandEditBefore,
   handEditAfter: HandEditAfter,
   updateFromWorkflows: UpdateFromWorkflows,
+  newEventForm: NewEventForm,
+  lateWarning: LateWarning,
+  whoCanMake: WhoCanMake,
+  askReplyOn: AskReplyOn,
+  askReplyNotice: AskReplyNotice,
+  askReplyCounts: AskReplyCounts,
+  repeatPicker: RepeatPicker,
+  deleteRepeat: DeleteRepeat,
+  severalShared: SeveralShared,
+  severalRows: SeveralRows,
+  severalMade: SeveralMade,
 } satisfies Record<string, ComponentType>;
 
 export type PictureName = keyof typeof docPictures;
