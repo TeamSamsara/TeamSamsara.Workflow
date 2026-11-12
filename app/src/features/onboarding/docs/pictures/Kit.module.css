@@ -225,6 +225,19 @@
   max-width: 100%;
 }
 
+.spot[data-wide="true"] {
+  align-self: stretch;
+  width: 100%;
+}
+
+.spot[data-wide="true"] > .ring {
+  flex-grow: 1;
+}
+
+.spot[data-wide="true"] > .ring > * {
+  flex-grow: 1;
+}
+
 .mark {
   flex-shrink: 0;
   width: 18px;

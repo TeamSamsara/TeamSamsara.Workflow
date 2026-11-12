@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/ui/DocPicture.tsx
-// Version : 1.0.1
+// Version : 1.0.2
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The picture blocks of a help article: a picture with its numbered
@@ -81,29 +81,25 @@ export function DocPicture({ block }: { block: PictureBlock }) {
           ))}
         </ol>
       );
-    case "compare":
+    case "compare": {
+      const [before, after] = block.labels ?? [Text.before, Text.after];
       return (
         <div className={styles.compare}>
           <div className={styles.side}>
-            <span className={styles.sideLabel}>{Text.before}</span>
-            <Picture
-              name={block.before}
-              label={`${Text.before}: ${block.note}`}
-            />
+            <span className={styles.sideLabel}>{before}</span>
+            <Picture name={block.before} label={`${before}: ${block.note}`} />
           </div>
           <span className={styles.between} aria-hidden="true">
             →
           </span>
           <div className={styles.side}>
-            <span className={styles.sideLabel}>{Text.after}</span>
-            <Picture
-              name={block.after}
-              label={`${Text.after}: ${block.note}`}
-            />
+            <span className={styles.sideLabel}>{after}</span>
+            <Picture name={block.after} label={`${after}: ${block.note}`} />
           </div>
           <p className={styles.note}>{block.note}</p>
         </div>
       );
+    }
     case "tip":
       return (
         <aside className={styles.tip}>

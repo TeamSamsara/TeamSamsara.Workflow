@@ -108,7 +108,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   gap: var(--space-3);
-  align-items: center;
+  align-items: start;
 }
 
 .side {
@@ -126,6 +126,7 @@
 }
 
 .between {
+  align-self: center;
   color: var(--color-text-muted);
   font-size: 20px;
 }

@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/pictures/index.ts
-// Version : 1.0.1
+// Version : 1.0.2
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Every picture the help can show, by the name an article uses.
@@ -26,6 +26,17 @@ import {
   SeveralShared,
   WhoCanMake,
 } from "./planningPictures";
+import {
+  Exception,
+  GroupPage,
+  PersonalOthers,
+  PersonalYours,
+  Profile,
+  TagsOnPerson,
+  TagsSettings,
+  TeamAvailability,
+  UsualWeek,
+} from "./peoplePictures";
 import { MyTasksPage, TaskOrder } from "./taskPictures";
 import {
   EventsFollow,
@@ -62,6 +73,15 @@ export const docPictures = {
   severalShared: SeveralShared,
   severalRows: SeveralRows,
   severalMade: SeveralMade,
+  usualWeek: UsualWeek,
+  exception: Exception,
+  personalYours: PersonalYours,
+  personalOthers: PersonalOthers,
+  teamAvailability: TeamAvailability,
+  tagsSettings: TagsSettings,
+  tagsOnPerson: TagsOnPerson,
+  groupPage: GroupPage,
+  profile: Profile,
 } satisfies Record<string, ComponentType>;
 
 export type PictureName = keyof typeof docPictures;

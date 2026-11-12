@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/articles.ts
-// Version : 1.8.1
+// Version : 1.8.2
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The Documentation: one short article per feature, in groups. Each
@@ -39,6 +39,8 @@ export type Block =
       before: PictureName;
       after: PictureName;
       note: string;
+      /** Instead of Before and After. */
+      labels?: readonly [string, string];
     }
   | { kind: "tip"; text: string };
 
@@ -80,7 +82,8 @@ const compare = (
   before: PictureName,
   after: PictureName,
   note: string,
-): Block => ({ kind: "compare", before, after, note });
+  labels?: readonly [string, string],
+): Block => ({ kind: "compare", before, after, note, labels });
 const tip = (text: string): Block => ({ kind: "tip", text });
 
 export const DocGroups: readonly DocGroup[] = [
@@ -164,10 +167,40 @@ export const DocGroups: readonly DocGroup[] = [
         summary: "Your teams, and who's in them.",
         body: [
           p(
-            "Groups in the menu lists every work group, yours first, with your own groups under it. A group's page shows its members (filter them by people tag), its open tasks, what it's about, its key links and what's coming up, with Calendar and Availability tabs for that group.",
+            "Groups in the menu lists every work group, yours first, with your own groups under it.",
+          ),
+          figure(
+            "groupPage",
+            "A work group's page.",
+            callout(
+              "Its tabs",
+              "Overview, then the group's own Calendar and Availability.",
+            ),
+            callout(
+              "Its members",
+              "Leads are marked. Filter them by people tag, and click a name to open their profile.",
+            ),
+            callout(
+              "Its open tasks",
+              "What the group still has to do, beside what it's about, its key links and what's coming up.",
+            ),
+          ),
+          h("Someone's profile"),
+          figure(
+            "profile",
+            "A member's profile.",
+            callout("Their time", "What time it is for them right now."),
+            callout(
+              "Their usual week",
+              "When they're usually free, in their time or yours.",
+            ),
+            callout(
+              "Their tags",
+              "People who can tag people click a tag to put it on or take it off.",
+            ),
           ),
           p(
-            "Click anyone's name to open their profile: their tags and groups, what time it is for them, their usual week in their time or yours, what's coming up for them and their tasks you can already see. Nothing there can be changed; people edit their own on Your account.",
+            "A profile also shows their groups, what's coming up for them and their tasks you can already see. Their name and photo are theirs to change, on Your account.",
           ),
         ],
       },
@@ -270,13 +303,17 @@ export const DocGroups: readonly DocGroup[] = [
         title: "Your usual week",
         summary: "Paint the hours you're usually not free.",
         body: [
+          figure(
+            "usualWeek",
+            "Calendar › Availability: evenings blocked for work.",
+          ),
           steps(
             "Open Calendar › Availability.",
             "Click or drag over the hours you're usually not free, like school or work.",
             "Press Save.",
           ),
           p(
-            "Your hours are in your own time zone, and repeat every week. Managers planning an event see who can make it from them.",
+            "Your hours are in your own time zone, and repeat every week. People planning an event see who can make it from them.",
           ),
         ],
       },
@@ -285,8 +322,9 @@ export const DocGroups: readonly DocGroup[] = [
         title: "Exceptions",
         summary: "Dates that aren't like your usual week.",
         body: [
+          figure("exception", "A weekend away for a tournament."),
           p(
-            "Away for a tournament, an exam or a trip? On My availability, add an exception: a whole day or between two times, unavailable or available. Exceptions override your usual week on that date.",
+            "Away for a tournament, an exam or a trip? On My availability, add an exception: a whole day or between two times, unavailable or available. Exceptions override your usual week on those dates.",
           ),
         ],
       },
@@ -295,11 +333,14 @@ export const DocGroups: readonly DocGroup[] = [
         title: "Personal appointments",
         summary: "A dentist visit or a class, on your own calendar.",
         body: [
-          p(
-            "Add one from New event › Personal appointment (or the Personal appointment button). It shows on your calendar with a lock.",
+          compare(
+            "personalYours",
+            "personalOthers",
+            "You see what it is, with a lock. Everyone else sees Busy on those hours, unless you share it with your group leads.",
+            ["You see", "Everyone else sees"],
           ),
           p(
-            "Only you and people who can see everyone's availability see what it is. Everyone else sees Busy.",
+            "Add one from New event › Personal appointment. Tick Share with my group leads when they should know what it is, like a class that clashes with practice.",
           ),
         ],
       },
@@ -505,17 +546,26 @@ export const DocGroups: readonly DocGroup[] = [
         summary: "Who's free when, for a work group.",
         body: [
           p(
-            "Calendar › Availability › Team availability shows a work group's week. On the left are its people, grouped by people tag (Starter, Coach…). Tick a tag or click a name to show or hide them, and drag names to reorder. Only the people shown are compared, and it's all saved for you only.",
+            "Calendar › Availability › Team availability shows a work group's week, to find a time that works.",
           ),
-          list(
-            "Hours: each hour of each day, shaded by how many of the people shown are free (bright when all of them are). Click an hour to pick it.",
-            "People: one row per person, with when they're free each day.",
+          figure(
+            "teamAvailability",
+            "Team availability for the Players.",
+            callout(
+              "Who to compare",
+              "Grouped by people tag. Tick a tag or a name to show or hide them, and drag names to reorder. It's saved for you only.",
+            ),
+            callout(
+              "When they're free",
+              "Each hour is shaded by how many of the people shown are free: bright when all of them are. Click one to see who's free and plan an event at that time.",
+            ),
+            callout(
+              "Whose time",
+              "Switch between the team's time zone and yours; the hours move together.",
+            ),
           ),
           p(
-            "The panel on the right shows the picked hour: who's free, who's busy (a personal appointment shows as Busy, or by name when it was shared with you as their group lead) and who hasn't filled in their availability (they're not counted). Plan an event then opens New event at that time, with the group in it. When everyone shown is free lists stretches of two hours or more.",
-          ),
-          p(
-            "Show times in switches between the team's time zone and yours; the hours and labels move together.",
+            "People shows one row per person instead. Someone with a personal appointment shows as Busy, or by name when they shared it with you as their group lead. People who haven't filled in their availability aren't counted.",
           ),
         ],
       },
@@ -525,10 +575,16 @@ export const DocGroups: readonly DocGroup[] = [
         summary: "Starter, Sub, Coach: who to compare.",
         body: [
           p(
-            "People tags are labels for people, to pick who to compare on Team availability. They don't give anyone permissions. Each team makes its own in Settings › Members › People tags: add, rename, recolour, drag to reorder, or delete.",
+            "People tags are labels like Starter, Sub or Coach, to pick who to compare on Team availability. They don't give anyone permissions.",
+          ),
+          compare(
+            "tagsSettings",
+            "tagsOnPerson",
+            "Each team makes its own in Settings › Members › People tags, then puts them on people.",
+            ["Make them", "Put them on people"],
           ),
           p(
-            "People with the Tag people permission (or Manage members) put tags on members from a member's settings page, or with Edit tags on Team availability. Everyone sees the tags.",
+            "People with the Tag people permission (or Manage members) put tags on someone from their profile, their member settings, or Edit tags on Team availability. Everyone sees the tags.",
           ),
         ],
       },

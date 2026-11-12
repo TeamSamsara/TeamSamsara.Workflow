@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/pictures/kit.tsx
-// Version : 1.0.1
+// Version : 1.0.2
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The pieces the help's pictures are drawn from: small versions of
@@ -157,11 +157,20 @@ export const Arrow = ({ children = "↓" }: { children?: ReactNode }) => (
  * Something a callout points at, with its number beside it: outlined while
  * its callout is picked. n = 0 outlines it without a number.
  */
-export function Spot({ n, children }: { n: number; children: ReactNode }) {
+export function Spot({
+  n,
+  wide,
+  children,
+}: {
+  n: number;
+  /** Takes the full width, for something like a grid. */
+  wide?: boolean;
+  children: ReactNode;
+}) {
   const active = useContext(ActiveCallout);
   const on = active === n || n === 0;
   return (
-    <span className={styles.spot}>
+    <span className={styles.spot} data-wide={wide ?? false}>
       {n > 0 ? (
         <span className={styles.mark} data-on={active === n}>
           {n}
