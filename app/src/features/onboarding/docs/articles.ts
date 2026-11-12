@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/articles.ts
-// Version : 1.8.4
+// Version : 1.8.5
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The Documentation: one short article per feature, in groups. Each
@@ -812,11 +812,26 @@ export const DocGroups: readonly DocGroup[] = [
         title: "Members and invites",
         summary: "Invite people with their roles and groups.",
         body: [
-          p(
-            "Settings › Members › Invite people. Add their emails, and pick their roles and work groups: the dialog shows the walkthrough they'll get. They get an email to choose a password.",
+          figure(
+            "inviteDialog",
+            "Settings › Members › Invite people.",
+            callout("Their emails", "As many as you like at once."),
+            callout(
+              "Their roles and work groups",
+              "What they can do, and which teams they're in from the start.",
+            ),
+            callout(
+              "Their walkthrough",
+              "The dialog shows the walkthrough they'll get the first time they sign in, which follows what their roles allow.",
+            ),
           ),
           p(
-            "From a member's page you can change their name, roles and groups, turn their access off, or remove them.",
+            "They get an email to choose a password. Invite links work for 1 hour; if one runs out, resend it.",
+          ),
+          h("A member's page"),
+          figure("memberAccess", "Someone who hasn't signed in yet."),
+          p(
+            "Change their name, roles and groups there, resend their invite, turn their access off (and back on), or remove them.",
           ),
         ],
       },
@@ -825,8 +840,20 @@ export const DocGroups: readonly DocGroup[] = [
         title: "Roles and permissions",
         summary: "What people can do.",
         body: [
+          figure(
+            "rolesList",
+            "Settings › Roles.",
+            callout(
+              "Highest first",
+              "Drag to reorder. You only manage roles below your own. Everyone is at the bottom, and everyone has it.",
+            ),
+            callout(
+              "Its permissions",
+              "Tick what the role can do. You can only give permissions you hold yourself.",
+            ),
+          ),
           p(
-            "Roles give permissions. Everyone has the Everyone role. You can only give permissions you hold yourself, and only manage roles below your own.",
+            "Someone with several roles can do what any of them allows. Each role has a colour, shown next to names and on role chips.",
           ),
         ],
       },
@@ -836,7 +863,11 @@ export const DocGroups: readonly DocGroup[] = [
         summary: "Teams, like Bloom or Design.",
         body: [
           p(
-            "Work groups act as teams: tasks can be given to a group, events can be for a group, and each person sees their groups' calendars. Give each a colour for its badge and its dot in the menu.",
+            "Work groups act as teams: tasks can be given to a group, events can be for a group, and each person sees their groups' calendars.",
+          ),
+          figure("workGroupsList", "Settings › Work groups."),
+          p(
+            "Open one to name it, give it a colour for its badge and its dot in the menu, add or remove members and mark its leads. Tasks given to a work group show up in every member's My tasks.",
           ),
         ],
       },
@@ -845,19 +876,40 @@ export const DocGroups: readonly DocGroup[] = [
         title: "The workspace",
         summary: "Its name, time zone, formats and event types.",
         body: [
-          p(
-            "Settings › General sets the workspace's time zone (what everything is planned in), date and time formats and default theme. Tasks and events sets the statuses, tags and event types.",
+          figure(
+            "generalSettings",
+            "Settings › General.",
+            callout(
+              "Workspace time zone",
+              "What everything is planned in. People can still see times in their own.",
+            ),
+            callout(
+              "Formats",
+              "When the week starts, and how dates and times are written.",
+            ),
+            callout(
+              "Default theme",
+              "For new members. Each person can still pick their own.",
+            ),
           ),
           p(
-            "Administrators also choose the sign-in page's pictures there: add up to 8, put them in order, or remove one. They take turns behind the welcome, and anyone with the link can see them.",
+            "Settings › Tasks and events sets the statuses, tags and event types. Administrators also choose the sign-in page's pictures on General: up to 8, in order, taking turns behind the welcome. Anyone with the link can see them.",
           ),
           h("Platform updates"),
           p(
-            "Some new versions of Playbook come with a one-time update to the data already stored, like bringing tasks planned before a change in line with their workflows. They run by themselves shortly after a release, and each is listed on Settings › General with when it ran and what it changed. Check shows what a pending one would change; Apply now runs it straight away.",
+            "Some new versions of Playbook come with a one-time update to the data already stored. They run by themselves shortly after a release.",
+          ),
+          figure("platformUpdates", "One update, applied."),
+          p(
+            "Each is listed with when it ran and what it changed. Check shows what a pending one would change; Apply now runs it straight away.",
           ),
           h("Database maintenance"),
           p(
-            "Every Sunday a check-up looks for data pointing at deleted things (a task whose event is gone, a group that no longer exists) and photos nothing uses, and saves a report. It only reports until an Administrator turns on Apply the fixes; Run now runs it straight away. It never deletes real work: finished tasks stay as history.",
+            "Every Sunday a check-up looks for data pointing at deleted things (a task whose event is gone, a group that no longer exists) and photos nothing uses, and saves a report.",
+          ),
+          figure("maintenance", "Reporting only, until it's turned on."),
+          p(
+            "It only reports until an Administrator turns on Apply the fixes; Run now runs it straight away. It never deletes real work: finished tasks stay as history.",
           ),
         ],
       },
@@ -874,8 +926,23 @@ export const DocGroups: readonly DocGroup[] = [
         title: "Your account",
         summary: "Your photo, names, time zone, password.",
         body: [
-          p(
-            "Click your name at the bottom of the menu. There you add a profile photo (drag and zoom to frame it), set your name and in-game name (shown first wherever you appear), your time zone, date format and clock, your theme, and your password.",
+          p("Click your name at the bottom of the menu."),
+          figure(
+            "accountPage",
+            "Your account.",
+            callout("Your photo", "Drag and zoom to frame it."),
+            callout(
+              "Your names",
+              "Your in-game name is shown first wherever you appear.",
+            ),
+            callout(
+              "Your time and formats",
+              "Times show in your time zone, with your date format and clock. Your theme is here too.",
+            ),
+            callout(
+              "Notifications and password",
+              "Choose what you're notified about, and change your password.",
+            ),
           ),
           p(
             'Forgot your password? "Email me a reset link" on Your account, or "Forgot password?" on the sign-in page.',
