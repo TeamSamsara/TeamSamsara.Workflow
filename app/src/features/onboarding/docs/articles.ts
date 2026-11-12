@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/articles.ts
-// Version : 1.8.3
+// Version : 1.8.4
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The Documentation: one short article per feature, in groups. Each
@@ -331,8 +331,20 @@ export const DocGroups: readonly DocGroup[] = [
         summary: "Some tasks need a check before they're done.",
         body: [
           p(
-            "A task that needs approval can't be ticked straight away. Send it for review instead: it waits for someone who approves tasks, and comes back approved or with the changes they asked for.",
+            "A task that needs approval can't be ticked straight away. Send it for review instead.",
           ),
+          frames(
+            ["reviewSend", "Finish the work, then Send for review."],
+            [
+              "reviewDecide",
+              "Someone who approves tasks checks it: Approve, or Ask for changes.",
+            ],
+            [
+              "reviewBack",
+              "Changes come back to you with their note. Fix them and send it again.",
+            ],
+          ),
+          p("You're notified when it's approved or sent back."),
         ],
       },
       {
@@ -341,7 +353,11 @@ export const DocGroups: readonly DocGroup[] = [
         summary: "Tasks that ask where the post went live.",
         body: [
           p(
-            "Some tasks (a post, a clip) ask for the link to what you published when you finish them. Paste it in when you tick it off; it's kept on the task for everyone.",
+            "Some tasks (a post, a clip) ask for the link to what you published before they can be done.",
+          ),
+          figure("liveLink", "Finishing a post."),
+          p(
+            "Paste it in, then Mark as done. It's kept on the task, so everyone can find the post.",
           ),
         ],
       },
@@ -658,10 +674,35 @@ export const DocGroups: readonly DocGroup[] = [
         summary: "A reusable list of tasks for a kind of event.",
         body: [
           p(
-            "A workflow lists what happens before, during and after a kind of event (a match, a shoot), who does each task and when it's due, counted from the event's start.",
+            "A workflow lists what happens before, during and after a kind of event (a match, a shoot): each task, who does it and when it's due.",
           ),
+          figure(
+            "workflowTasks",
+            "A workflow for match days.",
+            callout(
+              "A task",
+              "Its title, how to do it, and who it's given to: people or a work group. Add a checklist, post text, reference links or a live link.",
+            ),
+            callout(
+              "Needs approval",
+              "Someone who approves tasks checks it before it counts as done.",
+            ),
+            callout(
+              "Suggested for",
+              "Planning an event of this type ticks this workflow for you.",
+            ),
+            callout(
+              "Its fields",
+              "Details like {opponent} that its tasks use, asked for when an event is planned.",
+            ),
+          ),
+          h("When tasks are due"),
           p(
-            "Picked when planning an event, its tasks are made for that event with the right dates.",
+            "Due times are counted from when the event starts, so the same workflow fits any date.",
+          ),
+          figure("dueTimeline", "A Monday 7 PM match."),
+          p(
+            "Picked when planning an event, its tasks are made for that event with the right dates. Change the workflow later and upcoming events follow.",
           ),
         ],
       },
@@ -671,10 +712,21 @@ export const DocGroups: readonly DocGroup[] = [
         summary: "Details filled in from each event.",
         body: [
           p(
-            "A field is a detail an event can have: an opponent, a league, a co-streamer. Set them up in Settings › Fields, each with a type: text, a link, a number, a choice from a list, a date and time, or someone on the team.",
+            "A field is a detail an event can have: an opponent, a league, a co-streamer. Write {opponent} in a task's title, notes, checklist or post, or in an event's title, and planning the event asks for it.",
           ),
+          compare(
+            "fieldInWorkflow",
+            "fieldFilled",
+            "Planned against Nine Lives, the event's tasks say so.",
+            ["In the workflow", "In the event's tasks"],
+          ),
+          h("Kinds of field"),
           p(
-            "Write {opponent} in a task's title, notes, checklist or post, or in an event's title, and planning the event asks for it with the right kind of input. {title}, {date}, {time}, {end_time}, {link} and {event_type} fill themselves.",
+            "Set them up in Settings › Fields. Each has a kind, so planning asks with the right input.",
+          ),
+          figure("fieldTypes", "One field of each kind."),
+          tip(
+            "{title}, {date}, {time}, {end_time}, {link} and {event_type} fill themselves.",
           ),
           p(
             "Left empty, a field shows as its name in brackets, like [Match link]. Change a value later and the event's unfinished tasks follow, except text someone edited by hand.",
@@ -731,8 +783,13 @@ export const DocGroups: readonly DocGroup[] = [
         summary: "Approve tasks or ask for changes.",
         body: [
           p(
-            "Tasks sent for review wait on My tasks, beside your own. Open one, look at the work, then approve it or ask for changes with a note.",
+            "Tasks sent for review wait on My tasks, beside your own. Open one and look at the work.",
           ),
+          figure("reviewDecide", "A task waiting for you."),
+          p(
+            "Approve it and it's done. Or ask for changes, with a note saying what: it goes back to whoever sent it.",
+          ),
+          figure("askChanges", "Asking for changes."),
         ],
       },
     ],

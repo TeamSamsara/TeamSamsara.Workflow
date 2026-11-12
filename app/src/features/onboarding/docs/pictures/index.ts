@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/pictures/index.ts
-// Version : 1.0.3
+// Version : 1.0.4
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Every picture the help can show, by the name an article uses.
@@ -39,6 +39,18 @@ import {
 } from "./peoplePictures";
 import { MyTasksPage, TaskOrder } from "./taskPictures";
 import {
+  AskChanges,
+  DueTimeline,
+  FieldFilled,
+  FieldInWorkflow,
+  FieldTypes,
+  LiveLink,
+  ReviewBack,
+  ReviewDecide,
+  ReviewSend,
+  WorkflowTasks,
+} from "./workPictures";
+import {
   CalendarControls,
   EventPage,
   NotificationList,
@@ -57,6 +69,16 @@ import {
 } from "./workflowPictures";
 
 export const docPictures = {
+  reviewSend: ReviewSend,
+  reviewDecide: ReviewDecide,
+  reviewBack: ReviewBack,
+  askChanges: AskChanges,
+  liveLink: LiveLink,
+  workflowTasks: WorkflowTasks,
+  dueTimeline: DueTimeline,
+  fieldInWorkflow: FieldInWorkflow,
+  fieldFilled: FieldFilled,
+  fieldTypes: FieldTypes,
   calendarControls: CalendarControls,
   eventPage: EventPage,
   replyBox: ReplyBox,
