@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/pictures/setPictures.tsx
-// Version : 1.0.0
-// Latest commit: feature/docs-refresh
+// Version : 1.0.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Pictures for the Sets article: a set's page with what to click,
 // filling in a TBD step by step, and a task before and after.
@@ -31,7 +31,7 @@ export function SetPage() {
   return (
     <Scene height={200}>
       <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <Heading>NA Rise Fall Split</Heading>
+        <Heading>Autumn workshops</Heading>
         <span style={{ marginLeft: "auto" }}>
           <Spot n={2}>
             <FakeButton>⋯</FakeButton>
@@ -43,21 +43,21 @@ export function SetPage() {
           <span style={columns}>
             <Small>Date</Small>
             <Small>Event</Small>
-            <Small>Opponent</Small>
+            <Small>Speaker</Small>
           </span>
         </Row>
         <Row>
           <span style={columns}>
             <span>Nov 12</span>
-            <span>vs. Nine Lives</span>
-            <span>Nine Lives</span>
+            <span>Workshop: Dana Reyes</span>
+            <span>Dana Reyes</span>
           </span>
         </Row>
         <Row>
           <span style={columns}>
             <span>Nov 19</span>
             <span>
-              <Spot n={3}>vs. {"{opponent}"}</Spot>
+              <Spot n={3}>Workshop: {"{speaker}"}</Spot>
             </span>
             <span>
               <Spot n={1}>
@@ -69,7 +69,7 @@ export function SetPage() {
         <Row>
           <span style={columns}>
             <span>Nov 26</span>
-            <span>vs. {"{opponent}"}</span>
+            <span>Workshop: {"{speaker}"}</span>
             <span>
               <Chip tone="warn">TBD</Chip>
             </span>
@@ -85,7 +85,7 @@ export function FillClick() {
     <Scene height={140} style={{ justifyContent: "center" }}>
       <Panel>
         <Row>
-          <Text title="Thu Nov 19" sub="vs. {opponent}" />
+          <Text title="Thu Nov 19" sub="Workshop: {speaker}" />
           <Spot n={0}>
             <Chip tone="warn">TBD</Chip>
           </Spot>
@@ -99,9 +99,9 @@ export function FillClick() {
 export function FillType() {
   return (
     <Scene height={140} style={{ justifyContent: "center" }}>
-      <Panel pop title="Opponent">
+      <Panel pop title="Speaker">
         <Row>
-          <Field>Final Boss Black</Field>
+          <Field>Lee Park</Field>
           <span style={{ marginLeft: "auto" }}>
             <FakeButton primary>Save</FakeButton>
           </span>
@@ -116,10 +116,10 @@ export function FillDone() {
     <Scene height={140} style={{ justifyContent: "center" }}>
       <Panel>
         <Row>
-          <Text title="vs. Final Boss Black" sub="Thu Nov 19" />
+          <Text title="Workshop: Lee Park" sub="Thu Nov 19" />
         </Row>
         <Row>
-          <Text title="Prep caption vs Final Boss Black" sub="Its task" />
+          <Text title="Announcement for Lee Park" sub="Its task" />
         </Row>
       </Panel>
       <Chip tone="accent">✓ 4 tasks updated</Chip>
@@ -135,14 +135,14 @@ export function TaskBeforeFill() {
           <Text
             title={
               <>
-                Prep caption vs <Chip tone="warn">[Opponent]</Chip>
+                Announcement for <Chip tone="warn">[Speaker]</Chip>
               </>
             }
             sub="From the workflow"
           />
         </Row>
         <Row>
-          <Text title="Big match tonight!" sub="Notes Sam wrote" />
+          <Text title="Doors open at 5:30!" sub="Notes Sam wrote" />
         </Row>
       </Panel>
     </Scene>
@@ -154,10 +154,10 @@ export function TaskAfterFill() {
     <Scene height={130}>
       <Panel>
         <Row glow>
-          <Text title="Prep caption vs Final Boss Black" sub="Filled in" />
+          <Text title="Announcement for Lee Park" sub="Filled in" />
         </Row>
         <Row>
-          <Text title="Big match tonight!" sub="Notes Sam wrote · kept" />
+          <Text title="Doors open at 5:30!" sub="Notes Sam wrote · kept" />
         </Row>
       </Panel>
     </Scene>

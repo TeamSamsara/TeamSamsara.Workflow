@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/pictures/aroundPictures.tsx
-// Version : 1.0.0
-// Latest commit: feature/docs-refresh
+// Version : 1.0.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Pictures for getting around: the calendar and its controls, an
 // event's page, replying, how replies show on the calendar, times in your own
@@ -110,12 +110,12 @@ export function CalendarControls() {
         {days.map((day) => (
           <Small key={day}>{day}</Small>
         ))}
-        <Block title="Scrim" time="7 PM" />
+        <Block title="Check-in" time="7 PM" />
         <Block title="Review" time="6 PM" />
         <Spot n={4} wide>
           <Block
             mine
-            title="Match"
+            title="Workshop"
             time="8 PM"
             badge={<Chip tone="neutral">3/10</Chip>}
           />
@@ -128,13 +128,13 @@ export function CalendarControls() {
 export function EventPage() {
   return (
     <Scene>
-      <Small>Planning / NA Rise Fall Split</Small>
-      <Heading>vs. Nine Lives Esports</Heading>
-      <Small>Thu Nov 12 · 8:00 – 10:00 PM · Match</Small>
+      <Small>Planning / Autumn workshops</Small>
+      <Heading>Workshop: Dana Reyes</Heading>
+      <Small>Thu Nov 12 · 6:00 – 8:00 PM · Workshop</Small>
       <span
         style={{
           display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
+          gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
           gap: 8,
           alignItems: "start",
         }}
@@ -144,9 +144,9 @@ export function EventPage() {
             <Row>
               <Spot n={1}>
                 <span style={line}>
-                  <Chip tone="info">Players</Chip>
+                  <Chip tone="info">Events</Chip>
                   <Chip tone="info">Marketing</Chip>
-                  <Face initials="GE" />
+                  <Face initials="AL" />
                 </span>
               </Spot>
             </Row>
@@ -154,7 +154,7 @@ export function EventPage() {
           <Panel title="Details">
             <Row>
               <Spot n={2}>
-                <Text title="Opponent" sub="Nine Lives Esports" />
+                <Text title="Speaker" sub="Dana Reyes" />
               </Spot>
             </Row>
           </Panel>
@@ -162,14 +162,14 @@ export function EventPage() {
         <Panel title="Tasks · 3 of 10 done">
           <Row>
             <Spot n={3}>
-              <Text title="Prep twitter caption" sub="Done" />
+              <Text title="Write the announcement" sub="Done" />
             </Spot>
           </Row>
           <Row>
-            <Text title="Publish discord post" sub="Thu 7 PM · Marketing" />
+            <Text title="Publish the announcement" sub="Thu 7 PM · Marketing" />
           </Row>
           <Row>
-            <Text title="Post the result" sub="Thu 10 PM · Gerrah" />
+            <Text title="Share the recap" sub="Thu 10 PM · Alex" />
           </Row>
         </Panel>
       </span>
@@ -207,7 +207,7 @@ export function ReplyBox() {
 
 export function ReplyMarks() {
   const marks: [ReactNode, ReactNode, string][] = [
-    ["✓", "Scrim", "You're going"],
+    ["✓", "Check-in", "You're going"],
     ["?", "Review", "Maybe"],
     [
       <span
@@ -223,7 +223,7 @@ export function ReplyMarks() {
       "Practice",
       "Waiting on you",
     ],
-    ["", <Strike key="s">Showmatch</Strike>, "You can't go"],
+    ["", <Strike key="s">Open day</Strike>, "You can't go"],
   ];
   return (
     <Scene>
@@ -303,11 +303,11 @@ export function NotificationList() {
       </span>
       <Panel>
         <Row glow>
-          <Face initials="LA" />
+          <Face initials="JO" />
           <Spot n={2}>
             <span style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               <Text
-                title="Laramie asks if you're going to Scrim"
+                title="Jordan asks if you're going to the Check-in"
                 sub="Tue 7 PM"
               />
               <Segments items={["Going", "Maybe", "Can't go"]} on={-1} />
@@ -315,17 +315,17 @@ export function NotificationList() {
           </Spot>
         </Row>
         <Row glow>
-          <Face initials="GE" />
+          <Face initials="AL" />
           <Spot n={3}>
             <Text
-              title="Gerrah planned NA Rise Fall Split"
+              title="Alex planned the Autumn workshops"
               sub="6 tasks are yours, 12 your groups' · Show the tasks"
             />
           </Spot>
         </Row>
         <Row>
           <Face initials="PB" />
-          <Text title="Post the result is due in 1 hour" sub="Reminder" />
+          <Text title="Share the recap is due in 1 hour" sub="Reminder" />
         </Row>
       </Panel>
     </Scene>

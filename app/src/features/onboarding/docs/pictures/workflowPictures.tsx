@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/pictures/workflowPictures.tsx
-// Version : 1.0.0
-// Latest commit: feature/docs-refresh
+// Version : 1.0.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Pictures for Changing a workflow: a step changed, upcoming
 // events following, the notification, a hand edit that stays, and updating
@@ -25,7 +25,7 @@ export function StepChanged() {
     <Scene height={150} style={{ justifyContent: "center" }}>
       <Panel>
         <Row glow>
-          <Text title="2. Prep twitter caption" sub="Marketing" />
+          <Text title="2. Write the announcement" sub="Marketing" />
           <Chip tone="accent">The day before</Chip>
         </Row>
       </Panel>
@@ -35,7 +35,7 @@ export function StepChanged() {
 }
 
 export function EventsFollow() {
-  const events = ["vs. Nine Lives", "vs. Final Boss", "vs. Team Six"];
+  const events = ["Dana Reyes", "Lee Park", "Kim Ortiz"];
   return (
     <Scene height={150}>
       <Panel>
@@ -61,9 +61,9 @@ export function Notified() {
     <Scene height={150} style={{ justifyContent: "center" }}>
       <Panel pop>
         <Row>
-          <Face initials="LA" />
+          <Face initials="JO" />
           <Text
-            title="Laramie changed Match day"
+            title="Jordan changed Workshop - Promotion"
             sub="3 of your upcoming tasks moved"
           />
         </Row>
@@ -77,7 +77,7 @@ export function HandEditBefore() {
     <Scene height={130}>
       <Panel>
         <Row>
-          <Text title="Prep twitter caption" sub="Sam moved it to Wed 5 PM" />
+          <Text title="Write the announcement" sub="Sam moved it to Wed 5 PM" />
           <Chip tone="neutral">Changed by hand</Chip>
         </Row>
       </Panel>
@@ -92,7 +92,7 @@ export function HandEditAfter() {
       <Panel>
         <Row glow>
           <Text
-            title="Prep twitter caption"
+            title="Write the announcement"
             sub="Still Wed 5 PM, as Sam set it"
           />
           <Chip tone="neutral">Kept</Chip>
@@ -113,11 +113,11 @@ export function UpdateFromWorkflows() {
       </span>
       <Panel pop title="Update tasks from workflows">
         <Row>
-          <Text title="Prep twitter caption" sub="post text, checklist" />
+          <Text title="Write the announcement" sub="post text, checklist" />
           <Chip tone="accent">✓</Chip>
         </Row>
         <Row>
-          <Text title="Publish Twitter post" sub="due time" />
+          <Text title="Publish the announcement" sub="due time" />
           <Chip tone="accent">✓</Chip>
         </Row>
         <Row>

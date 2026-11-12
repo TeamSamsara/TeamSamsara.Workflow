@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/pictures/workPictures.tsx
-// Version : 1.0.0
-// Latest commit: feature/docs-refresh
+// Version : 1.0.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Pictures for doing and checking work, and for building workflows:
 // sending a task for review, approving or asking for changes, the live link,
@@ -32,7 +32,7 @@ export function ReviewSend() {
     <Scene>
       <Panel>
         <Row>
-          <Text title="Matchday graphic" sub="Due Thu 12 PM" />
+          <Text title="Speaker graphic" sub="Due Thu 12 PM" />
         </Row>
         <Row>
           <Chip tone="warn">Needs approval</Chip>
@@ -50,10 +50,10 @@ export function ReviewDecide() {
     <Scene>
       <Panel title="Approval">
         <Row>
-          <Face initials="GE" />
+          <Face initials="AL" />
           <Text
-            title="Matchday graphic"
-            sub="Sent for review by Gerrah · 10 min ago"
+            title="Speaker graphic"
+            sub="Sent for review by Alex · 10 min ago"
           />
         </Row>
         <Row>
@@ -72,10 +72,10 @@ export function ReviewBack() {
     <Scene>
       <Panel title="Changes asked for">
         <Row>
-          <Face initials="LA" />
+          <Face initials="JO" />
           <Text
-            title="Make the logos bigger, and add the match time."
-            sub="Laramie"
+            title="Make the photo bigger, and add the start time."
+            sub="Jordan"
           />
         </Row>
         <Row>
@@ -94,7 +94,7 @@ export function AskChanges() {
           <Text title="What needs changing?" />
         </Row>
         <Row>
-          <Field>Make the logos bigger, and add the match time.</Field>
+          <Field>Make the photo bigger, and add the start time.</Field>
         </Row>
         <Row>
           <span style={{ ...buttons, marginLeft: "auto" }}>
@@ -131,11 +131,11 @@ export function LiveLink() {
 export function WorkflowTasks() {
   return (
     <Scene>
-      <Heading>Match day - Social media</Heading>
+      <Heading>Workshop - Promotion</Heading>
       <span
         style={{
           display: "grid",
-          gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)",
+          gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
           gap: 8,
           alignItems: "start",
         }}
@@ -143,34 +143,31 @@ export function WorkflowTasks() {
         <Panel title="Tasks">
           <Row>
             <Spot n={1}>
-              <Text title="Matchday graphic" sub="Marketing · The day before" />
+              <Text title="Speaker graphic" sub="Marketing · The day before" />
             </Spot>
           </Row>
           <Row>
-            <Text title="Prep twitter caption" sub="Gerrah · 6 hours before" />
+            <Text title="Write the announcement" sub="Alex · 6 hours before" />
             <Spot n={2}>
               <Chip tone="warn">Needs approval</Chip>
             </Spot>
           </Row>
           <Row>
-            <Text title="Post the result" sub="Marketing · 2 hours after" />
+            <Text title="Share the recap" sub="Marketing · 2 hours after" />
           </Row>
         </Panel>
         <span style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <Panel title="About">
             <Row>
               <Spot n={3}>
-                <Text title="Suggest for event type" sub="Match" />
+                <Text title="Suggest for event type" sub="Workshop" />
               </Spot>
             </Row>
           </Panel>
           <Panel title="Fields it uses">
             <Row>
               <Spot n={4}>
-                <Text
-                  title="{opponent}"
-                  sub="Asked when the event is planned"
-                />
+                <Text title="{speaker}" sub="Asked when the event is planned" />
               </Spot>
             </Row>
           </Panel>
@@ -182,10 +179,10 @@ export function WorkflowTasks() {
 
 export function DueTimeline() {
   const marks: [string, string, boolean][] = [
-    ["Sun 7 PM", "Matchday graphic · the day before", false],
-    ["Mon 1 PM", "Prep twitter caption · 6 hours before", false],
-    ["Mon 7 PM", "The match starts", true],
-    ["Mon 9 PM", "Post the result · 2 hours after", false],
+    ["Sun 7 PM", "Speaker graphic · the day before", false],
+    ["Mon 1 PM", "Write the announcement · 6 hours before", false],
+    ["Mon 7 PM", "The workshop starts", true],
+    ["Mon 9 PM", "Share the recap · 2 hours after", false],
   ];
   return (
     <Scene>
@@ -251,10 +248,10 @@ export function FieldInWorkflow() {
     <Scene>
       <Panel>
         <Row>
-          <Text title="Matchday graphic vs. {opponent}" sub="Task title" />
+          <Text title="Speaker graphic for {speaker}" sub="Task title" />
         </Row>
         <Row>
-          <Text title="GG {opponent}, see you next week!" sub="Post text" />
+          <Text title="Join us tonight with {speaker}!" sub="Post text" />
         </Row>
       </Panel>
     </Scene>
@@ -266,10 +263,10 @@ export function FieldFilled() {
     <Scene>
       <Panel>
         <Row glow>
-          <Text title="Matchday graphic vs. Nine Lives" sub="Task title" />
+          <Text title="Speaker graphic for Dana Reyes" sub="Task title" />
         </Row>
         <Row glow>
-          <Text title="GG Nine Lives, see you next week!" sub="Post text" />
+          <Text title="Join us tonight with Dana Reyes!" sub="Post text" />
         </Row>
       </Panel>
     </Scene>
@@ -278,12 +275,12 @@ export function FieldFilled() {
 
 export function FieldTypes() {
   const fields: [string, string, string][] = [
-    ["Opponent", "Text", "A word or a sentence"],
-    ["Match link", "Link", "A web address"],
-    ["Prize", "Number", "A score, a prize"],
-    ["League", "Choice", "One from a list"],
-    ["Check-in", "Date and time", "Shown in your formats"],
-    ["Co-streamer", "Person", "Someone on the team"],
+    ["Speaker", "Text", "A word or a sentence"],
+    ["Sign-up link", "Link", "A web address"],
+    ["Seats", "Number", "A count or an amount"],
+    ["Room", "Choice", "One from a list"],
+    ["Rehearsal", "Date and time", "Shown in your formats"],
+    ["Host", "Person", "Someone on the team"],
   ];
   return (
     <Scene>

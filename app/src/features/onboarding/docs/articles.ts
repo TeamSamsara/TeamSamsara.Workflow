@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/articles.ts
-// Version : 1.8.5
+// Version : 1.8.6
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The Documentation: one short article per feature, in groups. Each
@@ -134,14 +134,14 @@ export const DocGroups: readonly DocGroup[] = [
           p("Click an event to open its page."),
           figure(
             "eventPage",
-            "A match's page.",
+            "A workshop's page.",
             callout(
               "Who's in it",
               "People and work groups. Only they (and whoever made it, and people who see everything) can see it, unless it's for Everyone.",
             ),
             callout(
               "Its details",
-              "What its workflows asked for, like the opponent. They fill in its title and its tasks' text.",
+              "What its workflows asked for, like the speaker. They fill in its title and its tasks' text.",
             ),
             callout(
               "Its tasks",
@@ -193,7 +193,7 @@ export const DocGroups: readonly DocGroup[] = [
           compare(
             "timesOnForm",
             "timesOnEvent",
-            "Someone in London planning a Toronto match: the form says which time it uses, and the event shows both.",
+            "Someone in London planning a Toronto workshop: the form says which time it uses, and the event shows both.",
             ["Planning it", "On its page"],
           ),
         ],
@@ -353,7 +353,7 @@ export const DocGroups: readonly DocGroup[] = [
         summary: "Tasks that ask where the post went live.",
         body: [
           p(
-            "Some tasks (a post, a clip) ask for the link to what you published before they can be done.",
+            "Some tasks (a post, a video) ask for the link to what you published before they can be done.",
           ),
           figure("liveLink", "Finishing a post."),
           p(
@@ -393,9 +393,9 @@ export const DocGroups: readonly DocGroup[] = [
         title: "Exceptions",
         summary: "Dates that aren't like your usual week.",
         body: [
-          figure("exception", "A weekend away for a tournament."),
+          figure("exception", "A weekend away for a conference."),
           p(
-            "Away for a tournament, an exam or a trip? On My availability, add an exception: a whole day or between two times, unavailable or available. Exceptions override your usual week on those dates.",
+            "Away for a conference, an exam or a trip? On My availability, add an exception: a whole day or between two times, unavailable or available. Exceptions override your usual week on those dates.",
           ),
         ],
       },
@@ -431,10 +431,10 @@ export const DocGroups: readonly DocGroup[] = [
         body: [
           figure(
             "newEventForm",
-            "New event › Event: a match against Final Boss Black.",
+            "New event › Event: a workshop with Lee Park.",
             callout(
               "Its title",
-              "Words in {curly brackets} (vs. {opponent}) are asked for beside it and filled in, in the title and in the tasks.",
+              "Words in {curly brackets} (like Workshop: {speaker}) are asked for beside it and filled in, in the title and in the tasks.",
             ),
             callout(
               "Who's in it",
@@ -447,7 +447,10 @@ export const DocGroups: readonly DocGroup[] = [
             callout("Create", "The event and all its tasks are made together."),
           ),
           h("Tasks that would already be late"),
-          figure("lateWarning", "Planning a Friday match on Thursday night."),
+          figure(
+            "lateWarning",
+            "Planning a Friday workshop on Thursday night.",
+          ),
           p(
             "If some tasks would already be due, a warning lists them. Create them anyway (they're marked Late from the start, so nobody's blamed for it) or leave them out.",
           ),
@@ -474,7 +477,7 @@ export const DocGroups: readonly DocGroup[] = [
             ),
             callout(
               "Required or Optional",
-              "Click the chip by each name. Only required people count, so a coach being away doesn't hide a time that works for the players.",
+              "Click the chip by each name. Only required people count, so an optional guest being away doesn't hide a time that works for everyone else.",
             ),
             callout(
               "Times that work",
@@ -507,11 +510,11 @@ export const DocGroups: readonly DocGroup[] = [
       {
         id: "repeats",
         title: "Repeating events",
-        summary: "Weekly scrims or a Monday meeting.",
+        summary: "A weekly check-in or a Monday meeting.",
         body: [
           figure(
             "repeatPicker",
-            "New event › Repeat…: scrims every Tuesday and Thursday.",
+            "New event › Repeat…: a check-in every Tuesday and Thursday.",
           ),
           p(
             "Pick the days and when it ends: never, on a date, or after a number of events. The coming weeks are made for you, each with its own tasks.",
@@ -538,12 +541,12 @@ export const DocGroups: readonly DocGroup[] = [
       {
         id: "plan-several",
         title: "Planning several events at once",
-        summary: "A split or a month of content, one row per event.",
+        summary: "A series or a month of content, one row per event.",
         body: [
           frames(
             [
               "severalShared",
-              "New event › Several events. Set what they share, with a title like vs. {opponent}.",
+              "New event › Several events. Set what they share, with a title like Workshop: {speaker}.",
             ],
             [
               "severalRows",
@@ -555,7 +558,7 @@ export const DocGroups: readonly DocGroup[] = [
             ],
           ),
           tip(
-            "Don't know every opponent yet? Leave it TBD. Fill it in later from the set's page, and the title and tasks follow.",
+            "Don't know every speaker yet? Leave it TBD. Fill it in later from the set's page, and the title and tasks follow.",
           ),
         ],
       },
@@ -565,11 +568,11 @@ export const DocGroups: readonly DocGroup[] = [
         summary: "Events planned together, managed together.",
         body: [
           p(
-            "Calendar › Sets lists the events you planned together. A set's page shows how many are played, how many tasks are done, what's next and what's still TBD.",
+            "Calendar › Sets lists the events you planned together. A set's page shows how many have happened, how many tasks are done, what's next and what's still TBD.",
           ),
           figure(
             "setPage",
-            "A set's page, with two opponents still to come.",
+            "A set's page, with two speakers still to come.",
             callout(
               "A field to fill in",
               "TBD means that event doesn't have it yet. Click it to fill it in.",
@@ -580,7 +583,7 @@ export const DocGroups: readonly DocGroup[] = [
             ),
             callout(
               "A title waiting for it",
-              "A title still showing {opponent} fills in as soon as the opponent is known.",
+              "A title still showing {speaker} fills in as soon as the speaker is known.",
             ),
           ),
           h("Fill in one event"),
@@ -621,7 +624,7 @@ export const DocGroups: readonly DocGroup[] = [
           ),
           figure(
             "teamAvailability",
-            "Team availability for the Players.",
+            "Team availability for the Events group.",
             callout(
               "Who to compare",
               "Grouped by people tag. Tick a tag or a name to show or hide them, and drag names to reorder. It's saved for you only.",
@@ -643,10 +646,10 @@ export const DocGroups: readonly DocGroup[] = [
       {
         id: "people-tags",
         title: "People tags",
-        summary: "Starter, Sub, Coach: who to compare.",
+        summary: "Full-time, part-time, volunteer: who to compare.",
         body: [
           p(
-            "People tags are labels like Starter, Sub or Coach, to pick who to compare on Team availability. They don't give anyone permissions.",
+            "People tags are labels like Full-time, Part-time or Volunteer, to pick who to compare on Team availability. They don't give anyone permissions.",
           ),
           compare(
             "tagsSettings",
@@ -674,11 +677,11 @@ export const DocGroups: readonly DocGroup[] = [
         summary: "A reusable list of tasks for a kind of event.",
         body: [
           p(
-            "A workflow lists what happens before, during and after a kind of event (a match, a shoot): each task, who does it and when it's due.",
+            "A workflow lists what happens before, during and after a kind of event (a workshop, a launch): each task, who does it and when it's due.",
           ),
           figure(
             "workflowTasks",
-            "A workflow for match days.",
+            "A workflow for workshops.",
             callout(
               "A task",
               "Its title, how to do it, and who it's given to: people or a work group. Add a checklist, post text, reference links or a live link.",
@@ -693,14 +696,14 @@ export const DocGroups: readonly DocGroup[] = [
             ),
             callout(
               "Its fields",
-              "Details like {opponent} that its tasks use, asked for when an event is planned.",
+              "Details like {speaker} that its tasks use, asked for when an event is planned.",
             ),
           ),
           h("When tasks are due"),
           p(
             "Due times are counted from when the event starts, so the same workflow fits any date.",
           ),
-          figure("dueTimeline", "A Monday 7 PM match."),
+          figure("dueTimeline", "A Monday 7 PM workshop."),
           p(
             "Picked when planning an event, its tasks are made for that event with the right dates. Change the workflow later and upcoming events follow.",
           ),
@@ -708,16 +711,16 @@ export const DocGroups: readonly DocGroup[] = [
       },
       {
         id: "fields",
-        title: "Fields like {opponent}",
+        title: "Fields like {speaker}",
         summary: "Details filled in from each event.",
         body: [
           p(
-            "A field is a detail an event can have: an opponent, a league, a co-streamer. Write {opponent} in a task's title, notes, checklist or post, or in an event's title, and planning the event asks for it.",
+            "A field is a detail an event can have: a speaker, a room, a host. Write {speaker} in a task's title, notes, checklist or post, or in an event's title, and planning the event asks for it.",
           ),
           compare(
             "fieldInWorkflow",
             "fieldFilled",
-            "Planned against Nine Lives, the event's tasks say so.",
+            "Planned with Dana Reyes, the event's tasks say so.",
             ["In the workflow", "In the event's tasks"],
           ),
           h("Kinds of field"),
@@ -729,7 +732,7 @@ export const DocGroups: readonly DocGroup[] = [
             "{title}, {date}, {time}, {end_time}, {link} and {event_type} fill themselves.",
           ),
           p(
-            "Left empty, a field shows as its name in brackets, like [Match link]. Change a value later and the event's unfinished tasks follow, except text someone edited by hand.",
+            "Left empty, a field shows as its name in brackets, like [Sign-up link]. Change a value later and the event's unfinished tasks follow, except text someone edited by hand.",
           ),
         ],
       },

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/pictures/peoplePictures.tsx
-// Version : 1.0.0
-// Latest commit: feature/docs-refresh
+// Version : 1.0.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Pictures for people and availability: painting your usual week,
 // an exception, a personal appointment, Team availability, people tags, a
@@ -84,7 +84,7 @@ export function Exception() {
     <Scene>
       <Panel pop title="Add an exception">
         <Row>
-          <Text title="Fri Nov 20 – Sun Nov 22" sub="LAN tournament" />
+          <Text title="Fri Nov 20 – Sun Nov 22" sub="Conference trip" />
         </Row>
         <Row>
           <span style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -135,7 +135,7 @@ export function PersonalOthers() {
       <Panel>
         <Row>
           <Text title="Busy" sub="Wed 3:00 – 4:00 PM" />
-          <Chip tone="neutral">Gerrah</Chip>
+          <Chip tone="neutral">Alex</Chip>
         </Row>
       </Panel>
     </Scene>
@@ -144,9 +144,9 @@ export function PersonalOthers() {
 
 export function TeamAvailability() {
   const people: [string, number[]][] = [
-    ["Okami", [1, 1, 1, 1, 0, 0]],
-    ["Saltyvl", [0, 1, 1, 1, 1, 0]],
-    ["Neversaw", [1, 1, 1, 0, 0, 1]],
+    ["Priya", [1, 1, 1, 1, 0, 0]],
+    ["Chris", [0, 1, 1, 1, 1, 0]],
+    ["Maya", [1, 1, 1, 0, 0, 1]],
   ];
   return (
     <Scene>
@@ -158,7 +158,7 @@ export function TeamAvailability() {
           flexWrap: "wrap",
         }}
       >
-        <Heading>Players</Heading>
+        <Heading>Events</Heading>
         <span style={{ marginLeft: "auto" }}>
           <Spot n={3}>
             <Segments items={["Team's time", "Mine"]} on={0} />
@@ -168,14 +168,14 @@ export function TeamAvailability() {
       <span
         style={{
           display: "grid",
-          gridTemplateColumns: "110px minmax(0, 1fr)",
+          gridTemplateColumns: "128px minmax(0, 1fr)",
           gap: 10,
         }}
       >
         <Panel>
           <Row>
             <Spot n={1}>
-              <Check on>Starter</Check>
+              <Check on>Full-time</Check>
             </Spot>
           </Row>
           {people.map(([name]) => (
@@ -184,7 +184,7 @@ export function TeamAvailability() {
             </Row>
           ))}
           <Row>
-            <Check>Coach</Check>
+            <Check>Volunteer</Check>
           </Row>
         </Panel>
         <span style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -213,9 +213,9 @@ export function TeamAvailability() {
 
 export function TagsSettings() {
   const tags: [string, string][] = [
-    ["Starter", "var(--palette-blue)"],
-    ["Sub", "var(--palette-amber)"],
-    ["Coach", "var(--color-accent)"],
+    ["Full-time", "var(--palette-blue)"],
+    ["Part-time", "var(--palette-amber)"],
+    ["Volunteer", "var(--color-accent)"],
   ];
   return (
     <Scene>
@@ -251,14 +251,14 @@ export function TagsOnPerson() {
     <Scene>
       <Panel>
         <Row>
-          <Face initials="OK" />
-          <Text title="Okami" sub="Players" />
+          <Face initials="PR" />
+          <Text title="Priya" sub="Events" />
         </Row>
         <Row>
           <span style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-            <Chip tone="accent">✓ Starter</Chip>
-            <Chip tone="outline">Sub</Chip>
-            <Chip tone="outline">Coach</Chip>
+            <Chip tone="accent">✓ Full-time</Chip>
+            <Chip tone="outline">Part-time</Chip>
+            <Chip tone="outline">Volunteer</Chip>
           </span>
         </Row>
       </Panel>
@@ -287,31 +287,31 @@ export function GroupPage() {
       <span
         style={{
           display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
+          gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
           gap: 8,
         }}
       >
         <Panel title="Members">
           <Row>
-            <Face initials="GE" />
+            <Face initials="AL" />
             <Spot n={2}>
-              <Text title="Gerrah" />
+              <Text title="Alex" />
             </Spot>
             <Chip tone="neutral">Lead</Chip>
           </Row>
           <Row>
-            <Face initials="LA" />
-            <Text title="Laramie" />
+            <Face initials="JO" />
+            <Text title="Jordan" />
           </Row>
         </Panel>
         <Panel title="Open tasks">
           <Row>
             <Spot n={3}>
-              <Text title="Prep twitter caption" sub="Wed 12 PM" />
+              <Text title="Write the announcement" sub="Wed 12 PM" />
             </Spot>
           </Row>
           <Row>
-            <Text title="Publish discord post" sub="Thu 7 PM" />
+            <Text title="Publish the announcement" sub="Thu 7 PM" />
           </Row>
         </Panel>
       </span>
@@ -324,8 +324,8 @@ export function Profile() {
     <Scene>
       <Panel>
         <Row>
-          <Face initials="OK" />
-          <Text title="Okami" sub="Players · Starter" />
+          <Face initials="PR" />
+          <Text title="Priya" sub="Events · Full-time" />
           <Spot n={1}>
             <Chip tone="neutral">7:12 PM for them</Chip>
           </Spot>
@@ -338,8 +338,8 @@ export function Profile() {
         <Row>
           <Spot n={3}>
             <span style={{ display: "flex", gap: 4 }}>
-              <Chip tone="accent">✓ Starter</Chip>
-              <Chip tone="outline">Sub</Chip>
+              <Chip tone="accent">✓ Full-time</Chip>
+              <Chip tone="outline">Part-time</Chip>
             </span>
           </Spot>
         </Row>

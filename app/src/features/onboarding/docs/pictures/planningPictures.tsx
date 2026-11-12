@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/pictures/planningPictures.tsx
-// Version : 1.0.0
-// Latest commit: feature/docs-refresh
+// Version : 1.0.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Pictures for planning: the new event form, the warning about
 // tasks that would already be late, who can make it, asking people to reply,
@@ -40,12 +40,12 @@ export function NewEventForm() {
           <span style={{ ...fieldBlock, flexGrow: 1 }}>
             <span style={label}>Title</span>
             <Spot n={1}>
-              <Field>vs. {"{opponent}"}</Field>
+              <Field>Workshop: {"{speaker}"}</Field>
             </Spot>
           </span>
           <span style={fieldBlock}>
-            <span style={label}>Opponent</span>
-            <Field>Final Boss Black</Field>
+            <span style={label}>Speaker</span>
+            <Field>Lee Park</Field>
           </span>
         </Row>
         <Row>
@@ -53,9 +53,9 @@ export function NewEventForm() {
             <span style={label}>Who's in it</span>
             <Spot n={2}>
               <span style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                <Chip tone="outline">Players</Chip>
+                <Chip tone="outline">Events</Chip>
                 <Chip tone="outline">Marketing</Chip>
-                <Chip tone="outline">Laramie</Chip>
+                <Chip tone="outline">Jordan</Chip>
               </span>
             </Spot>
           </span>
@@ -65,7 +65,7 @@ export function NewEventForm() {
             <span style={label}>Workflows</span>
             <Spot n={3}>
               <span style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <Check on>Match day</Check>
+                <Check on>Workshop - Promotion</Check>
                 <Check>Recap video</Check>
               </span>
             </Spot>
@@ -87,7 +87,7 @@ export function LateWarning() {
           <Chip tone="warn">2 tasks would already be late</Chip>
         </Row>
         <Row>
-          <Text title="Prep Gameday Graphic post" sub="Was due Tue 10:30 PM" />
+          <Text title="Speaker graphic" sub="Was due Tue 10:30 PM" />
         </Row>
         <Row>
           <Check on round>
@@ -112,15 +112,15 @@ export function WhoCanMake() {
           </Spot>
         </Row>
         <Row>
-          <Face initials="SA" />
-          <Text title="Saltyvl" sub={<Spot n={2}>Away: back Nov 16</Spot>} />
+          <Face initials="CH" />
+          <Text title="Chris" sub={<Spot n={2}>Away: back Nov 16</Spot>} />
           <Spot n={3}>
             <Chip tone="outline">Required</Chip>
           </Spot>
         </Row>
         <Row>
-          <Face initials="LA" />
-          <Text title="Laramie (coach)" sub="Busy at 8 PM" />
+          <Face initials="JO" />
+          <Text title="Jordan (optional)" sub="Busy at 8 PM" />
           <Chip tone="neutral">Optional</Chip>
         </Row>
         <Row>
@@ -157,9 +157,9 @@ export function AskReplyNotice() {
     <Scene height={140} style={{ justifyContent: "center" }}>
       <Panel pop>
         <Row>
-          <Face initials="GE" />
+          <Face initials="AL" />
           <Text
-            title="Are you going to vs. Orca?"
+            title="Are you going to the Open day?"
             sub="Thu 8:00 PM · Going · Maybe · Can't go"
           />
         </Row>
@@ -209,7 +209,7 @@ export function RepeatPicker() {
           </span>
         </Row>
       </Panel>
-      <Small>Scrims every Tuesday and Thursday until Dec 18.</Small>
+      <Small>Check-in every Tuesday and Thursday until Dec 18.</Small>
     </Scene>
   );
 }
@@ -217,7 +217,7 @@ export function RepeatPicker() {
 export function DeleteRepeat() {
   return (
     <Scene>
-      <Panel pop title="Delete Scrims">
+      <Panel pop title="Delete Check-in">
         <Row>
           <Check round>Just this one · Thu Nov 19</Check>
         </Row>
@@ -242,10 +242,10 @@ export function SeveralShared() {
     <Scene height={150}>
       <Panel title="What they share">
         <Row>
-          <Text title="NA Rise Fall Split" sub="Match · Thursdays 8:00 PM" />
+          <Text title="Autumn workshops" sub="Workshop · Thursdays 6:00 PM" />
         </Row>
         <Row>
-          <Field>vs. {"{opponent}"}</Field>
+          <Field>Workshop: {"{speaker}"}</Field>
         </Row>
       </Panel>
     </Scene>
@@ -254,17 +254,17 @@ export function SeveralShared() {
 
 export function SeveralRows() {
   const rows: [string, string | null][] = [
-    ["Nov 12", "Nine Lives"],
+    ["Nov 12", "Dana Reyes"],
     ["Nov 19", null],
     ["Nov 26", null],
   ];
   return (
     <Scene height={150}>
       <Panel>
-        {rows.map(([date, opponent]) => (
+        {rows.map(([date, speaker]) => (
           <Row key={date}>
             <span style={{ width: 52 }}>{date}</span>
-            {opponent ? <span>{opponent}</span> : <Chip tone="warn">TBD</Chip>}
+            {speaker ? <span>{speaker}</span> : <Chip tone="warn">TBD</Chip>}
           </Row>
         ))}
       </Panel>
@@ -278,7 +278,7 @@ export function SeveralMade() {
     <Scene height={150} style={{ justifyContent: "center" }}>
       <Panel>
         <Row>
-          <Text title="NA Rise Fall Split" sub="8 events · 80 tasks" />
+          <Text title="Autumn workshops" sub="8 events · 80 tasks" />
           <Chip tone="accent">Set</Chip>
         </Row>
       </Panel>

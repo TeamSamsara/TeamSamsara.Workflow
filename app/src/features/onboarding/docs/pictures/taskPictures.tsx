@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/pictures/taskPictures.tsx
-// Version : 1.0.0
-// Latest commit: feature/docs-refresh
+// Version : 1.0.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Pictures for My tasks: the page with its switches and parts, and
 // how an event's tasks line up in their workflow's order.
@@ -48,8 +48,8 @@ export function MyTasksPage() {
         </Row>
         <Row>
           <Text
-            title="Upload voice coms to drive"
-            sub="NA Rise Week #5 · Thu, Nov 5"
+            title="Upload the photos"
+            sub="Workshop: Kim Ortiz · Thu, Nov 5"
           />
           <Chip tone="outline">To do</Chip>
         </Row>
@@ -58,17 +58,17 @@ export function MyTasksPage() {
         </Row>
         <Row>
           <Text
-            title="Prep twitter caption"
-            sub={<Spot n={4}>NA Rise Week #6 · Thu, Nov 12</Spot>}
+            title="Write the announcement"
+            sub={<Spot n={4}>Workshop: Dana Reyes · Thu, Nov 12</Spot>}
           />
-          <Face initials="GE" />
+          <Face initials="AL" />
         </Row>
         <Row>
           <Text
-            title="Publish Twitter post"
-            sub="NA Rise Week #6 · Thu, Nov 12"
+            title="Publish the announcement"
+            sub="Workshop: Dana Reyes · Thu, Nov 12"
           />
-          <Face initials="GE" />
+          <Face initials="AL" />
         </Row>
       </Panel>
     </Scene>
@@ -77,14 +77,14 @@ export function MyTasksPage() {
 
 export function TaskOrder() {
   const steps = [
-    ["1", "Prep Gameday Graphic post", "Tue"],
-    ["2", "Prep twitter caption", "Wed"],
-    ["4", "Publish Twitter post", "Wed"],
-    ["6", "Send tourney code", "Thu"],
+    ["1", "Speaker graphic", "Tue"],
+    ["2", "Write the announcement", "Wed"],
+    ["4", "Publish the announcement", "Wed"],
+    ["6", "Send the sign-up link", "Thu"],
   ];
   return (
     <Scene height={200}>
-      <Small>NA Rise Week #6 · its tasks, in the workflow's order</Small>
+      <Small>Workshop: Dana Reyes · its tasks, in the workflow's order</Small>
       <Panel>
         {steps.map(([n, title, day]) => (
           <Row key={n}>

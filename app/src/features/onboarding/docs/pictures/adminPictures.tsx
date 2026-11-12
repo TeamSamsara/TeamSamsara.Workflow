@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/pictures/adminPictures.tsx
-// Version : 1.0.0
-// Latest commit: feature/docs-refresh
+// Version : 1.0.1
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Pictures for settings and your account: inviting people, a
 // member's access, roles and their permissions, work groups, the workspace's
@@ -45,8 +45,8 @@ export function InviteDialog() {
         <Row>
           <Spot n={1}>
             <span style={wrap}>
-              <Chip tone="outline">okami@example.com</Chip>
-              <Chip tone="outline">saltyvl@example.com</Chip>
+              <Chip tone="outline">priya@example.com</Chip>
+              <Chip tone="outline">chris@example.com</Chip>
               <Small>Add another email</Small>
             </span>
           </Spot>
@@ -56,12 +56,12 @@ export function InviteDialog() {
             <span style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <Small>Roles</Small>
               <span style={{ ...wrap, gap: 12 }}>
-                <Check on>Player</Check>
+                <Check on>Contributor</Check>
                 <Check>Planner</Check>
               </span>
               <Small>Work groups</Small>
               <span style={{ ...wrap, gap: 12 }}>
-                <Check on>Players</Check>
+                <Check on>Events</Check>
                 <Check>Marketing</Check>
               </span>
             </span>
@@ -91,20 +91,20 @@ export function MemberAccess() {
     <Scene>
       <Panel>
         <Row>
-          <Face initials="OK" />
-          <Text title="Okami" sub="okami@example.com" />
+          <Face initials="PR" />
+          <Text title="Priya" sub="priya@example.com" />
           <Chip tone="info">Invited</Chip>
         </Row>
         <Row>
           <Small>Roles</Small>
           <span style={wrap}>
-            <Chip tone="neutral">Player</Chip>
+            <Chip tone="neutral">Contributor</Chip>
           </span>
         </Row>
         <Row>
           <Small>Work groups</Small>
           <span style={wrap}>
-            <Chip tone="neutral">Players</Chip>
+            <Chip tone="neutral">Events</Chip>
           </span>
         </Row>
         <Row>
@@ -122,7 +122,7 @@ export function RolesList() {
   const roles: [string, string, string][] = [
     ["Administrator", "var(--palette-blue)", "Can do everything."],
     ["Planner", "var(--palette-amber)", "Plans events, edits workflows"],
-    ["Player", "var(--color-accent)", "Does assigned tasks"],
+    ["Contributor", "var(--color-accent)", "Does assigned tasks"],
     ["Everyone", "var(--color-text-muted)", "Everyone has it"],
   ];
   return (
@@ -130,7 +130,7 @@ export function RolesList() {
       <span
         style={{
           display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
+          gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
           gap: 8,
           alignItems: "start",
         }}
@@ -172,8 +172,8 @@ export function RolesList() {
 
 export function WorkGroupsList() {
   const groups: [string, string, string, string][] = [
-    ["Players", "var(--color-accent)", "5 members", "Lead: Laramie"],
-    ["Marketing", "var(--palette-blue)", "3 members", "Lead: Gerrah"],
+    ["Events", "var(--color-accent)", "5 members", "Lead: Jordan"],
+    ["Marketing", "var(--palette-blue)", "3 members", "Lead: Alex"],
     ["Design", "var(--palette-amber)", "2 members", "No lead yet"],
   ];
   return (
@@ -278,7 +278,7 @@ export function AccountPage() {
         <Row>
           <Spot n={1}>
             <span style={wrap}>
-              <Face initials="GE" />
+              <Face initials="AL" />
               <FakeButton>Change photo</FakeButton>
             </span>
           </Spot>
@@ -286,8 +286,8 @@ export function AccountPage() {
         <Row>
           <Spot n={2}>
             <span style={{ ...wrap, gap: 8 }}>
-              <Field>Name: Gerrah</Field>
-              <Field>In-game name: Gerrah</Field>
+              <Field>Name: Alex Morgan</Field>
+              <Field>In-game name: Alex</Field>
             </span>
           </Spot>
         </Row>
