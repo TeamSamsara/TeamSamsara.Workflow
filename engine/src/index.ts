@@ -11,3 +11,4 @@ export * from "./gaps.js";
 export * from "./sync.js";
 export * from "./tasks.js";
 export * from "./time.js";
+export * from "./access/index.js";
