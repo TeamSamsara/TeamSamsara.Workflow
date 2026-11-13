@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/access/roleRank.test.ts
-// Version : 1.1.0
-// Latest commit: feature/roles
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Tests that members manage only the roles below their highest one,
 // that Administrators manage all, and that Everyone is never handed out.
@@ -49,17 +49,17 @@ describe("role order", () => {
     expect(canManageRole(["lead"], admin, roles)).toBe(false);
   });
 
-  it("lets an Administrator manage every role", () => {
-    expect(canManageRole(["admin"], admin, roles)).toBe(true);
+  it("holds Administrators to rank too: never their own role", () => {
+    expect(canManageRole(["admin"], admin, roles)).toBe(false);
+    expect(canManageRole(["admin"], lead, roles)).toBe(true);
   });
 
-  it("never hands out Everyone", () => {
+  it("never hands out Everyone, or a role at your own rank", () => {
     expect(assignableRoles(["lead"], roles).map((r) => r.id)).toEqual([
       "planner",
       "editor",
     ]);
     expect(assignableRoles(["admin"], roles).map((r) => r.id)).toEqual([
-      "admin",
       "lead",
       "planner",
       "editor",
