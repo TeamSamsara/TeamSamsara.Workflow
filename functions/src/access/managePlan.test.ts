@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/functions/src/access/managePlan.test.ts
-// Version : 1.0.0
+// Version : 1.1.0
 // Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Tests the protected changes: strictly below for people and roles,
@@ -7,7 +7,12 @@
 // each change records.
 
 import { describe, expect, it } from "vitest";
-import { actorOf, OwnerRank, OwnerRoleId } from "../../../engine/src/index.js";
+import {
+  actorOf,
+  defaultAssign,
+  OwnerRank,
+  OwnerRoleId,
+} from "../../../engine/src/index.js";
 import {
   planManage,
   type GroupEntry,
@@ -64,9 +69,16 @@ const people = [
   member("manager", ["manager"]),
   member("lena", ["contributor"], ["design"]),
   member("dev", ["contributor"]),
+  member("pia", ["planner"], ["design"]),
+  member("sol", ["contributor"], ["design"]),
 ];
 const groups: GroupEntry[] = [
-  { id: "design", name: "Design", leadIds: ["lena"] },
+  {
+    id: "design",
+    name: "Design",
+    leadIds: ["lena"],
+    assign: { ...defaultAssign, skip: ["lena"] },
+  },
 ];
 
 function state(overrides: Partial<ManageState> = {}): ManageState {
@@ -266,5 +278,71 @@ describe("leads and Owners", () => {
     expect(
       planManage(actor("owner"), state(), { op: "owner.stepDown" }).ok,
     ).toBe(true);
+  });
+});
+
+describe("a group's hand-out", () => {
+  it("lets a manager turn it on and set the limit, and records it", () => {
+    const result = planManage(actor("manager"), state(), {
+      op: "group.assign",
+      groupId: "design",
+      on: true,
+      dailyLimit: 5,
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.plan.groups.design).toEqual({
+      assign: { on: true, dailyLimit: 5, headsUpHours: 24, skip: ["lena"] },
+    });
+    expect(result.plan.activity[0].summary).toBe(
+      "Turned on handing out tasks for Design",
+    );
+  });
+
+  it("keeps the limit and heads-up within their choices", () => {
+    for (const change of [
+      { dailyLimit: 1 },
+      { dailyLimit: 11 },
+      { headsUpHours: 6 },
+    ])
+      expect(
+        planManage(actor("manager"), state(), {
+          op: "group.assign",
+          groupId: "design",
+          ...change,
+        }),
+      ).toEqual({ ok: false, reason: "invalid" });
+  });
+
+  it("lets a lead choose who takes tasks, but not the settings", () => {
+    const takers = planManage(actor("lena"), state(), {
+      op: "group.assign",
+      groupId: "design",
+      skip: ["sol"],
+    });
+    expect(takers.ok).toBe(true);
+    const settings = planManage(actor("lena"), state(), {
+      op: "group.assign",
+      groupId: "design",
+      on: true,
+    });
+    expect(settings).toEqual({ ok: false, reason: "missingPermission" });
+  });
+
+  it("refuses a lead choosing for someone above them, or outside the group", () => {
+    expect(
+      planManage(actor("lena"), state(), {
+        op: "group.assign",
+        groupId: "design",
+        skip: ["lena", "pia"],
+      }),
+    ).toEqual({ ok: false, reason: "outranked" });
+    expect(
+      planManage(actor("lena"), state(), {
+        op: "group.assign",
+        groupId: "design",
+        skip: ["lena", "dev"],
+      }),
+    ).toEqual({ ok: false, reason: "invalid" });
   });
 });

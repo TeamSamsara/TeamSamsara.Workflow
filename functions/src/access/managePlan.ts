@@ -1,21 +1,23 @@
 // File : /TeamSamsara.Workflow/functions/src/access/managePlan.ts
-// Version : 1.0.0
+// Version : 1.1.0
 // Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : The protected changes, worked out before anything is written:
 // a member's name, roles, groups and access, removing or inviting someone,
 // saving the roles, setting a group's leads, and giving or giving up the
-// Owner role. Each is checked with the shared decide(), against ranks read
+// Owner role, and how a group hands out its tasks. Each is checked with the shared decide(), against ranks read
 // fresh from the roles (never a stored copy), and comes back as the writes
 // to make and the activity to record, or the reason it's refused.
 
 import {
+  AssignLimits,
   decide,
   OwnerRank,
   OwnerRoleId,
   rankOf,
   type AccessRequest,
   type Actor,
+  type AssignSettings,
   type DenyReason,
   type MemberStatus,
   type RoleForAccess,
@@ -42,6 +44,8 @@ export interface GroupEntry {
   id: string;
   name: string;
   leadIds: string[];
+  /** How it hands out its tasks. */
+  assign: AssignSettings;
 }
 
 export type ManageOp =
@@ -62,6 +66,15 @@ export type ManageOp =
     }
   | { op: "roles.save"; roles: RoleEntry[]; version: number }
   | { op: "group.leads"; groupId: string; leadIds: string[] }
+  | {
+      op: "group.assign";
+      groupId: string;
+      on?: boolean;
+      dailyLimit?: number;
+      headsUpHours?: number;
+      /** Who doesn't take its tasks. */
+      skip?: string[];
+    }
   | { op: "owner.give"; memberId: string }
   | { op: "owner.stepDown" };
 
@@ -498,6 +511,99 @@ function planLeads(
   return { ok: true, plan };
 }
 
+/**
+ * How a group hands out its tasks. The switch, the daily limit and the
+ * heads-up are the group's settings (Manage work groups); who takes tasks is
+ * also its leads' to choose, for themselves and anyone at their rank or below.
+ */
+function planAssign(
+  actor: Actor,
+  state: ManageState,
+  op: Extract<ManageOp, { op: "group.assign" }>,
+): PlanResult {
+  const group = state.groups.get(op.groupId);
+  if (!group) return fail("notFound");
+  const before = group.assign;
+  const next: AssignSettings = { ...before, skip: [...before.skip] };
+  const requests: AccessRequest[] = [];
+
+  const settingsChanged =
+    (op.on !== undefined && op.on !== before.on) ||
+    (op.dailyLimit !== undefined && op.dailyLimit !== before.dailyLimit) ||
+    (op.headsUpHours !== undefined && op.headsUpHours !== before.headsUpHours);
+  if (settingsChanged) {
+    const { dailyLimit, headsUpHours } = AssignLimits;
+    if (op.on !== undefined && typeof op.on !== "boolean")
+      return fail("invalid");
+    if (
+      op.dailyLimit !== undefined &&
+      (!Number.isInteger(op.dailyLimit) ||
+        op.dailyLimit < dailyLimit.min ||
+        op.dailyLimit > dailyLimit.max)
+    )
+      return fail("invalid");
+    if (
+      op.headsUpHours !== undefined &&
+      !(headsUpHours.choices as readonly number[]).includes(op.headsUpHours)
+    )
+      return fail("invalid");
+    next.on = op.on ?? before.on;
+    next.dailyLimit = op.dailyLimit ?? before.dailyLimit;
+    next.headsUpHours = op.headsUpHours ?? before.headsUpHours;
+    requests.push({ action: "group.settings" });
+  }
+
+  if (op.skip !== undefined) {
+    if (
+      !Array.isArray(op.skip) ||
+      op.skip.some((id) => typeof id !== "string") ||
+      op.skip.length > 200
+    )
+      return fail("invalid");
+    const skip = [...new Set(op.skip)];
+    for (const id of [
+      ...added(before.skip, skip),
+      ...removedFrom(before.skip, skip),
+    ]) {
+      const member = state.members.get(id);
+      // Only people in the group; anyone who left can still be taken off.
+      if (
+        !member ||
+        (!member.workGroupIds.includes(group.id) && !before.skip.includes(id))
+      )
+        return fail("invalid");
+      requests.push({
+        action: "group.setTakesTasks",
+        groupId: group.id,
+        memberId: id,
+        memberRank: rankOf(member.roleIds, state.roles),
+      });
+    }
+    next.skip = skip;
+  }
+
+  const refused = refusal(actor, requests);
+  if (refused) return fail(refused);
+  const plan = empty();
+  if (requests.length === 0) return { ok: true, plan };
+  plan.groups[group.id] = { assign: next };
+  const turned =
+    next.on !== before.on
+      ? next.on
+        ? `Turned on handing out tasks for ${group.name}`
+        : `Turned off handing out tasks for ${group.name}`
+      : `Changed how ${group.name} hands out tasks`;
+  plan.activity.push({
+    area: "groups",
+    action: "assignChanged",
+    targetId: group.id,
+    summary: turned,
+    before: { ...before },
+    after: { ...next },
+  });
+  return { ok: true, plan };
+}
+
 function planOwner(
   actor: Actor,
   state: ManageState,
@@ -567,6 +673,8 @@ export function planManage(
       return planRoles(actor, state, op);
     case "group.leads":
       return planLeads(actor, state, op);
+    case "group.assign":
+      return planAssign(actor, state, op);
     case "owner.give":
     case "owner.stepDown":
       return planOwner(actor, state, op);

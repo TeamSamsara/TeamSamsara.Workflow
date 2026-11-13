@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/functions/src/access/readAccess.ts
-// Version : 1.0.0
+// Version : 1.1.0
 // Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Reads what permission checks need from the database: the roles
@@ -16,6 +16,7 @@ import { HttpsError } from "firebase-functions/v2/https";
 import {
   actorOf,
   decide,
+  readAssign,
   type AccessRequest,
   type Actor,
   type MemberStatus,
@@ -84,7 +85,12 @@ export function readMember(id: string, data: DocumentData): MemberEntry {
 }
 
 export function readGroup(id: string, data: DocumentData): GroupEntry {
-  return { id, name: text(data.name), leadIds: list(data.leadIds) };
+  return {
+    id,
+    name: text(data.name),
+    leadIds: list(data.leadIds),
+    assign: readAssign(data.assign),
+  };
 }
 
 /** The groups a member leads, from the groups themselves. */

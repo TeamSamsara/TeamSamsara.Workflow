@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/firestore.rules
-// Version : 2.0.0
+// Version : 2.1.0
 // Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Who may read and write what in Firestore. Everything is denied until
@@ -384,14 +384,17 @@ service cloud.firestore {
     // #region Work groups
     match /workGroups/{groupId} {
       allow read: if isActiveMember();
-      // Leads are set by the server, which keeps them inside their group.
+      // Leads and how it hands out tasks are set by the server, which keeps
+      // leads inside their group and checks who may choose who takes tasks.
       allow create: if can("manageWorkGroups")
         && isValidWorkGroup(request.resource.data)
         && request.resource.data.get("leadIds", []) == []
+        && request.resource.data.get("assign", null) == null
         && request.resource.data.createdAt == request.time;
       allow update: if can("manageWorkGroups")
         && isValidWorkGroup(request.resource.data)
         && request.resource.data.get("leadIds", []) == resource.data.get("leadIds", [])
+        && request.resource.data.get("assign", null) == resource.data.get("assign", null)
         && request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if can("manageWorkGroups");
     }
@@ -401,7 +404,7 @@ service cloud.firestore {
     // lead's permissions and each link's address are checked by the app.
     function isValidWorkGroup(data) {
       return data.keys().hasOnly(["name", "description", "createdAt",
-          "leadIds", "links", "color"])
+          "leadIds", "links", "color", "assign"])
         && data.keys().hasAll(["name", "description", "createdAt"])
         && isValidName(data.name)
         && data.description is string
@@ -768,6 +771,8 @@ service cloud.firestore {
         && task.approvedBy == null && task.approvedAt == null
         && task.changesRequested == null
         && task.doneAt == null
+        && task.get("handedOutAt", null) == null
+        && task.get("headsUpAt", null) == null
         // "Late from the start" only when its due time has really passed.
         && (task.get("lateAtCreation", false) == false
           || (task.dueAt != null && task.dueAt < request.time));
@@ -847,13 +852,17 @@ service cloud.firestore {
         "changesRequested", "createdBy", "createdAt", "updatedAt", "doneAt"];
       // Added later, so tasks made before them (or by an open tab from
       // before) are valid without them.
-      let optional = ["lateAtCreation", "doneBy", "eventGone", "editedParts"];
+      // handedOutAt and headsUpAt are the server's, when a group hands out tasks.
+      let optional = ["lateAtCreation", "doneBy", "eventGone", "editedParts",
+        "handedOutAt", "headsUpAt"];
       let gone = task.get("eventGone", null);
       let edited = task.get("editedParts", null);
       return task.keys().hasOnly(fields.concat(optional))
         && task.keys().hasAll(fields)
         && task.get("lateAtCreation", false) is bool
         && isNullOr(task.get("doneBy", null), "string")
+        && isNullOr(task.get("handedOutAt", null), "timestamp")
+        && isNullOr(task.get("headsUpAt", null), "timestamp")
         && (edited == null || (edited is list && edited.size() <= 6
           && edited.toSet().difference(["due", "assignee", "title", "notes",
             "checklist", "posts"].toSet()).size() == 0))

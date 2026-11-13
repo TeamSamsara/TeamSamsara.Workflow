@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/tests/rules/tasks.rules.test.ts
-// Version : 2.0.0
+// Version : 2.1.0
 // Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Tests tasks against the rules: who reads them (everything with
@@ -582,6 +582,28 @@ describe("reassigning and editing", () => {
     );
     await assertFails(
       updateDoc(task("gwen"), { memberId: "gwen", ...now() }),
+    );
+  });
+
+  it("keeps the hand-out's record: a handed-out task still saves, nobody sets it", async () => {
+    await seed(env, {
+      "tasks/handed": stored({
+        memberId: "sam",
+        handedOutAt: new Date(2026, 10, 2),
+        headsUpAt: new Date(2026, 10, 2),
+      }),
+    });
+    await assertSucceeds(
+      updateDoc(task("lena", "handed"), { memberId: "lena", ...now() }),
+    );
+    await assertFails(
+      updateDoc(task("sam"), { memberId: "sam", handedOutAt: new Date(), ...now() }),
+    );
+    await assertFails(
+      addDoc(
+        collection(signedInAs(env, "pat"), "tasks"),
+        fresh("pat", { handedOutAt: new Date() }),
+      ),
     );
   });
 

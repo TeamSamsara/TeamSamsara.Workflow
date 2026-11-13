@@ -1,10 +1,11 @@
 // File : /TeamSamsara.Workflow/tests/rules/workGroups.rules.test.ts
-// Version : 2.0.0
+// Version : 2.1.0
 // Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Tests work groups: active members read them; only Manage work
 // groups (or an Administrator) creates, edits and deletes them, with valid
-// fields and the server's creation time. Leads are set by the server.
+// fields and the server's creation time. Leads, and how a group hands out
+// its tasks, are set by the server.
 
 import {
   assertFails,
@@ -98,6 +99,32 @@ describe("leads and links", () => {
     );
     await assertFails(
       updateDoc(doc(db, "workGroups/design"), { leadIds: ["alex"] }),
+    );
+  });
+
+  it("leaves how it hands out tasks to the server, kept on every edit", async () => {
+    const db = signedInAs(env, "jordan");
+    await assertFails(
+      updateDoc(doc(db, "workGroups/design"), {
+        assign: { on: true, dailyLimit: 3, headsUpHours: 24, skip: [] },
+      }),
+    );
+    await assertFails(
+      setDoc(doc(db, "workGroups/video"), {
+        ...newGroup(),
+        assign: { on: true, dailyLimit: 3, headsUpHours: 24, skip: [] },
+      }),
+    );
+    await seed(env, {
+      "workGroups/handing": {
+        name: "Handing",
+        description: "",
+        createdAt: new Date(2026, 0, 1),
+        assign: { on: true, dailyLimit: 3, headsUpHours: 24, skip: [] },
+      },
+    });
+    await assertSucceeds(
+      updateDoc(doc(db, "workGroups/handing"), { description: "Still on." }),
     );
   });
 

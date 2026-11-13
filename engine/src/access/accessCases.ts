@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/engine/src/access/accessCases.ts
-// Version : 1.0.0
+// Version : 1.1.0
 // Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : The one table of cases the permission model is held to: who acts,
@@ -523,8 +523,46 @@ export const accessCases: AccessCase[] = [
   {
     name: "a lead chooses who takes their group's tasks",
     actor: "lena",
-    request: { action: "group.setTakesTasks", groupId: "design" },
+    request: {
+      action: "group.setTakesTasks",
+      groupId: "design",
+      memberId: "dev",
+      memberRank: 10,
+    },
     allowed: true,
+  },
+  {
+    name: "a lead chooses for themselves",
+    actor: "lena",
+    request: {
+      action: "group.setTakesTasks",
+      groupId: "design",
+      memberId: "lena",
+      memberRank: 10,
+    },
+    allowed: true,
+  },
+  {
+    name: "someone who doesn't lead the group can't choose, even for themselves",
+    actor: "newbie",
+    request: {
+      action: "group.setTakesTasks",
+      groupId: "design",
+      memberId: "newbie",
+      memberRank: 0,
+    },
+    allowed: false,
+  },
+  {
+    name: "a lead can't choose for someone above them",
+    actor: "lena",
+    request: {
+      action: "group.setTakesTasks",
+      groupId: "design",
+      memberId: "planner",
+      memberRank: 20,
+    },
+    allowed: false,
   },
   {
     name: "a lead can't change their group's assignment settings",
@@ -535,7 +573,12 @@ export const accessCases: AccessCase[] = [
   {
     name: "a lead can't choose who takes another group's tasks",
     actor: "lena",
-    request: { action: "group.setTakesTasks", groupId: "marketing" },
+    request: {
+      action: "group.setTakesTasks",
+      groupId: "marketing",
+      memberId: "maya",
+      memberRank: 10,
+    },
     allowed: false,
   },
   {

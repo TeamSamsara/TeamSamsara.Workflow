@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/engine/src/access/decide.ts
-// Version : 1.0.0
+// Version : 1.1.0
 // Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : The one answer to "can this person do this, to this, here?".
@@ -84,7 +84,12 @@ export type AccessRequest =
   | { action: "group.removeMember"; memberRank: number }
   | { action: "group.setLeads" }
   | { action: "group.settings" }
-  | { action: "group.setTakesTasks"; groupId: string }
+  | {
+      action: "group.setTakesTasks";
+      groupId: string;
+      memberId: string;
+      memberRank: number;
+    }
   | { action: "member.invite"; roles: readonly RoleForAccess[] }
   | { action: "member.rename"; memberRank: number }
   | { action: "member.setAccess"; memberRank: number }
@@ -373,9 +378,15 @@ export function decide(actor: Actor, request: AccessRequest): Decision {
         rankBelow(actor, request.memberRank),
       );
     case "group.setTakesTasks":
-      return holds(actor, "manageWorkGroups") || leads(actor, request.groupId)
-        ? yes
-        : no("missingPermission");
+      // Their own choice, or someone's at their rank or below.
+      return all(
+        holds(actor, "manageWorkGroups") || leads(actor, request.groupId)
+          ? null
+          : "missingPermission",
+        request.memberId === actor.id
+          ? null
+          : rankAtOrBelow(actor, request.memberRank),
+      );
     // #endregion
 
     // #region People

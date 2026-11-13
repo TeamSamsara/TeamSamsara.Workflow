@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/functions/src/access/manage.ts
-// Version : 1.0.0
+// Version : 1.1.0
 // Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : The one server call for protected changes: a member's name,
@@ -35,6 +35,7 @@ const ops: ManageOp["op"][] = [
   "member.invite",
   "roles.save",
   "group.leads",
+  "group.assign",
   "owner.give",
   "owner.stepDown",
 ];
