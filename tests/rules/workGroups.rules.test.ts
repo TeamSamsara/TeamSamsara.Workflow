@@ -1,10 +1,10 @@
 // File : /TeamSamsara.Workflow/tests/rules/workGroups.rules.test.ts
-// Version : 1.1.0
-// Latest commit: task/group-leads-and-x-premium
+// Version : 2.0.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Tests work groups: active members read them; only Manage work
 // groups (or an Administrator) creates, edits and deletes them, with valid
-// fields and the server's creation time.
+// fields and the server's creation time. Leads are set by the server.
 
 import {
   assertFails,
@@ -89,21 +89,20 @@ describe("reading work groups", () => {
 });
 
 describe("leads and links", () => {
-  it("can be added to a group, an older one too", async () => {
+  it("lets Manage work groups change links; leads are the server's to set", async () => {
+    const db = signedInAs(env, "jordan");
     await assertSucceeds(
-      updateDoc(doc(signedInAs(env, "jordan"), "workGroups/design"), {
-        leadIds: ["alex"],
+      updateDoc(doc(db, "workGroups/design"), {
         links: [{ label: "Shared drive", url: "https://drive.google.com/x" }],
       }),
     );
+    await assertFails(
+      updateDoc(doc(db, "workGroups/design"), { leadIds: ["alex"] }),
+    );
   });
 
-  it("are capped at ten each, and must be lists", async () => {
+  it("caps links at ten, as a list", async () => {
     const db = signedInAs(env, "jordan");
-    const many = Array.from({ length: 11 }, (_unused, index) => `m${index}`);
-    await assertFails(
-      updateDoc(doc(db, "workGroups/design"), { leadIds: many }),
-    );
     await assertFails(
       updateDoc(doc(db, "workGroups/design"), { links: "https://x.com" }),
     );

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/tasks.rules.test.ts
-// Version : 1.2.0
-// Latest commit: feature/audit-fixes
+// Version : 2.0.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Tests tasks against the rules: who reads them (everything with
 // View all, else what's theirs), who makes standalone ones, and the four kinds
@@ -69,10 +69,15 @@ const roles = {
   },
 };
 
-const member = (roleIds: string[], workGroupIds: string[] = []) => ({
+const member = (
+  roleIds: string[],
+  workGroupIds: string[] = [],
+  extra: Record<string, unknown> = {},
+) => ({
   status: "active",
   roleIds,
   workGroupIds,
+  ...extra,
 });
 
 const stored = (changes: Record<string, unknown> = {}) => ({
@@ -151,7 +156,18 @@ beforeEach(async () => {
     "members/rae": member(["reviewer"]),
     "members/ollie": member(["organiser"]),
     "members/eddie": member(["editor"]),
-    "members/pia": member(["eventPlanner"]),
+    "members/pia": member(["eventPlanner"], [], { rank: 6 }),
+    // lena leads Design without any permission; boss outranks everyone.
+    "members/lena": member([], ["design"], { leadOf: ["design"], rank: 1 }),
+    "members/boss": member(["reviewer"], [], { rank: 9 }),
+    "members/pia2": member(["eventPlanner"], [], { rank: 6 }),
+    "events/match1": {
+      title: "vs. Orca",
+      everyone: false,
+      memberIds: ["pia"],
+      groupIds: [],
+      createdBy: "pia",
+    },
     "members/chris": {
       status: "disabled",
       roleIds: ["viewer"],
@@ -176,11 +192,31 @@ afterAll(async () => {
 });
 
 describe("reading tasks", () => {
-  it("is open to View all, approvers and editors", async () => {
+  it("is open to View all and editors; approvers see what's waiting for review", async () => {
     await assertSucceeds(getDocs(collection(signedInAs(env, "vic"), "tasks")));
-    await assertSucceeds(getDocs(collection(signedInAs(env, "rae"), "tasks")));
     await assertSucceeds(
       getDocs(collection(signedInAs(env, "eddie"), "tasks")),
+    );
+    const rae = signedInAs(env, "rae");
+    await assertFails(getDocs(collection(rae, "tasks")));
+    await assertSucceeds(
+      getDocs(query(collection(rae, "tasks"), where("statusId", "in", ["review"]))),
+    );
+  });
+
+  it("shows planners an event's tasks only when they can see the event", async () => {
+    await assertSucceeds(
+      getDocs(query(collection(signedInAs(env, "pia"), "tasks"), where("eventId", "==", "match1"))),
+    );
+    await assertFails(
+      getDocs(query(collection(signedInAs(env, "pia2"), "tasks"), where("eventId", "==", "match1"))),
+    );
+    await assertFails(getDoc(doc(signedInAs(env, "pia2"), "tasks/fromEvent")));
+  });
+
+  it("shows a lead their group's tasks", async () => {
+    await assertSucceeds(
+      getDocs(query(collection(signedInAs(env, "lena"), "tasks"), where("workGroupId", "==", "design"))),
     );
   });
 
@@ -307,7 +343,6 @@ async function seedDone() {
 
 describe("keeping a finished task as history", () => {
   it("is for planners, in the batch that deletes its event", async () => {
-    await seed(env, { "events/match1": { title: "vs. Orca" } });
     const db = signedInAs(env, "pia");
     const batch = writeBatch(db);
     batch.update(doc(db, "tasks/fromEvent"), {
@@ -319,7 +354,6 @@ describe("keeping a finished task as history", () => {
   });
 
   it("can't be set while the event still exists", async () => {
-    await seed(env, { "events/match1": { title: "vs. Orca" } });
     await assertFails(
       updateDoc(task("pia", "fromEvent"), {
         eventGone: { title: "vs. Orca", startsAt: null },
@@ -401,8 +435,20 @@ describe("doing a task", () => {
   });
 });
 
+async function sendForReview(id: string, by: string) {
+  await env.withSecurityRulesDisabled(async (context) => {
+    await updateDoc(doc(context.firestore(), "tasks", id), {
+      statusId: "review",
+      sentForReviewBy: by,
+      sentForReviewAt: new Date(),
+    });
+  });
+}
+
 describe("approving a task", () => {
   it("lets Approve tasks approve, or ask for changes", async () => {
+    await sendForReview("signoff", "gwen");
+    await sendForReview("graphic", "sam");
     await assertSucceeds(
       updateDoc(task("rae", "signoff"), {
         statusId: "done",
@@ -421,7 +467,72 @@ describe("approving a task", () => {
     );
   });
 
+  it("never lets anyone approve their own work", async () => {
+    await sendForReview("signoff", "rae");
+    await assertFails(
+      updateDoc(task("rae", "signoff"), {
+        statusId: "done",
+        approvedBy: "rae",
+        approvedAt: serverTimestamp(),
+        doneAt: serverTimestamp(),
+        ...now(),
+      }),
+    );
+  });
+
+  it("only approves work done by someone at or below them", async () => {
+    await sendForReview("signoff", "boss");
+    await assertFails(
+      updateDoc(task("rae", "signoff"), {
+        approvedBy: "rae",
+        approvedAt: serverTimestamp(),
+        ...now(),
+      }),
+    );
+  });
+
+  it("lets a lead approve their group's task without Approve tasks", async () => {
+    await sendForReview("graphic", "sam");
+    await assertSucceeds(
+      updateDoc(task("lena", "graphic"), {
+        approvedBy: "lena",
+        approvedAt: serverTimestamp(),
+        ...now(),
+      }),
+    );
+    await sendForReview("signoff", "gwen");
+    await assertFails(
+      updateDoc(task("lena", "signoff"), {
+        approvedBy: "lena",
+        approvedAt: serverTimestamp(),
+        ...now(),
+      }),
+    );
+  });
+
+  it("can't approve a task that isn't waiting for review", async () => {
+    await assertFails(
+      updateDoc(task("rae", "signoff"), {
+        approvedBy: "rae",
+        approvedAt: serverTimestamp(),
+        ...now(),
+      }),
+    );
+  });
+
+  it("can't be done with Edit any task", async () => {
+    await sendForReview("signoff", "gwen");
+    await assertFails(
+      updateDoc(task("eddie", "signoff"), {
+        approvedBy: "eddie",
+        approvedAt: serverTimestamp(),
+        ...now(),
+      }),
+    );
+  });
+
   it("can't approve in someone else's name or change the details", async () => {
+    await sendForReview("signoff", "gwen");
     await assertFails(
       updateDoc(task("rae", "signoff"), {
         approvedBy: "vic",
@@ -445,6 +556,39 @@ describe("reassigning and editing", () => {
       }),
     );
     await assertFails(updateDoc(task("ollie"), { title: "New", ...now() }));
+  });
+
+  it("lets a lead reassign within their group only", async () => {
+    await assertSucceeds(
+      updateDoc(task("lena"), { memberId: "sam", ...now() }),
+    );
+    await assertFails(
+      updateDoc(task("lena"), { workGroupId: "social", ...now() }),
+    );
+  });
+
+  it("never hands a task to someone above them, or turned off", async () => {
+    await assertFails(
+      updateDoc(task("ollie"), { memberId: "boss", ...now() }),
+    );
+    await assertFails(
+      updateDoc(task("ollie"), { memberId: "chris", ...now() }),
+    );
+  });
+
+  it("lets a group member claim its waiting task for themselves", async () => {
+    await assertSucceeds(
+      updateDoc(task("sam"), { memberId: "sam", ...now() }),
+    );
+    await assertFails(
+      updateDoc(task("gwen"), { memberId: "gwen", ...now() }),
+    );
+  });
+
+  it("lets Edit any task change its content, never its status or approval", async () => {
+    await assertFails(
+      updateDoc(task("eddie"), { statusId: "done", ...now() }),
+    );
   });
 
   it("lets Edit any task change anything but where it came from", async () => {
@@ -499,10 +643,12 @@ describe("reassigning and editing", () => {
 });
 
 describe("deleting tasks", () => {
-  it("is for Edit any task, or the maker of a standalone one", async () => {
+  it("is for Edit any task or the maker of a standalone one, and planners for an event's", async () => {
     await assertFails(deleteDoc(task("sam")));
     await assertFails(deleteDoc(task("pat", "fromEvent")));
+    await assertFails(deleteDoc(task("eddie", "fromEvent")));
+    await assertFails(deleteDoc(task("pia2", "fromEvent")));
+    await assertSucceeds(deleteDoc(task("pia", "fromEvent")));
     await assertSucceeds(deleteDoc(task("pat")));
-    await assertSucceeds(deleteDoc(task("eddie", "fromEvent")));
   });
 });
