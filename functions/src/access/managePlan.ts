@@ -439,6 +439,16 @@ function planRoles(
     if (before.id === OwnerRoleId) continue;
     if (next.some((role) => role.id === before.id)) continue;
     requests.push({ action: "role.delete", role: before });
+    // Take the deleted role off everyone who had it.
+    for (const member of state.members.values()) {
+      if (!member.roleIds.includes(before.id)) continue;
+      const current =
+        (plan.members[member.id]?.roleIds as string[] | undefined) ??
+        member.roleIds;
+      plan.members[member.id] = {
+        roleIds: current.filter((id) => id !== before.id),
+      };
+    }
     plan.activity.push({
       area: "roles",
       action: "deleted",

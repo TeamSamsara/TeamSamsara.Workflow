@@ -1,23 +1,22 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/service/workGroupService.ts
-// Version : 1.3.0
-// Latest commit: feature/audit-fixes
+// Version : 2.0.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Creates, edits and deletes work groups. Names and descriptions are
-// trimmed on the way in. Who is in a group is kept on member records, so adding
-// and removing people writes there; deleting a group takes it off them too.
+// trimmed on the way in. Who is in a group is kept on member records, and who
+// leads it on the group, but both are protected changes the server makes
+// (a lead is always a member; taking someone out needs them strictly below
+// you). Deleting a group takes it off its members on the server too.
 
 import {
   addDoc,
-  arrayRemove,
-  arrayUnion,
   collection,
   deleteDoc,
   doc,
-  getDocs,
-  query,
+  getDoc,
   updateDoc,
-  where,
 } from "firebase/firestore";
+import { manage } from "@/core/access";
 import { Collections, serverTime } from "@/core/data";
 import { db } from "@/lib/firebase";
 import type { WorkGroupFields } from "../types/workGroupTypes";
@@ -30,11 +29,10 @@ function tidy(fields: WorkGroupFields) {
     ...(fields.color ? { color: fields.color } : {}),
     name: fields.name.trim(),
     description: fields.description.trim(),
-    leadIds: [...new Set(fields.leadIds)],
     links: fields.links
       .map((link) => ({ label: link.label.trim(), url: link.url.trim() }))
       .filter((link) => link.url),
-  } as Omit<WorkGroupFields, "color"> & { color?: string };
+  } as Omit<WorkGroupFields, "color" | "leadIds"> & { color?: string };
 }
 
 /** Adds a group and gives back its id. */
@@ -43,32 +41,42 @@ export async function createWorkGroup(
 ): Promise<string> {
   const created = await addDoc(groupsCollection(), {
     ...tidy(fields),
+    leadIds: [],
     createdAt: serverTime(),
   });
+  if (fields.leadIds.length)
+    await manage({
+      op: "group.leads",
+      groupId: created.id,
+      leadIds: fields.leadIds,
+    });
   return created.id;
 }
 
-export function saveWorkGroup(
+export async function saveWorkGroup(
   id: string,
   fields: WorkGroupFields,
 ): Promise<void> {
-  return updateDoc(doc(groupsCollection(), id), { ...tidy(fields) });
+  await updateDoc(doc(groupsCollection(), id), { ...tidy(fields) });
+  await manage({
+    op: "group.leads",
+    groupId: id,
+    leadIds: [...new Set(fields.leadIds)],
+  });
 }
 
-/** Deletes the group, then takes it off its members (tidying: a dead id means nothing). */
+/** Deletes the group; the server takes it off its members. */
 export async function deleteWorkGroup(id: string): Promise<void> {
   await deleteDoc(doc(groupsCollection(), id));
-  const inGroup = await getDocs(
-    query(
-      collection(db, Collections.members),
-      where("workGroupIds", "array-contains", id),
-    ),
-  );
-  await Promise.allSettled(
-    inGroup.docs.map((member) =>
-      updateDoc(member.ref, { workGroupIds: arrayRemove(id) }),
-    ),
-  );
+}
+
+/** A member's groups as they are now, to change one. */
+async function groupsOf(memberId: string): Promise<string[]> {
+  const snapshot = await getDoc(doc(db, Collections.members, memberId));
+  const stored: unknown = snapshot.data()?.workGroupIds;
+  return Array.isArray(stored)
+    ? stored.filter((id): id is string => typeof id === "string")
+    : [];
 }
 
 /** Puts these members in the group. */
@@ -77,20 +85,27 @@ export function addToWorkGroup(
   memberIds: readonly string[],
 ): Promise<void[]> {
   return Promise.all(
-    memberIds.map((memberId) =>
-      updateDoc(doc(db, Collections.members, memberId), {
-        workGroupIds: arrayUnion(groupId),
-      }),
-    ),
+    memberIds.map(async (memberId) => {
+      const groups = await groupsOf(memberId);
+      if (groups.includes(groupId)) return;
+      await manage({
+        op: "member.update",
+        memberId,
+        workGroupIds: [...groups, groupId],
+      });
+    }),
   );
 }
 
-/** Takes one member out of the group. */
-export function removeFromWorkGroup(
+/** Takes one member out of the group (and ends their lead there). */
+export async function removeFromWorkGroup(
   groupId: string,
   memberId: string,
 ): Promise<void> {
-  return updateDoc(doc(db, Collections.members, memberId), {
-    workGroupIds: arrayRemove(groupId),
+  const groups = await groupsOf(memberId);
+  await manage({
+    op: "member.update",
+    memberId,
+    workGroupIds: groups.filter((id) => id !== groupId),
   });
 }

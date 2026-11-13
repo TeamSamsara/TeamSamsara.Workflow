@@ -27,12 +27,8 @@ export function useInviteMembers() {
     }) => {
       if (session.status !== "active") throw new Error("Not signed in");
       setResults([]);
-      return inviteMembers(
-        emails,
-        choice,
-        session.user.id,
-        members.records,
-        (result) => setResults((previous) => [...previous, result]),
+      return inviteMembers(emails, choice, members.records, (result) =>
+        setResults((previous) => [...previous, result]),
       );
     },
   });
