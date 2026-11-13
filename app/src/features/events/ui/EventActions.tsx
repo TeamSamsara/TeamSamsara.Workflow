@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/EventActions.tsx
-// Version : 1.2.0
+// Version : 1.3.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : An event's ⋯ menu, for planners. A one-off event: Edit, Delete.
@@ -7,8 +7,8 @@
 // End the repeat, Delete… (just this one, this and every later one, or the
 // whole series).
 
+import { useCanManage } from "../hooks/useCanManage";
 import { useState, type CSSProperties } from "react";
-import { usePermissions } from "@/core/access";
 import { buttonLook } from "@/shared/components/Button/buttonLook";
 import { Dropdown } from "@/shared/components/Dropdown/Dropdown";
 import { DropdownItem } from "@/shared/components/Dropdown/DropdownItem";
@@ -95,7 +95,7 @@ export function EventActions({
   const [open, setOpen] = useState<Action | null>(null);
   const [place, setPlace] = useState<CSSProperties | undefined>(undefined);
   const date = repeat ? occurrenceDate(event.id, repeat.id) : null;
-  const canRefresh = usePermissions().can("planEvents");
+  const canRefresh = useCanManage(event);
   const refresh: Action[] =
     canRefresh && event.workflowIds.length > 0 ? ["refresh"] : [];
   const actions: Action[] =
