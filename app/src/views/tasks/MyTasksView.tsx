@@ -453,16 +453,20 @@ export function MyTasksView() {
                   <h2 className={styles.emptyTitle}>
                     {view === "done"
                       ? Text.doneEmptyTitle
-                      : view === "focus"
-                        ? Text.focusEmptyTitle
-                        : Text.emptyTitle}
+                      : waiting.items.length > 0
+                        ? Text.claimEmptyTitle
+                        : view === "focus"
+                          ? Text.focusEmptyTitle
+                          : Text.emptyTitle}
                   </h2>
                   <p className={styles.muted}>
                     {view === "done"
                       ? Text.doneEmptyBody
-                      : view === "focus"
-                        ? Text.focusEmptyBody
-                        : Text.emptyBody}
+                      : waiting.items.length > 0
+                        ? Text.claimEmptyBody
+                        : view === "focus"
+                          ? Text.focusEmptyBody
+                          : Text.emptyBody}
                   </p>
                 </section>
               ) : view === "done" ? (

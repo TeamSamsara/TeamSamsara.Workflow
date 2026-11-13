@@ -31,6 +31,8 @@ export const MyTasksViewText = {
   emptyTitle: "Nothing to do",
   emptyBody:
     "Tasks given to you or your work groups show up here, grouped by when they're due.",
+  claimEmptyTitle: "Nothing for you yet",
+  claimEmptyBody: "Claim one above.",
   focusEmptyTitle: "Nothing due this week",
   focusEmptyBody: "Nothing's late or due in the next 7 days.",
   comingUp: (tasks: number) =>

@@ -35,6 +35,7 @@ import {
   requireAllowed,
 } from "./access/readAccess.js";
 import { reviewersFor } from "./access/reviewers.js";
+import { namesAboveSaver, withoutNames } from "./access/workflowNames.js";
 import {
   groupsHandingOut,
   runGroup,
@@ -626,6 +627,54 @@ export const onWorkflowSyncCreated = onDocumentCreated(
 );
 
 /**
+ * Takes off names a save added above the saver's rank, and records it. True
+ * when it changed the workflow (that write is synced in its own turn).
+ */
+async function keepNamesInRank(
+  workflowId: string,
+  saverId: string,
+  beforeData: DocumentData | undefined,
+  afterData: DocumentData,
+): Promise<boolean> {
+  const steps = (data: DocumentData | undefined) =>
+    Array.isArray(data?.steps) ? (data.steps as DocumentData[]) : [];
+  const named = steps(afterData).some(
+    (step) => typeof step?.memberId === "string",
+  );
+  if (!named) return false;
+  const ranks = new Map(
+    (await db.collection("members").get()).docs.map((doc) => [
+      doc.id,
+      typeof doc.data().rank === "number" ? (doc.data().rank as number) : 0,
+    ]),
+  );
+  const above = namesAboveSaver(
+    steps(beforeData),
+    steps(afterData),
+    ranks.get(saverId) ?? 0,
+    (memberId) => ranks.get(memberId) ?? 0,
+  );
+  if (above.length === 0) return false;
+  await db.doc(`workflows/${workflowId}`).update({
+    steps: withoutNames(steps(afterData), above),
+  });
+  const names = await activeMembers();
+  const nameOf = (memberId: string) =>
+    names.find((member) => member.id === memberId)?.name ?? "someone";
+  await db.collection("activity").add({
+    area: "settings",
+    action: "workflowNameRemoved",
+    targetId: workflowId,
+    summary: `Took ${above.map((entry) => `${nameOf(entry.memberId)} off ${entry.title || "a step"}`).join(", ")} in ${text(afterData.name) ?? "a workflow"}: above the rank of whoever saved it`,
+    before: null,
+    after: null,
+    actorId: saverId,
+    at: FieldValue.serverTimestamp(),
+  });
+  return true;
+}
+
+/**
  * A saved workflow: every upcoming event that uses it gets its open tasks
  * brought in line in the background (parts changed by hand stay), and a task
  * for each step added. The people whose tasks changed get one notification,
@@ -636,8 +685,17 @@ export const onWorkflowSaved = onDocumentWrittenWithAuthContext(
   async (event) => {
     const beforeData = event.data?.before.data();
     const afterData = event.data?.after.data();
-    if (!beforeData || !afterData || afterData.archived === true) return;
     const id = event.params.workflowId;
+    // A member's save may name only people at or below them.
+    const saverId =
+      event.authId && !event.authId.includes("@") ? event.authId : null;
+    if (
+      afterData &&
+      saverId &&
+      (await keepNamesInRank(id, saverId, beforeData, afterData))
+    )
+      return;
+    if (!beforeData || !afterData || afterData.archived === true) return;
     const before = readWorkflow(id, beforeData);
     const after = readWorkflow(id, afterData);
     if (!stepsChanged(before, after)) return;
@@ -686,9 +744,12 @@ async function tellAboutRun(groupId: string, run: GroupRun) {
     workspaceFormats(),
   ]);
   const titles = new Map(
-    (await readAll("tasks", run.given.map((entry) => entry.taskId))).map(
-      ({ id, data }) => [id, text(data.title) ?? "A task"],
-    ),
+    (
+      await readAll(
+        "tasks",
+        run.given.map((entry) => entry.taskId),
+      )
+    ).map(({ id, data }) => [id, text(data.title) ?? "A task"]),
   );
   const byMember = new Map<string, string[]>();
   for (const entry of run.given)
@@ -732,9 +793,12 @@ async function tellAboutRun(groupId: string, run: GroupRun) {
       .map((member) => member.id);
   }
   const dues = new Map(
-    (await readAll("tasks", run.headsUp.map((entry) => entry.taskId))).map(
-      ({ id, data }) => [id, toDate(data.dueAt)],
-    ),
+    (
+      await readAll(
+        "tasks",
+        run.headsUp.map((entry) => entry.taskId),
+      )
+    ).map(({ id, data }) => [id, toDate(data.dueAt)]),
   );
   for (const entry of run.headsUp) {
     const due = dues.get(entry.taskId);
