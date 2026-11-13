@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/app/router.tsx
-// Version : 1.20.0
+// Version : 1.21.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Every route in the app. Layouts and the not-found page load with the
@@ -204,6 +204,11 @@ const fieldsView = () =>
     Component: module.FieldsView,
   }));
 
+const activityView = () =>
+  import("@/views/settings/activity/ActivityView").then((module) => ({
+    Component: module.ActivityView,
+  }));
+
 const docsView = () =>
   import("@/views/docs/DocsView").then((module) => ({
     Component: module.DocsView,
@@ -351,6 +356,7 @@ export const router = createBrowserRouter([
                       settingsPage(RoutePaths.settingsPlatforms, platformsView),
                       settingsPage(RoutePaths.settingsTaskSetup, taskSetupView),
                       settingsPage(RoutePaths.settingsFields, fieldsView),
+                      settingsPage(RoutePaths.settingsActivity, activityView),
                     ],
                   },
                 ],
