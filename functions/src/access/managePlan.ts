@@ -493,7 +493,16 @@ function planLeads(
   if (refused) return fail(refused);
   if (sameList(group.leadIds, leadIds)) return { ok: true, plan: empty() };
   const plan = empty();
-  plan.groups[group.id] = { leadIds };
+  // New leads start as overseers: the group doesn't hand them its tasks.
+  const newLeads = added(group.leadIds, leadIds).filter(
+    (id) => !group.assign.skip.includes(id),
+  );
+  plan.groups[group.id] = newLeads.length
+    ? {
+        leadIds,
+        assign: { ...group.assign, skip: [...group.assign.skip, ...newLeads] },
+      }
+    : { leadIds };
   // A lead is always a member: making someone a lead puts them in the group.
   for (const person of people)
     if (person && !person.workGroupIds.includes(group.id))

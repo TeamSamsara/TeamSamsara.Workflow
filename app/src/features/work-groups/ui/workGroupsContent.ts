@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/ui/workGroupsContent.ts
-// Version : 1.3.1
-// Latest commit: feature/audit-fixes
+// Version : 1.4.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : The words on the work group cards, form, picker and dialogs.
 
@@ -65,13 +65,12 @@ export const GroupRulesText = {
 
 export const WorkGroupLeadsText = {
   title: "Group leads",
-  hint: "Leads approve and hand out the group's tasks. Only people who can approve or reassign tasks can lead.",
+  hint: "Leads approve the group's work and choose who does its tasks. Anyone can lead; making someone a lead adds them to the group.",
   none: "No lead yet.",
   add: "Add lead",
   remove: (name: string) => `Remove ${name} as a lead`,
   pickerTitle: (group: string) => `Leads for ${group}`,
-  noneEligible:
-    "Nobody can lead yet. Give someone a role with Approve tasks or Reassign tasks first.",
+  noneEligible: "Everyone who could lead already does.",
 } as const;
 
 export const WorkGroupLinksText = {

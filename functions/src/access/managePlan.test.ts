@@ -282,6 +282,20 @@ describe("leads and Owners", () => {
 });
 
 describe("a group's hand-out", () => {
+  it("starts new leads as overseers, not taking tasks", () => {
+    const result = planManage(actor("manager"), state(), {
+      op: "group.leads",
+      groupId: "design",
+      leadIds: ["lena", "sol"],
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.plan.groups.design).toEqual({
+      leadIds: ["lena", "sol"],
+      assign: { ...defaultAssign, skip: ["lena", "sol"] },
+    });
+  });
+
   it("lets a manager turn it on and set the limit, and records it", () => {
     const result = planManage(actor("manager"), state(), {
       op: "group.assign",

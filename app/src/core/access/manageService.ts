@@ -1,11 +1,11 @@
 // File : /TeamSamsara.Workflow/app/src/core/access/manageService.ts
-// Version : 1.0.0
+// Version : 1.1.0
 // Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Protected changes go through the server, which checks rank and
 // records them in the activity history: a member's name, roles, groups and
-// access, removing or inviting someone, saving the roles, a group's leads,
-// and the Owner role. The database refuses these from the app directly. The
+// access, removing or inviting someone, saving the roles, a group's leads
+// and how it hands out tasks, and the Owner role. The database refuses these from the app directly. The
 // server's refusal reason comes back as the error's message.
 
 import { httpsCallable } from "firebase/functions";
@@ -38,6 +38,14 @@ export type ManageOp =
     }
   | { op: "roles.save"; roles: RoleToSave[]; version: number }
   | { op: "group.leads"; groupId: string; leadIds: string[] }
+  | {
+      op: "group.assign";
+      groupId: string;
+      on?: boolean;
+      dailyLimit?: number;
+      headsUpHours?: number;
+      skip?: string[];
+    }
   | { op: "owner.give"; memberId: string }
   | { op: "owner.stepDown" };
 

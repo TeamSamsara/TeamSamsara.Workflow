@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/service/workGroupService.ts
-// Version : 2.0.0
+// Version : 2.1.0
 // Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Creates, edits and deletes work groups. Names and descriptions are
@@ -63,6 +63,26 @@ export async function saveWorkGroup(
     groupId: id,
     leadIds: [...new Set(fields.leadIds)],
   });
+}
+
+/** A change to how a group hands out its tasks; only what's given changes. */
+export interface HandOutChange {
+  on?: boolean;
+  dailyLimit?: number;
+  headsUpHours?: number;
+  /** Who doesn't take its tasks. */
+  skip?: string[];
+}
+
+/**
+ * Changes how a group hands out its tasks. The switch, limit and heads-up
+ * need Manage work groups; who takes tasks is also the leads' to choose.
+ */
+export async function changeHandOut(
+  groupId: string,
+  change: HandOutChange,
+): Promise<void> {
+  await manage({ op: "group.assign", groupId, ...change });
 }
 
 /** Deletes the group; the server takes it off its members. */
