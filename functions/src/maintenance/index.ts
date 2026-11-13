@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/functions/src/maintenance/index.ts
-// Version : 1.0.0
+// Version : 1.1.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The weekly check-up (Sundays at 4 AM Toronto time) and Run now
@@ -11,8 +11,9 @@
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import { logger } from "firebase-functions/v2";
-import { HttpsError, onCall } from "firebase-functions/v2/https";
+import { onCall } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
+import { requireActor, requireAllowed } from "../access/readAccess.js";
 import { applyFixes, readSnapshot } from "./applyFixes.js";
 import { findOrphanFiles, type StoredFile } from "./findOrphanFiles.js";
 import { defaultLimits, findOrphans, summarize } from "./findOrphans.js";
@@ -33,7 +34,9 @@ async function storedFiles(): Promise<StoredFile[]> {
   return lists.flatMap(([files]) =>
     files.map((file) => ({
       name: file.name,
-      updated: new Date(String(file.metadata.updated ?? file.metadata.timeCreated ?? 0)),
+      updated: new Date(
+        String(file.metadata.updated ?? file.metadata.timeCreated ?? 0),
+      ),
     })),
   );
 }
@@ -57,7 +60,8 @@ async function referencedUrls(): Promise<string[]> {
 async function runCheckUp(trigger: "weekly" | "manual", byId: string | null) {
   const db = getFirestore();
   const now = new Date();
-  const apply = (await db.doc("config/maintenance").get()).data()?.apply === true;
+  const apply =
+    (await db.doc("config/maintenance").get()).data()?.apply === true;
   const fixes = findOrphans(await readSnapshot(db), defaultLimits(now));
   let files: StoredFile[] = [];
   try {
@@ -70,7 +74,8 @@ async function runCheckUp(trigger: "weekly" | "manual", byId: string | null) {
   if (apply) {
     await applyFixes(db, fixes);
     const bucket = files.length ? getStorage().bucket() : null;
-    for (const file of files) await bucket?.file(file.name).delete({ ignoreNotFound: true });
+    for (const file of files)
+      await bucket?.file(file.name).delete({ ignoreNotFound: true });
   }
   const report = {
     at: FieldValue.serverTimestamp(),
@@ -80,11 +85,24 @@ async function runCheckUp(trigger: "weekly" | "manual", byId: string | null) {
     total: fixes.length,
     counts: summary.counts,
     examples: summary.examples,
-    files: { count: files.length, examples: files.slice(0, 5).map((file) => file.name) },
+    files: {
+      count: files.length,
+      examples: files.slice(0, 5).map((file) => file.name),
+    },
   };
   const saved = await db.collection("maintenanceRuns").add(report);
-  logger.info("Check-up done", { id: saved.id, mode: report.mode, total: fixes.length, files: files.length });
-  return { id: saved.id, mode: report.mode, total: fixes.length, files: files.length };
+  logger.info("Check-up done", {
+    id: saved.id,
+    mode: report.mode,
+    total: fixes.length,
+    files: files.length,
+  });
+  return {
+    id: saved.id,
+    mode: report.mode,
+    total: fixes.length,
+    files: files.length,
+  };
 }
 
 export const weeklyCleanup = onSchedule(
@@ -96,14 +114,9 @@ export const weeklyCleanup = onSchedule(
 
 /** Run now, for Administrators. */
 export const runCleanup = onCall(async (request) => {
-  const uid = request.auth?.uid;
-  if (!uid) throw new HttpsError("unauthenticated", "Sign in first.");
   const db = getFirestore();
-  const member = (await db.doc(`members/${uid}`).get()).data();
-  const grants = ((await db.doc("config/roles").get()).data()?.grants ?? {}) as Record<string, unknown>;
-  const admins = new Set(Array.isArray(grants.administrator) ? grants.administrator : []);
-  const roles: unknown[] = Array.isArray(member?.roleIds) ? member.roleIds : [];
-  if (member?.status !== "active" || ![...roles, "everyone"].some((role) => admins.has(role)))
-    throw new HttpsError("permission-denied", "Only Administrators can run the check-up.");
+  const actor = await requireActor(db, request.auth?.uid);
+  requireAllowed(actor, { action: "settings.admin" });
+  const uid = actor.id;
   return runCheckUp("manual", uid);
 });

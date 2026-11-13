@@ -423,6 +423,14 @@ export function decide(actor: Actor, request: AccessRequest): Decision {
         holdsAll(actor, request.permissions),
       );
     case "role.edit":
+      // Everyone sits at 0 under every role: anyone who manages roles can
+      // change what it allows (within what they hold), never move it.
+      if (request.role.id === "everyone")
+        return all(
+          need(actor, "manageRoles"),
+          request.position === 0 ? null : "protectedRole",
+          holdsAll(actor, request.changed),
+        );
       return all(
         need(actor, "manageRoles"),
         managesRole(actor, request.role),

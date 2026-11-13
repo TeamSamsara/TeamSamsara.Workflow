@@ -676,6 +676,39 @@ export const accessCases: AccessCase[] = [
     allowed: false,
   },
   {
+    name: "a manager changes what Everyone can do, within what they hold",
+    actor: "manager",
+    request: {
+      action: "role.edit",
+      role: role("everyone"),
+      position: 0,
+      changed: ["tagPeople"],
+    },
+    allowed: false,
+  },
+  {
+    name: "an Administrator changes what Everyone can do",
+    actor: "admin",
+    request: {
+      action: "role.edit",
+      role: role("everyone"),
+      position: 0,
+      changed: ["tagPeople"],
+    },
+    allowed: true,
+  },
+  {
+    name: "nobody can edit the Owner role",
+    actor: "owner",
+    request: {
+      action: "role.edit",
+      role: role(OwnerRoleId),
+      position: OwnerRank,
+      changed: [],
+    },
+    allowed: false,
+  },
+  {
     name: "a manager reorders roles below them",
     actor: "manager",
     request: { action: "role.reorder", moves: [{ from: 10, to: 25 }] },

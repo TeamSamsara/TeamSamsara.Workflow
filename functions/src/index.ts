@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/functions/src/index.ts
-// Version : 1.5.0
+// Version : 1.6.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Playbook's server functions. They watch tasks and events and
@@ -26,6 +26,7 @@ import {
   onDocumentWrittenWithAuthContext,
 } from "firebase-functions/v2/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
+import { requireActor, requireAllowed } from "./access/readAccess.js";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { defineSecret, defineString } from "firebase-functions/params";
 import {
@@ -504,7 +505,8 @@ async function tasksOfEvents(eventIds: readonly string[]) {
       .collection("tasks")
       .where("eventId", "in", eventIds.slice(start, start + 30))
       .get();
-    for (const doc of snapshot.docs) found.push(summaryTask(doc.id, doc.data()));
+    for (const doc of snapshot.docs)
+      found.push(summaryTask(doc.id, doc.data()));
   }
   return found;
 }
@@ -550,16 +552,18 @@ export const onBulkPlanCreated = onDocumentCreated(
         taskId: null,
         eventId: null,
         groupId: null,
-        path: setId
-          ? `/events/sets/${encodeURIComponent(setId)}`
-          : "/my-tasks",
+        path: setId ? `/events/sets/${encodeURIComponent(setId)}` : "/my-tasks",
       },
       members,
       await groupNames(),
       (id) => {
         const summary = byMember.get(id);
         return summary
-          ? { summary: summaryData(summary, count), setId, repeatId: data.kind === "repeat" ? text(data.sourceId) : null }
+          ? {
+              summary: summaryData(summary, count),
+              setId,
+              repeatId: data.kind === "repeat" ? text(data.sourceId) : null,
+            }
           : {};
       },
     );
@@ -822,18 +826,6 @@ async function passwordLink(
 }
 
 /** Whether the member's roles grant one of the permissions (Administrator counts). */
-async function holds(
-  roleIds: readonly string[],
-  permission: string,
-): Promise<boolean> {
-  const grants = ((await db.doc("config/roles").get()).data()?.grants ??
-    {}) as Record<string, unknown>;
-  const allowed = new Set([
-    ...list(grants[permission]),
-    ...list(grants.administrator),
-  ]);
-  return [...roleIds, "everyone"].some((role) => allowed.has(role));
-}
 
 /** Emails an invited person the link to choose their password. Manage members only. */
 export const sendInvite = onCall({ secrets: [resendKey] }, async (request) => {
@@ -841,15 +833,9 @@ export const sendInvite = onCall({ secrets: [resendKey] }, async (request) => {
   if (!uid) throw new HttpsError("unauthenticated", "Sign in first.");
   const email = text((request.data as { email?: unknown })?.email)?.trim();
   if (!email) throw new HttpsError("invalid-argument", "Which email?");
-  const caller = (await db.doc(`members/${uid}`).get()).data();
-  if (
-    caller?.status !== "active" ||
-    !(await holds(list(caller.roleIds), "manageMembers"))
-  )
-    throw new HttpsError(
-      "permission-denied",
-      "Only Manage members can invite.",
-    );
+  const actor = await requireActor(db, uid);
+  requireAllowed(actor, { action: "member.invite", roles: [] });
+  const caller = (await db.doc(`members/${uid}`).get()).data() ?? {};
   const invited = await db
     .collection("members")
     .where("email", "==", email)
@@ -921,19 +907,19 @@ export const remindReplies = onCall(
     const eventId = text((request.data as { eventId?: unknown })?.eventId);
     if (!eventId) throw new HttpsError("invalid-argument", "Which event?");
     const members = await activeMembers();
-    const caller = members.find((member) => member.id === uid);
-    const grants = ((await db.doc("config/roles").get()).data()?.grants ??
-      {}) as Record<string, unknown>;
-    const planners = new Set([
-      ...list(grants.planEvents),
-      ...list(grants.administrator),
-    ]);
-    if (
-      !caller ||
-      ![...caller.roleIds, "everyone"].some((role) => planners.has(role))
-    )
-      throw new HttpsError("permission-denied", "Only planners can remind.");
     const item = eventData((await db.doc(`events/${eventId}`).get()).data());
+    const actor = await requireActor(db, uid);
+    if (item)
+      requireAllowed(actor, {
+        action: "event.remind",
+        event: {
+          everyone: item.everyone,
+          memberIds: item.memberIds,
+          groupIds: item.groupIds,
+          createdBy: item.createdBy ?? "",
+          ownerRank: 0,
+        },
+      });
     if (!item?.asksReply)
       throw new HttpsError(
         "failed-precondition",
@@ -978,10 +964,7 @@ export const signOutEverywhere = onCall(async (request) => {
 
 // #endregion
 
-export {
-  applyPlatformUpdates,
-  platformUpdatesNow,
-} from "./updates/index.js";
+export { applyPlatformUpdates, platformUpdatesNow } from "./updates/index.js";
 
 export {
   onEventSetDeleted,
@@ -992,3 +975,17 @@ export {
   runCleanup,
   weeklyCleanup,
 } from "./maintenance/index.js";
+
+export { manage } from "./access/manage.js";
+export {
+  onGroupLeadsChanged,
+  onMemberAccessChanged,
+  onRolesChanged,
+} from "./access/keepAccess.js";
+export {
+  onMaintenanceChanged,
+  onSignInPicturesChanged,
+  onStatusChanged,
+  onWorkGroupChanged,
+  onWorkspaceSettingsChanged,
+} from "./access/activity.js";
