@@ -15,8 +15,8 @@ export const GroupHandOutText = {
   rulesTitle: (group: string) => `Who gets ${group}'s tasks`,
   rules: [
     {
-      lead: "A step that names someone",
-      rest: " gives the task to them, even over the daily limit.",
+      lead: "A task given to someone by name",
+      rest: " stays with them, even over the daily limit.",
     },
     {
       lead: "Otherwise, the least busy person who's free",
@@ -33,12 +33,12 @@ export const GroupHandOutText = {
     "As a lead you choose who takes tasks; the switch, the daily limit and the heads-up are for people who manage work groups.",
   limitLabel: "Daily limit per person",
   limitHint: (min: number, max: number) =>
-    `Tasks due the same day, between ${min} and ${max}. Tasks a step gives someone by name don't count.`,
+    `Tasks due the same day, between ${min} and ${max}. Tasks given to someone by name don't count.`,
   headsUpLabel: "Tell the leads when a task still has no one",
   headsUp: (hours: number) => `${hours} hours before it's due`,
   takersTitle: "Who takes tasks",
   takersHint:
-    "Leads start as overseers, with Takes tasks off. Turn it on to hand them tasks too; a step that names a lead still gives the task to them.",
+    "Leads start as overseers, with Takes tasks off. Turn it on to hand them tasks too; a task given to a lead by name still goes to them.",
   lead: "Lead",
   member: "Member",
   load: (count: number) =>

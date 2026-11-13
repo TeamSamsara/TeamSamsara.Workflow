@@ -1,19 +1,22 @@
 // File : /TeamSamsara.Workflow/app/src/views/tasks/MyTasksView.tsx
-// Version : 1.4.0
-// Latest commit: feature/audit-fixes
+// Version : 1.5.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : My tasks. Whose: Mine (the default), My groups, or Pick groups,
 // remembered in the browser. How much: Focus (late, today and the next 7
 // days, with how many more are coming up), Planning (everything still to do)
-// or Done this week (by day, with who did and approved it). Each task links to
+// or Done this week (by day, with who did and approved it). Above the list,
+// for each of my groups that hands out its tasks, what's waiting for someone,
+// with Claim. Each task links to
 // its event. Beside it: what's waiting for approval (for approvers) and the
 // Done this week card. New task makes a one-off task.
 
+import { useMutation } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { decide } from "@engine/access/index";
 import { useActor, usePermissions } from "@/core/access";
-import { DataErrorText, isCurrentMember } from "@/core/data";
+import { DataErrorText, dataErrorMessage, isCurrentMember } from "@/core/data";
 import { useSession } from "@/core/session";
 import { useDisplayTime, useWorkspaceRecord } from "@/core/workspace";
 import {
@@ -25,6 +28,7 @@ import { memberName, useMembers } from "@/features/members";
 import { usePlatforms } from "@/features/platforms";
 import { startingStatus, useStatuses, useTags } from "@/features/task-setup";
 import {
+  claimTask,
   doneByDay,
   DoneThisWeekCard,
   DueGroups,
@@ -42,6 +46,7 @@ import {
   useDoneTasksSince,
   useOpenTasksFor,
   useTasksInStatuses,
+  useWaitingTasks,
   weekCounts,
   type TaskListContext,
   type TaskRecord,
@@ -210,7 +215,44 @@ export function MyTasksView() {
       );
   }, [actor, queue.items, open.items, members.records, awaitingStatusIds]);
 
-  const openTasks = open.items.filter(fits);
+  // Groups I'm in that hand out their tasks: what's waiting there shows on
+  // its own, with Claim, whatever the scope.
+  const handingOut = allGroups.filter(
+    (group) => group.assign.on && myGroupIds.includes(group.id),
+  );
+  const waiting = useWaitingTasks(handingOut.map((group) => group.id));
+  const waitingIds = new Set(waiting.items.map((task) => task.id));
+  const claim = useMutation({
+    mutationFn: (task: TaskRecord) => claimTask(task.id, me),
+    onSuccess: (_result, task) =>
+      toast.show({ tone: "success", title: Text.claimed(task.title) }),
+    onError: (error) =>
+      toast.show({
+        tone: "error",
+        title: Text.claimFailed,
+        detail: dataErrorMessage(error),
+      }),
+  });
+  const canClaim = (task: TaskRecord) =>
+    actor !== null &&
+    decide(actor, {
+      action: "task.claim",
+      task: {
+        groupId: task.workGroupId,
+        memberId: task.memberId,
+        createdBy: task.createdBy,
+        event: null,
+        sentForReviewBy: null,
+        awaitingReview: false,
+        ranks: { assignee: null, doer: null, maker: 0 },
+      },
+      // Claiming is their own choice, whether or not the group hands them tasks.
+      takesTasks: true,
+    }).ok;
+
+  const openTasks = open.items.filter(
+    (task) => fits(task) && !waitingIds.has(task.id),
+  );
   const doneTasks = done.items.filter(fits);
   const shownTasks = view === "done" ? doneTasks : [...openTasks, ...approvals];
   const events = useEventLabels(shownTasks.map((task) => task.eventId));
@@ -364,6 +406,37 @@ export function MyTasksView() {
               pickable.length > 0 ? (
                 <p className={styles.muted}>{Text.pickNone}</p>
               ) : null}
+              {view !== "done"
+                ? handingOut.map((group) => {
+                    const tasks = inOrder(
+                      waiting.items.filter(
+                        (task) => task.workGroupId === group.id,
+                      ),
+                    );
+                    return tasks.length ? (
+                      <TaskGroupCard
+                        key={`waiting-${group.id}`}
+                        title={Text.waiting(group.name)}
+                        note={Text.waitingNote}
+                        tasks={tasks}
+                        context={context}
+                        tone="waiting"
+                        actionFor={(task) =>
+                          canClaim(task) ? (
+                            <Button
+                              size="small"
+                              variant="primary"
+                              onClick={() => claim.mutate(task)}
+                              disabled={claim.isPending}
+                            >
+                              {Text.claim}
+                            </Button>
+                          ) : null
+                        }
+                      />
+                    ) : null;
+                  })
+                : null}
               {list.status === "loading" ? (
                 <div className={styles.loading}>
                   <Spinner label={Text.loading} />
