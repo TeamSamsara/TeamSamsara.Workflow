@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/index.ts
-// Version : 1.7.0
-// Latest commit: feature/audit-fixes
+// Version : 1.8.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Playbook's server functions. They watch tasks and events and
 // write notifications for the people a change concerns (never the person who
@@ -8,9 +8,11 @@
 // kinds each person asked for (through Resend), ask people to reply to events
 // and tell planners about the replies, send invites, password links and a test
 // email (all in Playbook's own email design), and sign someone out on every
-// device. A weekly check-up (src/maintenance) tidies data that points at
-// deleted things. Work done in bulk (a set or repeat planned, a workflow's changes
-// passed on to its tasks) sends one summary per person instead of one each.
+// device. Groups that hand out their tasks (src/assign) do it as tasks come
+// in and every 15 minutes, telling each person once per run. A weekly
+// check-up (src/maintenance) tidies data that points at deleted things. Work
+// done in bulk (a set or repeat planned, a workflow's changes passed on to its
+// tasks) sends one summary per person instead of one each.
 
 import { initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
@@ -23,6 +25,7 @@ import {
 import { logger, setGlobalOptions } from "firebase-functions/v2";
 import {
   onDocumentCreated,
+  onDocumentWritten,
   onDocumentWrittenWithAuthContext,
 } from "firebase-functions/v2/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
@@ -32,6 +35,13 @@ import {
   requireAllowed,
 } from "./access/readAccess.js";
 import { reviewersFor } from "./access/reviewers.js";
+import {
+  groupsHandingOut,
+  runGroup,
+  touchesQueue,
+  type GroupRun,
+} from "./assign/runner.js";
+import { actorOf } from "../../engine/src/index.js";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { defineSecret, defineString } from "firebase-functions/params";
 import {
@@ -656,6 +666,135 @@ export const onWorkflowSaved = onDocumentWrittenWithAuthContext(
       changes: [changedStepTitles(before, after).join(", ").slice(0, 200)],
       at: FieldValue.serverTimestamp(),
     });
+  },
+);
+
+// #endregion
+
+// #region Handing out tasks
+
+/**
+ * Tells people what a group's hand-out did: one notification each for the
+ * tasks they were given, and one to the group's leads for each task still
+ * waiting close to its due time (to those who manage groups, when it has none).
+ */
+async function tellAboutRun(groupId: string, run: GroupRun) {
+  if (run.given.length === 0 && run.headsUp.length === 0) return;
+  const [members, names, formats] = await Promise.all([
+    activeMembers(),
+    groupNames(),
+    workspaceFormats(),
+  ]);
+  const titles = new Map(
+    (await readAll("tasks", run.given.map((entry) => entry.taskId))).map(
+      ({ id, data }) => [id, text(data.title) ?? "A task"],
+    ),
+  );
+  const byMember = new Map<string, string[]>();
+  for (const entry of run.given)
+    byMember.set(entry.memberId, [
+      ...(byMember.get(entry.memberId) ?? []),
+      entry.taskId,
+    ]);
+  for (const [memberId, taskIds] of byMember) {
+    const one = taskIds.length === 1;
+    await deliver(
+      [memberId],
+      {
+        kind: "tasksHandedOut",
+        actorId: null,
+        title: one
+          ? (titles.get(taskIds[0]) ?? "A task")
+          : `${taskIds.length} tasks`,
+        detail: null,
+        taskId: one ? taskIds[0] : null,
+        eventId: null,
+        groupId,
+        path: one ? null : "/my-tasks",
+      },
+      members,
+      names,
+    );
+  }
+  if (run.headsUp.length === 0) return;
+  const group = (await db.doc(`workGroups/${groupId}`).get()).data();
+  let leads = list(group?.leadIds).filter((id) =>
+    members.some((member) => member.id === id),
+  );
+  if (leads.length === 0) {
+    const roles = readRoles((await db.doc("config/roles").get()).data());
+    leads = members
+      .filter((member) =>
+        actorOf(member, roles, member.leadOf).permissions.has(
+          "manageWorkGroups",
+        ),
+      )
+      .map((member) => member.id);
+  }
+  const dues = new Map(
+    (await readAll("tasks", run.headsUp.map((entry) => entry.taskId))).map(
+      ({ id, data }) => [id, toDate(data.dueAt)],
+    ),
+  );
+  for (const entry of run.headsUp) {
+    const due = dues.get(entry.taskId);
+    await deliver(
+      leads,
+      {
+        kind: "taskWaiting",
+        actorId: null,
+        title: entry.title,
+        detail: due ? when(due, formats) : null,
+        taskId: entry.taskId,
+        eventId: entry.eventId,
+        groupId,
+      },
+      members,
+      names,
+    );
+  }
+}
+
+async function handOutFor(groupIds: readonly string[]) {
+  const { timeZone } = await workspaceFormats();
+  for (const groupId of groupIds) {
+    const run = await runGroup(db, groupId, timeZone);
+    if (run) await tellAboutRun(groupId, run);
+  }
+}
+
+/** A task waiting in a group that hands out tasks, or someone with room again. */
+export const onTaskForHandOut = onDocumentWritten(
+  { document: "tasks/{taskId}", secrets: [resendKey] },
+  async (event) => {
+    const groups = touchesQueue(
+      event.data?.before.data(),
+      event.data?.after.data(),
+    );
+    if (groups.length) await handOutFor(groups);
+  },
+);
+
+/** A group's hand-out turned on, or its limit or who takes tasks changed. */
+export const onGroupHandOutChanged = onDocumentWritten(
+  { document: "workGroups/{groupId}", secrets: [resendKey] },
+  async (event) => {
+    const before = event.data?.before.data()?.assign;
+    const after = event.data?.after.data()?.assign;
+    if (after?.on !== true || JSON.stringify(before) === JSON.stringify(after))
+      return;
+    await handOutFor([event.params.groupId]);
+  },
+);
+
+/**
+ * Every 15 minutes: tries the waiting tasks again (people free up as the
+ * day goes on) and sends the leads' heads-ups that are due.
+ */
+export const handOutWaiting = onSchedule(
+  { schedule: "every 15 minutes", secrets: [resendKey], timeoutSeconds: 300 },
+  async () => {
+    await handOutFor(await groupsHandingOut(db));
   },
 );
 

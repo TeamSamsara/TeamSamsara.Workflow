@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/model/notificationText.ts
-// Version : 1.2.1
-// Latest commit: feature/audit-fixes
+// Version : 1.3.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : How a notification reads in the list: who (bold), what happened,
 // the task or event (bold) and the rest, plus the reviewer's words when there
@@ -74,6 +74,15 @@ export function notificationLine(
         ...line("changed", note.detail ? `. ${note.detail}` : "."),
         who: actor ?? Text.playbook,
       };
+    case "tasksHandedOut":
+      // Handed out by Playbook itself, for a group that does that.
+      return { ...line("gave you"), who: Text.playbook };
+    case "taskWaiting":
+      return line(
+        "",
+        `${Text.stillWaiting(groupName)}${note.detail ? `, due ${note.detail}` : ""}.`,
+        false,
+      );
   }
 }
 

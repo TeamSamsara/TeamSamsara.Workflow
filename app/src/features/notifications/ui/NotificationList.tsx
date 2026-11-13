@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/ui/NotificationList.tsx
-// Version : 1.3.0
-// Latest commit: feature/audit-fixes
+// Version : 1.4.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : The notification list, in the bell's panel and on its own page:
 // a header with Mark all read and the settings, All / Unread, then Today and
@@ -55,6 +55,8 @@ const look: Record<NotificationKind, { icon: IconName; tone: string }> = {
   replied: { icon: "members", tone: "event" },
   setPlanned: { icon: "eventSets", tone: "event" },
   tasksMoved: { icon: "time", tone: "task" },
+  tasksHandedOut: { icon: "myTasks", tone: "task" },
+  taskWaiting: { icon: "warning", tone: "alert" },
 };
 
 interface NotificationListProps {
@@ -96,7 +98,9 @@ export function NotificationList({
         ? eventPath(note.eventId)
         : note.kind === "setPlanned" && note.setId
           ? eventSetPath(note.setId)
-          : note.kind === "setPlanned" || note.kind === "tasksMoved"
+          : note.kind === "setPlanned" ||
+              note.kind === "tasksMoved" ||
+              note.kind === "tasksHandedOut"
             ? RoutePaths.myTasks
             : null;
     onOpen?.();
