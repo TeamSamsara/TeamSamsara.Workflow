@@ -3,7 +3,8 @@
 // Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Tests handing out a group's tasks: free for an hour in the 6
-// hours before it's due, the daily limit, least busy first, the same-event
+// hours before it's due, the daily limit (not counting tasks a step named
+// them for), least busy over the next 7 days, the same-event
 // tie-break, people who don't take tasks, how far ahead it looks, the
 // heads-up, and reading the group's settings safely.
 
@@ -134,15 +135,31 @@ describe("free before it's due", () => {
 describe("who gets a task", () => {
   const due = "2026-11-14T20:00:00";
 
-  it("is the least busy that day", () => {
-    const busy = person("a", { tasks: [held("x", "2026-11-14T10:00:00")] });
+  it("is the least busy over the next 7 days", () => {
+    const busy = person("a", {
+      tasks: [
+        held("x", "2026-11-15T10:00:00"),
+        held("y", "2026-11-16T10:00:00"),
+      ],
+    });
+    // Two tasks, but one is weeks away.
     const quiet = person("b", {
       tasks: [
-        held("y", "2026-11-15T10:00:00"),
-        held("z", "2026-11-16T10:00:00"),
+        held("z", "2026-11-14T10:00:00"),
+        held("w", "2026-12-20T10:00:00"),
       ],
     });
     expect(pickAssignee(task("t", due), [busy, quiet], context)).toBe("b");
+  });
+
+  it("doesn't count tasks a step named them for against the limit", () => {
+    const named = person("a", {
+      tasks: ["1", "2", "3"].map((id) => ({
+        ...held(id, "2026-11-14T09:00:00"),
+        byName: true,
+      })),
+    });
+    expect(pickAssignee(task("t", due), [named], context)).toBe("a");
   });
 
   it("on a tie, already has a task on that event", () => {

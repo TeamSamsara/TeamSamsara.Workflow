@@ -138,12 +138,43 @@ async function readCandidates(
       { startsAt, endsAt },
     ]);
   }
+  // Tasks a step gives someone by name don't count against their limit.
+  const heldDocs = held.flatMap((snapshot) => snapshot.docs);
+  const workflowIds = [
+    ...new Set(
+      heldDocs
+        .map((doc) => doc.data().workflowId)
+        .filter((id): id is string => typeof id === "string"),
+    ),
+  ];
+  const named = new Map<string, Map<string, string | null>>();
+  if (workflowIds.length)
+    for (const doc of await db.getAll(
+      ...workflowIds.map((id) => db.doc(`workflows/${id}`)),
+    )) {
+      const steps = Array.isArray(doc.data()?.steps)
+        ? (doc.data()?.steps as DocumentData[])
+        : [];
+      named.set(
+        doc.id,
+        new Map(
+          steps.map((step) => [
+            String(step?.id ?? ""),
+            typeof step?.memberId === "string" ? step.memberId : null,
+          ]),
+        ),
+      );
+    }
   const tasksOf = new Map<string, HeldTask[]>();
-  for (const doc of held.flatMap((snapshot) => snapshot.docs)) {
-    const memberId = doc.data().memberId as string;
+  for (const doc of heldDocs) {
+    const data = doc.data();
+    const memberId = data.memberId as string;
+    const byName =
+      typeof data.workflowId === "string" &&
+      named.get(data.workflowId)?.get(String(data.stepId ?? "")) === memberId;
     tasksOf.set(memberId, [
       ...(tasksOf.get(memberId) ?? []),
-      queuedOf(doc.id, doc.data()),
+      { ...queuedOf(doc.id, data), byName },
     ]);
   }
   return ids.map((id, index) => ({

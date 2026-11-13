@@ -3,10 +3,11 @@
 // Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Handing out a group's tasks on its own. A task its step gives to
-// someone by name stays theirs (even over their limit). Otherwise it goes to
-// the least busy person in the group who takes tasks, is free for at least an
-// hour in the 6 hours before it's due, and is under the group's daily limit;
-// on a tie, to whoever already has a task on the same event. When nobody
+// someone by name stays theirs (even over their limit, which it doesn't count
+// against). Otherwise it goes to the least busy person in the group (fewest
+// open tasks in the next 7 days) who takes tasks, is free for at least an hour
+// in the 6 hours before it's due, and is under the group's daily limit; on a
+// tie, to whoever already has a task on the same event. When nobody
 // fits, it waits in the group's queue, where anyone in the group can claim
 // it, and goes to the first person who frees up. The group's leads hear
 // about a task still waiting a day (or the time the group chose) before it's due.
@@ -18,7 +19,7 @@ import { hasFreeStretch, type BusyTime, type UsualWeek } from "./free.js";
 export interface AssignSettings {
   /** Hands out tasks on its own. Off by default. */
   on: boolean;
-  /** The most tasks due in one day it gives one person. */
+  /** The most tasks due in one day one person gets, not counting those a step names them for. */
   dailyLimit: number;
   /** How long before a waiting task is due its leads hear about it. */
   headsUpHours: number;
@@ -35,6 +36,8 @@ export const AssignLimits = {
   windowHours: 6,
   /** Tasks due further ahead than this wait, so plans can still change. */
   reachDays: 14,
+  /** How far ahead "least busy" looks. */
+  busyDays: 7,
 } as const;
 
 export const defaultAssign: AssignSettings = {
@@ -75,6 +78,8 @@ export interface HeldTask {
   id: string;
   eventId: string | null;
   dueAt: Date | null;
+  /** Its step gave it to them by name: not counted against the daily limit. */
+  byName?: boolean;
 }
 
 /** Someone in the group, with what the hand-out needs to know about them. */
@@ -117,7 +122,10 @@ export function isFreeBefore(
   );
 }
 
-/** How many of someone's open tasks are due on the same day as this moment. */
+/**
+ * How many of someone's open tasks count against the daily limit on this
+ * moment's day: those due that day, but not the ones a step named them for.
+ */
 export function tasksThatDay(
   candidate: Candidate,
   dueAt: Date,
@@ -125,7 +133,16 @@ export function tasksThatDay(
 ): number {
   const day = dayKey(dueAt, timeZone);
   return candidate.tasks.filter(
-    (task) => task.dueAt && dayKey(task.dueAt, timeZone) === day,
+    (task) =>
+      !task.byName && task.dueAt && dayKey(task.dueAt, timeZone) === day,
+  ).length;
+}
+
+/** How busy someone is: their open tasks due in the next 7 days, or overdue. */
+export function busyCount(candidate: Candidate, now: Date): number {
+  const until = now.getTime() + AssignLimits.busyDays * 86_400_000;
+  return candidate.tasks.filter(
+    (task) => task.dueAt && task.dueAt.getTime() <= until,
   ).length;
 }
 
@@ -150,16 +167,13 @@ export function pickAssignee(
   const takers = candidates.filter(
     (candidate) => !settings.skip.includes(candidate.id),
   );
-  const load = (candidate: Candidate) =>
-    task.dueAt
-      ? tasksThatDay(candidate, task.dueAt, timeZone)
-      : candidate.tasks.length;
   const fits = takers.filter(
     (candidate) =>
       !task.dueAt ||
-      (load(candidate) < settings.dailyLimit &&
+      (tasksThatDay(candidate, task.dueAt, timeZone) < settings.dailyLimit &&
         isFreeBefore(candidate, task.dueAt, context)),
   );
+  const load = (candidate: Candidate) => busyCount(candidate, context.now);
   const onEvent = (candidate: Candidate) =>
     task.eventId !== null &&
     candidate.tasks.some((held) => held.eventId === task.eventId);
