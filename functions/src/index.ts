@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/functions/src/index.ts
-// Version : 1.6.0
+// Version : 1.7.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Playbook's server functions. They watch tasks and events and
@@ -26,7 +26,12 @@ import {
   onDocumentWrittenWithAuthContext,
 } from "firebase-functions/v2/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
-import { requireActor, requireAllowed } from "./access/readAccess.js";
+import {
+  readRoles,
+  requireActor,
+  requireAllowed,
+} from "./access/readAccess.js";
+import { reviewersFor } from "./access/reviewers.js";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { defineSecret, defineString } from "firebase-functions/params";
 import {
@@ -94,8 +99,12 @@ interface Member {
   id: string;
   name: string;
   email: string | null;
+  status: "active";
   roleIds: string[];
   workGroupIds: string[];
+  /** Kept by the server (functions/src/access/keepAccess.ts). */
+  rank: number;
+  leadOf: string[];
 }
 
 const toDate = (value: unknown): Date | null =>
@@ -123,8 +132,11 @@ async function activeMembers(): Promise<Member[]> {
         text(data.email) ??
         "Someone",
       email: text(data.email),
+      status: "active" as const,
       roleIds: list(data.roleIds),
       workGroupIds: list(data.workGroupIds),
+      rank: typeof data.rank === "number" ? data.rank : 0,
+      leadOf: list(data.leadOf),
     };
   });
 }
@@ -137,19 +149,13 @@ async function workspaceFormats(): Promise<Formats> {
   };
 }
 
-/** Members who can approve tasks (Approve tasks, or Administrator). */
-async function approverIds(members: readonly Member[]): Promise<string[]> {
-  const grants = ((await db.doc("config/roles").get()).data()?.grants ??
-    {}) as Record<string, unknown>;
-  const roles = new Set([
-    ...list(grants.approveTasks),
-    ...list(grants.administrator),
-  ]);
-  return members
-    .filter((member) =>
-      [...member.roleIds, "everyone"].some((role) => roles.has(role)),
-    )
-    .map((member) => member.id);
+/** Who to ask to approve a task: its group's leads first (see access/reviewers). */
+async function reviewerIds(
+  task: TaskData,
+  members: readonly Member[],
+): Promise<string[]> {
+  const roles = readRoles((await db.doc("config/roles").get()).data());
+  return reviewersFor(task, members, roles);
 }
 
 function taskData(data: DocumentData | undefined): TaskData | null {
@@ -377,7 +383,9 @@ export const onTaskWritten = onDocumentWrittenWithAuthContext(
     const members = await activeMembers();
     const names = await groupNames();
     for (const plan of planned) {
-      const ids = await resolve(plan.to, members, () => approverIds(members));
+      const ids = await resolve(plan.to, members, () =>
+        reviewerIds(after, members),
+      );
       await deliver(
         ids,
         {

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/access/keepAccess.ts
-// Version : 1.0.0
-// Latest commit: feature/auto-assign
+// Version : 1.1.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Keeps the access fields on each member record in step, so the
 // database rules can check rank and leads in one lookup: rank (their highest
@@ -81,6 +81,13 @@ export const onMemberAccessChanged = onDocumentWritten(
         await group.ref.update({ leadIds: FieldValue.arrayRemove(memberId) });
     }
     await refreshMember(db, memberId);
+
+    // Turned off, removed, or out of a group: their open tasks go back.
+    const gone = (status: unknown) =>
+      status === "disabled" || status === "removed";
+    if (gone(after.status) && !gone(before?.status))
+      await handBack(db, memberId, null);
+    else if (left.length) await handBack(db, memberId, left);
   },
 );
 
@@ -120,3 +127,48 @@ export const onGroupLeadsChanged = onDocumentWritten(
     for (const memberId of touched) await refreshMember(db, memberId);
   },
 );
+
+/**
+ * Hands back someone's open tasks: all of them when they're turned off or
+ * removed, or those of the groups they left. A group's task goes back to the
+ * group (its queue when it hands out tasks); a task given to them alone loses
+ * its person. Tasks waiting for review stay as they are, and finished work
+ * keeps their name. Recorded in the activity history.
+ */
+async function handBack(
+  db: Firestore,
+  memberId: string,
+  groupIds: readonly string[] | null,
+) {
+  const open = await db
+    .collection("tasks")
+    .where("memberId", "==", memberId)
+    .where("doneAt", "==", null)
+    .get();
+  const writer = db.bulkWriter();
+  let count = 0;
+  for (const task of open.docs) {
+    const data = task.data();
+    if (data.sentForReviewAt && !data.approvedAt) continue;
+    if (groupIds && !groupIds.includes(data.workGroupId)) continue;
+    writer.update(task.ref, {
+      memberId: null,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    count += 1;
+  }
+  await writer.close();
+  if (!count) return;
+  const member = (await db.doc(`members/${memberId}`).get()).data();
+  const name = member?.displayName || member?.email || "Someone";
+  await db.collection("activity").add({
+    area: "tasks",
+    action: "handedBack",
+    targetId: memberId,
+    summary: `Handed back ${count} open ${count === 1 ? "task" : "tasks"} from ${name}`,
+    before: null,
+    after: null,
+    actorId: null,
+    at: FieldValue.serverTimestamp(),
+  });
+}

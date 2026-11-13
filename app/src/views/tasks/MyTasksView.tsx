@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/views/tasks/MyTasksView.tsx
-// Version : 1.3.2
+// Version : 1.4.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : My tasks. Whose: Mine (the default), My groups, or Pick groups,
@@ -11,7 +11,8 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { usePermissions } from "@/core/access";
+import { decide } from "@engine/access/index";
+import { useActor, usePermissions } from "@/core/access";
 import { DataErrorText, isCurrentMember } from "@/core/data";
 import { useSession } from "@/core/session";
 import { useDisplayTime, useWorkspaceRecord } from "@/core/workspace";
@@ -163,19 +164,55 @@ export function MyTasksView() {
   );
   const done = useDoneTasksSince(member?.id ?? null, groupIds, weekStart);
 
-  const canApprove = access.can("approveTasks");
-  const awaitingIds =
-    canApprove && statuses.status === "ready"
-      ? statuses.items
-          .filter((status) => status.category === "awaitingApproval")
-          .map((status) => status.id)
-      : null;
-  const queue = useTasksInStatuses(awaitingIds);
+  // Approvers see what's waiting anywhere; leads, what's waiting in their
+  // groups. Either way only what they may approve: never their own work,
+  // and only from people at or below them.
+  const actor = useActor();
+  const isApprover = access.can("approveTasks");
+  const canApprove = isApprover || (member?.leadOf.length ?? 0) > 0;
+  const awaitingStatusIds = useMemo(
+    () =>
+      statuses.status === "ready"
+        ? statuses.items
+            .filter((status) => status.category === "awaitingApproval")
+            .map((status) => status.id)
+        : [],
+    [statuses.status, statuses.items],
+  );
+  const queue = useTasksInStatuses(isApprover ? awaitingStatusIds : null);
+
+  const approvals = useMemo(() => {
+    if (!actor) return [];
+    const rankOf = (id: string | null) =>
+      id ? (members.records.find((entry) => entry.id === id)?.rank ?? 0) : null;
+    const seen = new Set<string>();
+    return [...queue.items, ...open.items]
+      .filter((task) => awaitingStatusIds.includes(task.statusId))
+      .filter((task) => !seen.has(task.id) && seen.add(task.id))
+      .filter(
+        (task) =>
+          decide(actor, {
+            action: "task.approve",
+            task: {
+              groupId: task.workGroupId,
+              memberId: task.memberId,
+              createdBy: task.createdBy,
+              event: null,
+              sentForReviewBy: task.sentForReviewBy,
+              awaitingReview: true,
+              ranks: {
+                assignee: rankOf(task.memberId),
+                doer: rankOf(task.sentForReviewBy ?? task.memberId),
+                maker: rankOf(task.createdBy) ?? 0,
+              },
+            },
+          }).ok,
+      );
+  }, [actor, queue.items, open.items, members.records, awaitingStatusIds]);
 
   const openTasks = open.items.filter(fits);
   const doneTasks = done.items.filter(fits);
-  const shownTasks =
-    view === "done" ? doneTasks : [...openTasks, ...queue.items];
+  const shownTasks = view === "done" ? doneTasks : [...openTasks, ...approvals];
   const events = useEventLabels(shownTasks.map((task) => task.eventId));
   const workflowsOf = useCallback(
     (eventId: string) => events.get(eventId)?.workflowIds,
@@ -397,10 +434,10 @@ export function MyTasksView() {
 
           <aside className={styles.side} data-tour="myTasksSide">
             {canApprove ? (
-              queue.items.length > 0 ? (
+              approvals.length > 0 ? (
                 <TaskGroupCard
                   title={Text.approvals}
-                  tasks={inOrder(queue.items)}
+                  tasks={inOrder(approvals)}
                   context={context}
                 />
               ) : (
