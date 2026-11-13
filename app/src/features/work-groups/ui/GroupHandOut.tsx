@@ -8,7 +8,7 @@
 // the group's leads', for themselves and anyone at their rank or below).
 // Each change saves straight away through the server.
 
-import { decide } from "@engine/access/index";
+import { decide, type Actor } from "@engine/access/index";
 import { AssignLimits } from "@engine/assign";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
@@ -32,17 +32,12 @@ interface GroupHandOutProps {
   loadOf?: (memberId: string) => number;
 }
 
-export function GroupHandOut({ group, members, loadOf }: GroupHandOutProps) {
+export function GroupHandOut(props: GroupHandOutProps) {
   const actor = useActor();
   const toast = useToast();
-  const settings = group.assign;
-  const { dailyLimit, headsUpHours } = AssignLimits;
-  // What's typed in the limit until it's saved; otherwise the saved limit.
-  const [typed, setTyped] = useState<string | null>(null);
-  const limit = typed ?? String(settings.dailyLimit);
-
   const save = useMutation({
-    mutationFn: (change: HandOutChange) => changeHandOut(group.id, change),
+    mutationFn: (change: HandOutChange) =>
+      changeHandOut(props.group.id, change),
     onError: (error) => {
       const reason = manageRefusal(error);
       toast.show({
@@ -52,8 +47,38 @@ export function GroupHandOut({ group, members, loadOf }: GroupHandOutProps) {
       });
     },
   });
-
   if (!actor) return null;
+  return (
+    <GroupHandOutPanel
+      {...props}
+      actor={actor}
+      busy={save.isPending}
+      onChange={(change) => save.mutate(change)}
+    />
+  );
+}
+
+interface PanelProps extends GroupHandOutProps {
+  actor: Actor;
+  busy: boolean;
+  onChange: (change: HandOutChange) => void;
+}
+
+/** The panel itself, as the signed-in person may change it. */
+export function GroupHandOutPanel({
+  group,
+  members,
+  loadOf,
+  actor,
+  busy,
+  onChange,
+}: PanelProps) {
+  const settings = group.assign;
+  const { dailyLimit, headsUpHours } = AssignLimits;
+  // What's typed in the limit until it's saved; otherwise the saved limit.
+  const [typed, setTyped] = useState<string | null>(null);
+  const limit = typed ?? String(settings.dailyLimit);
+
   const canSettings = decide(actor, { action: "group.settings" }).ok;
   const canChoose = (member: MemberRecord) =>
     decide(actor, {
@@ -65,7 +90,6 @@ export function GroupHandOut({ group, members, loadOf }: GroupHandOutProps) {
   const leads = actor.leadOf.includes(group.id);
   if (!canSettings && !leads) return null;
 
-  const busy = save.isPending;
   const commitLimit = () => {
     const value = Number(limit);
     setTyped(null);
@@ -75,10 +99,10 @@ export function GroupHandOut({ group, members, loadOf }: GroupHandOutProps) {
       value <= dailyLimit.max &&
       value !== settings.dailyLimit
     )
-      save.mutate({ dailyLimit: value });
+      onChange({ dailyLimit: value });
   };
   const setTakes = (memberId: string, takes: boolean) =>
-    save.mutate({
+    onChange({
       skip: takes
         ? settings.skip.filter((id) => id !== memberId)
         : [...settings.skip, memberId],
@@ -96,7 +120,7 @@ export function GroupHandOut({ group, members, loadOf }: GroupHandOutProps) {
         label={Text.title}
         description={settings.on ? Text.on(group.name) : Text.off(group.name)}
         checked={settings.on}
-        onCheckedChange={(on) => save.mutate({ on })}
+        onCheckedChange={(on) => onChange({ on })}
         disabled={!canSettings || busy}
       />
 
@@ -116,6 +140,7 @@ export function GroupHandOut({ group, members, loadOf }: GroupHandOutProps) {
           ))}
         </ol>
         <p className={styles.muted}>{Text.reach}</p>
+        {canSettings ? null : <p className={styles.muted}>{Text.leadsCant}</p>}
         <div className={styles.fields}>
           <TextField
             label={Text.limitLabel}
@@ -140,7 +165,7 @@ export function GroupHandOut({ group, members, loadOf }: GroupHandOutProps) {
             }))}
             value={String(settings.headsUpHours)}
             onChange={(event) =>
-              save.mutate({ headsUpHours: Number(event.target.value) })
+              onChange({ headsUpHours: Number(event.target.value) })
             }
             disabled={!canSettings || busy}
           />

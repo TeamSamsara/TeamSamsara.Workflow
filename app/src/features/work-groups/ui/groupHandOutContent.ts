@@ -29,6 +29,8 @@ export const GroupHandOutText = {
   ],
   reach:
     "Tasks are handed out up to two weeks before they're due, so plans further ahead can still change.",
+  leadsCant:
+    "As a lead you choose who takes tasks; the switch, the daily limit and the heads-up are for people who manage work groups.",
   limitLabel: "Daily limit per person",
   limitHint: (min: number, max: number) =>
     `Tasks due the same day, between ${min} and ${max}. Tasks a step gives someone by name don't count.`,
