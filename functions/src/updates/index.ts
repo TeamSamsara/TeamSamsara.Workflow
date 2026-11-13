@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/updates/index.ts
-// Version : 1.1.0
-// Latest commit: feature/audit-fixes
+// Version : 1.2.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Platform updates: one-time changes to the stored data that ship
 // with a release. Each is listed here in order; config/platformUpdates keeps
@@ -15,12 +15,14 @@ import { logger } from "firebase-functions/v2";
 import { onCall } from "firebase-functions/v2/https";
 import { requireActor, requireAllowed } from "../access/readAccess.js";
 import { onSchedule } from "firebase-functions/v2/scheduler";
+import { ownersAndRanks } from "./ownersAndRanks.js";
 import { tasksFollowWorkflows } from "./tasksFollowWorkflows.js";
 import type { PlatformUpdate, UpdateReport } from "./types.js";
 
 /** Every update, oldest first. Add new ones at the end; never reorder. */
 export const platformUpdates: readonly PlatformUpdate[] = [
   tasksFollowWorkflows,
+  ownersAndRanks,
 ];
 
 const stateDoc = "config/platformUpdates";
