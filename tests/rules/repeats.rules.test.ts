@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/repeats.rules.test.ts
-// Version : 1.1.0
-// Latest commit: feature/calendar-people
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Tests repeats against the rules: every member reads them; Plan
 // events makes one with its first events and their tasks, tops up the weeks
@@ -153,7 +153,8 @@ beforeEach(async () => {
       position: 0,
     },
     "members/pat": { status: "active", roleIds: ["planner"], workGroupIds: [] },
-    "members/lee": { status: "active", roleIds: ["planner"], workGroupIds: [] },
+    // lee is in Content, so lee sees the repeat's events.
+    "members/lee": { status: "active", roleIds: ["planner"], workGroupIds: ["content"] },
     "members/sam": { status: "active", roleIds: [], workGroupIds: ["content"] },
     "members/chris": {
       status: "disabled",
@@ -273,7 +274,7 @@ describe("reading a repeat's tasks", () => {
       getDocs(
         query(
           tasks,
-          where("eventId", "in", ["weekly_2026-11-09", "weekly_2026-11-16"]),
+          where("eventId", "in", ["weekly_2026-11-09"]),
         ),
       ),
     );
