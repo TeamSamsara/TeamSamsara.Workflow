@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/index.ts
-// Version : 1.5.0
-// Latest commit: feature/audit-fixes
+// Version : 1.8.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Playbook's server functions. They watch tasks and events and
 // write notifications for the people a change concerns (never the person who
@@ -8,9 +8,11 @@
 // kinds each person asked for (through Resend), ask people to reply to events
 // and tell planners about the replies, send invites, password links and a test
 // email (all in Playbook's own email design), and sign someone out on every
-// device. A weekly check-up (src/maintenance) tidies data that points at
-// deleted things. Work done in bulk (a set or repeat planned, a workflow's changes
-// passed on to its tasks) sends one summary per person instead of one each.
+// device. Groups that hand out their tasks (src/assign) do it as tasks come
+// in and every 15 minutes, telling each person once per run. A weekly
+// check-up (src/maintenance) tidies data that points at deleted things. Work
+// done in bulk (a set or repeat planned, a workflow's changes passed on to its
+// tasks) sends one summary per person instead of one each.
 
 import { initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
@@ -23,9 +25,24 @@ import {
 import { logger, setGlobalOptions } from "firebase-functions/v2";
 import {
   onDocumentCreated,
+  onDocumentWritten,
   onDocumentWrittenWithAuthContext,
 } from "firebase-functions/v2/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
+import {
+  readRoles,
+  requireActor,
+  requireAllowed,
+} from "./access/readAccess.js";
+import { reviewersFor } from "./access/reviewers.js";
+import { namesAboveSaver, withoutNames } from "./access/workflowNames.js";
+import {
+  groupsHandingOut,
+  runGroup,
+  touchesQueue,
+  type GroupRun,
+} from "./assign/runner.js";
+import { actorOf } from "../../engine/src/index.js";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { defineSecret, defineString } from "firebase-functions/params";
 import {
@@ -93,8 +110,12 @@ interface Member {
   id: string;
   name: string;
   email: string | null;
+  status: "active";
   roleIds: string[];
   workGroupIds: string[];
+  /** Kept by the server (functions/src/access/keepAccess.ts). */
+  rank: number;
+  leadOf: string[];
 }
 
 const toDate = (value: unknown): Date | null =>
@@ -122,8 +143,11 @@ async function activeMembers(): Promise<Member[]> {
         text(data.email) ??
         "Someone",
       email: text(data.email),
+      status: "active" as const,
       roleIds: list(data.roleIds),
       workGroupIds: list(data.workGroupIds),
+      rank: typeof data.rank === "number" ? data.rank : 0,
+      leadOf: list(data.leadOf),
     };
   });
 }
@@ -136,19 +160,13 @@ async function workspaceFormats(): Promise<Formats> {
   };
 }
 
-/** Members who can approve tasks (Approve tasks, or Administrator). */
-async function approverIds(members: readonly Member[]): Promise<string[]> {
-  const grants = ((await db.doc("config/roles").get()).data()?.grants ??
-    {}) as Record<string, unknown>;
-  const roles = new Set([
-    ...list(grants.approveTasks),
-    ...list(grants.administrator),
-  ]);
-  return members
-    .filter((member) =>
-      [...member.roleIds, "everyone"].some((role) => roles.has(role)),
-    )
-    .map((member) => member.id);
+/** Who to ask to approve a task: its group's leads first (see access/reviewers). */
+async function reviewerIds(
+  task: TaskData,
+  members: readonly Member[],
+): Promise<string[]> {
+  const roles = readRoles((await db.doc("config/roles").get()).data());
+  return reviewersFor(task, members, roles);
 }
 
 function taskData(data: DocumentData | undefined): TaskData | null {
@@ -376,7 +394,9 @@ export const onTaskWritten = onDocumentWrittenWithAuthContext(
     const members = await activeMembers();
     const names = await groupNames();
     for (const plan of planned) {
-      const ids = await resolve(plan.to, members, () => approverIds(members));
+      const ids = await resolve(plan.to, members, () =>
+        reviewerIds(after, members),
+      );
       await deliver(
         ids,
         {
@@ -504,7 +524,8 @@ async function tasksOfEvents(eventIds: readonly string[]) {
       .collection("tasks")
       .where("eventId", "in", eventIds.slice(start, start + 30))
       .get();
-    for (const doc of snapshot.docs) found.push(summaryTask(doc.id, doc.data()));
+    for (const doc of snapshot.docs)
+      found.push(summaryTask(doc.id, doc.data()));
   }
   return found;
 }
@@ -550,16 +571,18 @@ export const onBulkPlanCreated = onDocumentCreated(
         taskId: null,
         eventId: null,
         groupId: null,
-        path: setId
-          ? `/events/sets/${encodeURIComponent(setId)}`
-          : "/my-tasks",
+        path: setId ? `/events/sets/${encodeURIComponent(setId)}` : "/my-tasks",
       },
       members,
       await groupNames(),
       (id) => {
         const summary = byMember.get(id);
         return summary
-          ? { summary: summaryData(summary, count), setId, repeatId: data.kind === "repeat" ? text(data.sourceId) : null }
+          ? {
+              summary: summaryData(summary, count),
+              setId,
+              repeatId: data.kind === "repeat" ? text(data.sourceId) : null,
+            }
           : {};
       },
     );
@@ -604,6 +627,54 @@ export const onWorkflowSyncCreated = onDocumentCreated(
 );
 
 /**
+ * Takes off names a save added above the saver's rank, and records it. True
+ * when it changed the workflow (that write is synced in its own turn).
+ */
+async function keepNamesInRank(
+  workflowId: string,
+  saverId: string,
+  beforeData: DocumentData | undefined,
+  afterData: DocumentData,
+): Promise<boolean> {
+  const steps = (data: DocumentData | undefined) =>
+    Array.isArray(data?.steps) ? (data.steps as DocumentData[]) : [];
+  const named = steps(afterData).some(
+    (step) => typeof step?.memberId === "string",
+  );
+  if (!named) return false;
+  const ranks = new Map(
+    (await db.collection("members").get()).docs.map((doc) => [
+      doc.id,
+      typeof doc.data().rank === "number" ? (doc.data().rank as number) : 0,
+    ]),
+  );
+  const above = namesAboveSaver(
+    steps(beforeData),
+    steps(afterData),
+    ranks.get(saverId) ?? 0,
+    (memberId) => ranks.get(memberId) ?? 0,
+  );
+  if (above.length === 0) return false;
+  await db.doc(`workflows/${workflowId}`).update({
+    steps: withoutNames(steps(afterData), above),
+  });
+  const names = await activeMembers();
+  const nameOf = (memberId: string) =>
+    names.find((member) => member.id === memberId)?.name ?? "someone";
+  await db.collection("activity").add({
+    area: "settings",
+    action: "workflowNameRemoved",
+    targetId: workflowId,
+    summary: `Took ${above.map((entry) => `${nameOf(entry.memberId)} off ${entry.title || "a step"}`).join(", ")} in ${text(afterData.name) ?? "a workflow"}: above the rank of whoever saved it`,
+    before: null,
+    after: null,
+    actorId: saverId,
+    at: FieldValue.serverTimestamp(),
+  });
+  return true;
+}
+
+/**
  * A saved workflow: every upcoming event that uses it gets its open tasks
  * brought in line in the background (parts changed by hand stay), and a task
  * for each step added. The people whose tasks changed get one notification,
@@ -614,8 +685,17 @@ export const onWorkflowSaved = onDocumentWrittenWithAuthContext(
   async (event) => {
     const beforeData = event.data?.before.data();
     const afterData = event.data?.after.data();
-    if (!beforeData || !afterData || afterData.archived === true) return;
     const id = event.params.workflowId;
+    // A member's save may name only people at or below them.
+    const saverId =
+      event.authId && !event.authId.includes("@") ? event.authId : null;
+    if (
+      afterData &&
+      saverId &&
+      (await keepNamesInRank(id, saverId, beforeData, afterData))
+    )
+      return;
+    if (!beforeData || !afterData || afterData.archived === true) return;
     const before = readWorkflow(id, beforeData);
     const after = readWorkflow(id, afterData);
     if (!stepsChanged(before, after)) return;
@@ -644,6 +724,141 @@ export const onWorkflowSaved = onDocumentWrittenWithAuthContext(
       changes: [changedStepTitles(before, after).join(", ").slice(0, 200)],
       at: FieldValue.serverTimestamp(),
     });
+  },
+);
+
+// #endregion
+
+// #region Handing out tasks
+
+/**
+ * Tells people what a group's hand-out did: one notification each for the
+ * tasks they were given, and one to the group's leads for each task still
+ * waiting close to its due time (to those who manage groups, when it has none).
+ */
+async function tellAboutRun(groupId: string, run: GroupRun) {
+  if (run.given.length === 0 && run.headsUp.length === 0) return;
+  const [members, names, formats] = await Promise.all([
+    activeMembers(),
+    groupNames(),
+    workspaceFormats(),
+  ]);
+  const titles = new Map(
+    (
+      await readAll(
+        "tasks",
+        run.given.map((entry) => entry.taskId),
+      )
+    ).map(({ id, data }) => [id, text(data.title) ?? "A task"]),
+  );
+  const byMember = new Map<string, string[]>();
+  for (const entry of run.given)
+    byMember.set(entry.memberId, [
+      ...(byMember.get(entry.memberId) ?? []),
+      entry.taskId,
+    ]);
+  for (const [memberId, taskIds] of byMember) {
+    const one = taskIds.length === 1;
+    await deliver(
+      [memberId],
+      {
+        kind: "tasksHandedOut",
+        actorId: null,
+        title: one
+          ? (titles.get(taskIds[0]) ?? "A task")
+          : `${taskIds.length} tasks`,
+        detail: null,
+        taskId: one ? taskIds[0] : null,
+        eventId: null,
+        groupId,
+        path: one ? null : "/my-tasks",
+      },
+      members,
+      names,
+    );
+  }
+  if (run.headsUp.length === 0) return;
+  const group = (await db.doc(`workGroups/${groupId}`).get()).data();
+  let leads = list(group?.leadIds).filter((id) =>
+    members.some((member) => member.id === id),
+  );
+  if (leads.length === 0) {
+    const roles = readRoles((await db.doc("config/roles").get()).data());
+    leads = members
+      .filter((member) =>
+        actorOf(member, roles, member.leadOf).permissions.has(
+          "manageWorkGroups",
+        ),
+      )
+      .map((member) => member.id);
+  }
+  const dues = new Map(
+    (
+      await readAll(
+        "tasks",
+        run.headsUp.map((entry) => entry.taskId),
+      )
+    ).map(({ id, data }) => [id, toDate(data.dueAt)]),
+  );
+  for (const entry of run.headsUp) {
+    const due = dues.get(entry.taskId);
+    await deliver(
+      leads,
+      {
+        kind: "taskWaiting",
+        actorId: null,
+        title: entry.title,
+        detail: due ? when(due, formats) : null,
+        taskId: entry.taskId,
+        eventId: entry.eventId,
+        groupId,
+      },
+      members,
+      names,
+    );
+  }
+}
+
+async function handOutFor(groupIds: readonly string[]) {
+  const { timeZone } = await workspaceFormats();
+  for (const groupId of groupIds) {
+    const run = await runGroup(db, groupId, timeZone);
+    if (run) await tellAboutRun(groupId, run);
+  }
+}
+
+/** A task waiting in a group that hands out tasks, or someone with room again. */
+export const onTaskForHandOut = onDocumentWritten(
+  { document: "tasks/{taskId}", secrets: [resendKey] },
+  async (event) => {
+    const groups = touchesQueue(
+      event.data?.before.data(),
+      event.data?.after.data(),
+    );
+    if (groups.length) await handOutFor(groups);
+  },
+);
+
+/** A group's hand-out turned on, or its limit or who takes tasks changed. */
+export const onGroupHandOutChanged = onDocumentWritten(
+  { document: "workGroups/{groupId}", secrets: [resendKey] },
+  async (event) => {
+    const before = event.data?.before.data()?.assign;
+    const after = event.data?.after.data()?.assign;
+    if (after?.on !== true || JSON.stringify(before) === JSON.stringify(after))
+      return;
+    await handOutFor([event.params.groupId]);
+  },
+);
+
+/**
+ * Every 15 minutes: tries the waiting tasks again (people free up as the
+ * day goes on) and sends the leads' heads-ups that are due.
+ */
+export const handOutWaiting = onSchedule(
+  { schedule: "every 15 minutes", secrets: [resendKey], timeoutSeconds: 300 },
+  async () => {
+    await handOutFor(await groupsHandingOut(db));
   },
 );
 
@@ -822,18 +1037,6 @@ async function passwordLink(
 }
 
 /** Whether the member's roles grant one of the permissions (Administrator counts). */
-async function holds(
-  roleIds: readonly string[],
-  permission: string,
-): Promise<boolean> {
-  const grants = ((await db.doc("config/roles").get()).data()?.grants ??
-    {}) as Record<string, unknown>;
-  const allowed = new Set([
-    ...list(grants[permission]),
-    ...list(grants.administrator),
-  ]);
-  return [...roleIds, "everyone"].some((role) => allowed.has(role));
-}
 
 /** Emails an invited person the link to choose their password. Manage members only. */
 export const sendInvite = onCall({ secrets: [resendKey] }, async (request) => {
@@ -841,15 +1044,9 @@ export const sendInvite = onCall({ secrets: [resendKey] }, async (request) => {
   if (!uid) throw new HttpsError("unauthenticated", "Sign in first.");
   const email = text((request.data as { email?: unknown })?.email)?.trim();
   if (!email) throw new HttpsError("invalid-argument", "Which email?");
-  const caller = (await db.doc(`members/${uid}`).get()).data();
-  if (
-    caller?.status !== "active" ||
-    !(await holds(list(caller.roleIds), "manageMembers"))
-  )
-    throw new HttpsError(
-      "permission-denied",
-      "Only Manage members can invite.",
-    );
+  const actor = await requireActor(db, uid);
+  requireAllowed(actor, { action: "member.invite", roles: [] });
+  const caller = (await db.doc(`members/${uid}`).get()).data() ?? {};
   const invited = await db
     .collection("members")
     .where("email", "==", email)
@@ -921,19 +1118,19 @@ export const remindReplies = onCall(
     const eventId = text((request.data as { eventId?: unknown })?.eventId);
     if (!eventId) throw new HttpsError("invalid-argument", "Which event?");
     const members = await activeMembers();
-    const caller = members.find((member) => member.id === uid);
-    const grants = ((await db.doc("config/roles").get()).data()?.grants ??
-      {}) as Record<string, unknown>;
-    const planners = new Set([
-      ...list(grants.planEvents),
-      ...list(grants.administrator),
-    ]);
-    if (
-      !caller ||
-      ![...caller.roleIds, "everyone"].some((role) => planners.has(role))
-    )
-      throw new HttpsError("permission-denied", "Only planners can remind.");
     const item = eventData((await db.doc(`events/${eventId}`).get()).data());
+    const actor = await requireActor(db, uid);
+    if (item)
+      requireAllowed(actor, {
+        action: "event.remind",
+        event: {
+          everyone: item.everyone,
+          memberIds: item.memberIds,
+          groupIds: item.groupIds,
+          createdBy: item.createdBy ?? "",
+          ownerRank: 0,
+        },
+      });
     if (!item?.asksReply)
       throw new HttpsError(
         "failed-precondition",
@@ -978,10 +1175,7 @@ export const signOutEverywhere = onCall(async (request) => {
 
 // #endregion
 
-export {
-  applyPlatformUpdates,
-  platformUpdatesNow,
-} from "./updates/index.js";
+export { applyPlatformUpdates, platformUpdatesNow } from "./updates/index.js";
 
 export {
   onEventSetDeleted,
@@ -992,3 +1186,17 @@ export {
   runCleanup,
   weeklyCleanup,
 } from "./maintenance/index.js";
+
+export { manage } from "./access/manage.js";
+export {
+  onGroupLeadsChanged,
+  onMemberAccessChanged,
+  onRolesChanged,
+} from "./access/keepAccess.js";
+export {
+  onMaintenanceChanged,
+  onSignInPicturesChanged,
+  onStatusChanged,
+  onWorkGroupChanged,
+  onWorkspaceSettingsChanged,
+} from "./access/activity.js";

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/models/models.test.ts
-// Version : 1.6.0
-// Latest commit: feature/attendance-photos
+// Version : 1.7.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Tests that the workspace, member and roles records survive a save and
 // load unchanged, fill in safe defaults for missing fields, and that the roles
@@ -66,6 +66,8 @@ describe("member record", () => {
     status: "active",
     roleIds: ["planner"],
     workGroupIds: ["social"],
+    rank: 0,
+    leadOf: [],
     gameName: null,
     photoUrl: null,
     timeZone: null,

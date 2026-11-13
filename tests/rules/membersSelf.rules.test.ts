@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/membersSelf.rules.test.ts
-// Version : 1.4.0
-// Latest commit: feature/attendance-photos
+// Version : 1.5.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Tests what a member may do with their own record: read it, become
 // active on their first sign-in, note when they were last active, and change
@@ -273,6 +273,7 @@ describe("profile photos", () => {
         ...baseMember,
         status: "active",
         roleIds: ["admin"],
+        rank: 3,
       },
       "members/sam": {
         ...baseMember,
@@ -284,6 +285,11 @@ describe("profile photos", () => {
     const sam = doc(signedInAs(env, "alex"), "members/sam");
     await assertFails(updateDoc(sam, { photoUrl: photo + "x" }));
     await assertSucceeds(updateDoc(sam, { photoUrl: null }));
+    // Never someone at their own rank or above.
+    await seed(env, {
+      "members/sam": { ...baseMember, status: "active", photoUrl: photo, rank: 3 },
+    });
+    await assertFails(updateDoc(sam, { photoUrl: null }));
   });
 });
 

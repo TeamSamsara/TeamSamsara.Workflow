@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/shared/constants/routePaths.ts
-// Version : 1.16.0
+// Version : 1.17.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Every address in the app, in one place, so links and routes can
@@ -58,6 +58,7 @@ export const RoutePaths = {
   settingsPlatforms: "/settings/platforms",
   settingsTaskSetup: "/settings/tasks-and-events",
   settingsFields: "/settings/fields",
+  settingsActivity: "/settings/activity",
   // #endregion
 
   // #region Sign-in

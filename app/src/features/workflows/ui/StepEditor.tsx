@@ -1,13 +1,15 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/ui/StepEditor.tsx
-// Version : 1.2.0
-// Latest commit: feature/workflow-guide
+// Version : 1.3.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : One task of a workflow, open for editing: the basics every task
 // has (title, who it's given to, when it's due, how to do it, tags, needs
 // approval), then the sections it adds: post text, checklist, reference links,
 // and asking for the link to what was published.
 
+import { decide } from "@engine/access/index";
 import type { ReactNode } from "react";
+import { useActor } from "@/core/access";
 import type { ColouredItem, MemberRecord } from "@/core/data";
 import { memberName } from "@/features/members";
 import type { PlatformSetting } from "@/features/platforms";
@@ -115,8 +117,17 @@ export function StepEditor({
   readOnly = false,
 }: StepEditorProps) {
   const removable = (remove: () => void) => (readOnly ? null : remove);
+  const actor = useActor();
+  // A workflow names only people at or below the editor (the one it names
+  // now stays shown, so the step reads as saved).
+  const canName = (member: MemberRecord) =>
+    member.id === step.memberId ||
+    !actor ||
+    decide(actor, { action: "workflow.namePerson", personRank: member.rank })
+      .ok;
   const group = options.groups.find((entry) => entry.id === step.workGroupId);
-  const giveToChoices = giveToOptions(options.groups, options.members);
+  const named = options.members.find((entry) => entry.id === step.memberId);
+  const giveToChoices = giveToOptions(options.groups, options.members, canName);
   const inGroup = group
     ? options.members
         .filter(
@@ -167,10 +178,20 @@ export function StepEditor({
           <Select
             label={Text.whoInGroup(group.name)}
             options={[
-              { value: "", label: Text.anyoneInGroup(group.name) },
+              {
+                value: "",
+                label: group.assign.on
+                  ? Text.leastBusy
+                  : Text.anyoneInGroup(group.name),
+              },
               ...inGroup.map((member) => ({
                 value: member.id,
-                label: memberName(member),
+                label: !canName(member)
+                  ? Text.aboveRank(memberName(member))
+                  : group.leadIds.includes(member.id)
+                    ? Text.lead(memberName(member))
+                    : memberName(member),
+                disabled: !canName(member),
               })),
             ]}
             value={step.memberId ?? ""}
@@ -178,6 +199,15 @@ export function StepEditor({
               onChange({ memberId: event.target.value || null })
             }
           />
+        ) : null}
+        {group ? (
+          <p className={styles.whoNote}>
+            {named
+              ? Text.whoNamed(memberName(named), group.name)
+              : group.assign.on
+                ? Text.whoHandedOut(group.name)
+                : Text.whoAnyone(group.name)}
+          </p>
         ) : null}
       </div>
 

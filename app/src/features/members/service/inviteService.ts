@@ -1,19 +1,16 @@
 // File : /TeamSamsara.Workflow/app/src/features/members/service/inviteService.ts
-// Version : 1.0.0
-// Latest commit: feature/members
+// Version : 2.0.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
-// Purpose : Invites people. For each email: make a sign-in account on the side
-// (the inviter stays signed in) with a password nobody sees, write the member
-// record as Invited, then send Firebase's email with a link to choose a
-// password. A removed member is brought back instead; a current one is left
-// alone. Emails go one at a time, so each gets its own result.
+// Purpose : Invites people. For each email the server makes the sign-in
+// account and the member record as Invited (checking the roles given are
+// strictly below the inviter's), then Firebase's email goes out with a link
+// to choose a password. A removed member is brought back instead; a current
+// one is left alone. Emails go one at a time, so each gets its own result.
 
-import { doc, setDoc, updateDoc } from "firebase/firestore";
-import { Collections, serverTime, type MemberRecord } from "@/core/data";
-import { authErrorKind, sendPasswordLink } from "@/core/session";
-import { db } from "@/lib/firebase";
-import { randomSecret } from "@/lib/randomSecret";
-import { createAccountOnTheSide } from "@/lib/secondaryAuth";
+import { manage, manageRefusal } from "@/core/access";
+import type { MemberRecord } from "@/core/data";
+import { sendPasswordLink } from "@/core/session";
 import type {
   InviteChoice,
   InviteOutcome,
@@ -28,45 +25,22 @@ export function sendInviteEmail(email: string): Promise<void> {
 async function inviteOne(
   email: string,
   choice: InviteChoice,
-  inviterId: string,
   existing: MemberRecord | undefined,
 ): Promise<InviteOutcome> {
   if (existing && existing.status !== "removed") return "alreadyMember";
-
-  if (existing) {
-    await updateDoc(doc(db, Collections.members, existing.id), {
-      status: "invited",
+  try {
+    await manage({
+      op: "member.invite",
+      email,
       roleIds: choice.roleIds,
       workGroupIds: choice.workGroupIds,
-      invitedBy: inviterId,
-      invitedAt: serverTime(),
     });
-    await sendInviteEmail(email);
-    return "reinvited";
-  }
-
-  let accountId: string;
-  try {
-    accountId = await createAccountOnTheSide(email, randomSecret());
   } catch (error) {
-    if (authErrorKind(error) === "emailInUse") return "accountExists";
+    if (manageRefusal(error) === "alreadyMember") return "alreadyMember";
     throw error;
   }
-
-  await setDoc(doc(db, Collections.members, accountId), {
-    displayName: "",
-    email,
-    status: "invited",
-    roleIds: choice.roleIds,
-    workGroupIds: choice.workGroupIds,
-    timeZone: null,
-    invitedBy: inviterId,
-    invitedAt: serverTime(),
-    joinedAt: null,
-    lastActiveAt: null,
-  });
   await sendInviteEmail(email);
-  return "invited";
+  return existing ? "reinvited" : "invited";
 }
 
 /**
@@ -76,7 +50,6 @@ async function inviteOne(
 export async function inviteMembers(
   emails: readonly string[],
   choice: InviteChoice,
-  inviterId: string,
   members: readonly MemberRecord[],
   onProgress?: (result: InviteResult) => void,
 ): Promise<InviteResult[]> {
@@ -87,7 +60,7 @@ export async function inviteMembers(
     );
     let outcome: InviteOutcome;
     try {
-      outcome = await inviteOne(email, choice, inviterId, existing);
+      outcome = await inviteOne(email, choice, existing);
     } catch {
       outcome = "failed";
     }

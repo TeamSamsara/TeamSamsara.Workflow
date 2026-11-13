@@ -1,22 +1,22 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/groups/WorkGroupsView.tsx
-// Version : 1.3.0
-// Latest commit: feature/attendance-photos
+// Version : 1.4.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Settings → Work groups: the group cards on top, the open group's
-// editor under them (name, what it does, its leads and links, who is in it,
-// with Add members and Remove), New group and Delete group. Leaving a group with unsaved changes
+// editor under them (name, what it does, its leads and links, how it hands
+// out tasks, who is in it, with Add members and Remove), New group and
+// Delete group. Leaving a group with unsaved changes
 // asks first; adding and removing people saves straight away.
 
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { Navigate, useBlocker, useNavigate, useParams } from "react-router-dom";
-import { usePermissions } from "@/core/access";
 import { DataErrorText, dataErrorMessage } from "@/core/data";
 import { memberName, MemberPicker, useMembers } from "@/features/members";
 import {
   addToWorkGroup,
-  canLeadGroups,
   DeleteWorkGroupDialog,
+  GroupHandOut,
   NewWorkGroupDialog,
   removeFromWorkGroup,
   useWorkGroupDraft,
@@ -52,7 +52,6 @@ function WorkGroupEditor({ item }: { item: WorkGroupListItem }) {
   const [isPicking, setIsPicking] = useState(false);
   const [isPickingLead, setIsPickingLead] = useState(false);
   const [triedSave, setTriedSave] = useState(false);
-  const { roles } = usePermissions();
 
   const onError = (error: unknown) =>
     toast.show({
@@ -99,15 +98,12 @@ function WorkGroupEditor({ item }: { item: WorkGroupListItem }) {
     });
   }
 
-  // Only people whose roles let them approve or reassign tasks can lead.
-  const eligibleLeads = roles
-    ? allMembers.items.filter(
-        (entry) =>
-          entry.member.status !== "disabled" &&
-          canLeadGroups(entry.member, roles) &&
-          !draft.fields.leadIds.includes(entry.member.id),
-      )
-    : [];
+  // Anyone can lead; a lead is always a member, so leading adds them to it.
+  const eligibleLeads = allMembers.items.filter(
+    (entry) =>
+      entry.member.status === "active" &&
+      !draft.fields.leadIds.includes(entry.member.id),
+  );
   const leadMembers = draft.fields.leadIds
     .map((leadId) =>
       allMembers.items.find((entry) => entry.member.id === leadId),
@@ -222,6 +218,10 @@ function WorkGroupEditor({ item }: { item: WorkGroupListItem }) {
           disabled={draft.isSaving}
         />
         <p className={styles.muted}>{WorkGroupLinksText.hint}</p>
+      </div>
+
+      <div className={styles.section}>
+        <GroupHandOut group={group} members={members ?? []} />
       </div>
 
       {isPickingLead ? (

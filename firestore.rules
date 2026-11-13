@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/firestore.rules
-// Version : 1.25.0
-// Latest commit: feature/audit-fixes
+// Version : 2.1.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Who may read and write what in Firestore. Everything is denied until
 // a rule below allows it; each PR opens exactly what its feature needs, with a
@@ -62,6 +62,27 @@ service cloud.firestore {
     /** The permission index (permission → role ids) as it is before this write. */
     function rolesGrants() {
       return get(/databases/$(database)/documents/config/roles).data.grants;
+    }
+
+    /**
+     * Rank, kept on each member record by the server (their highest role's
+     * position, Owners above all): at or below for tasks and events,
+     * strictly below for people and roles. The same model as
+     * engine/src/access, held to the same cases.
+     */
+    function myRank() {
+      return memberRecord().data.get("rank", 0);
+    }
+
+    /** Someone else's rank; nobody (null) ranks 0. */
+    function rankOf(memberId) {
+      return memberId == null ? 0
+        : get(/databases/$(database)/documents/members/$(memberId)).data.get("rank", 0);
+    }
+
+    /** The groups the signed-in member leads, kept by the server. */
+    function leadsGroup(groupId) {
+      return groupId != null && groupId in memberRecord().data.get("leadOf", []);
     }
 
     /**
@@ -130,54 +151,8 @@ service cloud.firestore {
         && isSetupBatch()
         && isValidFirstRoles(request.resource.data);
 
-      // Manage roles edits roles, but (like Discord) only hands out or takes
-      // away permissions the editor holds; Administrator only by an
-      // Administrator. Which roles sit above whose is kept by the app.
-      allow update: if can("manageRoles")
-        && isValidRoles(request.resource.data)
-        && onlyHeldGrantsChange(rolesGrants(), heldRoleIds());
-    }
-
-    /** The shape every save keeps: Everyone exists and is never Administrator, someone still is. */
-    function isValidRoles(data) {
-      return data.keys().hasOnly(["roles", "grants"])
-        && data.roles is map
-        && data.grants is map
-        && data.grants.keys().hasOnly(["administrator", "manageSettings",
-          "manageMembers", "manageRoles", "manageWorkGroups", "editWorkflows",
-          "planEvents", "createStandaloneTasks", "doAssignedTasks",
-          "editAnyTask", "approveTasks", "reassignTasks", "viewAll",
-          "viewAvailability", "tagPeople"])
-        && "everyone" in data.roles
-        && !("administrator" in data.roles.everyone.permissions)
-        && data.grants.get("administrator", []).size() > 0
-        && !("everyone" in data.grants.get("administrator", []));
-    }
-
-    /** A permission's list of roles is unchanged, or the editor holds that permission. */
-    function grantUnchangedOrHeld(grants, held, permission) {
-      return request.resource.data.grants.get(permission, [])
-          == grants.get(permission, [])
-        || holds(grants, held, permission);
-    }
-
-    function onlyHeldGrantsChange(grants, held) {
-      return grants.get("administrator", []).hasAny(held)
-        || (grantUnchangedOrHeld(grants, held, "manageSettings")
-          && grantUnchangedOrHeld(grants, held, "administrator")
-          && grantUnchangedOrHeld(grants, held, "manageMembers")
-          && grantUnchangedOrHeld(grants, held, "manageRoles")
-          && grantUnchangedOrHeld(grants, held, "manageWorkGroups")
-          && grantUnchangedOrHeld(grants, held, "editWorkflows")
-          && grantUnchangedOrHeld(grants, held, "planEvents")
-          && grantUnchangedOrHeld(grants, held, "createStandaloneTasks")
-          && grantUnchangedOrHeld(grants, held, "doAssignedTasks")
-          && grantUnchangedOrHeld(grants, held, "editAnyTask")
-          && grantUnchangedOrHeld(grants, held, "approveTasks")
-          && grantUnchangedOrHeld(grants, held, "reassignTasks")
-          && grantUnchangedOrHeld(grants, held, "viewAll")
-          && grantUnchangedOrHeld(grants, held, "viewAvailability")
-          && grantUnchangedOrHeld(grants, held, "tagPeople"));
+      // Saving roles is a protected change: the server checks rank (only
+      // roles strictly below yours) and writes the whole order at once.
     }
 
     // Same lengths as TextLimits in app/src/shared/validation/textLimits.ts.
@@ -225,12 +200,14 @@ service cloud.firestore {
           getAfter(configPath("roles")).data.grants.get("administrator", []));
     }
 
-    /** Everyone exists and never holds Administrator; at least one role does. */
+    /** Everyone and Owner exist; Everyone never holds Administrator; Owner does. */
     function isValidFirstRoles(data) {
       return data.keys().hasOnly(["roles", "grants"])
         && data.roles is map
         && data.grants is map
         && "everyone" in data.roles
+        && "owner" in data.roles
+        && "owner" in data.grants.get("administrator", [])
         && !("administrator" in data.roles.everyone.permissions)
         && data.grants.get("administrator", []).size() > 0
         && !("everyone" in data.grants.get("administrator", []));
@@ -250,8 +227,9 @@ service cloud.firestore {
         && (isActivatingSelf() || isRecordingLastActive() || isChangingOwnProfile()
           || isRecordingWalkthrough());
 
-      // Someone managing members, roles or groups changing another record.
-      allow update: if isManagedChange();
+      // Names, roles, groups, access, removing and inviting are protected
+      // changes: the server makes them (functions/src/access/manage.ts),
+      // checked against rank, so the app can't write them directly.
 
       // Tag people (or Manage members) putting people tags on a member.
       allow update: if isTaggingPeople();
@@ -262,126 +240,14 @@ service cloud.firestore {
       // An Administrator taking down someone's profile photo.
       allow update: if isRemovingPhoto();
 
-      // First-time setup makes the first Admin; after that, invites.
-      allow create: if (isSelf(memberId)
-          && isSetupBatch()
-          && isFirstAdminRecord(request.resource.data))
-        || (can("manageMembers") && isInviteRecord(request.resource.data));
+      // First-time setup makes the first Owner; after that, invites come
+      // from the server.
+      allow create: if isSelf(memberId)
+        && isSetupBatch()
+        && isFirstAdminRecord(request.resource.data);
 
       // Members are never deleted: removing one keeps the record as Removed.
     }
-
-    // #region Member changes made by others
-    function memberFields() {
-      return ["displayName", "email", "status", "roleIds", "workGroupIds",
-        "timeZone", "invitedBy", "invitedAt", "joinedAt", "lastActiveAt"];
-    }
-
-    /** A permission the member gains from the change, which the editor must hold. */
-    function gainIsHeld(grants, held, before, after, permission) {
-      return !after.hasAny(grants.get(permission, []))
-        || before.hasAny(grants.get(permission, []))
-        || holds(grants, held, permission);
-    }
-
-    /**
-     * Like Discord: you can't give anyone (yourself included) a permission you
-     * don't have, through any role. Administrator is only given by
-     * administrators, who may give anything.
-     */
-    function onlyHeldPermissionsGained(grants, held, before, after) {
-      return grants.get("administrator", []).hasAny(held)
-        || (gainIsHeld(grants, held, before, after, "administrator")
-          && gainIsHeld(grants, held, before, after, "manageSettings")
-          && gainIsHeld(grants, held, before, after, "manageMembers")
-          && gainIsHeld(grants, held, before, after, "manageRoles")
-          && gainIsHeld(grants, held, before, after, "manageWorkGroups")
-          && gainIsHeld(grants, held, before, after, "editWorkflows")
-          && gainIsHeld(grants, held, before, after, "planEvents")
-          && gainIsHeld(grants, held, before, after, "createStandaloneTasks")
-          && gainIsHeld(grants, held, before, after, "doAssignedTasks")
-          && gainIsHeld(grants, held, before, after, "editAnyTask")
-          && gainIsHeld(grants, held, before, after, "approveTasks")
-          && gainIsHeld(grants, held, before, after, "reassignTasks")
-          && gainIsHeld(grants, held, before, after, "viewAll")
-          && gainIsHeld(grants, held, before, after, "viewAvailability")
-          && gainIsHeld(grants, held, before, after, "tagPeople"));
-    }
-
-    /** A new member from an invite: Invited, from the inviter, with the server's time. */
-    function isInviteRecord(data) {
-      return data.keys().hasOnly(memberFields())
-        && data.keys().hasAll(memberFields())
-        && data.displayName is string
-        && data.displayName.size() <= 80
-        && data.email is string
-        && data.email.size() > 0
-        && data.status == "invited"
-        && data.roleIds is list
-        && data.workGroupIds is list
-        && onlyHeldPermissionsGained(rolesGrants(), heldRoleIds(), [], data.roleIds)
-        && data.timeZone == null
-        && data.invitedBy == request.auth.uid
-        && data.invitedAt == request.time
-        && data.joinedAt == null
-        && data.lastActiveAt == null;
-    }
-
-    /**
-     * Name, roles, groups and access, each needing its own permission:
-     * names and access need Manage members; roles need Manage members or
-     * Manage roles; groups need Manage members or Manage work groups. Only an
-     * Administrator changes an Administrator's record.
-     */
-    function isManagedChange() {
-      let before = resource.data;
-      let after = request.resource.data;
-      let changed = changedFields();
-      let grants = rolesGrants();
-      let held = heldRoleIds();
-      let adminRoles = grants.get("administrator", []);
-      return isActiveMember()
-        && changed.hasOnly(["displayName", "roleIds", "workGroupIds",
-          "status", "invitedBy", "invitedAt"])
-        && (!changed.hasAny(["displayName", "status", "invitedBy", "invitedAt"])
-          || holds(grants, held, "manageMembers"))
-        && (!changed.hasAny(["roleIds"])
-          || holds(grants, held, "manageMembers")
-          || holds(grants, held, "manageRoles"))
-        && (!changed.hasAny(["workGroupIds"])
-          || holds(grants, held, "manageMembers")
-          || holds(grants, held, "manageWorkGroups"))
-        && after.displayName is string
-        && after.displayName.size() <= 80
-        && after.roleIds is list
-        && after.workGroupIds is list
-        && ((!before.roleIds.hasAny(adminRoles) && !after.roleIds.hasAny(adminRoles))
-          || adminRoles.hasAny(held))
-        && (!changed.hasAny(["roleIds"])
-          || onlyHeldPermissionsGained(grants, held, before.roleIds, after.roleIds))
-        && isAllowedStatusChange(before, after, changed);
-    }
-
-    function isAllowedStatusChange(before, after, changed) {
-      return !changed.hasAny(["status", "invitedBy", "invitedAt"])
-        // Turning access off, or back on (Active if they ever signed in, else Invited).
-        || (!changed.hasAny(["invitedBy", "invitedAt"])
-          && before.status in ["active", "invited", "disabled"]
-          && (after.status == "disabled"
-            || (after.status == "active" && before.joinedAt != null)
-            || (after.status == "invited" && before.joinedAt == null)))
-        // Removing: no roles and no groups left.
-        || (!changed.hasAny(["invitedBy", "invitedAt"])
-          && after.status == "removed"
-          && after.roleIds.size() == 0
-          && after.workGroupIds.size() == 0)
-        // Inviting a removed member again.
-        || (before.status == "removed"
-          && after.status == "invited"
-          && after.invitedBy == request.auth.uid
-          && after.invitedAt == request.time);
-    }
-    // #endregion
 
     function isFirstAdminRecord(data) {
       let fields = ["displayName", "email", "status", "roleIds", "workGroupIds",
@@ -392,6 +258,7 @@ service cloud.firestore {
         && data.email == request.auth.token.email
         && data.status == "active"
         && data.roleIds is list
+        && "owner" in data.roleIds
         && data.workGroupIds == []
         && data.timeZone == null
         && data.invitedBy == null
@@ -442,9 +309,10 @@ service cloud.firestore {
           || (parts[0] == "http:" && parts[2] in ["127.0.0.1:9199", "localhost:9199"]));
     }
 
-    /** An Administrator taking down someone's photo. */
+    /** An Administrator taking down the photo of someone strictly below them. */
     function isRemovingPhoto() {
       return can("administrator")
+        && resource.data.get("rank", 0) < myRank()
         && changedFields().hasOnly(["photoUrl"])
         && request.resource.data.photoUrl == null;
     }
@@ -516,11 +384,17 @@ service cloud.firestore {
     // #region Work groups
     match /workGroups/{groupId} {
       allow read: if isActiveMember();
+      // Leads and how it hands out tasks are set by the server, which keeps
+      // leads inside their group and checks who may choose who takes tasks.
       allow create: if can("manageWorkGroups")
         && isValidWorkGroup(request.resource.data)
+        && request.resource.data.get("leadIds", []) == []
+        && request.resource.data.get("assign", null) == null
         && request.resource.data.createdAt == request.time;
       allow update: if can("manageWorkGroups")
         && isValidWorkGroup(request.resource.data)
+        && request.resource.data.get("leadIds", []) == resource.data.get("leadIds", [])
+        && request.resource.data.get("assign", null) == resource.data.get("assign", null)
         && request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if can("manageWorkGroups");
     }
@@ -530,7 +404,7 @@ service cloud.firestore {
     // lead's permissions and each link's address are checked by the app.
     function isValidWorkGroup(data) {
       return data.keys().hasOnly(["name", "description", "createdAt",
-          "leadIds", "links", "color"])
+          "leadIds", "links", "color", "assign"])
         && data.keys().hasAll(["name", "description", "createdAt"])
         && isValidName(data.name)
         && data.description is string
@@ -590,8 +464,8 @@ service cloud.firestore {
     }
 
     // Fields: the details events can have, keyed by how text writes them
-    // ({opponent} is fields/opponent). Edit workflows makes them; only admins
-    // change or delete them.
+    // ({speaker} is fields/speaker). Edit workflows makes, changes and
+    // deletes them.
     match /fields/{fieldKey} {
       allow read: if isActiveMember();
       allow create: if can("editWorkflows")
@@ -601,12 +475,12 @@ service cloud.firestore {
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
-      allow update: if can("administrator")
+      allow update: if can("editWorkflows")
         && isValidField(request.resource.data)
         && request.resource.data.createdBy == resource.data.createdBy
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.updatedAt == request.time;
-      allow delete: if can("administrator");
+      allow delete: if can("editWorkflows");
     }
 
     function isValidField(field) {
@@ -702,10 +576,48 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/statuses/$(statusId)).data.category;
     }
 
+    /** Given to them, or to their group with no one named: theirs to do. */
     function isGivenToMe(task) {
       return task.memberId == request.auth.uid
-        || (task.workGroupId != null
-          && task.workGroupId in memberRecord().data.get("workGroupIds", []));
+        || (task.memberId == null && isInGroup(task.workGroupId));
+    }
+
+    function isInGroup(groupId) {
+      return groupId != null
+        && groupId in memberRecord().data.get("workGroupIds", []);
+    }
+
+    /** The event a task belongs to, as it is before this write. */
+    function eventOf(task) {
+      return get(/databases/$(database)/documents/events/$(task.eventId)).data;
+    }
+
+    /** A planner of the task's event: can see it, and its owner is at or below them. */
+    function plansEventOf(task, grants, held) {
+      return task.eventId != null
+        && holds(grants, held, "planEvents")
+        && canSeeAudience(eventOf(task))
+        && rankOf(eventOf(task).createdBy) <= myRank();
+    }
+
+    /** Whose rank editing or reassigning is held to: its person, or a one-off's maker. */
+    function subjectRank(task) {
+      return task.memberId != null ? rankOf(task.memberId)
+        : task.eventId == null ? rankOf(task.createdBy) : 0;
+    }
+
+    /** A one-off task's maker. */
+    function madeOneOff(task) {
+      return task.eventId == null && task.createdBy == request.auth.uid;
+    }
+
+    /** Can be given a task: active, can do tasks, and in its group when it has one. */
+    function isEligible(memberId, groupId, grants) {
+      let person = get(/databases/$(database)/documents/members/$(memberId)).data;
+      return person.status in ["active", "invited"]
+        && (groupId == null || groupId in person.get("workGroupIds", []))
+        && (grants.get("administrator", []).hasAny(person.roleIds.concat(["everyone"]))
+          || grants.get("doAssignedTasks", []).hasAny(person.roleIds.concat(["everyone"])));
     }
 
     // A record each time a set or repeat is planned, written once its events
@@ -756,18 +668,28 @@ service cloud.firestore {
     }
 
     match /tasks/{taskId} {
+      // Theirs to do; their group's; made by them; a lead of its group; a
+      // planner who can see its event; View all or Edit any task; and an
+      // approver for tasks waiting for review. Planners list tasks one
+      // visible event at a time (where eventId == / in).
       allow read: if isActiveMember()
-        && (can("viewAll") || can("approveTasks") || can("editAnyTask")
-          || isGivenToMe(resource.data)
+        && (isGivenToMe(resource.data)
+          || isInGroup(resource.data.workGroupId)
           || resource.data.createdBy == request.auth.uid
-          || (resource.data.eventId != null && can("planEvents")));
+          || leadsGroup(resource.data.workGroupId)
+          || can("viewAll") || can("editAnyTask")
+          || (resource.data.eventId != null && can("planEvents")
+            && canSeeAudience(eventOf(resource.data)))
+          || (can("approveTasks")
+            && statusCategory(resource.data.statusId) == "awaitingApproval"));
 
       allow create: if isActiveMember()
         && isValidTask(request.resource.data)
         && isNewTask(request.resource.data)
         && ((request.resource.data.eventId == null && can("createStandaloneTasks"))
           || (request.resource.data.eventId != null && can("planEvents")
-            && existsAfter(/databases/$(database)/documents/events/$(request.resource.data.eventId))));
+            && existsAfter(/databases/$(database)/documents/events/$(request.resource.data.eventId))
+            && isPlannableEvent(getAfter(/databases/$(database)/documents/events/$(request.resource.data.eventId)).data)));
 
       // Firestore stops after 1,000 steps per request, so the permissions are
       // worked out once and each kind of change checks its fields first.
@@ -778,41 +700,65 @@ service cloud.firestore {
         && isAllowedTaskChange(rolesGrants(), heldRoleIds())
         && isValidTask(request.resource.data);
 
-      allow delete: if can("editAnyTask")
-        || (resource.data.createdBy == request.auth.uid && resource.data.eventId == null)
-        || (resource.data.eventId != null && can("planEvents"));
+      allow delete: if isActiveMember()
+        && ((resource.data.eventId != null
+            && plansEventOf(resource.data, rolesGrants(), heldRoleIds()))
+          || (resource.data.eventId == null
+            && (can("editAnyTask") || madeOneOff(resource.data))
+            && subjectRank(resource.data) <= myRank()));
     }
 
-    /** One of the four kinds of change, or Plan events moving an event's task,
-        filling its text again from the event's fields, or keeping it as
-        history when its event is deleted. */
+    /** An event a planner may add tasks to: they can see it, and its owner is at or below them. */
+    function isPlannableEvent(event) {
+      return canSeeAudience(event) && rankOf(event.createdBy) <= myRank();
+    }
+
+    /**
+     * Exactly one kind of change, each limited to its own fields, so a broad
+     * permission never reaches a narrow one (Edit any task can't approve):
+     * editing its content, reassigning, claiming, approving, doing it, or
+     * keeping it as history when its event is deleted.
+     */
     function isAllowedTaskChange(grants, held) {
       let changed = changedFields();
-      return holds(grants, held, "editAnyTask")
-        || (resource.data.createdBy == request.auth.uid && resource.data.eventId == null)
-        || (changed.hasOnly(["dueAt", "title", "notes", "posts", "checklist",
+      let before = resource.data;
+      let after = request.resource.data;
+      return (changed.hasOnly(["title", "notes", "dueAt", "checklist", "posts",
+            "links", "tagIds", "needsApproval", "asksForLiveLink",
             "editedParts", "updatedAt"])
-          && resource.data.eventId != null
-          && holds(grants, held, "planEvents"))
-        || (changed.hasOnly(["workGroupId", "memberId", "editedParts",
-            "updatedAt"])
-          && holds(grants, held, "reassignTasks"))
-        // A finished task kept as history when a planner deletes its event,
-        // in the same batch.
-        || (changed.hasOnly(["eventGone", "updatedAt"])
-          && resource.data.eventId != null
-          && holds(grants, held, "planEvents")
-          && !existsAfter(/databases/$(database)/documents/events/$(resource.data.eventId)))
+          && (holds(grants, held, "editAnyTask") || madeOneOff(before)
+            || plansEventOf(before, grants, held))
+          && subjectRank(before) <= myRank())
+        || (changed.hasOnly(["workGroupId", "memberId", "editedParts", "updatedAt"])
+          && (holds(grants, held, "reassignTasks") || madeOneOff(before)
+            || (leadsGroup(before.workGroupId)
+              && after.workGroupId == before.workGroupId))
+          && subjectRank(before) <= myRank()
+          && rankOf(after.memberId) <= myRank()
+          && (after.memberId == null
+            || isEligible(after.memberId, after.workGroupId, grants)))
+        // Claiming a group's waiting task for yourself.
+        || (changed.hasOnly(["memberId", "updatedAt"])
+          && before.memberId == null
+          && after.memberId == request.auth.uid
+          && isInGroup(before.workGroupId)
+          && holds(grants, held, "doAssignedTasks"))
         || (changed.hasOnly(["statusId", "approvedBy", "approvedAt",
             "changesRequested", "doneAt", "doneBy", "updatedAt"])
-          && holds(grants, held, "approveTasks")
+          && (holds(grants, held, "approveTasks") || leadsGroup(before.workGroupId))
           && isApprovingTask())
         || (changed.hasOnly(["statusId", "checklist", "liveLink",
             "sentForReviewBy", "sentForReviewAt", "changesRequested", "doneAt",
             "doneBy", "approvedBy", "approvedAt", "updatedAt"])
           && holds(grants, held, "doAssignedTasks")
-          && isGivenToMe(resource.data)
-          && isDoingTask());
+          && isGivenToMe(before)
+          && isDoingTask())
+        // A finished task kept as history when a planner deletes its event,
+        // in the same batch.
+        || (changed.hasOnly(["eventGone", "updatedAt"])
+          && before.eventId != null
+          && plansEventOf(before, grants, held)
+          && !existsAfter(/databases/$(database)/documents/events/$(before.eventId)));
     }
 
     function isNewTask(task) {
@@ -825,6 +771,8 @@ service cloud.firestore {
         && task.approvedBy == null && task.approvedAt == null
         && task.changesRequested == null
         && task.doneAt == null
+        && task.get("handedOutAt", null) == null
+        && task.get("headsUpAt", null) == null
         // "Late from the start" only when its due time has really passed.
         && (task.get("lateAtCreation", false) == false
           || (task.dueAt != null && task.dueAt < request.time));
@@ -871,13 +819,23 @@ service cloud.firestore {
           || statusCategory(after.statusId) in ["open", "awaitingApproval"]);
     }
 
-    /** Approve tasks (fields and permission checked by the caller): only in their own name. */
+    /**
+     * Approving or sending back (fields and permission checked by the
+     * caller): only in their own name, only a task waiting for review, never
+     * their own work, and the person who did it at or below their rank.
+     */
     function isApprovingTask() {
+      let before = resource.data;
       let after = request.resource.data;
+      let doer = before.sentForReviewBy != null ? before.sentForReviewBy : before.memberId;
       return (after.approvedBy == null || after.approvedBy == request.auth.uid
-          || after.approvedBy == resource.data.approvedBy)
+          || after.approvedBy == before.approvedBy)
         && (after.approvedAt == null || after.approvedAt == request.time
-          || after.approvedAt == resource.data.approvedAt);
+          || after.approvedAt == before.approvedAt)
+        && statusCategory(before.statusId) == "awaitingApproval"
+        && before.memberId != request.auth.uid
+        && before.sentForReviewBy != request.auth.uid
+        && rankOf(doer) <= myRank();
     }
 
     function isNullOr(value, type) {
@@ -894,13 +852,17 @@ service cloud.firestore {
         "changesRequested", "createdBy", "createdAt", "updatedAt", "doneAt"];
       // Added later, so tasks made before them (or by an open tab from
       // before) are valid without them.
-      let optional = ["lateAtCreation", "doneBy", "eventGone", "editedParts"];
+      // handedOutAt and headsUpAt are the server's, when a group hands out tasks.
+      let optional = ["lateAtCreation", "doneBy", "eventGone", "editedParts",
+        "handedOutAt", "headsUpAt"];
       let gone = task.get("eventGone", null);
       let edited = task.get("editedParts", null);
       return task.keys().hasOnly(fields.concat(optional))
         && task.keys().hasAll(fields)
         && task.get("lateAtCreation", false) is bool
         && isNullOr(task.get("doneBy", null), "string")
+        && isNullOr(task.get("handedOutAt", null), "timestamp")
+        && isNullOr(task.get("headsUpAt", null), "timestamp")
         && (edited == null || (edited is list && edited.size() <= 6
           && edited.toSet().difference(["due", "assignee", "title", "notes",
             "checklist", "posts"].toSet()).size() == 0))
@@ -968,14 +930,20 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
       allow update: if can("planEvents")
+        && isManageableByMe(resource.data)
         && isValidEvent(request.resource.data)
         && request.resource.data.createdBy == resource.data.createdBy
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.updatedAt == request.time;
-      allow delete: if can("planEvents");
+      allow delete: if can("planEvents") && isManageableByMe(resource.data);
 
       // Anyone in an event that asks for replies changes only their own reply.
       allow update: if isActiveMember() && isReplying(resource.data);
+    }
+
+    /** An event, repeat or set a planner may change: they can see it, and its maker is at or below them. */
+    function isManageableByMe(data) {
+      return canSeeAudience(data) && rankOf(data.createdBy) <= myRank();
     }
 
     // Whether the member is in the event: Everyone, by name, or through a group.
@@ -1059,11 +1027,12 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
       allow update: if can("planEvents")
+        && isManageableByMe(resource.data)
         && isValidRepeat(request.resource.data)
         && request.resource.data.createdBy == resource.data.createdBy
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.updatedAt == request.time;
-      allow delete: if can("planEvents");
+      allow delete: if can("planEvents") && isManageableByMe(resource.data);
     }
 
     // Same sizes as RepeatLimits and EventLimits in app/src/features/events.
@@ -1109,11 +1078,12 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
       allow update: if can("planEvents")
+        && isManageableByMe(resource.data)
         && isValidEventSet(request.resource.data)
         && request.resource.data.createdBy == resource.data.createdBy
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.updatedAt == request.time;
-      allow delete: if can("planEvents");
+      allow delete: if can("planEvents") && isManageableByMe(resource.data);
     }
 
     // Same sizes as EventSetLimits and EventLimits in app/src/features/events.
@@ -1227,6 +1197,13 @@ service cloud.firestore {
         && !existsAfter(/databases/$(database)/documents/personal/$(entryId));
     }
     // #endregion
+
+    // The activity history: written only by the server. Administrators read
+    // it all; Manage members reads the People entries.
+    match /activity/{entryId} {
+      allow read: if can("administrator")
+        || (can("manageMembers") && resource.data.area == "people");
+    }
 
     // Deny everything that no rule above allows.
     match /{document=**} {

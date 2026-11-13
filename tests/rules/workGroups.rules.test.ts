@@ -1,10 +1,11 @@
 // File : /TeamSamsara.Workflow/tests/rules/workGroups.rules.test.ts
-// Version : 1.1.0
-// Latest commit: task/group-leads-and-x-premium
+// Version : 2.1.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Tests work groups: active members read them; only Manage work
 // groups (or an Administrator) creates, edits and deletes them, with valid
-// fields and the server's creation time.
+// fields and the server's creation time. Leads, and how a group hands out
+// its tasks, are set by the server.
 
 import {
   assertFails,
@@ -89,21 +90,46 @@ describe("reading work groups", () => {
 });
 
 describe("leads and links", () => {
-  it("can be added to a group, an older one too", async () => {
+  it("lets Manage work groups change links; leads are the server's to set", async () => {
+    const db = signedInAs(env, "jordan");
     await assertSucceeds(
-      updateDoc(doc(signedInAs(env, "jordan"), "workGroups/design"), {
-        leadIds: ["alex"],
+      updateDoc(doc(db, "workGroups/design"), {
         links: [{ label: "Shared drive", url: "https://drive.google.com/x" }],
       }),
     );
+    await assertFails(
+      updateDoc(doc(db, "workGroups/design"), { leadIds: ["alex"] }),
+    );
   });
 
-  it("are capped at ten each, and must be lists", async () => {
+  it("leaves how it hands out tasks to the server, kept on every edit", async () => {
     const db = signedInAs(env, "jordan");
-    const many = Array.from({ length: 11 }, (_unused, index) => `m${index}`);
     await assertFails(
-      updateDoc(doc(db, "workGroups/design"), { leadIds: many }),
+      updateDoc(doc(db, "workGroups/design"), {
+        assign: { on: true, dailyLimit: 3, headsUpHours: 24, skip: [] },
+      }),
     );
+    await assertFails(
+      setDoc(doc(db, "workGroups/video"), {
+        ...newGroup(),
+        assign: { on: true, dailyLimit: 3, headsUpHours: 24, skip: [] },
+      }),
+    );
+    await seed(env, {
+      "workGroups/handing": {
+        name: "Handing",
+        description: "",
+        createdAt: new Date(2026, 0, 1),
+        assign: { on: true, dailyLimit: 3, headsUpHours: 24, skip: [] },
+      },
+    });
+    await assertSucceeds(
+      updateDoc(doc(db, "workGroups/handing"), { description: "Still on." }),
+    );
+  });
+
+  it("caps links at ten, as a list", async () => {
+    const db = signedInAs(env, "jordan");
     await assertFails(
       updateDoc(doc(db, "workGroups/design"), { links: "https://x.com" }),
     );

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/ui/notificationsContent.ts
-// Version : 1.3.1
-// Latest commit: feature/audit-fixes
+// Version : 1.4.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : The words of notifications: the bell, the list, each kind of
 // notification, and the settings page.
@@ -30,6 +30,8 @@ export const NotificationListText = {
   unreadMark: "Unread",
   someone: "Someone",
   playbook: "Playbook",
+  stillWaiting: (group: string | null) =>
+    ` is still waiting for someone${group ? ` in ${group}` : ""}`,
   answers: {
     going: "Going",
     maybe: "Maybe",

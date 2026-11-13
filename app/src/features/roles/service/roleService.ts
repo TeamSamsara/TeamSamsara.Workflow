@@ -1,53 +1,53 @@
 // File : /TeamSamsara.Workflow/app/src/features/roles/service/roleService.ts
-// Version : 1.1.0
-// Latest commit: feature/members
+// Version : 2.0.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
-// Purpose : Saves role changes. Every change reads the roles document and
-// writes it back in one transaction, so two people editing roles at once never
-// undo each other's work, and the permission index is rebuilt in the same write.
+// Purpose : Saves role changes through the server, which checks rank, rebuilds
+// the permission index and records each change in the activity history.
+// Giving and taking roles is a member change, also made by the server.
 
-import {
-  arrayRemove,
-  arrayUnion,
-  collection,
-  doc,
-  getDocs,
-  query,
-  runTransaction,
-  updateDoc,
-  where,
-  type DocumentReference,
-} from "firebase/firestore";
+import { collection, doc, getDoc } from "firebase/firestore";
+import { manage } from "@/core/access";
 import {
   Collections,
   ConfigDocuments,
-  rolesConverter,
+  parseRoles,
   type RoleRecord,
-  type RolesRecord,
 } from "@/core/data";
 import { db } from "@/lib/firebase";
 import type { RoleFields } from "../types/roleTypes";
 import { addRole, removeRole, reorderRoles, updateRole } from "./roleChanges";
-
-function rolesRef(): DocumentReference<RolesRecord> {
-  return doc(db, Collections.config, ConfigDocuments.roles).withConverter(
-    rolesConverter,
-  );
-}
 
 /** A fresh id that is never reused, so an old member record can't match a new role. */
 function newRoleId(): string {
   return doc(collection(db, Collections.config)).id;
 }
 
+/**
+ * Saves the whole set of roles through the server, which checks rank (only
+ * roles strictly below yours) and refuses a save made from an older copy, so
+ * two people editing roles at once never undo each other's work.
+ */
 async function changeRoles(
   change: (roles: readonly RoleRecord[]) => RoleRecord[],
 ): Promise<void> {
-  await runTransaction(db, async (transaction) => {
-    const snapshot = await transaction.get(rolesRef());
-    const current = snapshot.data()?.roles ?? [];
-    // The converter rebuilds the grants index from the roles.
-    transaction.set(rolesRef(), { roles: change(current), grants: {} });
+  const snapshot = await getDoc(
+    doc(db, Collections.config, ConfigDocuments.roles),
+  );
+  const data = snapshot.data() ?? {};
+  const version = typeof data.version === "number" ? data.version : 0;
+  const current = parseRoles(snapshot.id, data).roles;
+  await manage({
+    op: "roles.save",
+    version,
+    roles: change(current).map((role) => ({
+      id: role.id,
+      name: role.name,
+      color: role.color,
+      description: role.description,
+      position: role.position,
+      permissions: [...new Set(role.permissions)],
+    })),
   });
 }
 
@@ -66,24 +66,18 @@ export function saveRoleOrder(orderedIds: readonly string[]): Promise<void> {
   return changeRoles((roles) => reorderRoles(roles, orderedIds));
 }
 
-/**
- * Deletes the role, then takes it off every member who had it. That second
- * step is tidying only: a deleted role's id grants nothing, and ids are never
- * reused, so a member the editor may not change simply keeps a dead id.
- */
+/** Deletes the role; the server takes it off everyone who had it. */
 export async function deleteRole(id: string): Promise<void> {
   await changeRoles((roles) => removeRole(roles, id));
-  const holders = await getDocs(
-    query(
-      collection(db, Collections.members),
-      where("roleIds", "array-contains", id),
-    ),
-  );
-  await Promise.allSettled(
-    holders.docs.map((member) =>
-      updateDoc(member.ref, { roleIds: arrayRemove(id) }),
-    ),
-  );
+}
+
+/** A member's roles as they are now, to change one. */
+async function rolesOf(memberId: string): Promise<string[]> {
+  const snapshot = await getDoc(doc(db, Collections.members, memberId));
+  const stored: unknown = snapshot.data()?.roleIds;
+  return Array.isArray(stored)
+    ? stored.filter((id): id is string => typeof id === "string")
+    : [];
 }
 
 /** Gives the role to these members (from the role's Members tab). */
@@ -92,17 +86,27 @@ export function giveRole(
   memberIds: readonly string[],
 ): Promise<void[]> {
   return Promise.all(
-    memberIds.map((memberId) =>
-      updateDoc(doc(db, Collections.members, memberId), {
-        roleIds: arrayUnion(roleId),
-      }),
-    ),
+    memberIds.map(async (memberId) => {
+      const roleIds = await rolesOf(memberId);
+      if (roleIds.includes(roleId)) return;
+      await manage({
+        op: "member.update",
+        memberId,
+        roleIds: [...roleIds, roleId],
+      });
+    }),
   );
 }
 
 /** Takes the role away from one member. */
-export function takeRole(roleId: string, memberId: string): Promise<void> {
-  return updateDoc(doc(db, Collections.members, memberId), {
-    roleIds: arrayRemove(roleId),
+export async function takeRole(
+  roleId: string,
+  memberId: string,
+): Promise<void> {
+  const roleIds = await rolesOf(memberId);
+  await manage({
+    op: "member.update",
+    memberId,
+    roleIds: roleIds.filter((id) => id !== roleId),
   });
 }

@@ -1,13 +1,15 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/ui/guide/WorkflowGuide.tsx
-// Version : 1.1.0
-// Latest commit: fix/general-wording
+// Version : 1.2.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Making a workflow one question at a time: its name, its tasks,
 // who does each, when each is due, then a last look before creating it. Each
 // step says what it's asking and why, and suggests common answers.
 
+import { decide } from "@engine/access/index";
 import { useMutation } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
+import { useActor } from "@/core/access";
 import { dataErrorMessage, type MemberRecord } from "@/core/data";
 import { memberName } from "@/features/members";
 import type { WorkGroupRecord } from "@/features/work-groups";
@@ -58,6 +60,7 @@ export function WorkflowGuide({
   onCancel,
   onCreated,
 }: WorkflowGuideProps) {
+  const actor = useActor();
   const [stepIndex, setStepIndex] = useState(0);
   const [newTask, setNewTask] = useState("");
   const [tried, setTried] = useState(false);
@@ -107,7 +110,15 @@ export function WorkflowGuide({
     else setStepIndex(stepIndex + 1);
   }
 
-  const giveToChoices = giveToOptions(groups, members);
+  // A workflow names only people at or below whoever makes it.
+  const giveToChoices = giveToOptions(
+    groups,
+    members,
+    (member) =>
+      !actor ||
+      decide(actor, { action: "workflow.namePerson", personRank: member.rank })
+        .ok,
+  );
   const whoLabel = (task: GuideAnswers["tasks"][number]) =>
     groups.find((group) => group.id === task.workGroupId)?.name ??
     (() => {

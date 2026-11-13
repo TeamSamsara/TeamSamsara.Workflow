@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/eventSets.rules.test.ts
-// Version : 1.0.0
-// Latest commit: feature/event-sets
+// Version : 1.1.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Tests sets of events against the rules: every member reads a set;
 // Plan events makes one together with its events and their tasks in one
@@ -127,7 +127,9 @@ beforeEach(async () => {
       position: 0,
     },
     "members/pat": { status: "active", roleIds: ["planner"], workGroupIds: [] },
-    "members/lee": { status: "active", roleIds: ["planner"], workGroupIds: [] },
+    // lee is in Bloom, so lee sees the set; pat made it.
+    "members/lee": { status: "active", roleIds: ["planner"], workGroupIds: ["bloom"] },
+    "members/ana": { status: "active", roleIds: ["planner"], workGroupIds: [] },
     "members/kai": { status: "active", roleIds: [], workGroupIds: ["bloom"] },
     "members/sam": { status: "active", roleIds: [], workGroupIds: ["design"] },
     "eventSets/split": stored(eventSet()),
@@ -252,6 +254,15 @@ describe("changing a set", () => {
     await assertSucceeds(
       updateDoc(doc(signedInAs(env, "lee"), "eventSets/split"), {
         name: "Spring Split",
+        updatedAt: serverTimestamp(),
+      }),
+    );
+  });
+
+  it("refuses a planner who can't see the set", async () => {
+    await assertFails(
+      updateDoc(doc(signedInAs(env, "ana"), "eventSets/split"), {
+        name: "Mine",
         updatedAt: serverTimestamp(),
       }),
     );

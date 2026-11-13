@@ -1,0 +1,75 @@
+/* File : /TeamSamsara.Workflow/app/src/views/settings/activity/ActivityView.module.css
+   Version : 1.0.0
+   Latest commit: feature/auto-assign
+   Author : Gerrah
+   Purpose : Look of Settings › Activity: the header with the area filter, and one row per change: what happened, who did it and when. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--content-gap);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-width: 640px;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-dialog-title);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-dialog-title);
+  text-transform: uppercase;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.entry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.entry:last-child {
+  border-bottom: 0;
+}
+
+.summary {
+  flex: 1 1 240px;
+  min-width: 0;
+  font-weight: var(--weight-medium);
+}
+
+.meta {
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+}

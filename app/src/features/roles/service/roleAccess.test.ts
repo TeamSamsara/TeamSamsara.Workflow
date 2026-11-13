@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/roles/service/roleAccess.test.ts
-// Version : 1.1.0
-// Latest commit: feature/members
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Tests what a member may do on the role screens: switches limited to
 // their own permissions, Administrator kept for administrators, deleting
@@ -80,9 +80,15 @@ describe("deleteBlocker", () => {
     expect(deleteBlocker(planner, roles, leadEditor)).toBeNull();
   });
 
-  it("keeps the last Administrator role", () => {
+  it("keeps the last Administrator role, even from an Owner", () => {
     expect(isLastAdministratorRole("admin", roles)).toBe(true);
-    expect(deleteBlocker(admin, roles, adminEditor)).toBe("lastAdmin");
+    expect(deleteBlocker(admin, roles, editorWith(["owner"]))).toBe(
+      "lastAdmin",
+    );
+  });
+
+  it("never lets an Administrator delete their own role", () => {
+    expect(deleteBlocker(admin, roles, adminEditor)).toBe("notManaged");
   });
 });
 
@@ -93,8 +99,12 @@ describe("firstMovableIndex", () => {
     expect(firstMovableIndex(ordered, roles, leadEditor)).toBe(2);
   });
 
-  it("lets an administrator move every role", () => {
-    expect(firstMovableIndex(ordered, roles, adminEditor)).toBe(0);
+  it("lets an administrator move the roles below their own", () => {
+    expect(firstMovableIndex(ordered, roles, adminEditor)).toBe(1);
+  });
+
+  it("lets an Owner move every role", () => {
+    expect(firstMovableIndex(ordered, roles, editorWith(["owner"]))).toBe(0);
   });
 
   it("locks the whole list for someone with no role above another", () => {
@@ -109,9 +119,8 @@ describe("givableRoles", () => {
     expect(ids(givableRoles(roles, leadEditor))).toEqual(["planner"]);
   });
 
-  it("offers an administrator every role but Everyone", () => {
+  it("offers an administrator every role below their own", () => {
     expect(ids(givableRoles(roles, adminEditor))).toEqual([
-      "admin",
       "lead",
       "planner",
       "reviewer",

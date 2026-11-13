@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/access/index.ts
-// Version : 1.0.0
-// Latest commit: core/access
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : What other layers may use from the access module.
 
@@ -20,5 +20,8 @@ export type { PermissionKey } from "./permissionKeys";
 export { RequirePermission } from "./RequirePermission";
 export { heldRoleIds, resolvePermissions } from "./resolvePermissions";
 export { assignableRoles, canManageRole, highestPosition } from "./roleRank";
+export { manage, manageRefusal } from "./manageService";
+export type { ManageOp, ManageRefusal, RoleToSave } from "./manageService";
+export { useActor } from "./useActor";
 export { useCan } from "./useCan";
 export { usePermissions } from "./usePermissions";
