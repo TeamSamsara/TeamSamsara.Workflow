@@ -1,0 +1,384 @@
+/* File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/pictures/Kit.module.css
+   Version : 1.0.0
+   Latest commit: feature/docs-refresh
+   Author : Gerrah
+   Purpose : The look of the help's pictures: small versions of Playbook's own
+   pieces (cards, rows, pills, faces, tabs), in the app's tokens so they
+   follow light and dark. */
+
+.scene {
+  position: relative;
+  box-sizing: border-box;
+  padding: var(--space-4);
+  border-radius: var(--radius-card);
+  background: var(--color-page);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.35;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  overflow: hidden;
+}
+
+.panel {
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-small);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panelTitle {
+  padding: 10px var(--space-3) 8px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 9px var(--space-3);
+  border-bottom: var(--border-width) solid var(--color-border);
+  min-height: 38px;
+  box-sizing: border-box;
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.row[data-glow="true"] {
+  background: color-mix(in srgb, var(--color-accent) 22%, var(--color-surface));
+}
+
+.grow {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  font-weight: var(--weight-bold);
+  font-size: 13px;
+}
+
+.small {
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+}
+
+.heading {
+  font-family: var(--font-display);
+  font-size: 22px;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: var(--radius-pill);
+  padding: 2px 9px;
+  font-size: 11px;
+  line-height: 1.3;
+  font-weight: var(--weight-bold);
+  white-space: nowrap;
+}
+
+.chip[data-tone="accent"] {
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+
+.chip[data-tone="info"] {
+  background: var(--color-info);
+  color: var(--color-text-on-info);
+}
+
+.chip[data-tone="warn"] {
+  background: var(--palette-amber);
+  color: var(--palette-ink);
+}
+
+.chip[data-tone="alert"] {
+  background: var(--color-error);
+  color: var(--color-text-on-error);
+}
+
+.chip[data-tone="neutral"] {
+  background: var(--color-field-fill);
+  color: var(--color-text);
+  font-weight: var(--weight-medium);
+}
+
+.chip[data-tone="outline"] {
+  border: var(--border-width) solid var(--color-text);
+  font-weight: var(--weight-medium);
+}
+
+.face {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-pill);
+  background: var(--color-avatar-placeholder);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9.5px;
+  font-weight: var(--weight-bold);
+}
+
+.tabs {
+  display: flex;
+  gap: var(--space-4);
+  font-family: var(--font-display);
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.tab {
+  color: var(--color-text-muted);
+  padding: 2px 0 5px;
+  border-bottom: 3px solid transparent;
+}
+
+.tab[data-on="true"] {
+  color: var(--color-text);
+  border-bottom-color: var(--color-accent);
+}
+
+.segments {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: var(--radius-small);
+  background: var(--color-field-fill);
+  font-family: var(--font-display);
+  font-size: 13px;
+  text-transform: uppercase;
+  align-self: flex-start;
+}
+
+.segment {
+  padding: 3px 10px;
+  border-radius: 6px;
+  color: var(--color-text-muted);
+}
+
+.segment[data-on="true"] {
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  height: 28px;
+  padding: 0 var(--space-3);
+  border-radius: 8px;
+  border: var(--border-width) solid var(--color-text);
+  font-family: var(--font-display);
+  font-size: 13px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.button[data-primary="true"] {
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  border-color: transparent;
+}
+
+.field {
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: 8px;
+  background: var(--color-surface);
+  padding: 5px 10px;
+}
+
+.strike {
+  white-space: nowrap;
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}
+
+.arrow {
+  align-self: center;
+  color: var(--color-text-muted);
+  font-size: 15px;
+}
+
+.spot {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 12px;
+  max-width: 100%;
+}
+
+.spot[data-wide="true"] {
+  align-self: stretch;
+  width: 100%;
+}
+
+.spot[data-wide="true"] > .ring {
+  flex-grow: 1;
+}
+
+.spot[data-wide="true"] > .ring > * {
+  flex-grow: 1;
+}
+
+.mark {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: var(--weight-bold);
+  background: var(--color-text);
+  color: var(--color-surface);
+}
+
+.mark[data-on="true"] {
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+
+.ring {
+  display: inline-flex;
+  min-width: 0;
+  border-radius: 8px;
+  outline: 1.5px solid transparent;
+  outline-offset: 5px;
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    outline-color 160ms ease;
+}
+
+/* A soft halo with room around what it points at, so it never sits on top
+   of an underline, a border or the text itself. */
+.ring[data-on="true"] {
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--color-accent) 14%, transparent);
+  outline: 1.5px solid var(--color-accent);
+  outline-offset: 5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring {
+    transition: none;
+  }
+}
+
+.pop {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.08),
+    0 10px 24px rgba(0, 0, 0, 0.14);
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.box {
+  flex-shrink: 0;
+  width: 13px;
+  height: 13px;
+  box-sizing: border-box;
+  border: 1.5px solid var(--color-text-muted);
+  border-radius: 3px;
+}
+
+.box[data-round="true"] {
+  border-radius: var(--radius-pill);
+}
+
+.box[data-on="true"] {
+  border-color: var(--color-text);
+  background: var(--color-accent);
+  box-shadow: inset 0 0 0 2px var(--color-surface);
+}
+
+.switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 28px;
+  height: 16px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border-control);
+}
+
+.switch[data-on="true"] {
+  background: var(--color-accent);
+}
+
+.knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-pill);
+  background: var(--color-text);
+}
+
+.switch[data-on="true"] .knob {
+  left: 14px;
+}
+
+.count {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 8px;
+  border-radius: 7px;
+  background: var(--color-field-fill);
+  font-size: 11px;
+}
+
+.count b {
+  font-family: var(--font-display);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.count[data-tone="accent"] {
+  background: color-mix(in srgb, var(--color-accent) 30%, var(--color-surface));
+}
+
+.count[data-tone="warn"] {
+  background: color-mix(
+    in srgb,
+    var(--palette-amber) 45%,
+    var(--color-surface)
+  );
+}
+
+.count[data-tone="alert"] {
+  background: color-mix(in srgb, var(--color-error) 22%, var(--color-surface));
+}
