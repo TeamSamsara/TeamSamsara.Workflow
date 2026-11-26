@@ -31,6 +31,7 @@ const item = (
     walkthrough: null,
     tagIds: [],
     teamView: { hidden: [], order: [], zone: "team" },
+    lastSeenRelease: null,
     invitedBy: null,
     invitedAt: null,
     joinedAt: null,

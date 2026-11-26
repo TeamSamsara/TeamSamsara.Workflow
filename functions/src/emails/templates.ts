@@ -196,6 +196,7 @@ const settingNames: Record<SettingGroup, string> = {
   mine: "My task is approved or sent back",
   review: "A task is sent to me to review",
   events: "I'm added to an event, or one I'm in changes",
+  news: "Playbook has a new version",
 };
 
 interface KindLook {
@@ -287,6 +288,11 @@ const kinds: Record<NotificationKind, KindLook> = {
     button: "Open the task",
     detail: "when",
     whenLabel: "Due",
+  },
+  release: {
+    eyebrow: "What's new",
+    button: "See what's new",
+    detail: "none",
   },
 };
 

@@ -64,6 +64,15 @@ export interface TeamViewPrefs {
   zone: "team" | "mine";
 }
 
+function readLastSeenRelease(data: DocumentData): string | null {
+  const prefs: unknown = data.prefs;
+  const value =
+    prefs && typeof prefs === "object"
+      ? (prefs as DocumentData).lastSeenRelease
+      : undefined;
+  return typeof value === "string" && value ? value : null;
+}
+
 function readTeamView(data: DocumentData): TeamViewPrefs {
   const prefs: unknown = data.prefs;
   const view =
@@ -110,6 +119,8 @@ export interface MemberRecord {
   tagIds: string[];
   /** How they like Team availability: who they hide, their order, whose time. */
   teamView: TeamViewPrefs;
+  /** The newest release they've seen in What's new ("1.2.0"); null if none yet. */
+  lastSeenRelease: string | null;
   /** Account id of the member who sent the invite, if any. */
   invitedBy: string | null;
   invitedAt: Date | null;
@@ -140,6 +151,7 @@ function parse(id: string, data: DocumentData): MemberRecord {
     walkthrough: readWalkthrough(data),
     tagIds: readStringList(data, "tagIds"),
     teamView: readTeamView(data),
+    lastSeenRelease: readLastSeenRelease(data),
     invitedBy: readOptionalString(data, "invitedBy"),
     invitedAt: readDate(data, "invitedAt"),
     joinedAt: readDate(data, "joinedAt"),

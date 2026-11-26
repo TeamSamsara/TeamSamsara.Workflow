@@ -19,10 +19,12 @@ import { Icon } from "@/shared/icons/Icon";
 import type { IconName } from "@/shared/icons/iconRegistry";
 import { useNow } from "@/shared/hooks/useNow";
 import {
+  docsPath,
   eventPath,
   eventSetPath,
   RoutePaths,
   taskPath,
+  WhatsNewArticle,
 } from "@/shared/constants/routePaths";
 import { formatDue } from "@/features/tasks";
 import { dayKey, formatShortDate } from "@/shared/time/dates";
@@ -57,6 +59,7 @@ const look: Record<NotificationKind, { icon: IconName; tone: string }> = {
   tasksMoved: { icon: "time", tone: "task" },
   tasksHandedOut: { icon: "myTasks", tone: "task" },
   taskWaiting: { icon: "warning", tone: "alert" },
+  release: { icon: "info", tone: "event" },
 };
 
 interface NotificationListProps {
@@ -102,7 +105,9 @@ export function NotificationList({
               note.kind === "tasksMoved" ||
               note.kind === "tasksHandedOut"
             ? RoutePaths.myTasks
-            : null;
+            : note.kind === "release"
+              ? docsPath(WhatsNewArticle)
+              : null;
     onOpen?.();
     if (to) navigate(to);
   }

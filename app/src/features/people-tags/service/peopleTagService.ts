@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/people-tags/service/peopleTagService.ts
-// Version : 1.0.0
-// Latest commit: feature/audit-fixes
+// Version : 1.1.0
+// Latest commit: feature/whats-new
 // Author : Gerrah
 // Purpose : Putting people tags on a member, deleting a tag (it comes off
 // everyone who had it, in the same batches), and saving how a member likes
@@ -55,13 +55,12 @@ export function saveTeamView(
   memberId: string,
   view: TeamViewPrefs,
 ): Promise<void> {
+  // Only their Team availability view; other preferences stay as they are.
   return updateDoc(doc(db, Collections.members, memberId), {
-    prefs: {
-      teamView: {
-        hidden: view.hidden.slice(0, maxPeople),
-        order: view.order.slice(0, maxPeople),
-        zone: view.zone,
-      },
+    "prefs.teamView": {
+      hidden: view.hidden.slice(0, maxPeople),
+      order: view.order.slice(0, maxPeople),
+      zone: view.zone,
     },
   });
 }

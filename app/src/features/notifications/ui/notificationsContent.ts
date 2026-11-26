@@ -100,6 +100,10 @@ export const NotificationSettingsText = {
       name: "I'm added to an event, or one I'm in changes",
       help: "Moved or cancelled, asked to reply, replies to yours, and its reminder.",
     },
+    news: {
+      name: "Playbook has a new version",
+      help: "What's new in it, once per release.",
+    },
   } satisfies Record<SettingGroup, { name: string; help: string }>,
   switchLabel: (name: string, where: string) => `${name}, ${where}`,
   reminders: "Reminders",

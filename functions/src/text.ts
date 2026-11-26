@@ -58,6 +58,8 @@ export function sentence(kind: NotificationKind, said: Said): string {
       return `${who} replied ${answerWords[said.answer ?? ""] ?? "to"} to ${said.title}`;
     case "setPlanned":
       return `${who} planned ${said.title}${said.detail ? `: ${said.detail}` : ""}`;
+    case "release":
+      return `Playbook ${said.title} is here${said.detail ? `: ${said.detail}` : ""}`;
     case "tasksMoved":
       // No one by name: Playbook itself (a platform update or the background sync).
       return `${said.actor ?? "Playbook"} changed ${said.title}${said.detail ? `: ${said.detail}` : ""}`;

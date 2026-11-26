@@ -149,6 +149,9 @@ export function planSeveralPath(setId?: string): string {
     : "/events/new/several";
 }
 
+/** The help page that lists every release: /docs/whats-new. */
+export const WhatsNewArticle = "whats-new";
+
 /** /docs/:articleId */
 export function docsPath(articleId?: string): string {
   return articleId ? `/docs/${encodeURIComponent(articleId)}` : "/docs";

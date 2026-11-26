@@ -19,7 +19,8 @@
     /* Path alias */
     "paths": {
       "@/*": ["./src/*"],
-      "@engine/*": ["../engine/src/*"]
+      "@engine/*": ["../engine/src/*"],
+      "@releases/*": ["../releases/*"]
     },
 
     /* Strict type checking */
@@ -31,6 +32,6 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "../engine/src"],
-  "exclude": ["../engine/src/**/*.test.ts"]
+  "include": ["src", "../engine/src", "../releases"],
+  "exclude": ["../engine/src/**/*.test.ts", "../releases/**/*.test.ts"]
 }

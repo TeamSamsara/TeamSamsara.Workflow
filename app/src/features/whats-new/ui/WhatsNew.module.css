@@ -1,0 +1,237 @@
+/* File : /TeamSamsara.Workflow/app/src/features/whats-new/ui/WhatsNew.module.css
+   Version : 1.0.0
+   Latest commit: feature/whats-new
+   Author : Gerrah
+   Purpose : Look of What's new: the panel after a release, one change at a
+   time, and the page with every release. */
+
+.panel {
+  display: flex;
+  gap: var(--space-5);
+  align-items: stretch;
+}
+
+.picture {
+  width: 360px;
+  min-height: 220px;
+  flex-shrink: 0;
+  border-radius: var(--radius-card);
+  background: var(--color-page);
+  overflow: hidden;
+}
+
+.change {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.changeTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-section-heading);
+  text-transform: uppercase;
+  line-height: 1.05;
+}
+
+.body {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.more {
+  margin-top: auto;
+  font-weight: var(--weight-bold);
+  color: var(--color-text);
+}
+
+.kind {
+  align-self: flex-start;
+  border-radius: var(--radius-pill);
+  padding: 2px var(--space-3);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+}
+
+.kind[data-kind="new"] {
+  background: var(--color-info);
+  color: var(--color-text-on-info);
+}
+
+.kind[data-kind="improved"] {
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+}
+
+.kind[data-kind="fixed"] {
+  background: var(--color-field-fill);
+  color: var(--color-text);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.dots {
+  display: inline-flex;
+  gap: var(--space-2);
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+  cursor: pointer;
+}
+
+.dot[aria-current="true"] {
+  width: 22px;
+  background: var(--color-text);
+}
+
+.dot:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.everything {
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+}
+
+.buttons {
+  margin-left: auto;
+  display: inline-flex;
+  gap: var(--space-2);
+}
+
+/* The page */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.pageHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.pageTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-page-title);
+  text-transform: uppercase;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.release {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: var(--border-width) solid var(--color-border);
+}
+
+.releaseHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.releaseTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-section-heading);
+  text-transform: uppercase;
+}
+
+.latest {
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  border-radius: var(--radius-pill);
+  padding: 2px var(--space-3);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+}
+
+.date {
+  margin-left: auto;
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+}
+
+.changes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.item {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding: var(--space-3) 0;
+  border-top: var(--border-width) solid var(--color-border);
+}
+
+.itemText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.itemTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: var(--weight-bold);
+}
+
+.admins {
+  background: var(--color-text);
+  color: var(--color-surface);
+  border-radius: var(--radius-pill);
+  padding: 1px var(--space-2);
+  font-size: var(--text-small);
+}
+
+.itemLink {
+  flex-shrink: 0;
+  font-weight: var(--weight-bold);
+  font-size: var(--text-meta);
+  color: var(--color-text);
+}
+
+@media (max-width: 720px) {
+  .panel {
+    flex-direction: column;
+  }
+
+  .picture {
+    width: 100%;
+  }
+}

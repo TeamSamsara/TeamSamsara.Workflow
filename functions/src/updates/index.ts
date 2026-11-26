@@ -8,6 +8,7 @@
 // pending ones shortly after a deploy (every 10 minutes it checks, one read),
 // and Administrators can check them (report only) or apply them now from
 // Settings › General, which is also how to run them in the local emulators.
+// After them, a new release is announced once (see announceLatestRelease).
 // A run takes a lock, so two can't overlap, and stops at the first failure.
 
 import { FieldValue, getFirestore, Timestamp } from "firebase-admin/firestore";
@@ -16,8 +17,13 @@ import { onCall } from "firebase-functions/v2/https";
 import { requireActor, requireAllowed } from "../access/readAccess.js";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { ownersAndRanks } from "./ownersAndRanks.js";
+import { defineSecret } from "firebase-functions/params";
+import { announceLatestRelease } from "../index.js";
 import { tasksFollowWorkflows } from "./tasksFollowWorkflows.js";
 import type { PlatformUpdate, UpdateReport } from "./types.js";
+
+/** The same secret the email sender uses (see index.ts). */
+const resendKey = defineSecret("RESEND_API_KEY");
 
 /** Every update, oldest first. Add new ones at the end; never reorder. */
 export const platformUpdates: readonly PlatformUpdate[] = [
@@ -140,19 +146,24 @@ export async function checkUpdates(): Promise<UpdateRow[]> {
 
 /** Shortly after a deploy, whatever's pending runs. */
 export const applyPlatformUpdates = onSchedule(
-  { schedule: "every 10 minutes", timeoutSeconds: 540 },
+  { schedule: "every 10 minutes", timeoutSeconds: 540, secrets: [resendKey] },
   async () => {
     await applyPending();
+    // Then a new release, once: what's new in it (see announceLatestRelease).
+    await announceLatestRelease();
   },
 );
 
 /** Settings › General: check (report only) or apply now. Administrators only. */
 export const platformUpdatesNow = onCall(
-  { timeoutSeconds: 540 },
+  { timeoutSeconds: 540, secrets: [resendKey] },
   async (request) => {
     const actor = await requireActor(getFirestore(), request.auth?.uid);
     requireAllowed(actor, { action: "settings.admin" });
-    if (request.data?.action === "apply") await applyPending();
+    if (request.data?.action === "apply") {
+      await applyPending();
+      await announceLatestRelease();
+    }
     return { updates: await checkUpdates() };
   },
 );

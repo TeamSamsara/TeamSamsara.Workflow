@@ -68,6 +68,11 @@ export function notificationLine(
       };
     case "setPlanned":
       return line("planned", note.detail ? `: ${note.detail}.` : ".");
+    case "release":
+      return {
+        ...line("released", note.detail ? `. ${note.detail}` : "."),
+        who: Text.playbook,
+      };
     case "tasksMoved":
       // No one by name: Playbook itself (a platform update or the background sync).
       return {

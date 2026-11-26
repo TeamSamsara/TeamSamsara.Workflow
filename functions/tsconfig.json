@@ -9,6 +9,6 @@
     "skipLibCheck": true,
     "sourceMap": true
   },
-  "include": ["src", "../engine/src"],
-  "exclude": ["src/**/*.test.ts", "../engine/src/**/*.test.ts"]
+  "include": ["src", "../engine/src", "../releases"],
+  "exclude": ["src/**/*.test.ts", "../engine/src/**/*.test.ts", "../releases/**/*.test.ts"]
 }

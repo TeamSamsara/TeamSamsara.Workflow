@@ -80,6 +80,11 @@ import {
 import { when, type Formats } from "./text.js";
 import { readWorkflow } from "./engineData.js";
 import {
+  compareVersions,
+  latestRelease,
+  releases,
+} from "../../releases/index.js";
+import {
   changedStepTitles,
   stepsChanged,
   syncWorkflow,
@@ -726,6 +731,52 @@ export const onWorkflowSaved = onDocumentWrittenWithAuthContext(
     });
   },
 );
+
+/** "1.2.0" → "1.2"; "1.2.1" stays as it is. */
+const shortVersion = (version: string) => version.replace(/\.0$/, "");
+
+/**
+ * A new release, once: everyone active hears what's new in it (in Playbook,
+ * and by email for those who chose it). Runs with the platform updates after
+ * a deploy (see updates/index.ts); the notes are in /releases.
+ */
+export async function announceLatestRelease(): Promise<string | null> {
+  const latest = latestRelease(releases);
+  if (!latest) return null;
+  const ref = db.doc("config/releases");
+  const claimed = await db.runTransaction(async (transaction) => {
+    const announced = (await transaction.get(ref)).data()?.announced;
+    if (
+      typeof announced === "string" &&
+      compareVersions(announced, latest.version) >= 0
+    )
+      return false;
+    transaction.set(
+      ref,
+      { announced: latest.version, announcedAt: FieldValue.serverTimestamp() },
+      { merge: true },
+    );
+    return true;
+  });
+  if (!claimed) return null;
+  const members = await activeMembers();
+  await deliver(
+    members.map((member) => member.id),
+    {
+      kind: "release",
+      actorId: null,
+      title: shortVersion(latest.version),
+      detail: latest.summary.slice(0, 300),
+      taskId: null,
+      eventId: null,
+      groupId: null,
+      path: "/docs/whats-new",
+    },
+    members,
+  );
+  logger.info("Release announced", { version: latest.version });
+  return latest.version;
+}
 
 // #endregion
 

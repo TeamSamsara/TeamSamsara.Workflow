@@ -34,6 +34,7 @@ export const NotificationKinds = [
   "tasksMoved",
   "tasksHandedOut",
   "taskWaiting",
+  "release",
 ] as const;
 export type NotificationKind = (typeof NotificationKinds)[number];
 
@@ -139,7 +140,13 @@ export const notificationConverter = createConverter<NotificationRecord>({
 
 // #region Settings
 
-export const SettingGroups = ["given", "mine", "review", "events"] as const;
+export const SettingGroups = [
+  "given",
+  "mine",
+  "review",
+  "events",
+  "news",
+] as const;
 export type SettingGroup = (typeof SettingGroups)[number];
 
 export const TaskReminders = ["off", "1h", "2h", "dayBefore"] as const;
@@ -155,8 +162,14 @@ export interface NotificationSettings {
 }
 
 export const defaultNotificationSettings: NotificationSettings = {
-  app: { given: true, mine: true, review: true, events: true },
-  email: { given: false, mine: false, review: true, events: false },
+  app: { given: true, mine: true, review: true, events: true, news: true },
+  email: {
+    given: false,
+    mine: false,
+    review: true,
+    events: false,
+    news: false,
+  },
   taskReminder: "2h",
   eventReminder: "1h",
 };
