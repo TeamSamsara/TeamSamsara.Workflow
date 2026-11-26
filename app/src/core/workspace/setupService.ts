@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/workspace/setupService.ts
-// Version : 1.2.0
-// Latest commit: feature/task-setup
+// Version : 1.3.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : First-time setup. Gets a sign-in account (the one already signed in,
 // a new one, or an existing one with the right password), then writes the
@@ -23,7 +23,7 @@ import {
   type SessionUser,
 } from "@/core/session";
 import { db } from "@/lib/firebase";
-import { AdminRoleId, defaultRoles } from "./seed/defaultRoles";
+import { defaultRoles, OwnerRoleId } from "./seed/defaultRoles";
 import { defaultStatuses } from "./seed/defaultStatuses";
 import { workspaceRef } from "./workspaceService";
 import type { WorkspaceSettings } from "./workspaceTypes";
@@ -80,7 +80,7 @@ export async function setUpWorkspace(details: SetupDetails): Promise<void> {
     displayName: details.account.displayName.trim(),
     email: user.email,
     status: "active",
-    roleIds: [AdminRoleId],
+    roleIds: [OwnerRoleId],
     workGroupIds: [],
     timeZone: null,
     invitedBy: null,

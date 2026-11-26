@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/models/memberModel.ts
-// Version : 1.5.0
+// Version : 1.6.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The member record (members/{account id}): who the person is, whether
@@ -86,6 +86,12 @@ export interface MemberRecord {
   status: MemberStatus;
   roleIds: string[];
   workGroupIds: string[];
+  /**
+   * Their highest role's position (Owners above all), and the work groups
+   * they lead. Kept by the server for permission checks; never written here.
+   */
+  rank: number;
+  leadOf: string[];
   /** Shown first wherever they appear, with the real name under it. */
   gameName: string | null;
   /** Their profile photo (a download address in Storage); null shows initials. */
@@ -120,6 +126,8 @@ function parse(id: string, data: DocumentData): MemberRecord {
     status: readChoice(data, "status", MemberStatuses, "disabled"),
     roleIds: readStringList(data, "roleIds"),
     workGroupIds: readStringList(data, "workGroupIds"),
+    rank: typeof data.rank === "number" ? data.rank : 0,
+    leadOf: readStringList(data, "leadOf"),
     gameName: readOptionalString(data, "gameName"),
     photoUrl: readOptionalString(data, "photoUrl"),
     timeZone: readOptionalString(data, "timeZone"),

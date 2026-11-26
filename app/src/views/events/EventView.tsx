@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/EventView.tsx
-// Version : 1.7.1
+// Version : 1.8.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : An event's page: when and what it is, its tasks and how far along
@@ -32,6 +32,7 @@ import {
   isAsked,
   useReplyFromLink,
   type AttendancePerson,
+  useCanManage,
 } from "@/features/events";
 import { memberName, useMembers } from "@/features/members";
 import { usePlatforms } from "@/features/platforms";
@@ -95,7 +96,8 @@ function EventPage({ event }: { event: EventRecord }) {
   const time = useDisplayTime();
   const taskFormats = useTaskFormats();
   const tz = time.timeZone;
-  const canPlan = access.can("planEvents");
+  // Planners change events they can see, made by someone at or below them.
+  const canPlan = useCanManage(event);
   const type = eventTypes.items.find((entry) => entry.id === event.eventTypeId);
   const repeat = useRepeat(event.repeatId);
   const set = useEventSet(event.setId);

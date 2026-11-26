@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/groups/groupsViewContent.ts
-// Version : 1.0.0
-// Latest commit: feature/audit-fixes
+// Version : 1.1.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : The words on the Groups list and a group's overview.
 
@@ -26,6 +26,7 @@ export const GroupsViewText = {
 
 export const GroupViewText = {
   groups: "Groups",
+  handOut: "Handing out tasks",
   loading: "Loading the group",
   notFound: "This group doesn't exist any more.",
   back: "All groups",

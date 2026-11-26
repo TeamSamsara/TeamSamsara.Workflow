@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/index.ts
-// Version : 1.3.0
-// Latest commit: feature/audit-fixes
+// Version : 1.4.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : What other layers may use from the tasks feature.
 
@@ -11,6 +11,7 @@ export {
   useOpenTasksFor,
   useTask,
   useTasksInStatuses,
+  useWaitingTasks,
 } from "./hooks/useTasks";
 export type { TaskList } from "./hooks/useTasks";
 export { isAssignedTo, isGivenToMe } from "./model/assignment";
@@ -42,6 +43,7 @@ export {
 export type { TaskDraft } from "./model/taskDraft";
 export { categoryOf, statusOf } from "./model/taskStatusFlow";
 export {
+  claimTask,
   createTask,
   deleteTask,
   newTaskData,

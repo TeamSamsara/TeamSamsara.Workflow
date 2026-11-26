@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/emails/templates.ts
-// Version : 1.1.0
-// Latest commit: feature/audit-fixes
+// Version : 1.2.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Every email Playbook sends, built on the shared layout: the
 // invite, the forgot-password email, the test email, and one per kind of
@@ -276,6 +276,17 @@ const kinds: Record<NotificationKind, KindLook> = {
     eyebrow: "Tasks moved",
     button: "See your tasks",
     detail: "none",
+  },
+  tasksHandedOut: {
+    eyebrow: "New tasks",
+    button: "See your tasks",
+    detail: "none",
+  },
+  taskWaiting: {
+    eyebrow: "Still waiting",
+    button: "Open the task",
+    detail: "when",
+    whenLabel: "Due",
   },
 };
 

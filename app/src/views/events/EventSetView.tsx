@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/EventSetView.tsx
-// Version : 1.3.0
+// Version : 1.4.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : One set's page: what its events share, how far along it is
@@ -11,7 +11,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { usePermissions } from "@/core/access";
 import { dataErrorMessage, DataErrorText } from "@/core/data";
 import { useSession } from "@/core/session";
 import { useDisplayTime, useWorkspaceRecord } from "@/core/workspace";
@@ -33,6 +32,7 @@ import {
   type EventRecord,
   type EventSetRecord,
   useTaskFormats,
+  useCanManage,
 } from "@/features/events";
 import { fieldText, useFields } from "@/features/fields";
 import { useEventTypes } from "@/features/task-setup";
@@ -213,7 +213,6 @@ function DeleteDialog({
 }
 
 function SetPage({ set }: { set: EventSetRecord }) {
-  const access = usePermissions();
   const session = useSession();
   const member = session.status === "active" ? session.member : null;
   const workspace = useWorkspaceRecord();
@@ -236,7 +235,8 @@ function SetPage({ set }: { set: EventSetRecord }) {
   } | null>(null);
 
   const tz = time.timeZone;
-  const canPlan = access.can("planEvents");
+  // Planners change sets they can see, made by someone at or below them.
+  const canPlan = useCanManage(set);
   const type = eventTypes.items.find((entry) => entry.id === set.eventTypeId);
   const gaps = useSetGaps(set);
   const audience = [

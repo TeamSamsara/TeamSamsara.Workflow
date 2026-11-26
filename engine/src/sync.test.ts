@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/engine/src/sync.test.ts
-// Version : 1.0.1
-// Latest commit: feature/audit-fixes
+// Version : 1.1.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Tests keeping a task in line with its step: untouched parts
 // follow, parts changed by hand stay (recorded, or worked out for older
@@ -133,6 +133,20 @@ describe("planTaskSync", () => {
     expect(planTaskSync(fresh, made(now1hBefore), null, { now })?.parts).toEqual(
       ["due", "assignee", "posts"],
     );
+  });
+
+  it("keeps whoever in the step's group took the task", () => {
+    const inGroup = { ...now1hBefore, posts: null };
+    const taken = taskFrom(inGroup, { memberId: "sam", editedParts: [] });
+    expect(planTaskSync(taken, made(inGroup), null, { now })).toBeNull();
+    // A step moved to another group takes the task with it, without them.
+    const moved = planTaskSync(
+      taken,
+      made({ ...inGroup, workGroupId: "video" }),
+      made(inGroup),
+      { now },
+    );
+    expect(moved?.changes).toMatchObject({ workGroupId: "video", memberId: null });
   });
 
   it("keeps ticks and hand-added items, adds the step's new ones", () => {

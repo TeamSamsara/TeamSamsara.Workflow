@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/service/taskService.ts
-// Version : 1.3.0
-// Latest commit: feature/audit-fixes
+// Version : 1.4.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Every change to a task: make one, edit it, move it on (send for
 // review, approve, ask for changes, mark done, reopen, set a status), tick its
@@ -207,6 +207,11 @@ export function reassignTask(
   editedParts: readonly string[],
 ): Promise<void> {
   return update(id, { workGroupId, memberId, editedParts: [...editedParts] });
+}
+
+/** Takes a group's waiting task for yourself. */
+export function claimTask(id: string, memberId: string): Promise<void> {
+  return update(id, { memberId });
 }
 
 export function deleteTask(id: string): Promise<void> {

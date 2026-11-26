@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/session/sessionState.test.ts
-// Version : 1.4.0
-// Latest commit: feature/attendance-photos
+// Version : 1.5.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Tests every combination of sign-in account and member record.
 
@@ -17,6 +17,8 @@ const member: MemberRecord = {
   status: "active",
   roleIds: [],
   workGroupIds: [],
+  rank: 0,
+  leadOf: [],
   gameName: null,
   photoUrl: null,
   timeZone: null,

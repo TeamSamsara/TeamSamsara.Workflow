@@ -1,10 +1,10 @@
 // File : /TeamSamsara.Workflow/tests/rules/fields.rules.test.ts
-// Version : 1.0.0
-// Latest commit: feature/event-fields
+// Version : 1.1.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Tests fields against the rules: every member reads them; Edit
-// workflows makes one under a proper key (never a built-in one); only admins
-// change or delete one. Also: Plan events may fill an event's task text again
+// workflows makes one under a proper key (never a built-in one), and changes
+// or deletes it. Also: Plan events may fill an event's task text again
 // from its fields, but not change anything else about it that way.
 
 import {
@@ -109,6 +109,13 @@ beforeEach(async () => {
       field({ name: "League", type: "choice", choices: ["NACL"] }),
     ),
     "tasks/t1": stored(task),
+    "events/match1": {
+      title: "Match",
+      everyone: true,
+      memberIds: [],
+      groupIds: [],
+      createdBy: "pat",
+    },
   });
 });
 
@@ -152,17 +159,17 @@ describe("fields", () => {
     );
   });
 
-  it("lets only admins change or delete one", async () => {
+  it("lets Edit workflows change or delete one, and nobody else", async () => {
     const change = { name: "Division", updatedAt: serverTimestamp() };
     await assertFails(
+      updateDoc(doc(signedInAs(env, "kai"), "fields/league"), change),
+    );
+    await assertFails(deleteDoc(doc(signedInAs(env, "pat"), "fields/league")));
+    await assertSucceeds(
       updateDoc(doc(signedInAs(env, "eli"), "fields/league"), change),
     );
-    await assertFails(deleteDoc(doc(signedInAs(env, "eli"), "fields/league")));
     await assertSucceeds(
-      updateDoc(doc(signedInAs(env, "ada"), "fields/league"), change),
-    );
-    await assertSucceeds(
-      deleteDoc(doc(signedInAs(env, "ada"), "fields/league")),
+      deleteDoc(doc(signedInAs(env, "eli"), "fields/league")),
     );
   });
 

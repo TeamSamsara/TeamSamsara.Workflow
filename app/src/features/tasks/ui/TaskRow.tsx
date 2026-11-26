@@ -1,12 +1,13 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/ui/TaskRow.tsx
-// Version : 1.1.0
-// Latest commit: feature/audit-fixes
+// Version : 1.2.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : One task in a list: its title (opens the task) with its event
 // under it (a link, or "Event deleted"), who it's given to, when it's due
 // (red once late, with "Late from the start" when it was planned after that),
 // and its status. Finished tasks show when they were done and by whom.
 
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import type { MemberRecord, StatusRecord } from "@/core/data";
 import { StatusPill } from "@/features/task-setup";
@@ -44,9 +45,12 @@ export interface TaskListContext {
 export function TaskRow({
   task,
   context,
+  action,
 }: {
   task: TaskRecord;
   context: TaskListContext;
+  /** A button at the end of the row, like Claim. */
+  action?: ReactNode;
 }) {
   const group = context.groups.find((entry) => entry.id === task.workGroupId);
   const member = context.members.find((entry) => entry.id === task.memberId);
@@ -104,6 +108,7 @@ export function TaskRow({
           <Pill tone="muted">{DueText.lateFromStart}</Pill>
         ) : null}
         {status ? <StatusPill status={status} /> : null}
+        {action}
       </span>
     </li>
   );
@@ -115,7 +120,10 @@ interface TaskGroupCardProps {
   context: TaskListContext;
   /** Shown under the title (why this list is here). */
   note?: string;
-  tone?: "default" | "late";
+  /** late: a red edge. waiting: a dashed edge, for tasks waiting for someone. */
+  tone?: "default" | "late" | "waiting";
+  /** A button at the end of each row, like Claim. */
+  actionFor?: (task: TaskRecord) => ReactNode;
 }
 
 export function TaskGroupCard({
@@ -124,6 +132,7 @@ export function TaskGroupCard({
   context,
   note,
   tone = "default",
+  actionFor,
 }: TaskGroupCardProps) {
   return (
     <section className={styles.card} data-tone={tone} aria-label={title}>
@@ -134,7 +143,12 @@ export function TaskGroupCard({
       {note ? <p className={styles.muted}>{note}</p> : null}
       <ul className={styles.list}>
         {tasks.map((task) => (
-          <TaskRow key={task.id} task={task} context={context} />
+          <TaskRow
+            key={task.id}
+            task={task}
+            context={context}
+            action={actionFor?.(task)}
+          />
         ))}
       </ul>
     </section>

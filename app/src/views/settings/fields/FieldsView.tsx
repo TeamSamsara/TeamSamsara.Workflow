@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/fields/FieldsView.tsx
-// Version : 1.0.1
+// Version : 1.1.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Settings › Fields: every field with how text writes it, its type
@@ -80,7 +80,8 @@ export function FieldsView() {
   const workflows = useWorkflows();
   const [editing, setEditing] = useState<FieldRecord | "new" | null>(null);
   const [deleting, setDeleting] = useState<FieldRecord | null>(null);
-  const isAdmin = access.can("administrator");
+  // Edit workflows makes, changes and deletes fields.
+  const isAdmin = access.can("editWorkflows");
   const canMake = access.can("editWorkflows");
 
   const usedIn = (key: string) =>

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/index.ts
-// Version : 1.3.0
-// Latest commit: feature/audit-fixes
+// Version : 1.4.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : What other layers may use from the work groups feature.
 
@@ -11,13 +11,11 @@ export { useWorkGroups } from "./hooks/useWorkGroups";
 export type { WorkGroupList } from "./hooks/useWorkGroups";
 export {
   addToWorkGroup,
+  changeHandOut,
   removeFromWorkGroup,
 } from "./service/workGroupService";
-export {
-  canLeadGroups,
-  checkLink,
-  LeadPermissions,
-} from "./service/groupRules";
+export type { HandOutChange } from "./service/workGroupService";
+export { checkLink } from "./service/groupRules";
 export {
   groupColor,
   WorkGroupLimits,
@@ -30,6 +28,7 @@ export type {
   WorkGroupRecord,
 } from "./types/workGroupTypes";
 export { DeleteWorkGroupDialog } from "./ui/DeleteWorkGroupDialog";
+export { GroupHandOut } from "./ui/GroupHandOut";
 export { NewWorkGroupDialog } from "./ui/NewWorkGroupDialog";
 export { WorkGroupForm } from "./ui/WorkGroupForm";
 export { WorkGroupGrid } from "./ui/WorkGroupGrid";

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/engine/src/sync.ts
-// Version : 1.0.0
-// Latest commit: feature/audit-fixes
+// Version : 1.1.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Keeping a task in line with its workflow step. Given the task as
 // it is and what its step makes for its event now, works out what to write,
@@ -206,9 +206,16 @@ export function planTaskSync(
     else take("due", isEdited, () => (changes.dueAt = next.dueAt));
   }
 
-  // Who it's given to; a task given to no one always takes the step's.
+  // Who it's given to; a task given to no one always takes the step's. A
+  // step that names only a group keeps whoever in it took the task (handed
+  // out, claimed, or given by a lead).
   const nobody = !task.workGroupId && !task.memberId;
+  const takenInGroup =
+    next.memberId === null &&
+    next.workGroupId !== null &&
+    next.workGroupId === task.workGroupId;
   if (
+    !takenInGroup &&
     (next.workGroupId !== task.workGroupId ||
       next.memberId !== task.memberId) &&
     (nobody ||

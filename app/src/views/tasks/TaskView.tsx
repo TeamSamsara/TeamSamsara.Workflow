@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/views/tasks/TaskView.tsx
-// Version : 1.4.0
+// Version : 1.5.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : A task's page: where it is (the status steps), how to do it, the
@@ -11,7 +11,7 @@ import { useState } from "react";
 import { Link, useBlocker, useNavigate, useParams } from "react-router-dom";
 import { dataErrorMessage, isCurrentMember } from "@/core/data";
 import { useDisplayTime, useWorkspaceRecord } from "@/core/workspace";
-import { useEventLabels } from "@/features/events";
+import { useEvent, useEventLabels } from "@/features/events";
 import { memberName, useMembers } from "@/features/members";
 import { usePlatforms } from "@/features/platforms";
 import { StatusPill, useStatuses, useTags } from "@/features/task-setup";
@@ -63,7 +63,13 @@ function TaskPage({ task }: { task: TaskRecord }) {
   const members = useMembers();
   const tags = useTags();
   const platforms = usePlatforms();
-  const abilities = useTaskAbilities(task);
+  const taskEvent = useEvent(task.eventId ?? undefined);
+  const abilities = useTaskAbilities(task, {
+    event: taskEvent ?? null,
+    awaitingReview:
+      statuses.items.find((status) => status.id === task.statusId)?.category ===
+      "awaitingApproval",
+  });
   const toast = useToast();
   const navigate = useNavigate();
   const now = useNow();
@@ -264,6 +270,7 @@ function TaskPage({ task }: { task: TaskRecord }) {
                 task={task}
                 members={members.records}
                 formatWhen={when}
+                blockedBy={abilities.approveBlockedBy}
               />
             ) : null}
             <AssignedCard

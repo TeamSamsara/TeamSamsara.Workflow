@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/hooks/useEvents.ts
-// Version : 1.2.0
-// Latest commit: feature/calendar-people
+// Version : 1.3.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Live events for the dates on screen, one event by id, an event's
 // tasks, how far each shown event's tasks are, and the one-off tasks due in
@@ -44,11 +44,8 @@ function toLive<T>(result: {
 /** Whether this member may read every task (so lists can ask for all of them). */
 export function useSeesAllTasks(): boolean {
   const access = usePermissions();
-  return (
-    access.can("viewAll") ||
-    access.can("approveTasks") ||
-    access.can("editAnyTask")
-  );
+  // Approvers see only what's waiting for review, so they aren't counted.
+  return access.can("viewAll") || access.can("editAnyTask");
 }
 
 /** Whether this member sees every event (View all). */

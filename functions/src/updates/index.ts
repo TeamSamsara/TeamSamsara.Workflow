@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/updates/index.ts
-// Version : 1.0.0
-// Latest commit: feature/audit-fixes
+// Version : 1.2.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Platform updates: one-time changes to the stored data that ship
 // with a release. Each is listed here in order; config/platformUpdates keeps
@@ -12,13 +12,18 @@
 
 import { FieldValue, getFirestore, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
-import { HttpsError, onCall } from "firebase-functions/v2/https";
+import { onCall } from "firebase-functions/v2/https";
+import { requireActor, requireAllowed } from "../access/readAccess.js";
 import { onSchedule } from "firebase-functions/v2/scheduler";
+import { ownersAndRanks } from "./ownersAndRanks.js";
 import { tasksFollowWorkflows } from "./tasksFollowWorkflows.js";
 import type { PlatformUpdate, UpdateReport } from "./types.js";
 
 /** Every update, oldest first. Add new ones at the end; never reorder. */
-export const platformUpdates: readonly PlatformUpdate[] = [tasksFollowWorkflows];
+export const platformUpdates: readonly PlatformUpdate[] = [
+  tasksFollowWorkflows,
+  ownersAndRanks,
+];
 
 const stateDoc = "config/platformUpdates";
 /** A run that hasn't finished in this long is taken to have died. */
@@ -49,8 +54,7 @@ async function lock(): Promise<boolean> {
   return db.runTransaction(async (transaction) => {
     const ref = db.doc(stateDoc);
     const running = (await transaction.get(ref)).data()?.runningSince as
-      | Timestamp
-      | undefined;
+      Timestamp | undefined;
     if (running && Date.now() - running.toMillis() < lockMinutes * 60_000)
       return false;
     transaction.set(
@@ -99,10 +103,15 @@ export async function applyPending(): Promise<UpdateRow[]> {
     }
   } catch (error) {
     logger.error("Platform update failed", error);
-    await db.doc(stateDoc).set(
-      { lastError: String(error).slice(0, 500), lastErrorAt: FieldValue.serverTimestamp() },
-      { merge: true },
-    );
+    await db
+      .doc(stateDoc)
+      .set(
+        {
+          lastError: String(error).slice(0, 500),
+          lastErrorAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
     throw error;
   } finally {
     await unlock();
@@ -141,26 +150,8 @@ export const applyPlatformUpdates = onSchedule(
 export const platformUpdatesNow = onCall(
   { timeoutSeconds: 540 },
   async (request) => {
-    const uid = request.auth?.uid;
-    if (!uid) throw new HttpsError("unauthenticated", "Sign in first.");
-    const db = getFirestore();
-    const member = (await db.doc(`members/${uid}`).get()).data();
-    const grants = ((await db.doc("config/roles").get()).data()?.grants ??
-      {}) as Record<string, unknown>;
-    const admins = new Set(
-      Array.isArray(grants.administrator) ? grants.administrator : [],
-    );
-    const roles: unknown[] = Array.isArray(member?.roleIds)
-      ? member.roleIds
-      : [];
-    if (
-      member?.status !== "active" ||
-      ![...roles, "everyone"].some((role) => admins.has(role))
-    )
-      throw new HttpsError(
-        "permission-denied",
-        "Only Administrators can run platform updates.",
-      );
+    const actor = await requireActor(getFirestore(), request.auth?.uid);
+    requireAllowed(actor, { action: "settings.admin" });
     if (request.data?.action === "apply") await applyPending();
     return { updates: await checkUpdates() };
   },

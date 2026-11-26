@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/types/notificationTypes.ts
-// Version : 1.2.0
-// Latest commit: feature/audit-fixes
+// Version : 1.3.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : A notification (written by the server functions, see
 // functions/src/model.ts, which keeps the same kinds and settings) and each
@@ -32,6 +32,8 @@ export const NotificationKinds = [
   "replied",
   "setPlanned",
   "tasksMoved",
+  "tasksHandedOut",
+  "taskWaiting",
 ] as const;
 export type NotificationKind = (typeof NotificationKinds)[number];
 

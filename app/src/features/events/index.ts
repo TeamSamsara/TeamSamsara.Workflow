@@ -1,9 +1,10 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/index.ts
-// Version : 1.11.0
+// Version : 1.12.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : What other layers may use from the events feature.
 
+export { useCanManage } from "./hooks/useCanManage";
 export {
   useEvent,
   useSeesAllEvents,

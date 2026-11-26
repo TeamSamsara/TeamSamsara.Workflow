@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/ui/workflowsContent.ts
-// Version : 1.3.0
-// Latest commit: feature/event-fields
+// Version : 1.4.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : The words for the workflows list and editor: the table, the task
 // list, each task's fields and sections, due times, and the gaps card.
@@ -49,6 +49,15 @@ export const StepEditorText = {
   people: "People",
   whoInGroup: (group: string) => `Who in ${group}`,
   anyoneInGroup: (group: string) => `Anyone in ${group}`,
+  leastBusy: "Whoever's least busy and free",
+  lead: (name: string) => `${name} (lead)`,
+  aboveRank: (name: string) => `${name} (above your rank)`,
+  whoNamed: (name: string, group: string) =>
+    `On each event this task goes to ${name}, even over ${group}'s daily limit. If ${name} leaves ${group}, it goes back to the group.`,
+  whoHandedOut: (group: string) =>
+    `${group} hands out its tasks: on each event this task goes to whoever's least busy and free, or waits for someone in ${group} to claim it.`,
+  whoAnyone: (group: string) =>
+    `Anyone in ${group} can take it. To hand tasks to one person at a time, turn on Hand out tasks automatically for ${group}.`,
   due: "Due",
   dueHelp:
     'Counted from when the event starts. For a match on Monday at 7:00 PM, "The day before" is Sunday at 7:00 PM.',

@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/features/tasks/ui/TaskRow.module.css
    Version : 1.0.0
-   Latest commit: feature/tasks
+   Latest commit: feature/auto-assign
    Author : Gerrah
    Purpose : Task lists: a card per group (Late gets a red edge) with its count, then a row per task: bold title on the left, who, when and status on the right (below on phones). */
 
@@ -16,6 +16,10 @@
 
 .card[data-tone="late"] {
   border-left: 4px solid var(--color-error);
+}
+
+.card[data-tone="waiting"] {
+  border: 2px dashed var(--color-alert, var(--color-border-strong));
 }
 
 .header {

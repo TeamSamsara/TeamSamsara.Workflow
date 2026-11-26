@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/layouts/SettingsLayout/settingsLayoutContent.ts
-// Version : 1.1.0
-// Latest commit: feature/event-fields
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The text of the settings frame: its title and menu labels.
 
@@ -14,4 +14,5 @@ export const SettingsLayoutText = {
   platforms: "Platforms",
   taskSetup: "Tasks and events",
   fields: "Fields",
+  activity: "Activity",
 } as const;

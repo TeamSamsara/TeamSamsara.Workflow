@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/tasks/myTasksViewContent.ts
-// Version : 1.1.1
-// Latest commit: feature/audit-fixes
+// Version : 1.2.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : The words on My tasks.
 
@@ -31,6 +31,8 @@ export const MyTasksViewText = {
   emptyTitle: "Nothing to do",
   emptyBody:
     "Tasks given to you or your work groups show up here, grouped by when they're due.",
+  claimEmptyTitle: "Nothing for you yet",
+  claimEmptyBody: "Claim one above.",
   focusEmptyTitle: "Nothing due this week",
   focusEmptyBody: "Nothing's late or due in the next 7 days.",
   comingUp: (tasks: number) =>
@@ -48,6 +50,12 @@ export const MyTasksViewText = {
   doneBy: (name: string) => `Done by ${name}`,
   approvedBy: (name: string) => `approved by ${name}`,
   approvedByStart: (name: string) => `Approved by ${name}`,
+  waiting: (group: string) => `Waiting for someone in ${group}`,
+  waitingNote:
+    "No one was free for these yet. Claim one to take it, or it goes to the first person who frees up.",
+  claim: "Claim",
+  claimed: (title: string) => `${title} is yours`,
+  claimFailed: "Couldn't claim that task",
   approvals: "Waiting for your approval",
   noApprovals: "Nothing waiting for approval.",
   dayLetters: {

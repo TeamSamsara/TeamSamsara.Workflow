@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/layouts/SettingsLayout/settingsNav.ts
-// Version : 1.2.0
-// Latest commit: feature/event-fields
+// Version : 1.3.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The settings menu, in order: where each page lives, its label and the
 // permission that opens it. The router guards the same pages with the same list.
@@ -50,7 +50,12 @@ export const settingsNav: readonly SettingsNavItem[] = [
   {
     to: RoutePaths.settingsFields,
     label: SettingsLayoutText.fields,
-    // Edit workflows makes fields; admins (who can do everything) change them.
+    // Edit workflows makes, changes and deletes fields.
     requires: "editWorkflows",
+  },
+  {
+    to: RoutePaths.settingsActivity,
+    label: SettingsLayoutText.activity,
+    requires: "administrator",
   },
 ];

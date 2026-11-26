@@ -1,12 +1,12 @@
 // File : /TeamSamsara.Workflow/app/src/core/workspace/index.ts
-// Version : 1.4.0
-// Latest commit: feature/your-account
+// Version : 1.5.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : What other layers may use from the workspace module.
 
 export { PlannedZoneNote } from "./PlannedZoneNote";
 export { RequireWorkspace } from "./RequireWorkspace";
-export { AdminRoleId, defaultRoles } from "./seed/defaultRoles";
+export { AdminRoleId, defaultRoles, OwnerRoleId } from "./seed/defaultRoles";
 export { defaultStatuses } from "./seed/defaultStatuses";
 export { setUpWorkspace } from "./setupService";
 export type { SetupAccount, SetupDetails } from "./setupService";

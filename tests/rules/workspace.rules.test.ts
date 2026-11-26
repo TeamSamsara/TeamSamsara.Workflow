@@ -1,10 +1,11 @@
 // File : /TeamSamsara.Workflow/tests/rules/workspace.rules.test.ts
-// Version : 1.1.0
-// Latest commit: feature/task-setup
+// Version : 1.2.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Tests first-time setup and the workspace record: anyone can see
 // whether a workspace exists; the first one is created once, in one batch with
-// the roles and its first Admin; later edits need Manage settings.
+// the roles (with the Owner role) and its first person, an Owner; later
+// edits need Manage settings.
 
 import {
   assertFails,
@@ -51,9 +52,16 @@ const firstRoles = {
       position: 1,
       permissions: ["administrator"],
     },
+    owner: {
+      name: "Owner",
+      color: "#151D23",
+      description: "",
+      position: 1000000,
+      permissions: ["administrator"],
+    },
   },
   grants: {
-    administrator: ["admin"],
+    administrator: ["admin", "owner"],
     doAssignedTasks: ["everyone"],
     viewAll: ["everyone"],
   },
@@ -63,7 +71,7 @@ const adminRecord = (email: string) => ({
   displayName: "Alex",
   email,
   status: "active",
-  roleIds: ["admin"],
+  roleIds: ["owner"],
   workGroupIds: [],
   timeZone: null,
   invitedBy: null,

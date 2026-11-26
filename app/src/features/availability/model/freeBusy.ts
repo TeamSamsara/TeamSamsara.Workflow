@@ -1,17 +1,14 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/model/freeBusy.ts
-// Version : 1.1.0
-// Latest commit: feature/your-account
+// Version : 1.2.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Who's free when. Checks a person against their usual week, their
 // exceptions and their personal appointments, half an hour at a time in the
 // workspace's time zone; draws a day as free / unavailable / busy stretches;
 // and finds times when everyone in a list is free.
 
-import { toWallTime } from "@/shared/time/zonedTime";
-import type {
-  AvailabilityException,
-  AvailabilityRecord,
-} from "../types/availabilityTypes";
+import { FreeStep, isAvailableAt as engineIsAvailableAt } from "@engine/free";
+import type { AvailabilityRecord } from "../types/availabilityTypes";
 
 /** A busy stretch: a personal appointment, with its title when it can be seen. */
 export interface BusyBlock {
@@ -27,49 +24,18 @@ export interface PersonTime {
 
 export type SlotState = "free" | "unavailable" | "busy";
 
-const step = 30 * 60_000;
-const pad = (value: number) => String(value).padStart(2, "0");
-
-function wallOf(instant: Date, timeZone: string) {
-  const wall = toWallTime(instant, timeZone);
-  const date = `${wall.year}-${pad(wall.month)}-${pad(wall.day)}`;
-  const weekday = new Date(
-    Date.UTC(wall.year, wall.month - 1, wall.day),
-  ).getUTCDay();
-  return {
-    date,
-    weekday,
-    hour: wall.hour,
-    clock: `${pad(wall.hour)}:${pad(wall.minute)}`,
-  };
-}
-
-const covers = (exception: AvailabilityException, clock: string) =>
-  exception.from === null ||
-  exception.to === null ||
-  (clock >= exception.from && clock < exception.to);
+const step = FreeStep;
 
 /**
  * Whether the usual week and the exceptions leave this moment free. They're
- * read in the zone the member painted them in, else the one given.
+ * read in the zone the member painted them in, else the one given. Shared
+ * with the server, which checks the same when it hands out tasks.
  */
-export function isAvailableAt(
+export const isAvailableAt: (
   availability: AvailabilityRecord | null,
   instant: Date,
   timeZone: string,
-): boolean {
-  if (!availability) return true;
-  const { date, weekday, hour, clock } = wallOf(
-    instant,
-    availability.timeZone ?? timeZone,
-  );
-  const today = availability.exceptions.filter(
-    (exception) => exception.date === date && covers(exception, clock),
-  );
-  if (today.some((exception) => !exception.available)) return false;
-  if (today.some((exception) => exception.available)) return true;
-  return !(availability.weekly[weekday] ?? []).includes(hour);
-}
+) => boolean = engineIsAvailableAt;
 
 /** What a person is doing in one half-hour from this moment. */
 export function slotState(

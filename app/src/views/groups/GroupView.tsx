@@ -1,11 +1,11 @@
 // File : /TeamSamsara.Workflow/app/src/views/groups/GroupView.tsx
-// Version : 1.0.1
-// Latest commit: feature/audit-fixes
+// Version : 1.1.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : One work group's overview: a band in its colour behind its badge,
 // its leads and size, and Plan an event (for planners). Members as a grid,
 // filtered by people tag, each opening their profile (Add member for people
-// who manage groups); its open tasks with who they're given to and when
+// who manage groups); how it hands out tasks, for its leads and managers; its open tasks with who they're given to and when
 // they're due; and beside them About, Key resources (its links) and Up next.
 // Tabs: Overview here, Calendar and Availability open those pages on this
 // group; See all lists every open task.
@@ -14,13 +14,17 @@ import type { CSSProperties } from "react";
 import { useCallback, useState } from "react";
 import { useTaskOrder } from "@/features/events";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { usePermissions } from "@/core/access";
+import { usePermissions, useActor } from "@/core/access";
 import { isCurrentMember, type MemberRecord } from "@/core/data";
 import { useDisplayTime } from "@/core/workspace";
 import { formatDue, type TaskRecord } from "@/features/tasks";
 import { memberName } from "@/features/members";
 import { usePeopleTags } from "@/features/people-tags";
-import { groupColor, useWorkGroups } from "@/features/work-groups";
+import {
+  GroupHandOut,
+  groupColor,
+  useWorkGroups,
+} from "@/features/work-groups";
 import { Avatar } from "@/shared/components/Avatar/Avatar";
 import { LinkButton } from "@/shared/components/Button/LinkButton";
 import { PageHeader } from "@/shared/components/PageHeader/PageHeader";
@@ -49,6 +53,7 @@ export function GroupView() {
   const { groupId = "" } = useParams();
   const [params] = useSearchParams();
   const access = usePermissions();
+  const actor = useActor();
   const groups = useWorkGroups();
   const tags = usePeopleTags();
   const time = useDisplayTime();
@@ -85,6 +90,16 @@ export function GroupView() {
   const { group } = item;
   const leads = item.leads ?? [];
   const canManage = access.can("manageWorkGroups");
+  // Its leads and the people who manage groups choose how it hands out tasks.
+  const showsHandOut = canManage || (actor?.leadOf.includes(group.id) ?? false);
+  const weekAhead = now.getTime() + 7 * 24 * 60 * 60 * 1000;
+  const loadOf = (memberId: string) =>
+    (overview.tasks ?? []).filter(
+      (task) =>
+        task.memberId === memberId &&
+        task.dueAt !== null &&
+        task.dueAt.getTime() <= weekAhead,
+    ).length;
   const groupTags = tags.items.filter((tag) =>
     members.some((member) => member.tagIds.includes(tag.id)),
   );
@@ -253,6 +268,12 @@ export function GroupView() {
               </div>
             )}
           </section>
+
+          {showsHandOut ? (
+            <section className={styles.section} aria-label={Text.handOut}>
+              <GroupHandOut group={group} members={members} loadOf={loadOf} />
+            </section>
+          ) : null}
 
           <section className={styles.section} aria-labelledby="group-tasks">
             <div className={styles.sectionHead}>

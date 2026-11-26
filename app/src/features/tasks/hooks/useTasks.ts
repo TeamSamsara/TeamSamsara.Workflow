@@ -1,10 +1,11 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/hooks/useTasks.ts
-// Version : 1.1.0
-// Latest commit: feature/audit-fixes
+// Version : 1.2.0
+// Latest commit: feature/auto-assign
 // Author : Gerrah
 // Purpose : Live task lists: the ones still to do that are given to me (and
-// my work groups), the ones finished since a moment (Done this week), the
-// ones waiting for approval, and one task by id.
+// my work groups), the ones waiting for someone in groups that hand out their
+// tasks, the ones finished since a moment (Done this week), the ones waiting
+// for approval, and one task by id.
 
 import { useMemo } from "react";
 import { collection, query, Timestamp, where } from "firebase/firestore";
@@ -64,6 +65,38 @@ export function useOpenTasksFor(
     (task) => task.id,
   );
   return useMemo(() => toList(result), [result]);
+}
+
+/**
+ * Tasks waiting for someone in these groups: given to the group, to no one in
+ * it yet, and not finished. One query per group, as the rules require.
+ */
+export function useWaitingTasks(workGroupIds: readonly string[]): TaskList {
+  const isReady = usePermissions().status === "ready";
+  const groups = [...workGroupIds].sort();
+  const key =
+    isReady && groups.length ? `tasks:waiting:${groups.join(",")}` : null;
+  const result = useLiveQueries(
+    key,
+    (database) =>
+      groups.map((groupId) =>
+        query(
+          collection(database, Collections.tasks),
+          where("workGroupId", "==", groupId),
+          where("memberId", "==", null),
+          where("doneAt", "==", null),
+        ).withConverter(taskConverter),
+      ),
+    (task) => task.id,
+  );
+  return useMemo(
+    () =>
+      groups.length
+        ? toList(result)
+        : { status: "ready" as const, items: [], error: null },
+
+    [result, groups.length],
+  );
 }
 
 /**

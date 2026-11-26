@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/members/MemberView.tsx
-// Version : 1.4.0
+// Version : 1.5.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : One member's page: their name, roles and work groups (saved
@@ -8,7 +8,8 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { Navigate, useBlocker, useNavigate, useParams } from "react-router-dom";
-import { resolvePermissions, usePermissions } from "@/core/access";
+import { OwnerRoleId, rankOf } from "@engine/access/index";
+import { manage, usePermissions } from "@/core/access";
 import { dataErrorMessage, EveryoneRoleId } from "@/core/data";
 import { useSession } from "@/core/session";
 import { useDisplayTime } from "@/core/workspace";
@@ -23,6 +24,7 @@ import {
   MemberRolesCard,
   useMember,
   useMemberDraft,
+  useMembers,
   type MemberListItem,
 } from "@/features/members";
 import { givableRoles } from "@/features/roles";
@@ -46,6 +48,22 @@ function MemberEditor({ item }: { item: MemberListItem }) {
   const draft = useMemberDraft(member);
   const toast = useToast();
   const navigate = useNavigate();
+  const everyone = useMembers();
+  const ownerChange = useMutation({
+    mutationFn: (give: boolean) =>
+      give
+        ? manage({ op: "owner.give", memberId: member.id })
+        : manage({ op: "owner.stepDown" }),
+    onSuccess: (_result, give) =>
+      toast.show({
+        tone: "success",
+        title: give
+          ? MemberViewText.owner.given(memberName(member))
+          : MemberViewText.owner.steppedDown,
+      }),
+    onError: (error) =>
+      toast.show({ tone: "error", title: dataErrorMessage(error) }),
+  });
   const takeDownPhoto = useMutation({
     mutationFn: () => removePhoto(member.id, member.photoUrl),
     onSuccess: () => toast.show({ tone: "success", title: PhotoText.removed }),
@@ -70,11 +88,18 @@ function MemberEditor({ item }: { item: MemberListItem }) {
     permissions: access.permissions,
   };
   const isAdministrator = access.can("administrator");
-  const targetIsAdmin = resolvePermissions(member.roleIds, roles).has(
-    "administrator",
-  );
-  const locked = targetIsAdmin && !isAdministrator;
   const isSelf = session.status === "active" && session.user.id === member.id;
+  // Strictly below: nobody changes their own record here, or anyone at or above them.
+  const myRank = rankOf(access.memberRoleIds, roles.roles);
+  const locked = isSelf || rankOf(member.roleIds, roles.roles) >= myRank;
+  const iAmOwner = access.memberRoleIds.includes(OwnerRoleId);
+  const targetIsOwner = member.roleIds.includes(OwnerRoleId);
+  const otherOwners = everyone.records.filter(
+    (entry) =>
+      entry.id !== member.id &&
+      entry.status !== "removed" &&
+      entry.roleIds.includes(OwnerRoleId),
+  ).length;
   const name = memberName({
     displayName: draft.details.displayName,
     email: member.email,
@@ -101,7 +126,7 @@ function MemberEditor({ item }: { item: MemberListItem }) {
           locked ? null : (
             <>
               {/* Administrators can take down someone else's photo. */}
-              {isAdministrator && !isSelf && member.photoUrl ? (
+              {isAdministrator && member.photoUrl ? (
                 <Button
                   variant="ghost"
                   iconStart="trash"
@@ -133,7 +158,7 @@ function MemberEditor({ item }: { item: MemberListItem }) {
 
       {locked ? (
         <Banner tone="info" icon="lock">
-          {MemberViewText.lockedAdmin}
+          {isSelf ? MemberViewText.lockedSelf : MemberViewText.lockedRank}
         </Banner>
       ) : null}
       {draft.saveError ? <Banner tone="error">{draft.saveError}</Banner> : null}
@@ -156,6 +181,51 @@ function MemberEditor({ item }: { item: MemberListItem }) {
             disabled={locked || draft.isSaving}
           />
           <MemberTagsCard member={member} name={name} />
+          {iAmOwner && (isSelf || !targetIsOwner) ? (
+            <section
+              className={styles.ownerCard}
+              aria-labelledby="member-owner"
+            >
+              <h2 id="member-owner" className={styles.ownerTitle}>
+                {MemberViewText.owner.title}
+              </h2>
+              {isSelf ? (
+                <>
+                  <p className={styles.ownerHelp}>
+                    {otherOwners > 0
+                      ? MemberViewText.owner.stepDownHelp
+                      : MemberViewText.owner.lastOwner}
+                  </p>
+                  <Button
+                    onClick={() => ownerChange.mutate(false)}
+                    disabled={otherOwners === 0}
+                    isLoading={ownerChange.isPending}
+                  >
+                    {MemberViewText.owner.stepDown}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <p className={styles.ownerHelp}>
+                    {MemberViewText.owner.giveHelp}
+                  </p>
+                  <Button
+                    onClick={() => ownerChange.mutate(true)}
+                    disabled={
+                      member.status !== "active" && member.status !== "invited"
+                    }
+                    isLoading={ownerChange.isPending}
+                  >
+                    {MemberViewText.owner.give(memberName(member))}
+                  </Button>
+                </>
+              )}
+            </section>
+          ) : targetIsOwner ? (
+            <Banner tone="info" icon="lock">
+              {MemberViewText.owner.isOwner(memberName(member))}
+            </Banner>
+          ) : null}
           <MemberAccessCard
             member={member}
             isSelf={isSelf}

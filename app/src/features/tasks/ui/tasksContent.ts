@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/ui/tasksContent.ts
-// Version : 1.1.1
+// Version : 1.2.0
 // Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : The words for tasks: rows and groups, the task page's cards, the
@@ -94,6 +94,9 @@ export const ApprovalText = {
   approvedBy: (name: string, when: string) => `Approved by ${name} · ${when}`,
   waiting: "Waiting for someone to approve it.",
   changes: "Changes asked for",
+  ownWork: "You did this task, so someone else approves it.",
+  outranked:
+    "Someone above you did this task, so someone at their level or higher approves it.",
   someone: "someone",
 } as const;
 

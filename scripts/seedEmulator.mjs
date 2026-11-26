@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/scripts/seedEmulator.mjs
-// Version : 1.17.0
-// Latest commit: feature/attendance-photos
+// Version : 1.18.0
+// Latest commit: feature/audit-fixes
 // Author : Gerrah
 // Purpose : Fills the local emulators with a ready-made workspace and test
 // accounts, so the app can be tried without touching the real project. It wipes
@@ -13,8 +13,8 @@ import { initializeTestEnvironment } from "@firebase/rules-unit-testing";
 // Node strips the types from this file as it loads it, so the seed starts from
 // the same roles as a real first-time setup.
 import {
-  AdminRoleId,
   defaultRoles,
+  OwnerRoleId,
 } from "../app/src/core/workspace/seed/defaultRoles.ts";
 import { defaultStatuses } from "../app/src/core/workspace/seed/defaultStatuses.ts";
 
@@ -43,7 +43,7 @@ const devPassword = "Workflow-dev-1";
 // #region Seed data
 /** Admin moves up two places, so the extra roles below sit between it and Everyone. */
 const startingRoles = defaultRoles.map((role) =>
-  role.id === AdminRoleId ? { ...role, position: role.position + 2 } : role,
+  role.id === "admin" ? { ...role, position: role.position + 2 } : role,
 );
 
 /** A role with only some workspace settings, to try a partial Settings area. */
@@ -346,8 +346,8 @@ const accounts = [
     key: "alex",
     name: "Alex Moreau",
     status: "active",
-    roleIds: [AdminRoleId],
-    note: "Admin",
+    roleIds: [OwnerRoleId],
+    note: "Owner",
   },
   {
     key: "jordan",
