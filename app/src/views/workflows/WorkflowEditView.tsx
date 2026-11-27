@@ -1,9 +1,10 @@
 // File : /TeamSamsara.Workflow/app/src/views/workflows/WorkflowEditView.tsx
-// Version : 1.4.0
-// Latest commit: feature/audit-fixes
+// Version : 2.0.0
+// Latest commit: feature/1.2-order-rules
 // Author : Gerrah
-// Purpose : The workflow editor: its tasks on the left (open one in place to
-// edit it), About and the event details it uses on the right; Save, Export,
+// Purpose : The workflow editor: About and the steps in due order on the left,
+// the one picked open in the middle in its six parts, and beside it how the
+// step reads, where it sits in the flow and the checks; Save, Export,
 // Archive or Restore, and Delete once archived. Saving a workflow that
 // upcoming events use offers to update the tasks it made for them. Also opens a new workflow,
 // blank or from an import. Without Edit workflows, everything is read-only.
@@ -26,6 +27,8 @@ import { useWorkGroups } from "@/features/work-groups";
 import {
   AboutCard,
   addStep,
+  byDue,
+  canAddStep,
   changeStep,
   deleteWorkflow,
   duplicateStep,
@@ -34,12 +37,14 @@ import {
   exportWorkflow,
   GapsCard,
   newStep,
-  orderSteps,
   removeStep,
   setWorkflowArchived,
-  StepList,
+  StepEditor,
+  StepNav,
+  StepRail,
   useWorkflow,
   useWorkflowDraft,
+  type EditorSelection,
   type StepEditorOptions,
   type WorkflowRecord,
 } from "@/features/workflows";
@@ -92,7 +97,7 @@ function WorkflowEditor({ workflow }: { workflow: WorkflowRecord | null }) {
     [workflow, location.state],
   );
   const draft = useWorkflowDraft(workflow, imported?.imported ?? emptyWorkflow);
-  const [openStepId, setOpenStepId] = useState<string | null>(null);
+  const [selection, setSelection] = useState<EditorSelection | null>(null);
   const [triedToSave, setTriedToSave] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [showNextSteps, setShowNextSteps] = useState(() =>
@@ -148,12 +153,28 @@ function WorkflowEditor({ workflow }: { workflow: WorkflowRecord | null }) {
   const name = fields.name.trim();
   const title = workflow ? name || Text.untitled : name || Text.newTitle;
   const showProblems = triedToSave && problems.count > 0;
+  // Shown and numbered in due order, the way the tasks will come.
+  const steps = byDue(fields.steps);
+  // Opens on the first step; About when there are none, or when the picked
+  // step is gone.
+  const openStep =
+    selection === "about"
+      ? undefined
+      : (steps.find((step) => step.id === selection) ??
+        (selection === null ? steps[0] : undefined));
+  const changeOpen = (changes: Parameters<typeof changeStep>[2]) => {
+    if (openStep)
+      draft.changeSteps((current) => changeStep(current, openStep.id, changes));
+  };
 
   function save() {
     setTriedToSave(true);
     if (problems.count > 0) {
-      const firstStep = fields.steps.find((step) => problems.steps[step.id]);
-      if (firstStep) setOpenStepId(firstStep.id);
+      if (problems.name || problems.description) setSelection("about");
+      else {
+        const firstStep = steps.find((step) => problems.steps[step.id]);
+        if (firstStep) setSelection(firstStep.id);
+      }
       return;
     }
     draft.save((savedId) => {
@@ -173,8 +194,8 @@ function WorkflowEditor({ workflow }: { workflow: WorkflowRecord | null }) {
 
   function addTask() {
     const step = newStep();
-    draft.changeSteps((steps) => addStep(steps, step));
-    setOpenStepId(step.id);
+    draft.changeSteps((current) => addStep(current, step));
+    setSelection(step.id);
   }
 
   const busy = draft.isSaving || listAction.isPending;
@@ -290,44 +311,75 @@ function WorkflowEditor({ workflow }: { workflow: WorkflowRecord | null }) {
       ) : null}
       {draft.saveError ? <Banner tone="error">{draft.saveError}</Banner> : null}
 
-      <div className={styles.columns}>
-        <div className={styles.main}>
-          <StepList
-            steps={fields.steps}
-            openStepId={openStepId}
-            onOpen={setOpenStepId}
-            onChange={(stepId, changes) =>
-              draft.changeSteps((steps) => changeStep(steps, stepId, changes))
-            }
-            onReorder={(orderedIds) =>
-              draft.changeSteps((steps) => orderSteps(steps, orderedIds))
-            }
+      <div className={styles.columns} data-about={openStep ? undefined : ""}>
+        <div className={styles.nav}>
+          <StepNav
+            steps={steps}
+            selected={openStep?.id ?? "about"}
+            onSelect={setSelection}
             onAdd={addTask}
-            onDuplicate={(stepId) => {
-              const result = duplicateStep(fields.steps, stepId);
-              draft.change({ steps: result.steps });
-              setOpenStepId(result.copyId);
-            }}
-            onRemove={(stepId) =>
-              draft.changeSteps((steps) => removeStep(steps, stepId))
-            }
             problems={problems}
             showProblems={triedToSave}
+            aboutProblem={Boolean(problems.name || problems.description)}
             options={options}
             readOnly={!canEdit}
           />
         </div>
         {/* A disabled fieldset turns every field inside read-only. */}
-        <fieldset className={styles.side} disabled={!canEdit || busy}>
-          <AboutCard
-            fields={fields}
-            onChange={draft.change}
-            eventTypes={eventTypes.items}
-            nameError={triedToSave ? problems.name : undefined}
-            descriptionError={triedToSave ? problems.description : undefined}
-          />
-          <GapsCard steps={fields.steps} />
+        <fieldset className={styles.main} disabled={!canEdit || busy}>
+          {openStep ? (
+            <StepEditor
+              key={openStep.id}
+              steps={steps}
+              step={openStep}
+              onChange={changeOpen}
+              problems={problems.steps[openStep.id]}
+              showProblems={triedToSave}
+              options={options}
+              onDuplicate={() => {
+                const result = duplicateStep(fields.steps, openStep.id);
+                draft.change({ steps: result.steps });
+                if (result.copyId) setSelection(result.copyId);
+              }}
+              canDuplicate={canAddStep(fields.steps)}
+              onRemove={() => {
+                const index = steps.indexOf(openStep);
+                const next = steps[index + 1] ?? steps[index - 1];
+                draft.changeSteps((current) =>
+                  removeStep(current, openStep.id),
+                );
+                setSelection(next?.id ?? "about");
+              }}
+              readOnly={!canEdit}
+            />
+          ) : (
+            <>
+              <AboutCard
+                fields={fields}
+                onChange={draft.change}
+                eventTypes={eventTypes.items}
+                nameError={triedToSave ? problems.name : undefined}
+                descriptionError={
+                  triedToSave ? problems.description : undefined
+                }
+              />
+              <GapsCard steps={fields.steps} />
+            </>
+          )}
         </fieldset>
+        {openStep ? (
+          <div className={styles.side}>
+            <StepRail
+              steps={steps}
+              step={openStep}
+              problems={problems}
+              options={options}
+              onFixDue={(due) => changeOpen({ due })}
+              onOpen={setSelection}
+              readOnly={!canEdit}
+            />
+          </div>
+        ) : null}
       </div>
 
       {isConfirmingDelete && workflow ? (

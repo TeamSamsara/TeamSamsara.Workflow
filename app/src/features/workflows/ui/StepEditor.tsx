@@ -1,11 +1,12 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/ui/StepEditor.tsx
-// Version : 1.3.0
-// Latest commit: feature/auto-assign
+// Version : 2.0.0
+// Latest commit: feature/1.2-order-rules
 // Author : Gerrah
-// Purpose : One task of a workflow, open for editing: the basics every task
-// has (title, who it's given to, when it's due, how to do it, tags, needs
-// approval), then the sections it adds: post text, checklist, reference links,
-// and asking for the link to what was published.
+// Purpose : One step of a workflow, open for editing, in six parts that always
+// come in the same order: What (title, how to do it), Who (given to, who in
+// the group), When (due), Order (its order rules), Priority and approval, and
+// Extras (post text, checklist, links, live link, tags). Every choice is the
+// same kind of dropdown.
 
 import { decide } from "@engine/access/index";
 import type { ReactNode } from "react";
@@ -13,37 +14,24 @@ import { useActor } from "@/core/access";
 import type { ColouredItem, MemberRecord } from "@/core/data";
 import { memberName } from "@/features/members";
 import type { PlatformSetting } from "@/features/platforms";
-import {
-  WorkGroupLinksEditor,
-  type WorkGroupRecord,
-} from "@/features/work-groups";
+import type { WorkGroupRecord } from "@/features/work-groups";
 import { Button } from "@/shared/components/Button/Button";
-import { ButtonContent } from "@/shared/components/Button/ButtonContent";
-import { buttonLook } from "@/shared/components/Button/buttonLook";
-import { IconButton } from "@/shared/components/Button/IconButton";
-import { Dropdown } from "@/shared/components/Dropdown/Dropdown";
-import { HelpTip } from "@/shared/components/HelpTip/HelpTip";
-import { DropdownItem } from "@/shared/components/Dropdown/DropdownItem";
-import { DropdownPanel } from "@/shared/components/Dropdown/DropdownPanel";
-import { DropdownTrigger } from "@/shared/components/Dropdown/DropdownTrigger";
-import { Checkbox } from "@/shared/components/Fields/Checkbox/Checkbox";
 import { Select } from "@/shared/components/Fields/Select/Select";
 import { TextArea } from "@/shared/components/Fields/TextArea/TextArea";
 import { TextField } from "@/shared/components/Fields/TextField/TextField";
 import type { ClockFormat } from "@/shared/time/dates";
-import type { StepProblems } from "../model/workflowChecks";
-import { WorkflowLimits, type WorkflowStep } from "../types/workflowTypes";
 import { giveToValue, parseGiveTo } from "../model/giveTo";
-import { ChecklistEditor } from "./ChecklistEditor";
-import { DueOffsetField } from "./DueOffsetField";
-import { byMemberName, giveToOptions } from "./giveToOptions";
-import { PostTextEditor } from "./PostTextEditor";
-import { TagPicker } from "./TagPicker";
+import type { StepProblems } from "../model/workflowChecks";
 import {
-  ReferenceLinksText,
-  SectionText,
-  StepEditorText as Text,
-} from "./workflowsContent";
+  WorkflowLimits,
+  type Priority,
+  type WorkflowStep,
+} from "../types/workflowTypes";
+import { DueOffsetField } from "./DueOffsetField";
+import { ExtrasList } from "./ExtrasList";
+import { byMemberName, giveToOptions } from "./giveToOptions";
+import { OrderRulesField } from "./OrderRulesField";
+import { StepEditorText as Text } from "./workflowsContent";
 import styles from "./StepEditor.module.css";
 
 /** What the editor offers to choose from. */
@@ -56,6 +44,8 @@ export interface StepEditorOptions {
 }
 
 interface StepEditorProps {
+  /** Every step, numbered the way the list shows them (in due order). */
+  steps: readonly WorkflowStep[];
   step: WorkflowStep;
   onChange: (changes: Partial<Omit<WorkflowStep, "id">>) => void;
   problems: StepProblems | undefined;
@@ -69,43 +59,30 @@ interface StepEditorProps {
   readOnly?: boolean;
 }
 
-type SectionKey = keyof typeof SectionText;
-
-function Section({
+function Part({
+  number,
   name,
-  help,
-  onRemove,
   children,
 }: {
+  number: number;
   name: string;
-  help: string;
-  /** Null when it can't be removed. */
-  onRemove: (() => void) | null;
-  children?: ReactNode;
+  children: ReactNode;
 }) {
   return (
-    <section className={styles.section} aria-label={name}>
-      <header className={styles.sectionHeader}>
-        <div className={styles.sectionHeading}>
-          <h4 className={styles.sectionTitle}>{name}</h4>
-          <HelpTip topic={name}>{help}</HelpTip>
-        </div>
-        {onRemove ? (
-          <IconButton
-            icon="close"
-            label={Text.removeSection(name)}
-            variant="ghost"
-            size="small"
-            onClick={onRemove}
-          />
-        ) : null}
-      </header>
+    <section className={styles.part} aria-label={name}>
+      <h3 className={styles.partHeading}>
+        <span className={styles.partNumber} aria-hidden>
+          {number}
+        </span>
+        <span className={styles.partName}>{name}</span>
+      </h3>
       {children}
     </section>
   );
 }
 
 export function StepEditor({
+  steps,
   step,
   onChange,
   problems,
@@ -116,7 +93,6 @@ export function StepEditor({
   onRemove,
   readOnly = false,
 }: StepEditorProps) {
-  const removable = (remove: () => void) => (readOnly ? null : remove);
   const actor = useActor();
   // A workflow names only people at or below the editor (the one it names
   // now stays shown, so the step reads as saved).
@@ -137,71 +113,76 @@ export function StepEditor({
         )
         .sort(byMemberName)
     : [];
-
-  const has: Record<SectionKey, boolean> = {
-    posts: step.posts !== null,
-    checklist: step.checklist !== null,
-    links: step.links !== null,
-    liveLink: step.asksForLiveLink,
-  };
-  const missing = (Object.keys(SectionText) as SectionKey[]).filter(
-    (key) => !has[key],
-  );
-
-  function addSection(key: SectionKey) {
-    if (key === "posts") onChange({ posts: [] });
-    if (key === "checklist") onChange({ checklist: [] });
-    if (key === "links") onChange({ links: [] });
-    if (key === "liveLink") onChange({ asksForLiveLink: true });
-  }
+  const number = steps.findIndex((entry) => entry.id === step.id) + 1;
 
   return (
     <div className={styles.editor}>
-      <TextField
-        label={Text.title}
-        placeholder={Text.titlePlaceholder}
-        value={step.title}
-        maxLength={WorkflowLimits.title}
-        onChange={(event) => onChange({ title: event.target.value })}
-        error={showProblems ? problems?.title : undefined}
-      />
+      <header className={styles.header}>
+        <h2 className={styles.title}>
+          {number > 0 ? `${number}. ` : ""}
+          {step.title.trim() || Text.untitled}
+        </h2>
+        <p className={styles.muted}>{Text.everyPart}</p>
+      </header>
 
-      <div className={styles.assign}>
-        <Select
-          label={Text.giveTo}
-          help={Text.giveToHelp}
-          options={giveToChoices}
-          value={giveToValue(step)}
-          onChange={(event) => onChange(parseGiveTo(event.target.value))}
+      <Part number={1} name={Text.parts.what}>
+        <TextField
+          label={Text.title}
+          placeholder={Text.titlePlaceholder}
+          value={step.title}
+          maxLength={WorkflowLimits.title}
+          onChange={(event) => onChange({ title: event.target.value })}
+          error={showProblems ? problems?.title : undefined}
         />
-        {group ? (
+        <TextArea
+          label={Text.notes}
+          placeholder={Text.notesPlaceholder}
+          value={step.notes}
+          rows={3}
+          maxLength={WorkflowLimits.notes}
+          onChange={(event) => onChange({ notes: event.target.value })}
+          error={showProblems ? problems?.notes : undefined}
+        />
+      </Part>
+
+      <Part number={2} name={Text.parts.who}>
+        <div className={styles.pair}>
           <Select
-            label={Text.whoInGroup(group.name)}
-            options={[
-              {
-                value: "",
-                label: group.assign.on
-                  ? Text.leastBusy
-                  : Text.anyoneInGroup(group.name),
-              },
-              ...inGroup.map((member) => ({
-                value: member.id,
-                label: !canName(member)
-                  ? Text.aboveRank(memberName(member))
-                  : group.leadIds.includes(member.id)
-                    ? Text.lead(memberName(member))
-                    : memberName(member),
-                disabled: !canName(member),
-              })),
-            ]}
-            value={step.memberId ?? ""}
-            onChange={(event) =>
-              onChange({ memberId: event.target.value || null })
-            }
+            label={Text.giveTo}
+            help={Text.giveToHelp}
+            options={giveToChoices}
+            value={giveToValue(step)}
+            onChange={(event) => onChange(parseGiveTo(event.target.value))}
           />
-        ) : null}
+          {group ? (
+            <Select
+              label={Text.whoInGroup(group.name)}
+              options={[
+                {
+                  value: "",
+                  label: group.assign.on
+                    ? Text.leastBusy
+                    : Text.anyoneInGroup(group.name),
+                },
+                ...inGroup.map((member) => ({
+                  value: member.id,
+                  label: !canName(member)
+                    ? Text.aboveRank(memberName(member))
+                    : group.leadIds.includes(member.id)
+                      ? Text.lead(memberName(member))
+                      : memberName(member),
+                  disabled: !canName(member),
+                })),
+              ]}
+              value={step.memberId ?? ""}
+              onChange={(event) =>
+                onChange({ memberId: event.target.value || null })
+              }
+            />
+          ) : null}
+        </div>
         {group ? (
-          <p className={styles.whoNote}>
+          <p className={styles.muted}>
             {named
               ? Text.whoNamed(memberName(named), group.name)
               : group.assign.on
@@ -209,122 +190,73 @@ export function StepEditor({
                 : Text.whoAnyone(group.name)}
           </p>
         ) : null}
-      </div>
+      </Part>
 
-      <DueOffsetField
-        label={Text.due}
-        help={Text.dueHelp}
-        value={step.due}
-        onChange={(due) => onChange({ due })}
-        clockFormat={options.clockFormat}
-      />
-
-      <TextArea
-        label={Text.notes}
-        placeholder={Text.notesPlaceholder}
-        value={step.notes}
-        rows={3}
-        maxLength={WorkflowLimits.notes}
-        onChange={(event) => onChange({ notes: event.target.value })}
-        error={showProblems ? problems?.notes : undefined}
-      />
-
-      <TagPicker
-        tagIds={step.tagIds}
-        tags={options.tags}
-        onChange={(tagIds) => onChange({ tagIds })}
-        readOnly={readOnly}
-      />
-
-      {step.posts !== null ? (
-        <Section
-          name={SectionText.posts.name}
-          help={SectionText.posts.help}
-          onRemove={removable(() => onChange({ posts: null }))}
-        >
-          <PostTextEditor
-            posts={step.posts}
-            onChange={(posts) => onChange({ posts })}
-            settings={options.platforms}
-          />
-        </Section>
-      ) : null}
-
-      {step.checklist !== null ? (
-        <Section
-          name={SectionText.checklist.name}
-          help={SectionText.checklist.help}
-          onRemove={removable(() => onChange({ checklist: null }))}
-        >
-          <ChecklistEditor
-            items={step.checklist}
-            onChange={(checklist) => onChange({ checklist })}
-          />
-        </Section>
-      ) : null}
-
-      {step.links !== null ? (
-        <Section
-          name={SectionText.links.name}
-          help={SectionText.links.help}
-          onRemove={removable(() => onChange({ links: null }))}
-        >
-          <WorkGroupLinksEditor
-            links={step.links}
-            errors={problems?.links ?? []}
-            onChange={(links) => onChange({ links })}
-            showErrors={showProblems}
-            text={ReferenceLinksText}
-            max={WorkflowLimits.links}
-          />
-        </Section>
-      ) : null}
-
-      {step.asksForLiveLink ? (
-        <Section
-          name={SectionText.liveLink.name}
-          help={SectionText.liveLink.help}
-          onRemove={removable(() => onChange({ asksForLiveLink: false }))}
+      <Part number={3} name={Text.parts.when}>
+        <DueOffsetField
+          label={Text.due}
+          help={Text.dueHelp}
+          value={step.due}
+          onChange={(due) => onChange({ due })}
+          clockFormat={options.clockFormat}
         />
-      ) : null}
+      </Part>
 
-      {missing.length > 0 && !readOnly ? (
-        <Dropdown className={styles.addSection}>
-          <DropdownTrigger
-            popup="menu"
-            {...buttonLook("secondary", "small", false)}
-          >
-            <ButtonContent iconStart="add">{Text.addSection}</ButtonContent>
-          </DropdownTrigger>
-          <DropdownPanel role="menu" aria-label={Text.addSection}>
-            {missing.map((key) => (
-              <DropdownItem
-                key={key}
-                role="menuitem"
-                onSelect={() => addSection(key)}
-                className={styles.sectionItem}
-              >
-                <b>{SectionText[key].name}</b>
-                <span className={styles.muted}>
-                  {SectionText[key].description}
-                </span>
-              </DropdownItem>
-            ))}
-          </DropdownPanel>
-        </Dropdown>
-      ) : null}
+      <Part number={4} name={Text.parts.order}>
+        <OrderRulesField
+          steps={steps}
+          step={step}
+          onChange={onChange}
+          problems={problems?.order ?? []}
+          readOnly={readOnly}
+        />
+      </Part>
 
-      <Checkbox
-        label={Text.needsApproval}
-        help={Text.needsApprovalHelp}
-        checked={step.needsApproval}
-        onChange={(event) => onChange({ needsApproval: event.target.checked })}
-      />
+      <Part number={5} name={Text.parts.priority}>
+        <div className={styles.pair}>
+          <Select
+            label={Text.priority}
+            options={[
+              { value: "high", label: Text.priorities.high },
+              { value: "normal", label: Text.priorities.normal },
+              { value: "low", label: Text.priorities.low },
+            ]}
+            value={step.priority}
+            onChange={(event) =>
+              onChange({ priority: event.target.value as Priority })
+            }
+            hint={Text.priorityHint}
+          />
+          <Select
+            label={Text.approval}
+            help={Text.needsApprovalHelp}
+            options={[
+              { value: "no", label: Text.noApproval },
+              { value: "yes", label: Text.needsApproval },
+            ]}
+            value={step.needsApproval ? "yes" : "no"}
+            onChange={(event) =>
+              onChange({ needsApproval: event.target.value === "yes" })
+            }
+          />
+        </div>
+      </Part>
+
+      <Part number={6} name={Text.parts.extras}>
+        <p className={styles.muted}>{Text.extrasHelp}</p>
+        <ExtrasList
+          step={step}
+          onChange={onChange}
+          options={options}
+          problems={problems}
+          showProblems={showProblems}
+          readOnly={readOnly}
+        />
+      </Part>
 
       {readOnly ? null : (
         <footer className={styles.footer}>
           <Button
-            variant="ghost"
             size="small"
             iconStart="copy"
             onClick={onDuplicate}
@@ -333,8 +265,8 @@ export function StepEditor({
             {Text.duplicate}
           </Button>
           <Button
-            variant="ghost"
             size="small"
+            variant="danger"
             iconStart="trash"
             onClick={onRemove}
           >

@@ -1,8 +1,8 @@
 /* File : /TeamSamsara.Workflow/app/src/views/workflows/WorkflowEditView.module.css
-   Version : 1.0.0
-   Latest commit: feature/workflows
+   Version : 2.0.0
+   Latest commit: feature/1.2-order-rules
    Author : Gerrah
-   Purpose : Layout of the workflow editor: the header, notes, then the tasks beside the About and event details cards (stacked on narrow screens). */
+   Purpose : Layout of the workflow editor: the header, notes, then three columns: the steps, the open step, and its rail (two columns, then one, on narrower screens). */
 
 .page {
   display: flex;
@@ -24,36 +24,74 @@
 }
 
 .columns {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr) 300px;
+  align-items: start;
   gap: var(--space-5);
+}
+
+/* About open: no rail, the middle takes its room. */
+.columns[data-about] {
+  grid-template-columns: 260px minmax(0, 1fr);
+}
+
+.nav,
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
 }
 
 .main {
   display: flex;
-  flex: 3 1 480px;
-  flex-direction: column;
-  gap: var(--space-5);
-  min-width: 0;
-}
-
-.side {
-  display: flex;
-  flex: 1 1 280px;
   flex-direction: column;
   gap: var(--space-5);
   min-width: 0;
   margin: 0;
-  padding: 0;
-  border: 0;
+  padding: var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
 }
 
-/* Breakpoints.large: the side cards stay in view while scrolling the tasks. */
-@media (min-width: 1100px) {
+/* About shows its own cards, so the middle needs no box of its own. */
+.columns[data-about] .main {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+/* Wide screens (1280px and up): the steps and the rail stay in view while scrolling the step. */
+@media (min-width: 1280px) {
+  .nav,
   .side {
     position: sticky;
     top: var(--space-5);
+  }
+}
+
+/* Under 1280px: the rail goes under the step. */
+@media (max-width: 1279px) {
+  .columns,
+  .columns[data-about] {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+
+  .side {
+    grid-column: 2;
+  }
+}
+
+/* Breakpoints.medium: everything in one column, the steps first. */
+@media (max-width: 900px) {
+  .columns,
+  .columns[data-about] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .side {
+    grid-column: auto;
   }
 }
 

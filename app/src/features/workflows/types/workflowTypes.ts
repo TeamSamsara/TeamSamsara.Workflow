@@ -1,12 +1,13 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/types/workflowTypes.ts
-// Version : 1.0.0
-// Latest commit: feature/workflows
+// Version : 1.1.0
+// Latest commit: feature/1.2-order-rules
 // Author : Gerrah
 // Purpose : A workflow: a reusable list of tasks, each due a set time before or
 // after an event starts. Every task has the same basics (title, notes, who it's
 // given to, when it's due, tags, needs approval) and can add sections: post
 // text per platform, a checklist, reference links, and asking for the link to
-// what was published. The steps live inside the workflow's own document.
+// what was published. Each step can be ordered against the others (order
+// rules) and carries a priority. The steps live inside the workflow's own document.
 
 import type { DocumentData } from "firebase/firestore";
 import {
@@ -69,6 +70,49 @@ export interface PlatformPost {
 }
 // #endregion
 
+// #region Order and priority
+/**
+ * How a rule relates this step to another one:
+ * - after: this step follows that one;
+ * - before: that step follows this one (the same link, set from this side);
+ * - with: they unlock together;
+ * - dueFrom: this step's due time counts from when that one is done.
+ */
+export const OrderRelations = ["after", "before", "with", "dueFrom"] as const;
+export type OrderRelation = (typeof OrderRelations)[number];
+
+/**
+ * What has to happen first. Every one but "order" locks the step that
+ * follows until it happens; "order" only keeps it due after.
+ */
+export const OrderConditions = [
+  "done",
+  "approved",
+  "inReview",
+  "liveLink",
+  "order",
+] as const;
+export type OrderCondition = (typeof OrderConditions)[number];
+
+export interface OrderRule {
+  /** Stable within the step, so the editor can follow a rule. */
+  id: string;
+  relation: OrderRelation;
+  /** The other step; empty while a new rule has no step picked yet. */
+  stepId: string;
+  condition: OrderCondition;
+}
+
+export const WaitForChoices = ["all", "any"] as const;
+export type WaitFor = (typeof WaitForChoices)[number];
+
+export const WhenLateChoices = ["wait", "unlock"] as const;
+export type WhenLate = (typeof WhenLateChoices)[number];
+
+export const Priorities = ["high", "normal", "low"] as const;
+export type Priority = (typeof Priorities)[number];
+// #endregion
+
 export interface WorkflowStep {
   /** Stable within the workflow, so the editor can follow a step as it moves. */
   id: string;
@@ -87,6 +131,14 @@ export interface WorkflowStep {
   links: ReferenceLink[] | null;
   /** Ask for the link to what was published before it can be done. */
   asksForLiveLink: boolean;
+  /** How it's ordered against the other steps; empty: any time before it's due. */
+  order: OrderRule[];
+  /** With several rules that lock it: wait for all of them, or any one. */
+  waitFor: WaitFor;
+  /** When what it waits on is late: keep waiting, or unlock at its own due time. */
+  whenLate: WhenLate;
+  /** Tasks made from it start with this; people can change it on a task. */
+  priority: Priority;
 }
 
 export interface WorkflowRecord {
@@ -119,6 +171,7 @@ export const WorkflowLimits = {
   links: 10,
   postText: 100_000,
   tags: 10,
+  orderRules: 10,
   dueDays: 60,
   dueHours: 23,
   dueMinutes: 59,
@@ -185,6 +238,17 @@ function readLinks(data: DocumentData): ReferenceLink[] | null {
   }));
 }
 
+function readOrder(data: DocumentData): OrderRule[] {
+  return readList(data, "order")
+    .slice(0, WorkflowLimits.orderRules)
+    .map((rule, index) => ({
+      id: readString(rule, "id") || `rule${index}`,
+      relation: readChoice(rule, "relation", OrderRelations, "after"),
+      stepId: readString(rule, "stepId"),
+      condition: readChoice(rule, "condition", OrderConditions, "done"),
+    }));
+}
+
 export function readStep(data: DocumentData, index: number): WorkflowStep {
   return {
     id: readString(data, "id") || `step${index}`,
@@ -199,6 +263,10 @@ export function readStep(data: DocumentData, index: number): WorkflowStep {
     checklist: readChecklist(data),
     links: readLinks(data),
     asksForLiveLink: readBoolean(data, "asksForLiveLink"),
+    order: readOrder(data),
+    waitFor: readChoice(data, "waitFor", WaitForChoices, "all"),
+    whenLate: readChoice(data, "whenLate", WhenLateChoices, "wait"),
+    priority: readChoice(data, "priority", Priorities, "normal"),
   };
 }
 

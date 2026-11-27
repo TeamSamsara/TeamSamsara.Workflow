@@ -1,0 +1,155 @@
+/* File : /TeamSamsara.Workflow/app/src/features/workflows/ui/StepRail.module.css
+   Version : 1.0.0
+   Latest commit: feature/1.2-order-rules
+   Author : Gerrah
+   Purpose : The rail beside the open step: Reads as, In the flow and Checks, one card each. Links are solid when something has to happen first and dashed when it's only the order. */
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-section-heading);
+  text-transform: uppercase;
+}
+
+.sentence {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.muted,
+.legend,
+.linkMeta {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+}
+
+.groupTitle {
+  margin: 0;
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-meta);
+}
+
+.links,
+.passing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  width: 100%;
+  padding: var(--space-2) var(--space-2-5);
+  border: var(--border-width) solid var(--color-accent);
+  border-radius: var(--radius-field);
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.link[data-kind="soft"] {
+  border-style: dashed;
+  border-color: var(--color-border-control);
+}
+
+.link[data-kind="problem"] {
+  border-color: var(--color-error);
+}
+
+.link:hover {
+  background-color: var(--color-page);
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.linkName {
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-meta);
+  overflow-wrap: anywhere;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1-5);
+}
+
+.key {
+  display: inline-block;
+  width: 18px;
+  border-top: 2px solid var(--color-accent);
+}
+
+.key[data-kind="soft"] {
+  margin-left: var(--space-2);
+  border-top-style: dashed;
+  border-top-color: var(--color-border-control);
+}
+
+.passing li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.problem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2-5) var(--space-3);
+  border-left: 3px solid var(--color-error);
+  background-color: var(--color-page);
+}
+
+.problemText {
+  margin: 0;
+  color: var(--color-error-text);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-meta);
+}

@@ -1,0 +1,101 @@
+/* File : /TeamSamsara.Workflow/app/src/features/workflows/ui/OrderRulesField.module.css
+   Version : 1.0.0
+   Latest commit: feature/1.2-order-rules
+   Author : Gerrah
+   Purpose : Order rules: a line of three dropdowns and a remove button per rule, a one-line explanation under each, then the two settings side by side. Lines stack on a phone. */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.label {
+  composes: label from "../../../shared/components/Fields/FieldFrame/FieldFrame.module.css";
+}
+
+.help,
+.explain,
+.none {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: var(--leading-meta);
+}
+
+.none {
+  padding: var(--space-3);
+  border: var(--border-width) dashed var(--color-border-control);
+  border-radius: var(--radius-field);
+}
+
+.rules {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.head,
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr) minmax(0, 1.1fr) 42px;
+  gap: var(--space-2);
+  align-items: start;
+}
+
+.head {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rule {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.problem {
+  margin: 0;
+  color: var(--color-error-text);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-meta);
+}
+
+.add {
+  align-self: flex-start;
+}
+
+.settings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+/* Breakpoints.small: one dropdown per line, the head hidden. */
+@media (max-width: 640px) {
+  .head {
+    display: none;
+  }
+
+  .row,
+  .settings {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Each rule framed, its remove button at the top right of the frame. */
+  .rule {
+    padding: var(--space-3);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-field);
+  }
+
+  .row > :last-child {
+    grid-row: 1;
+    justify-self: end;
+  }
+}

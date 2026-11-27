@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/icons/iconRegistry.ts
-// Version : 1.5.0
-// Latest commit: feature/notifications
+// Version : 1.6.0
+// Latest commit: feature/1.2-order-rules
 // Author : Gerrah
 // Purpose : The only file that knows where each icon comes from; screens use the names.
 
@@ -25,6 +25,7 @@ import {
   ExternalLink,
   Eye,
   EyeOff,
+  Flag,
   GripVertical,
   Inbox,
   Info,
@@ -126,6 +127,7 @@ export const iconRegistry = {
   loading: LoaderCircle,
   inbox: Inbox,
   notifications: Bell,
+  priority: Flag,
 
   // Account and access
   user: User,

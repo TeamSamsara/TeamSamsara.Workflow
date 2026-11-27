@@ -1,0 +1,59 @@
+/* File : /TeamSamsara.Workflow/app/src/features/workflows/ui/ExtrasList.module.css
+   Version : 1.0.0
+   Latest commit: feature/1.2-order-rules
+   Author : Gerrah
+   Purpose : A step's extras: one bordered list, a row per extra with its summary and Add or Edit, the editor opening under its row. */
+
+.list {
+  margin: 0;
+  padding: 0;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-field);
+  list-style: none;
+}
+
+.item + .item {
+  border-top: var(--border-width) solid var(--color-border);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3-5);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-width: 0;
+}
+
+.name {
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.summary,
+.note {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: var(--leading-meta);
+  overflow-wrap: anywhere;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-3-5);
+  border-top: var(--border-width) dashed var(--color-border);
+  background-color: var(--color-page);
+}
+
+.remove {
+  align-self: flex-start;
+}

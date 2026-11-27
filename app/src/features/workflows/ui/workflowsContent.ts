@@ -1,9 +1,10 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/ui/workflowsContent.ts
-// Version : 1.4.0
-// Latest commit: feature/auto-assign
+// Version : 1.5.0
+// Latest commit: feature/1.2-order-rules
 // Author : Gerrah
-// Purpose : The words for the workflows list and editor: the table, the task
-// list, each task's fields and sections, due times, and the gaps card.
+// Purpose : The words for the workflows list and editor: the table, the steps
+// list, each step's six parts, order rules, extras, the rail beside it, due
+// times, and the gaps card.
 
 export const WorkflowsTableText = {
   caption: "Workflows",
@@ -19,26 +20,39 @@ export const WorkflowsTableText = {
   none: "No workflows here.",
 } as const;
 
-export const StepListText = {
-  title: "Tasks",
-  help: "Each time this workflow is used on an event, these tasks are made for it, with their due times worked out from the event's start.",
-  add: "Add task",
-  full: (max: number) => `A workflow holds up to ${max} tasks.`,
-  empty: "No tasks yet. Add the first thing that needs doing for an event.",
-  untitled: "Untitled task",
+export const StepNavText = {
+  label: "Workflow parts",
+  about: "About this workflow",
+  aboutMeta: "Name, what it's for, fields it uses",
+  needsFixing: "Needs fixing",
+  title: "Steps",
+  inDueOrder: "In due order",
+  empty: "No steps yet. Add the first thing that needs doing for an event.",
+  untitled: "Untitled step",
   number: (index: number) => `${index + 1}.`,
-  move: (title: string) =>
-    `Move ${title}. Use the up and down arrow keys, or drag the row.`,
-  open: (title: string) => `Edit ${title}`,
-  close: (title: string) => `Close ${title}`,
-  needsApproval: "Needs approval",
-  unassigned: "Not given to anyone",
-  problems: "Needs fixing",
+  high: "High priority",
+  problems: (count: number) =>
+    count === 1 ? "1 thing to fix" : `${count} things to fix`,
+  rules: (count: number) =>
+    count === 1 ? "1 order rule" : `${count} order rules`,
+  add: "Add a step",
+  full: (max: number) => `A workflow holds up to ${max} steps.`,
 } as const;
 
 export const StepEditorText = {
+  untitled: "Untitled step",
+  everyPart:
+    "Every step has the same six parts. Each time this workflow is used on an event, the step becomes a task.",
+  parts: {
+    what: "What",
+    who: "Who",
+    when: "When",
+    order: "Order",
+    priority: "Priority and approval",
+    extras: "Extras",
+  },
   title: "Title",
-  titlePlaceholder: "Matchday graphic",
+  titlePlaceholder: "Announcement post",
   notes: "How to do it",
   notesPlaceholder: "What to do, where to find things, what good looks like.",
   giveTo: "Give to",
@@ -49,30 +63,97 @@ export const StepEditorText = {
   people: "People",
   whoInGroup: (group: string) => `Who in ${group}`,
   anyoneInGroup: (group: string) => `Anyone in ${group}`,
+  anyoneIn: (group: string) => `anyone in ${group}`,
+  groupLeastBusy: (group: string) => `${group}'s least busy person`,
   leastBusy: "Whoever's least busy and free",
   lead: (name: string) => `${name} (lead)`,
   aboveRank: (name: string) => `${name} (above your rank)`,
   whoNamed: (name: string, group: string) =>
-    `On each event this task goes to ${name}, even over ${group}'s daily limit. If ${name} leaves ${group}, it goes back to the group.`,
+    `On each event this step goes to ${name}, even over ${group}'s daily limit. If ${name} leaves ${group}, it goes back to the group.`,
   whoHandedOut: (group: string) =>
-    `${group} hands out its tasks: on each event this task goes to whoever's least busy and free, or waits for someone in ${group} to claim it.`,
+    `${group} hands out its tasks: on each event this step goes to whoever's least busy and free, or waits for someone in ${group} to claim it.`,
   whoAnyone: (group: string) =>
     `Anyone in ${group} can take it. To hand tasks to one person at a time, turn on Hand out tasks automatically for ${group}.`,
   due: "Due",
   dueHelp:
-    'Counted from when the event starts. For a match on Monday at 7:00 PM, "The day before" is Sunday at 7:00 PM.',
+    'Counted from when the event starts. For an event on Monday at 7:00 PM, "The day before" is Sunday at 7:00 PM. A Due from rule counts from another step instead.',
+  priority: "Priority",
+  priorities: { high: "High", normal: "Normal", low: "Low" },
+  priorityHint:
+    "Sorts My tasks. High priority tasks come first among the ones due at the same time.",
+  approval: "Approval",
+  noApproval: "No approval needed",
+  needsApproval: "Needs approval",
+  needsApprovalHelp:
+    "Before it counts as done, someone with the Approve tasks permission checks it and signs it off.",
+  extrasHelp: "Add only what this step needs.",
   tags: "Tags",
   addTag: "Add tag",
   noTags: "No tags yet. Make them in Settings → Tasks and events.",
   noTagsOnTask: "None",
   removeTag: (name: string) => `Remove ${name}`,
-  addSection: "Add section",
-  removeSection: (name: string) => `Remove ${name}`,
-  needsApproval: "Needs approval",
-  needsApprovalHelp:
-    "Before it counts as done, someone with the Approve tasks permission checks it and signs it off.",
   duplicate: "Duplicate",
-  remove: "Delete task",
+  remove: "Delete step",
+} as const;
+
+export const OrderFieldText = {
+  label: "Order rules",
+  help: "Each rule reads left to right: how this step relates to another, which step, and what has to happen first.",
+  how: "How",
+  which: "Step",
+  what: "What has to happen",
+  ruleHow: (index: number) => `Rule ${index + 1}: how it relates`,
+  ruleWhich: (index: number) => `Rule ${index + 1}: which step`,
+  ruleWhat: (index: number) => `Rule ${index + 1}: what has to happen`,
+  chooseStep: "Choose a step",
+  untitled: (index: number) => `Step ${index + 1}`,
+  remove: (index: number) => `Remove rule ${index + 1}`,
+  none: "No order rules. This step unlocks as soon as the event's tasks are made, and only its due time sets when it's done.",
+  add: "Add a rule",
+  waitFor: "When it waits on several steps",
+  waitForAll: "Wait for all of them",
+  waitForAny: "Unlock when any one is done",
+  waitForOne: "It waits on one step.",
+  whenLate: "When what it waits on is late",
+  whenLateWait: "Keep waiting",
+  whenLateUnlock: "Unlock at its own due time",
+} as const;
+
+export const ExtrasText = {
+  label: "Extras",
+  noPlatforms: "No platforms yet",
+  items: (count: number) => (count === 1 ? "1 item" : `${count} items`),
+  links: (count: number) => (count === 1 ? "1 link" : `${count} links`),
+  liveLinkOn: "Asked before it's marked done",
+  off: "Off",
+  tags: "Tags",
+  noTags: "No tags",
+  noneYet: "Not added",
+  close: "Close",
+  edit: "Edit",
+  add: "Add",
+  remove: (name: string) => `Remove ${name.toLowerCase()}`,
+} as const;
+
+export const StepRailText = {
+  label: "About this step",
+  readsAs: "Reads as",
+  inFlow: "In the flow",
+  comesFirst: "Comes first",
+  comesAfter: "Comes after this",
+  hasToHappen: "Has to happen first",
+  onlyOrder: "Only the order",
+  noLinks: "Not linked to other steps.",
+  checks: "Checks",
+  fix: "Make it due 1 hour later",
+  open: (name: string) => `Open ${name}`,
+  elsewhere: "Other steps",
+  passing: [
+    "No loops",
+    "Each step is due after the ones it comes after",
+    "Every condition can be met",
+  ],
+  pickStep: "Pick a step to see how it reads and where it sits in the flow.",
 } as const;
 
 export const SectionText = {
