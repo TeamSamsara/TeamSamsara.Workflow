@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/articles.ts
-// Version : 1.10.0
-// Latest commit: feature/1.2-wording-help
+// Version : 1.11.0
+// Latest commit: feature/1.2-after-saving
 // Author : Gerrah
 // Purpose : The Documentation: one short article per feature, in groups. Each
 // group (or article) is for the people with its permission, the same as the
@@ -844,15 +844,23 @@ export const DocGroups: readonly DocGroup[] = [
       {
         id: "workflow-changes",
         title: "Changing a workflow",
-        summary: "Upcoming events follow your changes by themselves.",
+        summary:
+          "Upcoming events follow your changes; due times move only when you say.",
         body: [
           p(
-            "Save a workflow and every upcoming event that uses it updates its open tasks in a moment: due times, who they're given to, titles, notes, checklists and post text. A step you add becomes a task on each of those events.",
+            "Save a workflow and every upcoming event that uses it updates its open tasks in a moment: who they're given to, titles, notes, checklists, post text and their order. A step you add becomes a task on each of those events.",
           ),
           frames(
             ["stepChanged", "Change a step and save the workflow."],
             ["eventsFollow", "Every upcoming event's task follows."],
-            ["notified", "The people whose tasks moved get one notification."],
+            [
+              "notified",
+              "The people whose tasks changed get one notification.",
+            ],
+          ),
+          h("Due times never move by themselves"),
+          p(
+            "Saving never moves anyone's tasks. After you save, the upcoming tasks whose due time now differs from their step are listed, with when each is due and when the step says. Move one, move them all, or leave them. The people whose tasks you move are told.",
           ),
           h("What stays as it is"),
           compare(

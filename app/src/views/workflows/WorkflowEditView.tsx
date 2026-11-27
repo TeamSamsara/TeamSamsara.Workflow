@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/workflows/WorkflowEditView.tsx
-// Version : 2.2.0
-// Latest commit: feature/1.2-preview-date
+// Version : 2.3.0
+// Latest commit: feature/1.2-after-saving
 // Author : Gerrah
 // Purpose : The workflow editor: About and the steps in due order on the left,
 // the one picked open in the middle in its six parts, and beside it how the
@@ -8,7 +8,8 @@
 // to the steps drawn as a flow, linked by their order rules; Preview on a
 // date shows the tasks it would make for an event then. Save, Export,
 // Archive or Restore, and Delete once archived. Saving a workflow that
-// upcoming events use offers to update the tasks it made for them. Also opens a new workflow,
+// upcoming events use never moves their tasks: those whose due time now
+// differs from their step are listed after saving, to move or leave. Also opens a new workflow,
 // blank or from an import. Without Edit workflows, everything is read-only.
 
 import { useMutation } from "@tanstack/react-query";
@@ -20,15 +21,18 @@ import {
   useParams,
 } from "react-router-dom";
 import { usePermissions } from "@/core/access";
+import { useSession } from "@/core/session";
 import { dataErrorMessage, isCurrentMember } from "@/core/data";
 import { useDisplayTime } from "@/core/workspace";
 import { useMembers } from "@/features/members";
+import { formatDue } from "@/features/tasks";
 import { usePlatforms } from "@/features/platforms";
 import { useEventTypes, useTags } from "@/features/task-setup";
 import { useWorkGroups } from "@/features/work-groups";
 import {
   AboutCard,
   addStep,
+  AfterSavingDialog,
   byDue,
   canAddStep,
   changeStep,
@@ -46,6 +50,7 @@ import {
   StepRail,
   useWorkflow,
   useWorkflowDraft,
+  useWorkflowReview,
   WorkflowFlow,
   type EditorSelection,
   type StepEditorOptions,
@@ -106,6 +111,15 @@ function WorkflowEditor({ workflow }: { workflow: WorkflowRecord | null }) {
   const [selection, setSelection] = useState<EditorSelection | null>(null);
   const [view, setView] = useState<StepsView>("list");
   const [isPreviewing, setIsPreviewing] = useState(false);
+  // When this page last saved, to show the tasks that differ from it after.
+  const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const [reviewClosed, setReviewClosed] = useState<string | null>(null);
+  const session = useSession();
+  const review = useWorkflowReview(
+    workflow?.id ?? null,
+    session.status === "active" ? session.member.id : null,
+    savedAt,
+  );
   const [triedToSave, setTriedToSave] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [showNextSteps, setShowNextSteps] = useState(() =>
@@ -193,6 +207,7 @@ function WorkflowEditor({ workflow }: { workflow: WorkflowRecord | null }) {
         detail: workflow ? Text.upcomingFollow : undefined,
       });
       setTriedToSave(false);
+      if (workflow) setSavedAt(new Date());
       if (!workflow) {
         leaving.current = true;
         navigate(workflowPath(savedId), { replace: true });
@@ -425,6 +440,16 @@ function WorkflowEditor({ workflow }: { workflow: WorkflowRecord | null }) {
           ) : null}
         </div>
       )}
+
+      {review && review.id !== reviewClosed && !review.left ? (
+        <AfterSavingDialog
+          review={review}
+          formatWhen={(date) =>
+            formatDue(date, time.timeZone, time.timeFormat, time.dateFormat)
+          }
+          onClose={() => setReviewClosed(review.id)}
+        />
+      ) : null}
 
       {isPreviewing ? (
         <WorkflowPreviewDialog

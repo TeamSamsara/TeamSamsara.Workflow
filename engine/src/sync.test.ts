@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/engine/src/sync.test.ts
-// Version : 1.1.0
-// Latest commit: feature/auto-assign
+// Version : 1.2.0
+// Latest commit: feature/1.2-after-saving
 // Author : Gerrah
 // Purpose : Tests keeping a task in line with its step: untouched parts
 // follow, parts changed by hand stay (recorded, or worked out for older
@@ -84,18 +84,37 @@ const now1hBefore: StepForTasks = {
 
 describe("planTaskSync", () => {
   it("brings an untouched task fully in line", () => {
-    const sync = planTaskSync(
-      taskFrom(base),
-      made(now1hBefore),
-      made(base),
-      { now },
-    );
+    const sync = planTaskSync(taskFrom(base), made(now1hBefore), made(base), {
+      now,
+    });
     expect(sync?.parts).toEqual(["due", "assignee", "posts"]);
     expect(sync?.changes.workGroupId).toBe("marketing");
-    expect(sync?.changes.dueAt?.toISOString()).toBe(
+    expect(sync?.changes.dueAt?.toISOString()).toBe("2026-11-13T00:00:00.000Z");
+    expect(sync?.changes.posts?.[0].texts.post).toBe("We face Orca");
+  });
+
+  it("with keepDue, never moves the due time and reports it", () => {
+    const sync = planTaskSync(taskFrom(base), made(now1hBefore), made(base), {
+      now,
+      keepDue: true,
+    });
+    expect(sync?.parts).toEqual(["assignee", "posts"]);
+    expect(sync?.changes.dueAt).toBeUndefined();
+    expect(sync?.held).toEqual([{ part: "due", reason: "differs" }]);
+    expect(sync?.dueDiffers?.to?.toISOString()).toBe(
       "2026-11-13T00:00:00.000Z",
     );
-    expect(sync?.changes.posts?.[0].texts.post).toBe("We face Orca");
+    expect(sync?.dueDiffers?.edited).toBe(false);
+  });
+
+  it("with keepDue, reports a due time changed by hand as edited", () => {
+    const sync = planTaskSync(
+      taskFrom(base, { editedParts: ["due"] }),
+      made(now1hBefore),
+      made(base),
+      { now, keepDue: true },
+    );
+    expect(sync?.dueDiffers?.edited).toBe(true);
   });
 
   it("keeps parts recorded as changed by hand", () => {
@@ -130,9 +149,9 @@ describe("planTaskSync", () => {
     expect(sync?.parts).toEqual(["assignee", "posts"]);
     expect(sync?.held.map((entry) => entry.part)).toEqual(["due"]);
     const fresh = taskFrom(base, { editedParts: null, touched: false });
-    expect(planTaskSync(fresh, made(now1hBefore), null, { now })?.parts).toEqual(
-      ["due", "assignee", "posts"],
-    );
+    expect(
+      planTaskSync(fresh, made(now1hBefore), null, { now })?.parts,
+    ).toEqual(["due", "assignee", "posts"]);
   });
 
   it("keeps whoever in the step's group took the task", () => {
@@ -146,7 +165,10 @@ describe("planTaskSync", () => {
       made(inGroup),
       { now },
     );
-    expect(moved?.changes).toMatchObject({ workGroupId: "video", memberId: null });
+    expect(moved?.changes).toMatchObject({
+      workGroupId: "video",
+      memberId: null,
+    });
   });
 
   it("keeps ticks and hand-added items, adds the step's new ones", () => {

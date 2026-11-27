@@ -1,0 +1,71 @@
+/* File : /TeamSamsara.Workflow/app/src/features/workflows/ui/AfterSavingDialog.module.css
+   Version : 1.0.0
+   Latest commit: feature/1.2-after-saving
+   Author : Gerrah
+   Purpose : The list after saving a workflow: one row per task (what it is, when it's due and when its step says, Move), stacking on a phone. */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-3);
+}
+
+.row + .row {
+  border-top: var(--border-width) solid var(--color-border);
+}
+
+.what,
+.when {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-width: 0;
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.to {
+  color: var(--color-accent-text);
+  font-weight: var(--weight-bold);
+}
+
+.muted,
+.text {
+  margin: 0;
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+/* Breakpoints.small: what, then when, then Move. */
+@media (max-width: 640px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .row > button {
+    justify-self: start;
+  }
+}

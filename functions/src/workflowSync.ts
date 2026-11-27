@@ -1,13 +1,15 @@
 // File : /TeamSamsara.Workflow/functions/src/workflowSync.ts
-// Version : 1.2.0
-// Latest commit: feature/1.2-tasks-follow-order
+// Version : 1.3.0
+// Latest commit: feature/1.2-after-saving
 // Author : Gerrah
 // Purpose : Keeps upcoming events' tasks in line with their workflows, in the
 // background. When a workflow is saved, every event that uses it and may
 // still have open tasks (still to come, or started in the last
 // RecentEventDays days, such as a recap due the day after) gets its open
 // tasks updated, part by part, by the engine's rules (parts
-// changed by hand stay), and a task for each step added in this save. The
+// changed by hand stay), and a task for each step added in this save. A
+// save never moves a due time: tasks whose due time differs from their step
+// are reported (differs), for whoever saved it to move or leave. The
 // same pass, without a previous version to compare with, is what the first
 // platform update runs on tasks planned before this existed.
 
@@ -44,13 +46,27 @@ export interface SyncResult {
   createdIds: string[];
   /** Tasks with parts kept (changed by hand, or a due time already passed). */
   held: (TaskSync & { eventTitle: string })[];
+  /** Open tasks whose due time differs from their step's (saves only). */
+  differs: TaskDiffers[];
   events: number;
+}
+
+export interface TaskDiffers {
+  taskId: string;
+  title: string;
+  eventId: string;
+  eventTitle: string;
+  from: Date | null;
+  to: Date | null;
+  /** Its due time was changed by hand. */
+  edited: boolean;
 }
 
 const emptyResult = (): SyncResult => ({
   updated: [],
   createdIds: [],
   held: [],
+  differs: [],
   events: 0,
 });
 
@@ -146,8 +162,20 @@ export async function syncWorkflow(
         }
         continue;
       }
-      const sync = planTaskSync(task, next, previous, { now });
+      // A save (with a previous version) never moves due times.
+      const sync = planTaskSync(task, next, previous, {
+        now,
+        keepDue: before !== null,
+      });
       if (!sync) continue;
+      if (sync.dueDiffers)
+        result.differs.push({
+          taskId: sync.taskId,
+          title: sync.title,
+          eventId: event.id,
+          eventTitle: event.title,
+          ...sync.dueDiffers,
+        });
       if (sync.held.length > 0)
         result.held.push({ ...sync, eventTitle: event.title });
       if (sync.parts.length === 0) continue;

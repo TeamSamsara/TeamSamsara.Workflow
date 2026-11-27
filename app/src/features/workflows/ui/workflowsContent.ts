@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/ui/workflowsContent.ts
-// Version : 1.6.0
-// Latest commit: feature/1.2-flow-view
+// Version : 1.7.0
+// Latest commit: feature/1.2-after-saving
 // Author : Gerrah
 // Purpose : The words for the workflows list and editor: the table, the steps
 // list, each step's six parts, order rules, extras, the rail beside it, due
@@ -279,4 +279,35 @@ export const WorkflowFlowText = {
     "Every condition can be met",
     "Steps that need approval are due before the ones after them",
   ],
+} as const;
+
+export const AfterSavingText = {
+  title: (count: number) =>
+    count === 1
+      ? "1 task is due at a different time than its step"
+      : `${count} tasks are due at a different time than their step`,
+  description:
+    "Saving never moves anyone's tasks. Move the ones that should follow the workflow now; the people they're given to are told.",
+  dueNow: (when: string) => `Due ${when}`,
+  stepSays: (when: string) => `The step says ${when}`,
+  noDue: "no due time",
+  edited: "Its due time was changed by hand",
+  move: "Move",
+  moveAll: (count: number) =>
+    count === 1 ? "Move it" : count === 2 ? "Move both" : `Move all ${count}`,
+  leave: "Leave them",
+  close: "Close",
+  moving: (count: number) =>
+    count === 1 ? "Moving 1 task…" : `Moving ${count} tasks…`,
+  moved: (count: number) =>
+    count === 1 ? "1 task moved." : `${count} tasks moved.`,
+  skipped: (count: number) =>
+    count === 1
+      ? "1 couldn't be moved: it was finished or moved since."
+      : `${count} couldn't be moved: they were finished or moved since.`,
+  left: (count: number) =>
+    count === 1 ? "1 task left as it is." : `${count} tasks left as they are.`,
+  notListed: (count: number) =>
+    `${count} more aren't listed here. Open their events to move them.`,
+  failed: "That didn't work. Try again.",
 } as const;

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/maintenance/applyFixes.ts
-// Version : 1.0.0
-// Latest commit: feature/audit-fixes
+// Version : 1.1.0
+// Latest commit: feature/1.2-after-saving
 // Author : Gerrah
 // Purpose : Reading the whole database into plain copies for the check-up,
 // and writing its fixes in batches of up to 500. Running it twice does no
@@ -36,7 +36,12 @@ async function all(db: Firestore, collection: string): Promise<Doc[]> {
   );
 }
 
-const recordCollections = ["sentReminders", "workflowSyncs", "bulkPlans"];
+const recordCollections = [
+  "sentReminders",
+  "workflowSyncs",
+  "workflowReviews",
+  "bulkPlans",
+];
 
 export async function readSnapshot(db: Firestore): Promise<Snapshot> {
   const [

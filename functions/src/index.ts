@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/index.ts
-// Version : 1.10.0
-// Latest commit: feature/1.2-workload-c
+// Version : 1.11.0
+// Latest commit: feature/1.2-after-saving
 // Author : Gerrah
 // Purpose : Playbook's server functions. They watch tasks and events and
 // write notifications for the people a change concerns (never the person who
@@ -25,6 +25,7 @@ import {
 import { logger, setGlobalOptions } from "firebase-functions/v2";
 import {
   onDocumentCreated,
+  onDocumentUpdated,
   onDocumentWritten,
   onDocumentWrittenWithAuthContext,
 } from "firebase-functions/v2/firestore";
@@ -100,6 +101,7 @@ import {
   stepsChanged,
   syncWorkflow,
 } from "./workflowSync.js";
+import { moveTasks, newlyAsked, reviewDoc } from "./workflowReviews.js";
 
 initializeApp();
 setGlobalOptions({ maxInstances: 5 });
@@ -907,8 +909,10 @@ async function keepNamesInRank(
 /**
  * A saved workflow: every upcoming event that uses it gets its open tasks
  * brought in line in the background (parts changed by hand stay), and a task
- * for each step added. The people whose tasks changed get one notification,
- * through a workflowSyncs record (see onWorkflowSyncCreated).
+ * for each step added. Due times never move: tasks whose due time differs
+ * from their step are written down for whoever saved it (workflowReviews).
+ * The people whose tasks changed get one notification, through a
+ * workflowSyncs record (see onWorkflowSyncCreated).
  */
 export const onWorkflowSaved = onDocumentWrittenWithAuthContext(
   { document: "workflows/{workflowId}", timeoutSeconds: 300 },
@@ -943,7 +947,14 @@ export const onWorkflowSaved = onDocumentWrittenWithAuthContext(
       updated: result.updated.length,
       created: result.createdIds.length,
       kept: result.held.length,
+      differ: result.differs.length,
     });
+    // Saving never moves anyone's tasks: the ones that now differ from their
+    // step are written down for whoever saved it to move or leave.
+    if (byId && result.differs.length > 0)
+      await db
+        .collection("workflowReviews")
+        .add(reviewDoc(id, after.name, byId, result.differs));
     if (taskIds.length === 0) return;
     await db.collection("workflowSyncs").add({
       workflowId: id,
@@ -952,6 +963,40 @@ export const onWorkflowSaved = onDocumentWrittenWithAuthContext(
       taskIds: taskIds.slice(0, 500),
       taskCount: taskIds.length,
       changes: [changedStepTitles(before, after).join(", ").slice(0, 200)],
+      at: FieldValue.serverTimestamp(),
+    });
+  },
+);
+
+/**
+ * Whoever saved a workflow moved some of the tasks it wrote down (see
+ * workflowReviews.ts): they move to their step's due time, and the people
+ * whose tasks moved hear about it like any other move.
+ */
+export const onWorkflowReviewUpdated = onDocumentUpdated(
+  "workflowReviews/{reviewId}",
+  async (event) => {
+    const before = event.data?.before.data();
+    const after = event.data?.after.data();
+    if (!after) return;
+    const asked = newlyAsked(before, after);
+    if (asked.length === 0) return;
+    const moved = await moveTasks(db, asked);
+    const skipped = asked
+      .map((task) => task.taskId)
+      .filter((taskId) => !moved.includes(taskId));
+    await event.data?.after.ref.update({
+      ...(moved.length ? { moved: FieldValue.arrayUnion(...moved) } : {}),
+      ...(skipped.length ? { skipped: FieldValue.arrayUnion(...skipped) } : {}),
+    });
+    if (moved.length === 0) return;
+    await db.collection("workflowSyncs").add({
+      workflowId: text(after.workflowId) ?? "",
+      workflowName: (text(after.workflowName) ?? "").slice(0, 120),
+      byId: text(after.byId),
+      taskIds: moved.slice(0, 500),
+      taskCount: moved.length,
+      changes: [],
       at: FieldValue.serverTimestamp(),
     });
   },

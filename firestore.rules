@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/firestore.rules
-// Version : 2.3.0
-// Latest commit: feature/1.2-workload-c
+// Version : 2.4.0
+// Latest commit: feature/1.2-after-saving
 // Author : Gerrah
 // Purpose : Who may read and write what in Firestore. Everything is denied until
 // a rule below allows it; each PR opens exactly what its feature needs, with a
@@ -660,6 +660,23 @@ service cloud.firestore {
     match /workflowSyncs/{syncId} {
       allow create: if can("editWorkflows") && can("planEvents")
         && isValidWorkflowSync(request.resource.data);
+    }
+
+    // After a workflow save, the open tasks whose due time now differs from
+    // their step, written down by the server for whoever saved it. Only they
+    // read it, and they only add to what to move (the server moves them) or
+    // say they're leaving the rest.
+    match /workflowReviews/{reviewId} {
+      allow read: if isActiveMember()
+        && resource.data.byId == request.auth.uid;
+      allow update: if isActiveMember()
+        && resource.data.byId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(["move", "left"])
+        && request.resource.data.move is list
+        && request.resource.data.move.size() <= 100
+        && request.resource.data.move.hasAll(resource.data.move)
+        && request.resource.data.left is bool;
     }
 
     function isValidWorkflowSync(data) {
