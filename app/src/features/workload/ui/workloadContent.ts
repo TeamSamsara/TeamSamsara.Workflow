@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workload/ui/workloadContent.ts
-// Version : 1.1.0
-// Latest commit: feature/1.2-workload-c
+// Version : 1.2.0
+// Latest commit: feature/1.2-workload-checks
 // Author : Gerrah
 // Purpose : The words for workload: what each week word means, your week on
 // My tasks, a member's usual week, and a group's.
@@ -75,4 +75,6 @@ export const WarningText = {
     `${group} is already ${WeekStateText[state].label.toLowerCase()} that week.`,
   still:
     "You can still create it; tasks nobody has room for wait for someone in the group.",
+  stillSeveral:
+    "You can still create them; tasks nobody has room for wait for someone in the group.",
 } as const;

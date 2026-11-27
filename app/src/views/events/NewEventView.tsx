@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/NewEventView.tsx
-// Version : 1.9.0
-// Latest commit: feature/1.2-workload-c
+// Version : 1.10.0
+// Latest commit: feature/1.2-workload-checks
 // Author : Gerrah
 // Purpose : Planning an event: its details on the left; on the right the
 // workflows to apply (the ones made for its type ticked to start with) and
@@ -145,11 +145,7 @@ export function NewEventView() {
     ? lateOf(planned, { title: fields.title, startsAt: fields.startsAt }, now)
     : [];
   const taskCount = planned.length - (lateChoice === "skip" ? late.length : 0);
-  // Groups this event would push over their usual week (a warning only).
   const groupWeeks = useGroupWeeks(groups.items.map((item) => item.group.id));
-  const warnings = fields
-    ? workloadWarnings(planned, groupWeeks, workspace)
-    : [];
   const problems = checkEventDraft(draft);
   const startId = startingStatus(statuses.items)?.id ?? null;
   const today = dayKey(now, workspace.timeZone);
@@ -162,6 +158,35 @@ export function NewEventView() {
     schedule && draft.date && repeatProblems?.count === 0
       ? previewRepeat(schedule, today)
       : null;
+  // Groups this event (or every date it repeats on) would push over their
+  // usual week (a warning only).
+  const warned =
+    upcoming && upcoming.length > 0
+      ? upcoming.flatMap((date) => {
+          const on = fieldsFromDraft(
+            { ...draft, date },
+            workspace.timeZone,
+            valueText(formats),
+          );
+          return on
+            ? applyWorkflows(
+                {
+                  title: on.title,
+                  startsAt: on.startsAt,
+                  endsAt: on.endsAt,
+                  eventTypeId: draft.eventTypeId,
+                  link: draft.link || null,
+                  details: draft.details,
+                },
+                selected,
+                formats,
+              )
+            : [];
+        })
+      : planned;
+  const warnings = fields
+    ? workloadWarnings(warned, groupWeeks, workspace)
+    : [];
   const dayLabel = (key: string) =>
     formatDate(dayKeyToDate(key), "UTC", time.dateFormat);
 
