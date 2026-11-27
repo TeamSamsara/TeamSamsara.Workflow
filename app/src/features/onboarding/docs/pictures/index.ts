@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/pictures/index.ts
-// Version : 1.1.0
-// Latest commit: feature/1.2-wording-help
+// Version : 1.2.0
+// Latest commit: feature/1.2-docs-seed
 // Author : Gerrah
 // Purpose : Every picture the help can show, by the name an article uses.
 
@@ -88,6 +88,8 @@ import {
   UpdateFromWorkflows,
 } from "./workflowPictures";
 
+import { AfterSaving, FlowView, PreviewOnDate } from "./flowPictures";
+
 export const docPictures = {
   inviteDialog: InviteDialog,
   memberAccess: MemberAccess,
@@ -156,6 +158,9 @@ export const docPictures = {
   meantFor: MeantFor,
   viewingAs: ViewingAs,
   planningWarning: PlanningWarning,
+  flowView: FlowView,
+  previewOnDate: PreviewOnDate,
+  afterSaving: AfterSaving,
 } satisfies Record<string, ComponentType>;
 
 export type PictureName = keyof typeof docPictures;
