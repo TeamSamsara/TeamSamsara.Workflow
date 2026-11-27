@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/ui/NotificationList.tsx
-// Version : 1.4.0
-// Latest commit: feature/auto-assign
+// Version : 1.5.0
+// Latest commit: feature/1.2-workload-b
 // Author : Gerrah
 // Purpose : The notification list, in the bell's panel and on its own page:
 // a header with Mark all read and the settings, All / Unread, then Today and
@@ -60,6 +60,9 @@ const look: Record<NotificationKind, { icon: IconName; tone: string }> = {
   tasksHandedOut: { icon: "myTasks", tone: "task" },
   taskWaiting: { icon: "warning", tone: "alert" },
   taskUnlocked: { icon: "check", tone: "task" },
+  givenPastCapacity: { icon: "warning", tone: "alert" },
+  taskMeantFor: { icon: "warning", tone: "alert" },
+  roomAgain: { icon: "check", tone: "task" },
   release: { icon: "info", tone: "event" },
 };
 

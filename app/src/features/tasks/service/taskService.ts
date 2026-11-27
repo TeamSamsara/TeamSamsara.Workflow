@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/service/taskService.ts
-// Version : 1.5.0
-// Latest commit: feature/1.2-tasks-follow-order
+// Version : 1.6.0
+// Latest commit: feature/1.2-workload-b
 // Author : Gerrah
 // Purpose : Every change to a task: make one, edit it, move it on (send for
 // review, approve, ask for changes, mark done, reopen, set a status), tick its
@@ -226,8 +226,26 @@ export function reassignTask(
   workGroupId: string | null,
   memberId: string | null,
   editedParts: readonly string[],
+  /** Giving it past their capacity (Owners and Administrators): who and why. */
+  pastCapacity?: { by: string; reason: string },
 ): Promise<void> {
-  return update(id, { workGroupId, memberId, editedParts: [...editedParts] });
+  return update(id, {
+    workGroupId,
+    memberId,
+    editedParts: [...editedParts],
+    // Given to someone now, so no longer waiting for who it was meant for.
+    meantFor: null,
+    // A task given to someone with room, or to the group, keeps no override.
+    givenPastCapacity:
+      pastCapacity && memberId
+        ? {
+            by: pastCapacity.by,
+            at: serverTime(),
+            memberId,
+            reason: pastCapacity.reason.trim(),
+          }
+        : null,
+  });
 }
 
 /** Takes a group's waiting task for yourself. */

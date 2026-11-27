@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/tasks/MyTasksView.tsx
-// Version : 1.6.0
-// Latest commit: feature/1.2-tasks-follow-order
+// Version : 1.7.0
+// Latest commit: feature/1.2-workload-b
 // Author : Gerrah
 // Purpose : My tasks. Whose: Mine (the default), My groups, or Pick groups,
 // remembered in the browser. How much: Focus (late, today and the next 7
@@ -20,7 +20,8 @@ import { useActor, usePermissions } from "@/core/access";
 import { DataErrorText, dataErrorMessage, isCurrentMember } from "@/core/data";
 import { useSession } from "@/core/session";
 import { lockState } from "@engine/order";
-import { YourWeekCard } from "@/features/workload";
+import { hasRoom, taskSize } from "@engine/workload";
+import { memberWeek, usualWeekOf, YourWeekCard } from "@/features/workload";
 import { useDisplayTime, useWorkspaceRecord } from "@/core/workspace";
 import {
   useEventLabels,
@@ -253,6 +254,19 @@ export function MyTasksView() {
       takesTasks: true,
     }).ok;
 
+  // Whether a waiting task fits my week (the week it's due).
+  const roomFor = (task: TaskRecord) => {
+    if (!member) return true;
+    const week = memberWeek(
+      member.id,
+      usualWeekOf(member, workspace),
+      open.items,
+      task.dueAt ?? now,
+      workspace,
+    );
+    return hasRoom(week.usualWeek, week.load, taskSize(task));
+  };
+
   const openTasks = open.items.filter(
     (task) => fits(task) && !waitingIds.has(task.id),
   );
@@ -432,14 +446,23 @@ export function MyTasksView() {
                         tone="waiting"
                         actionFor={(task) =>
                           canClaim(task) ? (
-                            <Button
-                              size="small"
-                              variant="primary"
-                              onClick={() => claim.mutate(task)}
-                              disabled={claim.isPending}
-                            >
-                              {Text.claim}
-                            </Button>
+                            <>
+                              {roomFor(task) ? null : (
+                                <span className={styles.muted}>
+                                  {taskSize(task) === "bigger"
+                                    ? Text.tooBig
+                                    : Text.noRoom}
+                                </span>
+                              )}
+                              <Button
+                                size="small"
+                                variant="primary"
+                                onClick={() => claim.mutate(task)}
+                                disabled={claim.isPending || !roomFor(task)}
+                              >
+                                {Text.claim}
+                              </Button>
+                            </>
                           ) : null
                         }
                       />

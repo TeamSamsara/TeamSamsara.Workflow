@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/assign/runner.ts
-// Version : 2.0.0
-// Latest commit: feature/1.2-workload
+// Version : 2.1.0
+// Latest commit: feature/1.2-workload-b
 // Author : Gerrah
 // Purpose : Hands out a group's waiting tasks on the server (the rule itself
 // is the engine's, engine/src/assign.ts). One run per group at a time: a run
@@ -105,11 +105,14 @@ async function readQueue(db: Firestore, groupId: string) {
     .where("memberId", "==", null)
     .where("doneAt", "==", null)
     .get();
-  return snapshot.docs.map((doc) => ({
-    task: queuedOf(doc.id, doc.data()),
-    headsUpAt: toDate(doc.data().headsUpAt),
-    title: typeof doc.data().title === "string" ? doc.data().title : "A task",
-  }));
+  // A task meant for someone (who had no room) waits for a lead to give it.
+  return snapshot.docs
+    .filter((doc) => !doc.data().meantFor)
+    .map((doc) => ({
+      task: queuedOf(doc.id, doc.data()),
+      headsUpAt: toDate(doc.data().headsUpAt),
+      title: typeof doc.data().title === "string" ? doc.data().title : "A task",
+    }));
 }
 
 /** The group's active members, with their week, appointments and open tasks. */

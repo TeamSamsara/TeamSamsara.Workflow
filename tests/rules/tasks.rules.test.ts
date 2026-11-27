@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/tasks.rules.test.ts
-// Version : 2.2.0
-// Latest commit: feature/1.2-tasks-follow-order
+// Version : 2.3.0
+// Latest commit: feature/1.2-workload-b
 // Author : Gerrah
 // Purpose : Tests tasks against the rules: who reads them (everything with
 // View all, else what's theirs), who makes standalone ones, and the four kinds
@@ -782,5 +782,67 @@ describe("order between tasks", () => {
     const order = { priority: "low", waitFor: "any", ...now() };
     await assertSucceeds(updateDoc(task("eddie"), order));
     await assertFails(updateDoc(task("sam"), order));
+  });
+});
+
+describe("workload on a task", () => {
+  const admins = {
+    ...roles,
+    roles: {
+      ...roles.roles,
+      admin: { name: "Admin", position: 8, permissions: ["administrator"] },
+    },
+    grants: { ...roles.grants, administrator: ["admin"] },
+  };
+
+  beforeEach(async () => {
+    await seed(env, {
+      "config/roles": admins,
+      "members/ada": member(["admin"], [], { rank: 8 }),
+    });
+  });
+
+  it("gives a task past someone's capacity only as an Administrator, in their own name, with a reason", async () => {
+    const past = (by: string, reason = "Only Sam has the launch photos.") => ({
+      memberId: "sam",
+      givenPastCapacity: { by, at: serverTimestamp(), memberId: "sam", reason },
+      editedParts: ["assignee"],
+      ...now(),
+    });
+    await assertFails(updateDoc(task("ollie"), past("ollie")));
+    await assertFails(updateDoc(task("ada"), past("ollie")));
+    await assertFails(updateDoc(task("ada"), past("ada", "")));
+    await assertSucceeds(updateDoc(task("ada"), past("ada")));
+    // A plain reassign clears it.
+    await assertSucceeds(
+      updateDoc(task("ollie"), {
+        memberId: null,
+        givenPastCapacity: null,
+        meantFor: null,
+        editedParts: ["assignee"],
+        ...now(),
+      }),
+    );
+  });
+
+  it("leaves who a task was meant for to the server, cleared when it's given", async () => {
+    await assertFails(
+      addDoc(
+        collection(signedInAs(env, "pat"), "tasks"),
+        fresh("pat", { meantFor: "sam" }),
+      ),
+    );
+    await seed(env, { "tasks/meant": stored({ meantFor: "sam" }) });
+    await assertFails(
+      updateDoc(task("ollie", "meant"), { meantFor: "gwen", ...now() }),
+    );
+    await assertSucceeds(
+      updateDoc(task("ollie", "meant"), {
+        memberId: "sam",
+        meantFor: null,
+        editedParts: ["assignee"],
+        ...now(),
+      }),
+    );
   });
 });

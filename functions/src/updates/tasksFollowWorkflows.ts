@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/updates/tasksFollowWorkflows.ts
-// Version : 1.0.1
-// Latest commit: feature/audit-fixes
+// Version : 1.1.0
+// Latest commit: feature/1.2-workload-b
 // Author : Gerrah
 // Purpose : The first platform update. Events planned before tasks followed
 // their workflows still carry the workflow as it was then: old due times, no
@@ -24,6 +24,7 @@ const partNames: Record<string, string> = {
   notes: "notes",
   checklist: "checklist",
   posts: "post text",
+  order: "order and priority",
 };
 
 export const tasksFollowWorkflows: PlatformUpdate = {

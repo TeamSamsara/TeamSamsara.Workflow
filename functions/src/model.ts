@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/model.ts
-// Version : 1.3.0
-// Latest commit: feature/auto-assign
+// Version : 1.4.0
+// Latest commit: feature/1.2-workload-b
 // Author : Gerrah
 // Purpose : The decisions behind notifications, kept free of Firebase so they
 // can be tested: what a change to a task or an event tells whom, which kind of
@@ -24,6 +24,9 @@ export const NotificationKinds = [
   "tasksHandedOut",
   "taskWaiting",
   "taskUnlocked",
+  "givenPastCapacity",
+  "taskMeantFor",
+  "roomAgain",
   "release",
 ] as const;
 export type NotificationKind = (typeof NotificationKinds)[number];
@@ -49,6 +52,9 @@ export const SettingGroupOf: Record<NotificationKind, SettingGroup> = {
   tasksHandedOut: "given",
   taskWaiting: "given",
   taskUnlocked: "given",
+  givenPastCapacity: "given",
+  taskMeantFor: "given",
+  roomAgain: "given",
   release: "news",
 };
 

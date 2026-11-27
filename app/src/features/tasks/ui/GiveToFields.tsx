@@ -1,9 +1,11 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/ui/GiveToFields.tsx
-// Version : 1.0.0
-// Latest commit: feature/tasks
+// Version : 1.1.0
+// Latest commit: feature/1.2-workload-b
 // Author : Gerrah
 // Purpose : "Give to" for a task: a work group or a person; with a group, an
-// optional person in it. The same choice as in the workflow editor.
+// optional person in it. The same choice as in the workflow editor. When the
+// caller knows people's weeks, each person shows theirs, and people without
+// room for the task can't be picked.
 
 import type { MemberRecord } from "@/core/data";
 import { memberName } from "@/features/members";
@@ -23,6 +25,11 @@ interface GiveToFieldsProps {
   onChange: (value: Assignee) => void;
   groups: readonly WorkGroupRecord[];
   members: readonly MemberRecord[];
+  /** Someone's week for this task: a word after their name, and whether they can be picked. */
+  personWeek?: (member: MemberRecord) => {
+    note: string | null;
+    canPick: boolean;
+  };
 }
 
 export function GiveToFields({
@@ -30,7 +37,12 @@ export function GiveToFields({
   onChange,
   groups,
   members,
+  personWeek,
 }: GiveToFieldsProps) {
+  const weekOf = (member: MemberRecord) =>
+    member.id === value.memberId
+      ? { note: personWeek?.(member).note ?? null, canPick: true }
+      : (personWeek?.(member) ?? { note: null, canPick: true });
   const group = groups.find((entry) => entry.id === value.workGroupId);
   const inGroup = group
     ? members
@@ -47,7 +59,18 @@ export function GiveToFields({
       <Select
         label={Text.giveTo}
         help={Text.giveToHelp}
-        options={giveToOptions(groups, members)}
+        options={giveToOptions(groups, members).map((option) => {
+          const member = option.value.startsWith("member:")
+            ? members.find((entry) => `member:${entry.id}` === option.value)
+            : undefined;
+          if (!member || !personWeek) return option;
+          const week = weekOf(member);
+          return {
+            ...option,
+            label: [option.label, week.note].filter(Boolean).join(" · "),
+            disabled: option.disabled || !week.canPick,
+          };
+        })}
         value={giveToValue(value)}
         onChange={(event) => onChange(parseGiveTo(event.target.value))}
       />
@@ -58,7 +81,10 @@ export function GiveToFields({
             { value: "", label: Text.anyoneInGroup(group.name) },
             ...inGroup.map((member) => ({
               value: member.id,
-              label: memberName(member),
+              label: [memberName(member), weekOf(member).note]
+                .filter(Boolean)
+                .join(" · "),
+              disabled: !weekOf(member).canPick,
             })),
           ]}
           value={value.memberId ?? ""}

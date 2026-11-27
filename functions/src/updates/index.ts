@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/updates/index.ts
-// Version : 1.2.0
-// Latest commit: feature/auto-assign
+// Version : 1.3.0
+// Latest commit: feature/1.2-workload-b
 // Author : Gerrah
 // Purpose : Platform updates: one-time changes to the stored data that ship
 // with a release. Each is listed here in order; config/platformUpdates keeps
@@ -19,6 +19,7 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { ownersAndRanks } from "./ownersAndRanks.js";
 import { defineSecret } from "firebase-functions/params";
 import { announceLatestRelease } from "../index.js";
+import { memberWeeksUpdate } from "./memberWeeksUpdate.js";
 import { tasksFollowWorkflows } from "./tasksFollowWorkflows.js";
 import type { PlatformUpdate, UpdateReport } from "./types.js";
 
@@ -29,6 +30,7 @@ const resendKey = defineSecret("RESEND_API_KEY");
 export const platformUpdates: readonly PlatformUpdate[] = [
   tasksFollowWorkflows,
   ownersAndRanks,
+  memberWeeksUpdate,
 ];
 
 const stateDoc = "config/platformUpdates";

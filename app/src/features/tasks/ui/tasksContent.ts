@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/ui/tasksContent.ts
-// Version : 1.3.0
-// Latest commit: feature/1.2-tasks-follow-order
+// Version : 1.4.0
+// Latest commit: feature/1.2-workload-b
 // Author : Gerrah
 // Purpose : The words for tasks: rows and groups, the task page's cards, the
 // moves a task can make, the edit form, the new task and reassign dialogs,
@@ -107,6 +107,12 @@ export const ApprovalText = {
 } as const;
 
 export const AssignedText = {
+  meantFor: (name: string) => `Meant for ${name}`,
+  meantWhy: (name: string) =>
+    `The workflow names ${name}, who had no room when it was planned.`,
+  giveTo: (name: string) => `Give to ${name}`,
+  givenPast: (by: string | null) =>
+    `Given past capacity${by ? ` by ${by}` : ""}:`,
   title: "Given to",
   anyoneInGroup: "anyone in the group",
   nobody: "No one yet.",
@@ -119,6 +125,16 @@ export const ReassignText = {
   save: "Reassign",
   cancel: "Cancel",
   done: (title: string) => `${title} reassigned`,
+  taskLine: (title: string, bigger: boolean) =>
+    bigger ? `${title} · a bigger task` : title,
+  noRoom:
+    "People with no room that week can't be picked. Leave it with the group and it goes to the first person who has room.",
+  pastCapacity: (name: string, state: string, bigger: boolean) =>
+    `${name} is ${state.toLowerCase()} that week. ${bigger ? "This bigger task" : "This task"} would put them over it.`,
+  why: (name: string) => `Why it has to be ${name}`,
+  whyHint: (name: string) =>
+    `Required. ${name} sees it, the group's leads are told, and it's kept in Activity. ${name}'s usual week doesn't change.`,
+  givePast: "Give past capacity",
 } as const;
 
 export const AskForChangesText = {

@@ -1,17 +1,21 @@
 // File : /TeamSamsara.Workflow/app/src/features/workload/model/week.ts
-// Version : 1.0.0
-// Latest commit: feature/1.2-workload
+// Version : 1.1.0
+// Latest commit: feature/1.2-workload-b
 // Author : Gerrah
 // Purpose : Someone's week as the screens show it: their usual week (their
 // own, or the workspace's), the open tasks given to them that are due in it,
 // and the word it reads as. The counting itself is the engine's
-// (engine/src/workload.ts), shared with the server's hand-out.
+// (engine/src/workload.ts), shared with the server's hand-out. Other
+// people's weeks come from what the server keeps (stateAt), and whether a
+// task fits from the word alone (fits).
 
+import { dayKey } from "@engine/time";
 import {
   taskSize,
   weekLoad,
   weekOf,
   weekState,
+  type TaskSize,
   type WeekState,
 } from "@engine/workload";
 
@@ -109,4 +113,29 @@ export function weekRange(
   return month(week.start) === month(last)
     ? `${month(week.start)} ${day(week.start)} – ${day(last)}`
     : `${month(week.start)} ${day(week.start)} – ${month(last)} ${day(last)}`;
+}
+
+/**
+ * Someone's week around a moment, from the record the server keeps; null
+ * when there's none yet.
+ */
+export function stateAt(
+  record: { states: Record<string, WeekState>; empty: WeekState } | undefined,
+  at: Date,
+  settings: WeekSettings,
+): WeekState | null {
+  if (!record) return null;
+  const key = dayKey(
+    weekOf(at, settings.timeZone, settings.weekStartsOn).start,
+    settings.timeZone,
+  );
+  return record.states[key] ?? record.empty;
+}
+
+/** Whether a week in this state has room for a task of this size. */
+export function fits(state: WeekState | null, size: TaskSize): boolean {
+  if (state === null) return true;
+  return size === "bigger"
+    ? state === "available"
+    : state === "available" || state === "limited";
 }

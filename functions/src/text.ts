@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/text.ts
-// Version : 1.4.0
-// Latest commit: feature/auto-assign
+// Version : 1.5.0
+// Latest commit: feature/1.2-workload-b
 // Author : Gerrah
 // Purpose : The one-line sentence each notification says (an email's
 // subject), and dates as the workspace writes them. The app words its own
@@ -68,6 +68,12 @@ export function sentence(kind: NotificationKind, said: Said): string {
       return `Playbook gave you ${said.title}`;
     case "taskWaiting":
       return `${said.title} is still waiting for someone${said.group ? ` in ${said.group}` : ""}`;
+    case "taskMeantFor":
+      return `${said.title} waits${said.group ? ` in ${said.group}` : ""}: meant for ${said.detail ?? "someone"}, who has no room that week`;
+    case "roomAgain":
+      return `${said.detail ?? "Someone"} has room again for ${said.title}`;
+    case "givenPastCapacity":
+      return `${said.actor ?? "Someone"} gave ${said.title} past capacity${said.detail ? `: "${said.detail}"` : ""}`;
     case "taskUnlocked":
       // detail: the task that just did what it waited on.
       return `${said.title} can start now${said.detail ? `: ${said.detail} is ready` : ""}`;

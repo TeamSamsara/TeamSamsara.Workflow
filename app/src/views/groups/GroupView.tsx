@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/groups/GroupView.tsx
-// Version : 1.2.0
-// Latest commit: feature/1.2-workload
+// Version : 1.3.0
+// Latest commit: feature/1.2-workload-b
 // Author : Gerrah
 // Purpose : One work group's overview: a band in its colour behind its badge,
 // its leads and size, and Plan an event (for planners). Members as a grid,
@@ -17,7 +17,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { usePermissions, useActor } from "@/core/access";
 import { isCurrentMember, type MemberRecord } from "@/core/data";
 import { useDisplayTime, useWorkspaceRecord } from "@/core/workspace";
-import { memberWeek, usualWeekOf } from "@/features/workload";
+import { stateAt, useMemberWeeks } from "@/features/workload";
 import { formatDue, type TaskRecord } from "@/features/tasks";
 import { memberName } from "@/features/members";
 import { usePeopleTags } from "@/features/people-tags";
@@ -68,6 +68,7 @@ export function GroupView() {
     members.map((member) => member.id),
     now,
   );
+  const weeks = useMemberWeeks(members.map((member) => member.id));
   const showTasks = params.get("tab") === "tasks";
   const groupEvents = overview.events;
   const inOrder = useTaskOrder(
@@ -94,19 +95,10 @@ export function GroupView() {
   const canManage = access.can("manageWorkGroups");
   // Its leads and the people who manage groups choose how it hands out tasks.
   const showsHandOut = canManage || (actor?.leadOf.includes(group.id) ?? false);
-  // Each person's week from the tasks this page can see (the group's own).
-  const weekOf = (memberId: string) => {
-    const member = members.find((entry) => entry.id === memberId);
-    return member
-      ? memberWeek(
-          member.id,
-          usualWeekOf(member, workspace),
-          overview.tasks ?? [],
-          now,
-          workspace,
-        ).state
-      : null;
-  };
+  // Each person's week this week, as the server keeps it (from all their
+  // tasks, including ones in other groups this page can't see).
+  const weekOf = (memberId: string) =>
+    stateAt(weeks.get(memberId), now, workspace);
   const groupTags = tags.items.filter((tag) =>
     members.some((member) => member.tagIds.includes(tag.id)),
   );
