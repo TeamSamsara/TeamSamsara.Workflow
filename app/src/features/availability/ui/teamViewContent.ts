@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/ui/teamViewContent.ts
-// Version : 1.0.1
-// Latest commit: feature/audit-fixes
+// Version : 1.1.0
+// Latest commit: feature/1.2-wording-help
 // Author : Gerrah
 // Purpose : The words of Team availability: the switches, the people list,
 // the hour grid, the People rows and the side panel for the picked hour.
@@ -62,7 +62,7 @@ export const TeamViewText = {
   unknown: (count: number) => `Not filled in · ${count}`,
   nobody: "Nobody",
   everyoneFilled: "Everyone has",
-  planThen: "Plan an event then",
+  planThen: "Create an event then",
   bestTitle: "When everyone shown is free",
   noBest: "No two hours this week when everyone shown is free.",
   noneShown: "Tick some people to compare them.",

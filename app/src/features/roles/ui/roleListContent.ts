@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/roles/ui/roleListContent.ts
-// Version : 1.1.0
-// Latest commit: fix/invite-and-fields
+// Version : 1.2.0
+// Latest commit: feature/1.2-wording-help
 // Author : Gerrah
 // Purpose : The words in the role list and the role picker.
 
@@ -24,7 +24,7 @@ export const RolePickerText = {
   none: "There are no roles you can give yet.",
   everything: "Can do everything.",
   nothingExtra: "Nothing beyond what Everyone can do.",
-  /** "Plan events and repeats, see everyone's availability and 1 more." */
+  /** "Create events and repeats, see everyone's availability and 1 more." */
   gives: (labels: readonly string[]) => {
     const [first = "", ...rest] = labels;
     const words = [
