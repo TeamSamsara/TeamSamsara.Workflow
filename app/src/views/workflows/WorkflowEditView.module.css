@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/views/workflows/WorkflowEditView.module.css
-   Version : 2.0.0
-   Latest commit: feature/1.2-order-rules
+   Version : 2.1.0
+   Latest commit: feature/1.2-flow-view
    Author : Gerrah
    Purpose : Layout of the workflow editor: the header, notes, then three columns: the steps, the open step, and its rail (two columns, then one, on narrower screens). */
 
@@ -20,6 +20,13 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: var(--space-3);
 }
 

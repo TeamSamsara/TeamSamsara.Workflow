@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/workflows/workflowEditViewContent.ts
-// Version : 1.2.0
-// Latest commit: feature/audit-fixes
+// Version : 1.3.0
+// Latest commit: feature/1.2-flow-view
 // Author : Gerrah
 // Purpose : The words on the workflow editor page.
 
@@ -11,6 +11,7 @@ export const WorkflowEditViewText = {
   loading: "Loading workflow",
   notFound: "That workflow doesn't exist any more.",
   backToList: "Back to workflows",
+  views: { label: "Show the steps as", list: "List", flow: "Flow" },
   export: "Export",
   archive: "Archive",
   restore: "Restore",

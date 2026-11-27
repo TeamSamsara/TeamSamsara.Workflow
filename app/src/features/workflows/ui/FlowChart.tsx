@@ -1,5 +1,5 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/ui/FlowChart.tsx
-// Version : 1.0.0
+// Version : 1.1.0
 // Latest commit: feature/1.2-flow-view
 // Author : Gerrah
 // Purpose : A flow of steps (or an event's tasks) in time order: one column
@@ -68,7 +68,11 @@ interface Box {
   bottom: number;
 }
 
-/** A curve from the right edge of one box to the left edge of another. */
+/**
+ * A curve between two boxes: from the right edge of one to the left edge of
+ * the next when it's further right; down (or up) from one to the other when
+ * they share a column; otherwise out to the right and back in.
+ */
 function curve(from: Box, to: Box): string {
   const x1 = from.right;
   const y1 = (from.top + from.bottom) / 2;
@@ -78,7 +82,16 @@ function curve(from: Box, to: Box): string {
     const bend = Math.max(24, (x2 - x1) / 2);
     return `M ${x1} ${y1} C ${x1 + bend} ${y1}, ${x2 - bend} ${y2}, ${x2} ${y2}`;
   }
-  // Same column or backwards: loop out to the right and come back in.
+  const sameColumn = from.left < to.right && to.left < from.right;
+  if (sameColumn) {
+    const x =
+      (Math.max(from.left, to.left) + Math.min(from.right, to.right)) / 2;
+    const down = to.top >= from.bottom;
+    const ya = down ? from.bottom : from.top;
+    const yb = down ? to.top : to.bottom;
+    return `M ${x} ${ya} L ${x} ${yb}`;
+  }
+  // Backwards: loop out to the right and come back in.
   const out = 28;
   const below = Math.max(from.bottom, to.bottom) + 18;
   return `M ${x1} ${y1} C ${x1 + out} ${y1}, ${x1 + out} ${below}, ${(x1 + x2) / 2} ${below} S ${x2 - out} ${y2}, ${x2} ${y2}`;
@@ -181,7 +194,7 @@ export function FlowChart({
       <div
         className={styles.columns}
         style={{
-          gridTemplateColumns: `repeat(${columns.length}, minmax(180px, 1fr))`,
+          gridTemplateColumns: `repeat(${columns.length}, 240px)`,
         }}
       >
         {columns.map((column, index) => (
@@ -308,16 +321,26 @@ export function FlowChart({
   );
 }
 
-/** The legend under a flow: the two kinds of link and what red means. */
-export function FlowLegend({ extra }: { extra?: ReactNode }) {
+/** The legend under a flow: the two kinds of link and, for steps, what red means. */
+export function FlowLegend({
+  extra,
+  showBad = true,
+}: {
+  extra?: ReactNode;
+  showBad?: boolean;
+}) {
   return (
     <p className={styles.legend}>
       <span className={styles.key} data-kind="hard" aria-hidden />
       {Text.hard}
       <span className={styles.key} data-kind="soft" aria-hidden />
       {Text.soft}
-      <span className={styles.key} data-kind="bad" aria-hidden />
-      {Text.bad}
+      {showBad ? (
+        <>
+          <span className={styles.key} data-kind="bad" aria-hidden />
+          {Text.bad}
+        </>
+      ) : null}
       {extra}
     </p>
   );

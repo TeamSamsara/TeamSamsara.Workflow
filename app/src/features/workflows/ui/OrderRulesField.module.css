@@ -1,10 +1,11 @@
 /* File : /TeamSamsara.Workflow/app/src/features/workflows/ui/OrderRulesField.module.css
-   Version : 1.0.0
-   Latest commit: feature/1.2-order-rules
+   Version : 1.1.0
+   Latest commit: feature/1.2-flow-view
    Author : Gerrah
-   Purpose : Order rules: a line of three dropdowns and a remove button per rule, a one-line explanation under each, then the two settings side by side. Lines stack on a phone. */
+   Purpose : Order rules: a line of three dropdowns and a remove button per rule, a one-line explanation under each, then the two settings side by side. Lines stack on a phone, and in a narrow panel like the Flow view's. */
 
 .field {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -78,6 +79,30 @@
 
 /* Breakpoints.small: one dropdown per line, the head hidden. */
 @media (max-width: 640px) {
+  .head {
+    display: none;
+  }
+
+  .row,
+  .settings {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Each rule framed, its remove button at the top right of the frame. */
+  .rule {
+    padding: var(--space-3);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-field);
+  }
+
+  .row > :last-child {
+    grid-row: 1;
+    justify-self: end;
+  }
+}
+
+/* In a panel narrower than 520px (the Flow view's side): the same. */
+@container (max-width: 519px) {
   .head {
     display: none;
   }

@@ -1,10 +1,11 @@
 // File : /TeamSamsara.Workflow/app/src/views/workflows/WorkflowEditView.tsx
-// Version : 2.0.0
-// Latest commit: feature/1.2-order-rules
+// Version : 2.1.0
+// Latest commit: feature/1.2-flow-view
 // Author : Gerrah
 // Purpose : The workflow editor: About and the steps in due order on the left,
 // the one picked open in the middle in its six parts, and beside it how the
-// step reads, where it sits in the flow and the checks; Save, Export,
+// step reads, where it sits in the flow and the checks. List | Flow switches
+// to the steps drawn as a flow, linked by their order rules. Save, Export,
 // Archive or Restore, and Delete once archived. Saving a workflow that
 // upcoming events use offers to update the tasks it made for them. Also opens a new workflow,
 // blank or from an import. Without Edit workflows, everything is read-only.
@@ -44,6 +45,7 @@ import {
   StepRail,
   useWorkflow,
   useWorkflowDraft,
+  WorkflowFlow,
   type EditorSelection,
   type StepEditorOptions,
   type WorkflowRecord,
@@ -53,6 +55,7 @@ import { Button } from "@/shared/components/Button/Button";
 import { LinkButton } from "@/shared/components/Button/LinkButton";
 import { Modal } from "@/shared/components/Modal/Modal";
 import { PageHeader } from "@/shared/components/PageHeader/PageHeader";
+import { SegmentedControl } from "@/shared/components/SegmentedControl/SegmentedControl";
 import { Spinner } from "@/shared/components/Spinner/Spinner";
 import { useToast } from "@/shared/components/Toast/useToast";
 import {
@@ -65,6 +68,7 @@ import { WorkflowEditViewText as Text } from "./workflowEditViewContent";
 import styles from "./WorkflowEditView.module.css";
 
 type ListAction = "archive" | "restore" | "delete";
+type StepsView = "list" | "flow";
 
 function downloadFile(name: string, contents: string) {
   const url = URL.createObjectURL(
@@ -98,6 +102,7 @@ function WorkflowEditor({ workflow }: { workflow: WorkflowRecord | null }) {
   );
   const draft = useWorkflowDraft(workflow, imported?.imported ?? emptyWorkflow);
   const [selection, setSelection] = useState<EditorSelection | null>(null);
+  const [view, setView] = useState<StepsView>("list");
   const [triedToSave, setTriedToSave] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [showNextSteps, setShowNextSteps] = useState(() =>
@@ -311,76 +316,109 @@ function WorkflowEditor({ workflow }: { workflow: WorkflowRecord | null }) {
       ) : null}
       {draft.saveError ? <Banner tone="error">{draft.saveError}</Banner> : null}
 
-      <div className={styles.columns} data-about={openStep ? undefined : ""}>
-        <div className={styles.nav}>
-          <StepNav
-            steps={steps}
-            selected={openStep?.id ?? "about"}
-            onSelect={setSelection}
-            onAdd={addTask}
-            problems={problems}
-            showProblems={triedToSave}
-            aboutProblem={Boolean(problems.name || problems.description)}
-            options={options}
-            readOnly={!canEdit}
+      {steps.length > 0 ? (
+        <div className={styles.toolbar}>
+          <SegmentedControl<StepsView>
+            label={Text.views.label}
+            options={[
+              { value: "list", label: Text.views.list },
+              { value: "flow", label: Text.views.flow },
+            ]}
+            value={view}
+            onChange={setView}
           />
         </div>
-        {/* A disabled fieldset turns every field inside read-only. */}
-        <fieldset className={styles.main} disabled={!canEdit || busy}>
-          {openStep ? (
-            <StepEditor
-              key={openStep.id}
+      ) : null}
+
+      {view === "flow" && steps.length > 0 ? (
+        <WorkflowFlow
+          steps={steps}
+          problems={problems}
+          options={options}
+          selectedId={openStep?.id ?? null}
+          onSelect={setSelection}
+          onChangeStep={(stepId, changes) =>
+            draft.changeSteps((current) => changeStep(current, stepId, changes))
+          }
+          onReplaceSteps={(next) => draft.change({ steps: next })}
+          onOpenStep={(stepId) => {
+            setSelection(stepId);
+            setView("list");
+          }}
+          readOnly={!canEdit || busy}
+        />
+      ) : (
+        <div className={styles.columns} data-about={openStep ? undefined : ""}>
+          <div className={styles.nav}>
+            <StepNav
               steps={steps}
-              step={openStep}
-              onChange={changeOpen}
-              problems={problems.steps[openStep.id]}
-              showProblems={triedToSave}
-              options={options}
-              onDuplicate={() => {
-                const result = duplicateStep(fields.steps, openStep.id);
-                draft.change({ steps: result.steps });
-                if (result.copyId) setSelection(result.copyId);
-              }}
-              canDuplicate={canAddStep(fields.steps)}
-              onRemove={() => {
-                const index = steps.indexOf(openStep);
-                const next = steps[index + 1] ?? steps[index - 1];
-                draft.changeSteps((current) =>
-                  removeStep(current, openStep.id),
-                );
-                setSelection(next?.id ?? "about");
-              }}
-              readOnly={!canEdit}
-            />
-          ) : (
-            <>
-              <AboutCard
-                fields={fields}
-                onChange={draft.change}
-                eventTypes={eventTypes.items}
-                nameError={triedToSave ? problems.name : undefined}
-                descriptionError={
-                  triedToSave ? problems.description : undefined
-                }
-              />
-              <GapsCard steps={fields.steps} />
-            </>
-          )}
-        </fieldset>
-        {openStep ? (
-          <div className={styles.side}>
-            <StepRail
-              steps={steps}
-              step={openStep}
+              selected={openStep?.id ?? "about"}
+              onSelect={setSelection}
+              onAdd={addTask}
               problems={problems}
+              showProblems={triedToSave}
+              aboutProblem={Boolean(problems.name || problems.description)}
               options={options}
-              onFixDue={(due) => changeOpen({ due })}
-              onOpen={setSelection}
               readOnly={!canEdit}
             />
           </div>
-        ) : null}
-      </div>
+          {/* A disabled fieldset turns every field inside read-only. */}
+          <fieldset className={styles.main} disabled={!canEdit || busy}>
+            {openStep ? (
+              <StepEditor
+                key={openStep.id}
+                steps={steps}
+                step={openStep}
+                onChange={changeOpen}
+                problems={problems.steps[openStep.id]}
+                showProblems={triedToSave}
+                options={options}
+                onDuplicate={() => {
+                  const result = duplicateStep(fields.steps, openStep.id);
+                  draft.change({ steps: result.steps });
+                  if (result.copyId) setSelection(result.copyId);
+                }}
+                canDuplicate={canAddStep(fields.steps)}
+                onRemove={() => {
+                  const index = steps.indexOf(openStep);
+                  const next = steps[index + 1] ?? steps[index - 1];
+                  draft.changeSteps((current) =>
+                    removeStep(current, openStep.id),
+                  );
+                  setSelection(next?.id ?? "about");
+                }}
+                readOnly={!canEdit}
+              />
+            ) : (
+              <>
+                <AboutCard
+                  fields={fields}
+                  onChange={draft.change}
+                  eventTypes={eventTypes.items}
+                  nameError={triedToSave ? problems.name : undefined}
+                  descriptionError={
+                    triedToSave ? problems.description : undefined
+                  }
+                />
+                <GapsCard steps={fields.steps} />
+              </>
+            )}
+          </fieldset>
+          {openStep ? (
+            <div className={styles.side}>
+              <StepRail
+                steps={steps}
+                step={openStep}
+                problems={problems}
+                options={options}
+                onFixDue={(due) => changeOpen({ due })}
+                onOpen={setSelection}
+                readOnly={!canEdit}
+              />
+            </div>
+          ) : null}
+        </div>
+      )}
 
       {isConfirmingDelete && workflow ? (
         <Modal

@@ -1,9 +1,9 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/EventView.tsx
-// Version : 1.8.0
-// Latest commit: feature/audit-fixes
+// Version : 1.9.0
+// Latest commit: feature/1.2-flow-view
 // Author : Gerrah
-// Purpose : An event's page: when and what it is, its tasks and how far along
-// they are, its details, and the repeat or set it's part of. Planners change it from
+// Purpose : An event's page: when and what it is, its tasks (as a list, or
+// as a flow in time order) and how far along they are, its details, and the repeat or set it's part of. Planners change it from
 // its ⋯ menu (the same as on the calendar) and add tasks to it.
 
 import { useCallback, useState } from "react";
@@ -55,6 +55,7 @@ import { Button } from "@/shared/components/Button/Button";
 import { Chip } from "@/shared/components/Chip/Chip";
 import { LinkButton } from "@/shared/components/Button/LinkButton";
 import { PageHeader } from "@/shared/components/PageHeader/PageHeader";
+import { SegmentedControl } from "@/shared/components/SegmentedControl/SegmentedControl";
 import { Spinner } from "@/shared/components/Spinner/Spinner";
 import { useToast } from "@/shared/components/Toast/useToast";
 import {
@@ -66,6 +67,7 @@ import { useNow } from "@/shared/hooks/useNow";
 import { Icon } from "@/shared/icons/Icon";
 import { formatLongDate, formatTime } from "@/shared/time/dates";
 import { zoneCity } from "@/shared/time/timeZones";
+import { EventTaskFlow } from "./EventTaskFlow";
 import { EventViewText as Text } from "./eventViewContent";
 import styles from "./EventViews.module.css";
 import panels from "./EventDetails.module.css";
@@ -91,6 +93,7 @@ function EventPage({ event }: { event: EventRecord }) {
   const navigate = useNavigate();
   const now = useNow();
   const [isAddingTask, setIsAddingTask] = useState(false);
+  const [view, setView] = useState<"list" | "flow">("list");
   useReplyFromLink(event, member);
 
   const time = useDisplayTime();
@@ -112,6 +115,10 @@ function EventPage({ event }: { event: EventRecord }) {
     ),
   ].filter(Boolean);
   const done = tasks.items.filter((task) => task.doneAt).length;
+  // Given to a group with nobody taking it yet.
+  const unclaimed = tasks.items.filter(
+    (task) => !task.doneAt && task.workGroupId && !task.memberId,
+  ).length;
   const attendees: AttendancePerson[] = members.records
     .filter((entry) => entry.status === "active" || entry.status === "invited")
     .map((entry) => ({
@@ -214,12 +221,46 @@ function EventPage({ event }: { event: EventRecord }) {
           ) : tasks.items.length === 0 ? (
             <p className={panels.empty}>{Text.noTasks}</p>
           ) : (
-            <TaskGroupCard
-              title={Text.tasks}
-              note={Text.progress(done, tasks.items.length)}
-              tasks={inOrder(tasks.items)}
-              context={context}
-            />
+            <>
+              <div className={styles.viewSwitch}>
+                <SegmentedControl<"list" | "flow">
+                  label={Text.views.label}
+                  options={[
+                    { value: "list", label: Text.views.list },
+                    { value: "flow", label: Text.views.flow },
+                  ]}
+                  value={view}
+                  onChange={setView}
+                />
+              </div>
+              {view === "flow" ? (
+                <section className={panels.card} aria-label={Text.tasks}>
+                  <h2 className={panels.title}>{Text.tasks}</h2>
+                  <p className={panels.empty}>
+                    {Text.inTimeOrder}{" "}
+                    {Text.progressWaiting(done, tasks.items.length, unclaimed)}
+                  </p>
+                  <EventTaskFlow
+                    tasks={tasks.items}
+                    startsAt={event.startsAt}
+                    context={context}
+                    timeZone={tz}
+                    clockFormat={time.timeFormat}
+                  />
+                </section>
+              ) : (
+                <TaskGroupCard
+                  title={Text.tasks}
+                  note={Text.progressWaiting(
+                    done,
+                    tasks.items.length,
+                    unclaimed,
+                  )}
+                  tasks={inOrder(tasks.items)}
+                  context={context}
+                />
+              )}
+            </>
           )}
         </div>
         <aside className={styles.side}>

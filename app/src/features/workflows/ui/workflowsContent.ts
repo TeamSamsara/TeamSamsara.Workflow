@@ -258,8 +258,6 @@ export const FlowChartText = {
 
 export const WorkflowFlowText = {
   label: "The workflow's steps as a flow",
-  views: { list: "List", flow: "Flow" },
-  viewLabel: "Show the steps as",
   high: "High priority",
   problems: (count: number) =>
     count === 1 ? "1 problem" : `${count} problems`,

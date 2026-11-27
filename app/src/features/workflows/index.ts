@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/index.ts
-// Version : 1.5.0
-// Latest commit: feature/1.2-order-rules
+// Version : 1.6.0
+// Latest commit: feature/1.2-flow-view
 // Author : Gerrah
 // Purpose : What other layers may use from the workflows feature.
 
@@ -70,4 +70,7 @@ export { StepNav } from "./ui/StepNav";
 export type { EditorSelection } from "./ui/StepNav";
 export { StepRail } from "./ui/StepRail";
 export { WorkflowsTable } from "./ui/WorkflowsTable";
+export { WorkflowFlow } from "./ui/WorkflowFlow";
+export { FlowChart, FlowLegend } from "./ui/FlowChart";
+export type { FlowLink, FlowNode } from "./ui/FlowChart";
 export { ReferenceLinksText, SectionText } from "./ui/workflowsContent";
