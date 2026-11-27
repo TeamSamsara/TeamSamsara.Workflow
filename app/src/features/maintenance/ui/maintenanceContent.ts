@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/maintenance/ui/maintenanceContent.ts
-// Version : 1.1.0
-// Latest commit: feature/audit-fixes
+// Version : 1.2.0
+// Latest commit: feature/1.2-after-saving
 // Author : Gerrah
 // Purpose : The words of the Database maintenance card.
 
@@ -38,6 +38,7 @@ export const MaintenanceText = {
     notifications: "notifications",
     sentReminders: "reminder records",
     workflowSyncs: "sync records",
+    workflowReviews: "after-saving lists",
     bulkPlans: "planning records",
   } as Record<string, string>,
 } as const;

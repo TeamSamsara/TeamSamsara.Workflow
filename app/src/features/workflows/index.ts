@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/index.ts
-// Version : 1.6.0
-// Latest commit: feature/1.2-flow-view
+// Version : 1.7.0
+// Latest commit: feature/1.2-after-saving
 // Author : Gerrah
 // Purpose : What other layers may use from the workflows feature.
 
@@ -71,6 +71,9 @@ export type { EditorSelection } from "./ui/StepNav";
 export { StepRail } from "./ui/StepRail";
 export { WorkflowsTable } from "./ui/WorkflowsTable";
 export { WorkflowFlow } from "./ui/WorkflowFlow";
+export { AfterSavingDialog } from "./ui/AfterSavingDialog";
+export { useWorkflowReview } from "./hooks/useWorkflowReview";
+export type { WorkflowReview } from "./hooks/useWorkflowReview";
 export { FlowChart, FlowLegend } from "./ui/FlowChart";
 export type { FlowLink, FlowNode } from "./ui/FlowChart";
 export { ReferenceLinksText, SectionText } from "./ui/workflowsContent";

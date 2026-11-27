@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/engine/src/sync.ts
-// Version : 1.2.0
-// Latest commit: feature/1.2-tasks-follow-order
+// Version : 1.3.0
+// Latest commit: feature/1.2-after-saving
 // Author : Gerrah
 // Purpose : Keeping a task in line with its workflow step. Given the task as
 // it is and what its step makes for its event now, works out what to write,
@@ -13,7 +13,9 @@
 // have yet) are always filled. Finished tasks are never changed, and a due
 // time isn't moved to one that has already passed. When a workflow is saved,
 // only the parts its step changed are looked at. The order (priority and
-// what it waits on) always follows the step: it isn't changed by hand.
+// what it waits on) always follows the step: it isn't changed by hand. With
+// keepDue (a workflow save), due times never move: a task whose due time
+// differs from its step is reported instead, for the planner to move.
 
 import type { DueOffset } from "./due.js";
 import type { Priority, TaskWait, WaitFor, WhenLate } from "./order.js";
@@ -68,7 +70,8 @@ export interface TaskChanges {
   dueFromOffset?: DueOffset | null;
 }
 
-export type HeldReason = "edited" | "late";
+/** edited: changed by hand; late: would move to a time already passed; differs: kept for the planner to decide. */
+export type HeldReason = "edited" | "late" | "differs";
 
 export interface TaskSync {
   taskId: string;
@@ -82,6 +85,8 @@ export interface TaskSync {
   /** Its due time before and after, when that moves. */
   fromDue?: Date | null;
   toDue?: Date | null;
+  /** With keepDue: its due time and the step's, when they differ. */
+  dueDiffers?: { from: Date | null; to: Date | null; edited: boolean };
 }
 
 const time = (date: Date | null | undefined) => date?.getTime() ?? null;
@@ -169,6 +174,8 @@ function fillChecklist(
 
 export interface SyncOptions {
   now: Date;
+  /** Never move the due time; report it when it differs from the step's. */
+  keepDue?: boolean;
 }
 
 /**
@@ -180,12 +187,13 @@ export function planTaskSync(
   task: TaskForSync,
   next: PlannedTask,
   previous: PlannedTask | null,
-  { now }: SyncOptions,
+  { now, keepDue = false }: SyncOptions,
 ): TaskSync | null {
   if (task.doneAt) return null;
   const changes: TaskChanges = {};
   const parts: TaskPart[] = [];
   const held: TaskSync["held"] = [];
+  let dueDiffers: TaskSync["dueDiffers"];
 
   /** Whether a part is someone's own: recorded, or worked out for older tasks. */
   const edited = (part: TaskPart, readsAsMade: boolean) => {
@@ -214,7 +222,10 @@ export function planTaskSync(
       next.dueAt.getTime() < now.getTime() &&
       (task.dueAt === null || task.dueAt.getTime() >= now.getTime());
     if (!isEdited && passed) held.push({ part: "due", reason: "late" });
-    else take("due", isEdited, () => (changes.dueAt = next.dueAt));
+    else if (keepDue) {
+      held.push({ part: "due", reason: "differs" });
+      dueDiffers = { from: task.dueAt, to: next.dueAt, edited: isEdited };
+    } else take("due", isEdited, () => (changes.dueAt = next.dueAt));
   }
 
   // Who it's given to; a task given to no one always takes the step's. A
@@ -339,5 +350,6 @@ export function planTaskSync(
     ...(changes.dueAt !== undefined
       ? { fromDue: task.dueAt, toDue: changes.dueAt }
       : {}),
+    ...(dueDiffers ? { dueDiffers } : {}),
   };
 }

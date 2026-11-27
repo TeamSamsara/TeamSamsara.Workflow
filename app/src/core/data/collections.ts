@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/collections.ts
-// Version : 1.11.0
-// Latest commit: feature/1.2-workload-c
+// Version : 1.12.0
+// Latest commit: feature/1.2-after-saving
 // Author : Gerrah
 // Purpose : The name of every Firestore collection and settings document, in one
 // place. One Firebase project holds one workspace, so everything sits at the top.
@@ -35,6 +35,8 @@ export const Collections = {
   bulkPlans: "bulkPlans",
   /** One record each time a workflow's changes were passed on to its upcoming tasks. */
   workflowSyncs: "workflowSyncs",
+  /** After a workflow save: its tasks whose due time differs, for whoever saved it. */
+  workflowReviews: "workflowReviews",
   /** What the server functions tell each member; they read and clear their own. */
   notifications: "notifications",
   /** Each member's choice of what they're told about, and where. */
