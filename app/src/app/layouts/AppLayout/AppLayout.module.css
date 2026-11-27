@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/app/layouts/AppLayout/AppLayout.module.css
-   Version : 1.0.0
-   Latest commit: core/app-shell
+   Version : 1.1.0
+   Latest commit: feature/1.2-view-as-role
    Author : Gerrah
    Purpose : Layout of the signed-in frame: a sidebar that stays put beside a scrolling page area. At 900px and below (Breakpoints.medium) the sidebar slides in over the page, behind a dimmed backdrop. */
 
@@ -25,6 +25,33 @@
   gap: var(--content-gap);
   min-width: 0;
   padding: var(--page-padding-y) var(--page-padding-x);
+}
+
+/* While viewing as a role: a bar at the top of every page, until Stop viewing. */
+.viewingAs {
+  position: sticky;
+  top: 0;
+  z-index: calc(var(--layer-dropdown) - 1);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin: calc(var(--page-padding-y) * -1) calc(var(--page-padding-x) * -1) 0;
+  padding: var(--space-2-5) var(--page-padding-x);
+  background-color: var(--color-info);
+  color: var(--color-text-on-info);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.viewingText {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.stopViewing {
+  background-color: var(--color-surface);
+  color: var(--color-text);
 }
 
 .main:focus {

@@ -1,12 +1,13 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/roles/RolesView.tsx
-// Version : 1.1.0
-// Latest commit: feature/members
+// Version : 1.2.0
+// Latest commit: feature/1.2-view-as-role
 // Author : Gerrah
 // Purpose : Settings → Roles: the ordered role list on the left, and the open
 // role on the right with its Display, Permissions and Members tabs, Reset and Save. The
 // draft is shared by both tabs, and leaving the role with unsaved changes asks
 // first.
 
+import { usePermissions } from "@/core/access";
 import { useMutation } from "@tanstack/react-query";
 import { useState, type CSSProperties } from "react";
 import {
@@ -31,7 +32,7 @@ import { Modal } from "@/shared/components/Modal/Modal";
 import { Spinner } from "@/shared/components/Spinner/Spinner";
 import { NavTabs } from "@/shared/components/Tabs/NavTabs";
 import { useToast } from "@/shared/components/Toast/useToast";
-import { RoleTabs, rolePath } from "@/shared/constants/routePaths";
+import { RoleTabs, RoutePaths, rolePath } from "@/shared/constants/routePaths";
 import type { RoleEditorContext } from "./roleEditorContext";
 import { RolesViewText } from "./rolesViewContent";
 import styles from "./RolesView.module.css";
@@ -45,7 +46,12 @@ interface RoleEditorPanelProps {
 function RoleEditorPanel({ item, list }: RoleEditorPanelProps) {
   const draft = useRoleDraft(item.role);
   const toast = useToast();
+  const access = usePermissions();
+  const navigateTo = useNavigate();
   const roleId = item.role.id;
+  // Seeing the app as this role: for people who manage roles, roles below them.
+  const canViewAs =
+    item.canManage && access.can("manageRoles") && !item.isEveryone;
   const title = item.isEveryone
     ? item.role.name
     : RolesViewText.editTitle(item.role.name);
@@ -100,6 +106,20 @@ function RoleEditorPanel({ item, list }: RoleEditorPanelProps) {
         </div>
         {item.canManage ? (
           <div className={styles.actions}>
+            {canViewAs ? (
+              <Button
+                variant="ghost"
+                iconStart="showPassword"
+                onClick={() => {
+                  access.viewAs(roleId);
+                  navigateTo(RoutePaths.calendar);
+                }}
+                disabled={draft.isDirty}
+                title={draft.isDirty ? RolesViewText.saveFirst : undefined}
+              >
+                {RolesViewText.viewAs(item.role.name)}
+              </Button>
+            ) : null}
             <Button
               variant="ghost"
               onClick={draft.reset}

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/layouts/AppLayout/AppLayout.tsx
-// Version : 1.3.0
-// Latest commit: feature/whats-new
+// Version : 1.4.0
+// Latest commit: feature/1.2-view-as-role
 // Author : Gerrah
 // Purpose : The frame around every signed-in page: the sidebar and the page area.
 // On narrow screens the sidebar becomes a slide-in menu behind a top bar button,
@@ -16,6 +16,7 @@ import { useMediaQuery } from "@/shared/hooks/useMediaQuery";
 import { MobileTopBar } from "./MobileTopBar";
 import { Sidebar } from "./Sidebar";
 import { useSessionLimit } from "./useSessionLimit";
+import { ViewingAsBar } from "./ViewingAsBar";
 import { AppLayoutText } from "./appLayoutContent";
 import styles from "./AppLayout.module.css";
 
@@ -73,6 +74,7 @@ export function AppLayout() {
         ) : null}
 
         <main id={mainContentId} className={styles.main} tabIndex={-1}>
+          <ViewingAsBar />
           <Outlet />
           {/* After a release, once: what's new in it. */}
           <WhatsNewDialog />

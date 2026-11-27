@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/access/useActor.ts
-// Version : 1.0.0
-// Latest commit: feature/auto-assign
+// Version : 1.1.0
+// Latest commit: feature/1.2-view-as-role
 // Author : Gerrah
 // Purpose : The signed-in member as the shared permission model sees them
 // (permissions, rank, groups and the groups they lead), for asking decide()
@@ -24,13 +24,14 @@ export function useActor(): Actor | null {
             {
               id: member.id,
               status: member.status,
-              roleIds: member.roleIds,
+              // While viewing as a role, only that role, and no group to lead.
+              roleIds: access.viewingAs ? access.memberRoleIds : member.roleIds,
               workGroupIds: member.workGroupIds,
             },
             roles,
-            member.leadOf,
+            access.viewingAs ? [] : member.leadOf,
           )
         : null,
-    [member, roles, access.status],
+    [member, roles, access.status, access.viewingAs, access.memberRoleIds],
   );
 }

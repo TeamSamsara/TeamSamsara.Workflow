@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/access/roleRank.test.ts
-// Version : 1.2.0
-// Latest commit: feature/audit-fixes
+// Version : 1.3.0
+// Latest commit: feature/1.2-view-as-role
 // Author : Gerrah
 // Purpose : Tests that members manage only the roles below their highest one,
 // that Administrators manage all, and that Everyone is never handed out.
@@ -11,7 +11,12 @@ import {
   type RoleRecord,
   type RolesRecord,
 } from "@/core/data";
-import { assignableRoles, canManageRole, highestPosition } from "./roleRank";
+import {
+  assignableRoles,
+  canManageRole,
+  highestPosition,
+  viewableRole,
+} from "./roleRank";
 
 const role = (
   id: string,
@@ -64,5 +69,18 @@ describe("role order", () => {
       "planner",
       "editor",
     ]);
+  });
+});
+
+describe("viewing as a role", () => {
+  const manages = new Set(["manageRoles"]);
+
+  it("is for people who manage roles, for a role below theirs that still exists", () => {
+    expect(viewableRole("editor", ["lead"], manages, roles)).toBe("editor");
+    expect(viewableRole("admin", ["lead"], manages, roles)).toBeNull();
+    expect(viewableRole("lead", ["lead"], manages, roles)).toBeNull();
+    expect(viewableRole("gone", ["lead"], manages, roles)).toBeNull();
+    expect(viewableRole("editor", ["planner"], new Set(), roles)).toBeNull();
+    expect(viewableRole(null, ["lead"], manages, roles)).toBeNull();
   });
 });
