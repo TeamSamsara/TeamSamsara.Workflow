@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/model/refillTasks.test.ts
-// Version : 1.3.0
-// Latest commit: feature/audit-fixes
+// Version : 1.4.0
+// Latest commit: feature/1.2-workload-b
 // Author : Gerrah
 // Purpose : Tests which tasks follow an event's new values: text still as the
 // old values filled it changes, text edited by hand and finished tasks stay.
@@ -75,6 +75,8 @@ function made(): TaskRecord[] {
       editedParts: null,
       startedAnyway: null,
       waitingOn: [],
+      meantFor: null,
+      givenPastCapacity: null,
     }),
   );
 }

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/index.ts
-// Version : 1.8.0
-// Latest commit: feature/auto-assign
+// Version : 1.9.0
+// Latest commit: feature/1.2-workload-b
 // Author : Gerrah
 // Purpose : Playbook's server functions. They watch tasks and events and
 // write notifications for the people a change concerns (never the person who
@@ -80,6 +80,14 @@ import {
 import { when, type Formats } from "./text.js";
 import { readTask, readWorkflow } from "./engineData.js";
 import { afterDeleted, orderEffects } from "./taskOrder.js";
+import {
+  readRoom,
+  roomForTask,
+  type RoomAgain,
+  saveMemberWeeks,
+  touchesWeeks,
+  weekTaskRow,
+} from "./workload/memberWeeks.js";
 import {
   compareVersions,
   latestRelease,
@@ -391,6 +399,29 @@ export const onTaskWritten = onDocumentWrittenWithAuthContext(
     } catch (error) {
       logger.error("Following the task order failed", error);
     }
+    try {
+      // A task made for someone with no room waits with the group instead;
+      // the leads hear about it, and the person isn't told it's theirs.
+      if (
+        await followMeantFor(
+          event.params.taskId,
+          event.data?.before.data(),
+          event.data?.after.data(),
+        )
+      )
+        return;
+    } catch (error) {
+      logger.error("Checking room for a named task failed", error);
+    }
+    try {
+      await followOverride(
+        event.params.taskId,
+        event.data?.before.data(),
+        event.data?.after.data(),
+      );
+    } catch (error) {
+      logger.error("Recording a task given past capacity failed", error);
+    }
     const before = taskData(event.data?.before.data());
     const after = taskData(event.data?.after.data());
     // Changes the platform makes itself (keeping tasks in line with their
@@ -502,6 +533,114 @@ async function followOrder(
       names,
     );
   }
+}
+
+/**
+ * A task just made from a workflow step that names someone with no room in
+ * the week it's due: it waits with the step's group, marked as meant for
+ * them, and the group's leads are told. Returns whether it moved.
+ */
+async function followMeantFor(
+  taskId: string,
+  beforeData: DocumentData | undefined,
+  afterData: DocumentData | undefined,
+): Promise<boolean> {
+  if (beforeData || !afterData) return false;
+  const memberId = text(afterData.memberId);
+  const groupId = text(afterData.workGroupId);
+  const workflowId = text(afterData.workflowId);
+  const stepId = text(afterData.stepId);
+  if (!memberId || !groupId || !workflowId || !stepId) return false;
+  const workflow = (await db.doc(`workflows/${workflowId}`).get()).data();
+  const step = (Array.isArray(workflow?.steps) ? workflow.steps : []).find(
+    (entry: DocumentData) => entry?.id === stepId,
+  );
+  if (step?.memberId !== memberId) return false;
+  const room = await readRoom(db, memberId, taskId);
+  const fits = roomForTask(
+    room.others,
+    weekTaskRow(afterData),
+    room.usualWeek,
+    room.timeZone,
+    room.week.weekStartsOn,
+    new Date(),
+  );
+  if (fits) return false;
+  await db.doc(`tasks/${taskId}`).update({
+    memberId: null,
+    meantFor: memberId,
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+  const members = await activeMembers();
+  const name =
+    members.find((member) => member.id === memberId)?.name ?? "someone";
+  await deliver(
+    members
+      .filter((member) => member.leadOf.includes(groupId))
+      .map((member) => member.id),
+    {
+      kind: "taskMeantFor",
+      actorId: null,
+      title: text(afterData.title) ?? "A task",
+      detail: name,
+      taskId,
+      eventId: text(afterData.eventId),
+      groupId,
+    },
+    members,
+    await groupNames(),
+  );
+  return true;
+}
+
+/**
+ * A task just given past someone's capacity: kept in Activity with its
+ * reason, and the person and the group's leads are told.
+ */
+async function followOverride(
+  taskId: string,
+  beforeData: DocumentData | undefined,
+  afterData: DocumentData | undefined,
+) {
+  const given = afterData?.givenPastCapacity as DocumentData | null | undefined;
+  if (!afterData || !given || typeof given.memberId !== "string") return;
+  const was = beforeData?.givenPastCapacity as DocumentData | null | undefined;
+  if (was && toDate(was.at)?.getTime() === toDate(given.at)?.getTime()) return;
+  const members = await activeMembers();
+  const names = await groupNames();
+  const nameOf = (id: string) =>
+    members.find((member) => member.id === id)?.name ?? "someone";
+  const title = text(afterData.title) ?? "a task";
+  const reason = text(given.reason) ?? "";
+  const by = text(given.by);
+  await db.collection("activity").add({
+    area: "workload",
+    action: "givenPastCapacity",
+    targetId: taskId,
+    summary: `Gave ${title} to ${nameOf(given.memberId)} past their capacity: "${reason}"`,
+    before: null,
+    after: { memberId: given.memberId, reason },
+    actorId: by,
+    at: FieldValue.serverTimestamp(),
+  });
+  const groupId = text(afterData.workGroupId);
+  const leads = groupId
+    ? members.filter((member) => member.leadOf.includes(groupId))
+    : [];
+  await deliver(
+    [given.memberId, ...leads.map((member) => member.id)],
+    {
+      kind: "givenPastCapacity",
+      actorId: by,
+      title,
+      detail: reason,
+      taskId,
+      eventId: text(afterData.eventId),
+      groupId,
+    },
+    members,
+    names,
+  );
 }
 
 /** Whether a deleted event went because its whole repeat, or its end, went. */
@@ -751,7 +890,7 @@ async function keepNamesInRank(
   const nameOf = (memberId: string) =>
     names.find((member) => member.id === memberId)?.name ?? "someone";
   await db.collection("activity").add({
-    area: "settings",
+    area: "workload",
     action: "workflowNameRemoved",
     targetId: workflowId,
     summary: `Took ${above.map((entry) => `${nameOf(entry.memberId)} off ${entry.title || "a step"}`).join(", ")} in ${text(afterData.name) ?? "a workflow"}: above the rank of whoever saved it`,
@@ -971,6 +1110,83 @@ export const onTaskForHandOut = onDocumentWritten(
       event.data?.after.data(),
     );
     if (groups.length) await handOutFor(groups);
+  },
+);
+
+/** Someone's tasks changed: their weeks are worked out again. */
+export const onTaskForWeeks = onDocumentWritten(
+  { document: "tasks/{taskId}", secrets: [resendKey] },
+  async (event) => {
+    await tellRoomAgain(
+      await saveMemberWeeks(
+        db,
+        touchesWeeks(event.data?.before.data(), event.data?.after.data()),
+      ),
+    );
+  },
+);
+
+/** Tells the leads that someone now has room for a task meant for them. */
+async function tellRoomAgain(found: readonly RoomAgain[]) {
+  if (found.length === 0) return;
+  const members = await activeMembers();
+  const names = await groupNames();
+  for (const entry of found) {
+    const groupId = entry.groupId;
+    await deliver(
+      groupId
+        ? members
+            .filter((member) => member.leadOf.includes(groupId))
+            .map((member) => member.id)
+        : [],
+      {
+        kind: "roomAgain",
+        actorId: null,
+        title: entry.title,
+        detail:
+          members.find((member) => member.id === entry.memberId)?.name ?? null,
+        taskId: entry.taskId,
+        eventId: entry.eventId,
+        groupId,
+      },
+      members,
+      names,
+    );
+  }
+}
+
+/** Someone's usual week changed. */
+export const onMemberWeekChanged = onDocumentWritten(
+  { document: "members/{memberId}", secrets: [resendKey] },
+  async (event) => {
+    const before = event.data?.before.data();
+    const after = event.data?.after.data();
+    if (!after || before?.usualWeek === after.usualWeek) return;
+    await tellRoomAgain(await saveMemberWeeks(db, [event.params.memberId]));
+  },
+);
+
+/** Everyone's usual week, or when weeks start, changed: everyone's weeks again. */
+export const onWorkspaceWeekChanged = onDocumentWritten(
+  "config/workspace",
+  async (event) => {
+    const before = event.data?.before.data();
+    const after = event.data?.after.data();
+    if (
+      !after ||
+      (before?.usualWeek === after.usualWeek &&
+        before?.weekStartsOn === after.weekStartsOn &&
+        before?.timeZone === after.timeZone)
+    )
+      return;
+    const members = await db
+      .collection("members")
+      .where("status", "==", "active")
+      .get();
+    await saveMemberWeeks(
+      db,
+      members.docs.map((doc) => doc.id),
+    );
   },
 );
 

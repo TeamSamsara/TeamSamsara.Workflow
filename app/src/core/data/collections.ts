@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/collections.ts
-// Version : 1.9.0
-// Latest commit: feature/audit-fixes
+// Version : 1.10.0
+// Latest commit: feature/1.2-workload-b
 // Author : Gerrah
 // Purpose : The name of every Firestore collection and settings document, in one
 // place. One Firebase project holds one workspace, so everything sits at the top.
@@ -27,6 +27,8 @@ export const Collections = {
   personal: "personal",
   busy: "busy",
   tasks: "tasks",
+  /** Each person's weeks in one word each, kept by the server (workload). */
+  memberWeeks: "memberWeeks",
   /** One record per set or repeat planned, so the server sends one summary per person. */
   bulkPlans: "bulkPlans",
   /** One record each time a workflow's changes were passed on to its upcoming tasks. */

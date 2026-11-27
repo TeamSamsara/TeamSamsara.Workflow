@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/emails/templates.ts
-// Version : 1.2.0
-// Latest commit: feature/auto-assign
+// Version : 1.3.0
+// Latest commit: feature/1.2-workload-b
 // Author : Gerrah
 // Purpose : Every email Playbook sends, built on the shared layout: the
 // invite, the forgot-password email, the test email, and one per kind of
@@ -288,6 +288,21 @@ const kinds: Record<NotificationKind, KindLook> = {
     button: "Open the task",
     detail: "when",
     whenLabel: "Due",
+  },
+  taskMeantFor: {
+    eyebrow: "Waiting, meant for someone",
+    button: "Open the task",
+    detail: "none",
+  },
+  roomAgain: {
+    eyebrow: "Has room again",
+    button: "Open the task",
+    detail: "none",
+  },
+  givenPastCapacity: {
+    eyebrow: "Given past capacity",
+    button: "Open the task",
+    detail: "none",
   },
   taskUnlocked: {
     eyebrow: "Ready to start",

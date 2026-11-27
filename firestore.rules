@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/firestore.rules
-// Version : 2.1.0
-// Latest commit: feature/auto-assign
+// Version : 2.2.0
+// Latest commit: feature/1.2-workload-b
 // Author : Gerrah
 // Purpose : Who may read and write what in Firestore. Everything is denied until
 // a rule below allows it; each PR opens exactly what its feature needs, with a
@@ -743,7 +743,11 @@ service cloud.firestore {
             || plansEventOf(before, grants, held))
           && subjectRank(before) <= myRank()
           && hasValidOrder(after))
-        || (changed.hasOnly(["workGroupId", "memberId", "editedParts", "updatedAt"])
+        // Reassigning clears who it was meant for (only the server sets that).
+        || (changed.hasOnly(["workGroupId", "memberId", "editedParts",
+            "givenPastCapacity", "meantFor", "updatedAt"])
+          && after.get("meantFor", null) == null
+          && isHonestOverride(after.get("givenPastCapacity", null), after.memberId)
           && (holds(grants, held, "reassignTasks") || madeOneOff(before)
             || (leadsGroup(before.workGroupId)
               && after.workGroupId == before.workGroupId))
@@ -789,6 +793,23 @@ service cloud.firestore {
      * waits), unless it's done, started anyway, or late and set to unlock at
      * its due time. The same as lockState in engine/src/order.ts.
      */
+    /**
+     * Giving a task past someone's capacity (Owners and Administrators): in
+     * their own name, now, to the person it's given to, with a reason. Or no
+     * override at all. Whether there was room is the app's to check.
+     */
+    function isHonestOverride(given, memberId) {
+      return given == null
+        || (given is map
+          && given.keys().hasOnly(["by", "at", "memberId", "reason"])
+          && given.by == request.auth.uid
+          && given.at == request.time
+          && given.memberId == memberId
+          && given.reason is string && given.reason.size() > 0
+          && given.reason.size() <= 500
+          && can("administrator"));
+    }
+
     /** A task's order, as made or edited: its priority and what it waits on. */
     function hasValidOrder(task) {
       return task.get("priority", "normal") in ["high", "normal", "low"]
@@ -831,6 +852,8 @@ service cloud.firestore {
         && task.get("handedOutAt", null) == null
         && task.get("headsUpAt", null) == null
         && task.get("startedAnyway", null) == null
+        && task.get("meantFor", null) == null
+        && task.get("givenPastCapacity", null) == null
         // "Late from the start" only when its due time has really passed.
         && (task.get("lateAtCreation", false) == false
           || (task.dueAt != null && task.dueAt < request.time));
@@ -916,7 +939,8 @@ service cloud.firestore {
       // waitingOn is set when it's made, then only the server changes it.
       let optional = ["lateAtCreation", "doneBy", "eventGone", "editedParts",
         "handedOutAt", "headsUpAt", "priority", "waitsOn", "waitFor",
-        "whenLate", "dueFromOffset", "startedAnyway", "waitingOn"];
+        "whenLate", "dueFromOffset", "startedAnyway", "waitingOn",
+        "givenPastCapacity", "meantFor"];
       let gone = task.get("eventGone", null);
       let edited = task.get("editedParts", null);
       // Their values are checked by the only changes that write them (see
@@ -1262,6 +1286,13 @@ service cloud.firestore {
         && !existsAfter(/databases/$(database)/documents/personal/$(entryId));
     }
     // #endregion
+
+    // Each person's weeks, one word per week (Available, Limited, At
+    // capacity, Over capacity): written only by the server, so members can
+    // see who has room without seeing each other's tasks.
+    match /memberWeeks/{memberId} {
+      allow read: if isActiveMember();
+    }
 
     // The activity history: written only by the server. Administrators read
     // it all; Manage members reads the People entries.

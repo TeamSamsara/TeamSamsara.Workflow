@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/notifications/model/notificationText.ts
-// Version : 1.3.0
-// Latest commit: feature/auto-assign
+// Version : 1.4.0
+// Latest commit: feature/1.2-workload-b
 // Author : Gerrah
 // Purpose : How a notification reads in the list: who (bold), what happened,
 // the task or event (bold) and the rest, plus the reviewer's words when there
@@ -68,6 +68,20 @@ export function notificationLine(
       };
     case "setPlanned":
       return line("planned", note.detail ? `: ${note.detail}.` : ".");
+    case "taskMeantFor":
+      return line(
+        "",
+        ` waits${groupName ? ` in ${groupName}` : ""}: meant for ${note.detail ?? "someone"}, who has no room that week.`,
+        false,
+      );
+    case "roomAgain":
+      return line(
+        "",
+        `: ${note.detail ?? "Someone"} has room again. Give it to them from the task.`,
+        false,
+      );
+    case "givenPastCapacity":
+      return { ...line("gave", " past capacity."), quote: note.detail };
     case "taskUnlocked":
       return line(
         "",

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/tasks/myTasksViewContent.ts
-// Version : 1.3.0
-// Latest commit: feature/1.2-tasks-follow-order
+// Version : 1.4.0
+// Latest commit: feature/1.2-workload-b
 // Author : Gerrah
 // Purpose : The words on My tasks.
 
@@ -57,6 +57,8 @@ export const MyTasksViewText = {
   waitingNote:
     "No one was free for these yet. Claim one to take it, or it goes to the first person who frees up.",
   claim: "Claim",
+  tooBig: "Too big for your week",
+  noRoom: "No room in your week",
   claimed: (title: string) => `${title} is yours`,
   claimFailed: "Couldn't claim that task",
   approvals: "Waiting for your approval",

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/types/taskTypes.ts
-// Version : 1.3.0
-// Latest commit: feature/1.2-tasks-follow-order
+// Version : 1.4.0
+// Latest commit: feature/1.2-workload-b
 // Author : Gerrah
 // Purpose : A task: something one work group or person has to do by a time.
 // It has the same basics and sections as a workflow's task, plus where it is
@@ -96,6 +96,15 @@ export interface TaskRecord {
   startedAnyway: StartedAnyway | null;
   /** The tasks it still waits on, kept up to date by the server. */
   waitingOn: WaitingOn[];
+  /** Its step names someone who had no room: it waits with the group for them. */
+  meantFor: string | null;
+  /** Given to someone past their capacity: who did it, when and why. */
+  givenPastCapacity: {
+    by: string;
+    at: Date | null;
+    memberId: string;
+    reason: string;
+  } | null;
 }
 
 /** The part of a task its edit form changes. */
@@ -246,6 +255,23 @@ function parse(id: string, data: DocumentData): TaskRecord {
         : null,
     startedAnyway: readStartedAnyway(data),
     waitingOn: readWaitingOn(data),
+    meantFor: readOptionalString(data, "meantFor"),
+    givenPastCapacity:
+      typeof data.givenPastCapacity === "object" &&
+      data.givenPastCapacity !== null
+        ? {
+            by: readString(data.givenPastCapacity as DocumentData, "by"),
+            at: readDate(data.givenPastCapacity as DocumentData, "at"),
+            memberId: readString(
+              data.givenPastCapacity as DocumentData,
+              "memberId",
+            ),
+            reason: readString(
+              data.givenPastCapacity as DocumentData,
+              "reason",
+            ),
+          }
+        : null,
   };
 }
 
@@ -261,6 +287,9 @@ export const taskConverter = createConverter<TaskRecord>({
     doneAt: fromDate(task.doneAt),
     startedAnyway: task.startedAnyway
       ? { ...task.startedAnyway, at: fromDate(task.startedAnyway.at) }
+      : null,
+    givenPastCapacity: task.givenPastCapacity
+      ? { ...task.givenPastCapacity, at: fromDate(task.givenPastCapacity.at) }
       : null,
     eventGone: task.eventGone
       ? {
