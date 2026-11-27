@@ -68,6 +68,14 @@ export function notificationLine(
       };
     case "setPlanned":
       return line("planned", note.detail ? `: ${note.detail}.` : ".");
+    case "taskUnlocked":
+      return line(
+        "",
+        note.detail
+          ? ` can start now: ${note.detail} is ready.`
+          : " can start now.",
+        false,
+      );
     case "release":
       return {
         ...line("released", note.detail ? `. ${note.detail}` : "."),

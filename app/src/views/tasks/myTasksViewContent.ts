@@ -1,12 +1,15 @@
 // File : /TeamSamsara.Workflow/app/src/views/tasks/myTasksViewContent.ts
-// Version : 1.2.0
-// Latest commit: feature/auto-assign
+// Version : 1.3.0
+// Latest commit: feature/1.2-tasks-follow-order
 // Author : Gerrah
 // Purpose : The words on My tasks.
 
 import type { TaskScope } from "@/features/tasks";
 
 export const MyTasksViewText = {
+  waitingOnOthers: "Waiting on others",
+  waitingOnOthersNote:
+    "These unlock when the tasks they wait on are done. You'll get a notification.",
   title: "My tasks",
   description:
     "What's yours to do next. Everything coming up is in Planning, and what's finished is in Done this week.",

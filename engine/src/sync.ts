@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/engine/src/sync.ts
-// Version : 1.1.0
-// Latest commit: feature/auto-assign
+// Version : 1.2.0
+// Latest commit: feature/1.2-tasks-follow-order
 // Author : Gerrah
 // Purpose : Keeping a task in line with its workflow step. Given the task as
 // it is and what its step makes for its event now, works out what to write,
@@ -12,13 +12,12 @@
 // at all. Gaps (no one given it, no post text, a checklist item it doesn't
 // have yet) are always filled. Finished tasks are never changed, and a due
 // time isn't moved to one that has already passed. When a workflow is saved,
-// only the parts its step changed are looked at.
+// only the parts its step changed are looked at. The order (priority and
+// what it waits on) always follows the step: it isn't changed by hand.
 
-import type {
-  PlannedTask,
-  PlatformPost,
-  TaskChecklistItem,
-} from "./tasks.js";
+import type { DueOffset } from "./due.js";
+import type { Priority, TaskWait, WaitFor, WhenLate } from "./order.js";
+import type { PlannedTask, PlatformPost, TaskChecklistItem } from "./tasks.js";
 
 export const TaskParts = [
   "due",
@@ -27,6 +26,7 @@ export const TaskParts = [
   "notes",
   "checklist",
   "posts",
+  "order",
 ] as const;
 export type TaskPart = (typeof TaskParts)[number];
 
@@ -45,6 +45,12 @@ export interface TaskForSync {
   editedParts: readonly string[] | null;
   /** For older tasks with no previous step to compare with: touched since made. */
   touched?: boolean;
+  /** Left out for tasks made before order rules. */
+  priority?: Priority;
+  waitsOn?: readonly TaskWait[];
+  waitFor?: WaitFor;
+  whenLate?: WhenLate;
+  dueFromOffset?: DueOffset | null;
 }
 
 export interface TaskChanges {
@@ -55,6 +61,11 @@ export interface TaskChanges {
   dueAt?: Date | null;
   checklist?: TaskChecklistItem[] | null;
   posts?: PlatformPost[] | null;
+  priority?: Priority;
+  waitsOn?: TaskWait[];
+  waitFor?: WaitFor;
+  whenLate?: WhenLate;
+  dueFromOffset?: DueOffset | null;
 }
 
 export type HeldReason = "edited" | "late";
@@ -289,6 +300,33 @@ export function planTaskSync(
     const isEdited =
       !empty && edited("posts", samePosts(previous?.posts ?? null, task.posts));
     take("posts", isEdited, () => (changes.posts = next.posts));
+  }
+
+  // Order: always the step's.
+  const sameWaits =
+    (task.waitsOn ?? []).length === next.waitsOn.length &&
+    next.waitsOn.every((wait, index) => {
+      const had = task.waitsOn?.[index];
+      return (
+        had?.stepId === wait.stepId &&
+        had.condition === wait.condition &&
+        had.dueFrom === wait.dueFrom
+      );
+    });
+  if (
+    !sameWaits ||
+    (task.priority ?? "normal") !== next.priority ||
+    (task.waitFor ?? "all") !== next.waitFor ||
+    (task.whenLate ?? "wait") !== next.whenLate ||
+    JSON.stringify(task.dueFromOffset ?? null) !==
+      JSON.stringify(next.dueFromOffset)
+  ) {
+    changes.priority = next.priority;
+    changes.waitsOn = next.waitsOn;
+    changes.waitFor = next.waitFor;
+    changes.whenLate = next.whenLate;
+    changes.dueFromOffset = next.dueFromOffset;
+    parts.push("order");
   }
 
   if (parts.length === 0 && held.length === 0) return null;

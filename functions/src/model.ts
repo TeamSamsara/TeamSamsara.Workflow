@@ -23,6 +23,7 @@ export const NotificationKinds = [
   "tasksMoved",
   "tasksHandedOut",
   "taskWaiting",
+  "taskUnlocked",
   "release",
 ] as const;
 export type NotificationKind = (typeof NotificationKinds)[number];
@@ -47,6 +48,7 @@ export const SettingGroupOf: Record<NotificationKind, SettingGroup> = {
   tasksMoved: "given",
   tasksHandedOut: "given",
   taskWaiting: "given",
+  taskUnlocked: "given",
   release: "news",
 };
 

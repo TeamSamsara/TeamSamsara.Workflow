@@ -78,7 +78,8 @@ import {
   type SummaryTask,
 } from "./summaries.js";
 import { when, type Formats } from "./text.js";
-import { readWorkflow } from "./engineData.js";
+import { readTask, readWorkflow } from "./engineData.js";
+import { afterDeleted, orderEffects } from "./taskOrder.js";
 import {
   compareVersions,
   latestRelease,
@@ -380,6 +381,16 @@ function resolve(
 export const onTaskWritten = onDocumentWrittenWithAuthContext(
   { document: "tasks/{taskId}", secrets: [resendKey] },
   async (event) => {
+    try {
+      await followOrder(
+        event.params.taskId,
+        event.data?.before.data(),
+        event.data?.after.data(),
+        event.authId ?? null,
+      );
+    } catch (error) {
+      logger.error("Following the task order failed", error);
+    }
     const before = taskData(event.data?.before.data());
     const after = taskData(event.data?.after.data());
     // Changes the platform makes itself (keeping tasks in line with their
@@ -419,6 +430,79 @@ export const onTaskWritten = onDocumentWrittenWithAuthContext(
     }
   },
 );
+
+/**
+ * After a task changes: tells whoever has the tasks it unlocked that they can
+ * start, and moves the due time of tasks that count from it being done.
+ */
+async function followOrder(
+  taskId: string,
+  beforeData: DocumentData | undefined,
+  afterData: DocumentData | undefined,
+  actorId: string | null,
+) {
+  const before = beforeData ? readTask(taskId, beforeData) : null;
+  const after = afterData ? readTask(taskId, afterData) : null;
+  const task = after ?? before;
+  if (!task?.eventId || !task.workflowId) return;
+  const siblings = (
+    await db
+      .collection("tasks")
+      .where("eventId", "==", task.eventId)
+      .where("workflowId", "==", task.workflowId)
+      .get()
+  ).docs.map((doc) => readTask(doc.id, doc.data()));
+
+  const { timeZone } = await workspaceFormats();
+  const effects = after
+    ? orderEffects(before, after, siblings, new Date(), timeZone)
+    : { unlocked: [], dues: [], waiting: afterDeleted(task, siblings) };
+  const writes = new Map<string, DocumentData>();
+  const write = (id: string, data: DocumentData) =>
+    writes.set(id, { ...writes.get(id), ...data });
+  for (const due of effects.dues)
+    write(due.taskId, { dueAt: Timestamp.fromDate(due.dueAt) });
+  for (const entry of effects.waiting)
+    write(entry.taskId, { waitingOn: entry.waitingOn });
+  if (writes.size > 0) {
+    const batch = db.batch();
+    for (const [id, data] of writes)
+      batch.update(db.doc(`tasks/${id}`), {
+        ...data,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    await batch.commit();
+  }
+
+  if (effects.unlocked.length === 0 || !after) return;
+  const members = await activeMembers();
+  const names = await groupNames();
+  for (const unlocked of effects.unlocked) {
+    const to = unlocked.memberId
+      ? [unlocked.memberId]
+      : members
+          .filter(
+            (member) =>
+              unlocked.workGroupId &&
+              member.workGroupIds.includes(unlocked.workGroupId),
+          )
+          .map((member) => member.id);
+    await deliver(
+      to,
+      {
+        kind: "taskUnlocked",
+        actorId,
+        title: unlocked.title,
+        detail: after.title,
+        taskId: unlocked.id,
+        eventId: unlocked.eventId,
+        groupId: unlocked.memberId ? null : unlocked.workGroupId,
+      },
+      members,
+      names,
+    );
+  }
+}
 
 /** Whether a deleted event went because its whole repeat, or its end, went. */
 async function seriesTakesIt(event: EventData): Promise<boolean> {

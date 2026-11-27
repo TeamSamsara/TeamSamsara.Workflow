@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/tasks.rules.test.ts
-// Version : 2.1.0
-// Latest commit: feature/auto-assign
+// Version : 2.2.0
+// Latest commit: feature/1.2-tasks-follow-order
 // Author : Gerrah
 // Purpose : Tests tasks against the rules: who reads them (everything with
 // View all, else what's theirs), who makes standalone ones, and the four kinds
@@ -8,6 +8,8 @@
 // approval), approving, reassigning and editing (and the parts edited by
 // hand). Plus deleting, and the
 // "Late from the start" mark: only on a task already due, and never changed.
+// And the order between tasks: priority and what each waits on, and starting
+// a locked task anyway (once, by whoever has it or a lead, saying why).
 
 import {
   assertFails,
@@ -200,23 +202,40 @@ describe("reading tasks", () => {
     const rae = signedInAs(env, "rae");
     await assertFails(getDocs(collection(rae, "tasks")));
     await assertSucceeds(
-      getDocs(query(collection(rae, "tasks"), where("statusId", "in", ["review"]))),
+      getDocs(
+        query(collection(rae, "tasks"), where("statusId", "in", ["review"])),
+      ),
     );
   });
 
   it("shows planners an event's tasks only when they can see the event", async () => {
     await assertSucceeds(
-      getDocs(query(collection(signedInAs(env, "pia"), "tasks"), where("eventId", "==", "match1"))),
+      getDocs(
+        query(
+          collection(signedInAs(env, "pia"), "tasks"),
+          where("eventId", "==", "match1"),
+        ),
+      ),
     );
     await assertFails(
-      getDocs(query(collection(signedInAs(env, "pia2"), "tasks"), where("eventId", "==", "match1"))),
+      getDocs(
+        query(
+          collection(signedInAs(env, "pia2"), "tasks"),
+          where("eventId", "==", "match1"),
+        ),
+      ),
     );
     await assertFails(getDoc(doc(signedInAs(env, "pia2"), "tasks/fromEvent")));
   });
 
   it("shows a lead their group's tasks", async () => {
     await assertSucceeds(
-      getDocs(query(collection(signedInAs(env, "lena"), "tasks"), where("workGroupId", "==", "design"))),
+      getDocs(
+        query(
+          collection(signedInAs(env, "lena"), "tasks"),
+          where("workGroupId", "==", "design"),
+        ),
+      ),
     );
   });
 
@@ -275,9 +294,7 @@ describe("making standalone tasks", () => {
 describe("late from the start", () => {
   it("can be set only when the task is already due", async () => {
     const tasks = collection(signedInAs(env, "pat"), "tasks");
-    await assertSucceeds(
-      addDoc(tasks, fresh("pat", { lateAtCreation: true })),
-    );
+    await assertSucceeds(addDoc(tasks, fresh("pat", { lateAtCreation: true })));
     await assertSucceeds(
       addDoc(tasks, fresh("pat", { lateAtCreation: false })),
     );
@@ -568,21 +585,15 @@ describe("reassigning and editing", () => {
   });
 
   it("never hands a task to someone above them, or turned off", async () => {
-    await assertFails(
-      updateDoc(task("ollie"), { memberId: "boss", ...now() }),
-    );
+    await assertFails(updateDoc(task("ollie"), { memberId: "boss", ...now() }));
     await assertFails(
       updateDoc(task("ollie"), { memberId: "chris", ...now() }),
     );
   });
 
   it("lets a group member claim its waiting task for themselves", async () => {
-    await assertSucceeds(
-      updateDoc(task("sam"), { memberId: "sam", ...now() }),
-    );
-    await assertFails(
-      updateDoc(task("gwen"), { memberId: "gwen", ...now() }),
-    );
+    await assertSucceeds(updateDoc(task("sam"), { memberId: "sam", ...now() }));
+    await assertFails(updateDoc(task("gwen"), { memberId: "gwen", ...now() }));
   });
 
   it("keeps the hand-out's record: a handed-out task still saves, nobody sets it", async () => {
@@ -597,7 +608,11 @@ describe("reassigning and editing", () => {
       updateDoc(task("lena", "handed"), { memberId: "lena", ...now() }),
     );
     await assertFails(
-      updateDoc(task("sam"), { memberId: "sam", handedOutAt: new Date(), ...now() }),
+      updateDoc(task("sam"), {
+        memberId: "sam",
+        handedOutAt: new Date(),
+        ...now(),
+      }),
     );
     await assertFails(
       addDoc(
@@ -608,9 +623,7 @@ describe("reassigning and editing", () => {
   });
 
   it("lets Edit any task change its content, never its status or approval", async () => {
-    await assertFails(
-      updateDoc(task("eddie"), { statusId: "done", ...now() }),
-    );
+    await assertFails(updateDoc(task("eddie"), { statusId: "done", ...now() }));
   });
 
   it("lets Edit any task change anything but where it came from", async () => {
@@ -672,5 +685,59 @@ describe("deleting tasks", () => {
     await assertFails(deleteDoc(task("pia2", "fromEvent")));
     await assertSucceeds(deleteDoc(task("pia", "fromEvent")));
     await assertSucceeds(deleteDoc(task("pat")));
+  });
+});
+
+describe("order between tasks", () => {
+  const waiting = {
+    priority: "high",
+    waitsOn: [{ stepId: "s0", condition: "approved", dueFrom: false }],
+    waitFor: "all",
+    whenLate: "wait",
+    dueFromOffset: null,
+  };
+
+  it("makes tasks with their priority and what they wait on, never started anyway", async () => {
+    const tasks = collection(signedInAs(env, "pat"), "tasks");
+    await assertSucceeds(addDoc(tasks, fresh("pat", waiting)));
+    await assertFails(
+      addDoc(tasks, fresh("pat", { ...waiting, priority: "urgent" })),
+    );
+    await assertFails(
+      addDoc(
+        tasks,
+        fresh("pat", {
+          ...waiting,
+          startedAnyway: { by: "pat", at: new Date(), reason: "Hurry" },
+        }),
+      ),
+    );
+  });
+
+  it("lets whoever it's given to, or a lead, start it anyway once, saying why", async () => {
+    await seed(env, {
+      "tasks/locked": stored({ ...waiting, memberId: "sam" }),
+    });
+    const started = (
+      by: string,
+      reason = "The banner is late, posting now",
+    ) => ({
+      startedAnyway: { by, at: serverTimestamp(), reason },
+      ...now(),
+    });
+    await assertFails(updateDoc(task("sam", "locked"), started("sam", "")));
+    await assertFails(updateDoc(task("sam", "locked"), started("lena")));
+    await assertFails(updateDoc(task("gwen", "locked"), started("gwen")));
+    await assertSucceeds(updateDoc(task("sam", "locked"), started("sam")));
+    await assertFails(updateDoc(task("lena", "locked"), started("lena")));
+
+    await seed(env, { "tasks/locked2": stored(waiting) });
+    await assertSucceeds(updateDoc(task("lena", "locked2"), started("lena")));
+  });
+
+  it("lets planners and editors update the order with the content, not the people doing it", async () => {
+    const order = { priority: "low", waitFor: "any", ...now() };
+    await assertSucceeds(updateDoc(task("eddie"), order));
+    await assertFails(updateDoc(task("sam"), order));
   });
 });

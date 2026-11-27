@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/service/eventService.ts
-// Version : 1.7.0
-// Latest commit: feature/audit-fixes
+// Version : 1.8.0
+// Latest commit: feature/1.2-tasks-follow-order
 // Author : Gerrah
 // Purpose : Makes an event together with the tasks of its workflows (one batch,
 // so it's all or nothing), saves changes (moving its tasks by the same amount
@@ -8,6 +8,7 @@
 // workflows, and deletes it with its tasks.
 
 import { collection, doc } from "firebase/firestore";
+import { locks } from "@engine/order";
 import {
   Collections,
   commitWrites,
@@ -137,13 +138,33 @@ export function eventWrites(
               Collections.tasks,
               eventTaskId(eventId, workflowId, stepId),
             ),
-            newTaskData(
-              task,
-              startingStatusId,
-              createdBy,
-              { eventId, workflowId, stepId },
-              isLateAtCreation(task.dueAt, now),
-            ),
+            {
+              ...newTaskData(
+                task,
+                startingStatusId,
+                createdBy,
+                { eventId, workflowId, stepId },
+                isLateAtCreation(task.dueAt, now),
+              ),
+              // Nothing is done yet, so it waits on every task it comes after.
+              waitingOn: task.waitsOn.flatMap((wait) => {
+                const other = planned.find(
+                  (entry) =>
+                    entry.workflowId === workflowId &&
+                    entry.stepId === wait.stepId,
+                );
+                return other && locks(wait.condition)
+                  ? [
+                      {
+                        taskId: eventTaskId(eventId, workflowId, wait.stepId),
+                        stepId: wait.stepId,
+                        title: other.title,
+                        condition: wait.condition,
+                      },
+                    ]
+                  : [];
+              }),
+            },
           ),
     ),
   ];

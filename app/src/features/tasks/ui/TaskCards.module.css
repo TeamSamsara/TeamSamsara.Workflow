@@ -1,8 +1,8 @@
 /* File : /TeamSamsara.Workflow/app/src/features/tasks/ui/TaskCards.module.css
-   Version : 1.1.0
-   Latest commit: feature/audit-fixes
+   Version : 1.2.0
+   Latest commit: feature/1.2-tasks-follow-order
    Author : Gerrah
-   Purpose : The cards on a task page: a heading, then text, links, post text in a soft box with its count and Copy, the checklist (ticked items struck through), and the next step's buttons and fields. */
+   Purpose : The cards on a task page: a heading, then text, links, post text in a soft box with its count and Copy, the checklist (ticked items struck through), the next step's buttons and fields, and the order (the tasks before and after). */
 
 .card {
   display: flex;
@@ -183,4 +183,45 @@
 .plainLink:hover {
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+/* Order: the tasks before and after, solid when one has to happen first,
+   dashed when it's only the order. */
+.orderGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+}
+
+.orderHeading {
+  margin: 0;
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-meta);
+}
+
+.orderList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.orderItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  padding: var(--space-2) var(--space-2-5);
+  border: var(--border-width) solid var(--color-accent);
+  border-radius: var(--radius-field);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-meta);
+}
+
+.orderItem[data-kind="soft"] {
+  border-style: dashed;
+  border-color: var(--color-border-control);
 }

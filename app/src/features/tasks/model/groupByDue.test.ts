@@ -91,3 +91,29 @@ describe("assignment", () => {
     );
   });
 });
+
+describe("groupByDue and priority", () => {
+  it("puts high priority first and low last among tasks due at the same time", () => {
+    const due = at("2026-11-04T23:00:00Z");
+    const groups = groupByDue(
+      [
+        { id: "low", dueAt: due, priority: "low" as const },
+        { id: "normal", dueAt: due },
+        { id: "high", dueAt: due, priority: "high" as const },
+        {
+          id: "earlier",
+          dueAt: at("2026-11-04T22:00:00Z"),
+          priority: "low" as const,
+        },
+      ],
+      now,
+      toronto,
+    );
+    expect(groups.today.map((task) => task.id)).toEqual([
+      "earlier",
+      "high",
+      "normal",
+      "low",
+    ]);
+  });
+});

@@ -728,7 +728,8 @@ service cloud.firestore {
       let after = request.resource.data;
       return (changed.hasOnly(["title", "notes", "dueAt", "checklist", "posts",
             "links", "tagIds", "needsApproval", "asksForLiveLink",
-            "editedParts", "updatedAt"])
+            "editedParts", "priority", "waitsOn", "waitFor", "whenLate",
+            "dueFromOffset", "updatedAt"])
           && (holds(grants, held, "editAnyTask") || madeOneOff(before)
             || plansEventOf(before, grants, held))
           && subjectRank(before) <= myRank())
@@ -740,6 +741,14 @@ service cloud.firestore {
           && rankOf(after.memberId) <= myRank()
           && (after.memberId == null
             || isEligible(after.memberId, after.workGroupId, grants)))
+        // Starting a locked task anyway, saying why: whoever it's given to, or
+        // a lead of its group. Once; it stays as a record.
+        || (changed.hasOnly(["startedAnyway", "updatedAt"])
+          && before.get("startedAnyway", null) == null
+          && after.startedAnyway.by == request.auth.uid
+          && after.startedAnyway.at == request.time
+          && ((isGivenToMe(before) && holds(grants, held, "doAssignedTasks"))
+            || leadsGroup(before.workGroupId)))
         // Claiming a group's waiting task for yourself.
         || (changed.hasOnly(["memberId", "updatedAt"])
           && before.memberId == null
@@ -776,6 +785,7 @@ service cloud.firestore {
         && task.doneAt == null
         && task.get("handedOutAt", null) == null
         && task.get("headsUpAt", null) == null
+        && task.get("startedAnyway", null) == null
         // "Late from the start" only when its due time has really passed.
         && (task.get("lateAtCreation", false) == false
           || (task.dueAt != null && task.dueAt < request.time));
@@ -856,11 +866,28 @@ service cloud.firestore {
       // Added later, so tasks made before them (or by an open tab from
       // before) are valid without them.
       // handedOutAt and headsUpAt are the server's, when a group hands out tasks.
+      // The order fields (priority, what it waits on) come from its workflow
+      // step; startedAnyway is set when someone starts it while it's locked;
+      // waitingOn is set when it's made, then only the server changes it.
       let optional = ["lateAtCreation", "doneBy", "eventGone", "editedParts",
-        "handedOutAt", "headsUpAt"];
+        "handedOutAt", "headsUpAt", "priority", "waitsOn", "waitFor",
+        "whenLate", "dueFromOffset", "startedAnyway", "waitingOn"];
       let gone = task.get("eventGone", null);
       let edited = task.get("editedParts", null);
+      let started = task.get("startedAnyway", null);
       return task.keys().hasOnly(fields.concat(optional))
+        && task.get("priority", "normal") in ["high", "normal", "low"]
+        && task.get("waitsOn", []) is list && task.get("waitsOn", []).size() <= 30
+        && task.get("waitFor", "all") in ["all", "any"]
+        && task.get("whenLate", "wait") in ["wait", "unlock"]
+        && isNullOr(task.get("dueFromOffset", null), "map")
+        // What it still waits on: set when it's made, then kept by the server.
+        && task.get("waitingOn", []) is list && task.get("waitingOn", []).size() <= 30
+        && (started == null || (started is map
+          && started.keys().hasOnly(["by", "at", "reason"])
+          && started.by is string && started.at is timestamp
+          && started.reason is string && started.reason.size() > 0
+          && started.reason.size() <= 500))
         && task.keys().hasAll(fields)
         && task.get("lateAtCreation", false) is bool
         && isNullOr(task.get("doneBy", null), "string")

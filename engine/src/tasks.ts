@@ -1,18 +1,27 @@
 // File : /TeamSamsara.Workflow/engine/src/tasks.ts
-// Version : 1.0.0
-// Latest commit: feature/audit-fixes
+// Version : 1.1.0
+// Latest commit: feature/1.2-tasks-follow-order
 // Author : Gerrah
 // Purpose : An event and its workflows → the tasks to make: each step with
 // its exact due time (counted from the event's start in the workspace's time
 // zone) and its {fields} filled from the event, each the way its type reads
 // (a person by name, a date in the workspace's format). A field with no value
 // yet shows as its name in brackets, "[Match link]", easy to spot and filled
-// in when the event gets it. Moved here from the app so the server makes and
+// in when the event gets it. Each task also carries its priority and what it
+// waits on (see order.ts). Moved here from the app so the server makes and
 // updates tasks exactly the same way.
 
 import { resolveDue, type DueOffset } from "./due.js";
 import { fieldText } from "./fieldText.js";
 import { fillGaps, findGaps, nameFromKey } from "./gaps.js";
+import {
+  waitsOf,
+  type OrderRule,
+  type Priority,
+  type TaskWait,
+  type WaitFor,
+  type WhenLate,
+} from "./order.js";
 import {
   formatDate,
   formatTime,
@@ -56,6 +65,11 @@ export interface StepForTasks {
   checklist: ChecklistItem[] | null;
   links: ReferenceLink[] | null;
   asksForLiveLink: boolean;
+  /** Left out for steps saved before order rules. */
+  order?: readonly OrderRule[];
+  waitFor?: WaitFor;
+  whenLate?: WhenLate;
+  priority?: Priority;
 }
 
 export interface WorkflowForTasks {
@@ -108,6 +122,13 @@ export interface PlannedTask {
   checklist: TaskChecklistItem[] | null;
   links: ReferenceLink[] | null;
   asksForLiveLink: boolean;
+  priority: Priority;
+  /** The steps it comes after (their tasks in the same event). */
+  waitsOn: TaskWait[];
+  waitFor: WaitFor;
+  whenLate: WhenLate;
+  /** When its due time counts from another task being done: how long after. */
+  dueFromOffset: DueOffset | null;
 }
 
 /** The values fields fill with: the ones asked for, then the event's own. */
@@ -168,14 +189,22 @@ export function fillText(
   return fillGaps(text, { ...names, ...values });
 }
 
-/** One step's task for an event, with its values already worked out. */
+/**
+ * One step's task for an event, with its values already worked out. `steps`
+ * is every step of its workflow, for what it waits on.
+ */
 export function taskFromStep(
   step: StepForTasks,
   workflowId: string,
   event: EventForTasks,
   values: Record<string, string>,
   formats: Formats,
+  steps: readonly StepForTasks[] = [],
 ): PlannedTask {
+  const waitsOn = waitsOf(
+    steps.map((entry) => ({ id: entry.id, order: entry.order ?? [] })),
+    step.id,
+  );
   const fill = (text: string) => fillText(text, values, formats.fields);
   return {
     workflowId,
@@ -205,6 +234,11 @@ export function taskFromStep(
       })) ?? null,
     links: step.links,
     asksForLiveLink: step.asksForLiveLink,
+    priority: step.priority ?? "normal",
+    waitsOn,
+    waitFor: step.waitFor ?? "all",
+    whenLate: step.whenLate ?? "wait",
+    dueFromOffset: waitsOn.some((wait) => wait.dueFrom) ? step.due : null,
   };
 }
 
@@ -218,7 +252,7 @@ export function applyWorkflows(
   return workflows
     .flatMap((workflow) =>
       workflow.steps.map((step) =>
-        taskFromStep(step, workflow.id, event, values, formats),
+        taskFromStep(step, workflow.id, event, values, formats, workflow.steps),
       ),
     )
     .sort((a, b) => (a.dueAt?.getTime() ?? 0) - (b.dueAt?.getTime() ?? 0));

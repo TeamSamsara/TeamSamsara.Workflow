@@ -1,11 +1,12 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/types/taskTypes.ts
-// Version : 1.2.0
-// Latest commit: feature/audit-fixes
+// Version : 1.3.0
+// Latest commit: feature/1.2-tasks-follow-order
 // Author : Gerrah
 // Purpose : A task: something one work group or person has to do by a time.
 // It has the same basics and sections as a workflow's task, plus where it is
 // (its status), its ticked checklist, the link to what was published, and its
-// approval. Tasks made from an event remember the event and workflow step.
+// approval. Tasks made from an event remember the event and workflow step,
+// their priority, and what they wait on (the steps they come after).
 
 import type { DocumentData } from "firebase/firestore";
 import {
@@ -17,9 +18,18 @@ import {
   readString,
   readStringList,
 } from "@/core/data";
+import type { DueOffset } from "@engine/due";
 import {
+  OrderConditions,
+  type StartedAnyway,
+  type TaskWait,
+  type WaitingOn,
+} from "@engine/order";
+import {
+  readDue,
   readStep,
   type PlatformPost,
+  type Priority,
   type ReferenceLink,
 } from "@/features/workflows";
 
@@ -74,6 +84,18 @@ export interface TaskRecord {
    * tasks from before this was kept.
    */
   editedParts: string[] | null;
+  // Order, from its workflow step (normal and waiting on nothing otherwise).
+  priority: Priority;
+  /** The steps it comes after: their tasks in the same event. */
+  waitsOn: TaskWait[];
+  waitFor: "all" | "any";
+  whenLate: "wait" | "unlock";
+  /** For a Due from task: how long after the task it counts from is done. */
+  dueFromOffset: DueOffset | null;
+  /** Someone started it while it was locked, and why. */
+  startedAnyway: StartedAnyway | null;
+  /** The tasks it still waits on, kept up to date by the server. */
+  waitingOn: WaitingOn[];
 }
 
 /** The part of a task its edit form changes. */
@@ -124,6 +146,58 @@ function readEventGone(data: DocumentData): TaskRecord["eventGone"] {
   };
 }
 
+function readWaits(data: DocumentData): TaskWait[] {
+  if (!Array.isArray(data.waitsOn)) return [];
+  return (data.waitsOn as unknown[]).flatMap((entry) => {
+    if (typeof entry !== "object" || entry === null) return [];
+    const wait = entry as DocumentData;
+    const condition = (OrderConditions as readonly string[]).includes(
+      wait.condition as string,
+    )
+      ? (wait.condition as TaskWait["condition"])
+      : "done";
+    const stepId = readString(wait, "stepId");
+    return stepId
+      ? [{ stepId, condition, dueFrom: readBoolean(wait, "dueFrom") }]
+      : [];
+  });
+}
+
+function readWaitingOn(data: DocumentData): WaitingOn[] {
+  if (!Array.isArray(data.waitingOn)) return [];
+  return (data.waitingOn as unknown[]).flatMap((entry) => {
+    if (typeof entry !== "object" || entry === null) return [];
+    const wait = entry as DocumentData;
+    const taskId = readString(wait, "taskId");
+    const condition = (OrderConditions as readonly string[]).includes(
+      wait.condition as string,
+    )
+      ? (wait.condition as WaitingOn["condition"])
+      : "done";
+    return taskId
+      ? [
+          {
+            taskId,
+            stepId: readString(wait, "stepId"),
+            title: readString(wait, "title"),
+            condition,
+          },
+        ]
+      : [];
+  });
+}
+
+function readStartedAnyway(data: DocumentData): StartedAnyway | null {
+  const value: unknown = data.startedAnyway;
+  if (typeof value !== "object" || value === null) return null;
+  const started = value as DocumentData;
+  return {
+    by: readString(started, "by"),
+    at: readDate(started, "at"),
+    reason: readString(started, "reason"),
+  };
+}
+
 function parse(id: string, data: DocumentData): TaskRecord {
   // The shared parts read the same way as a workflow's task.
   const step = readStep(data, 0);
@@ -162,6 +236,16 @@ function parse(id: string, data: DocumentData): TaskRecord {
           (part): part is string => typeof part === "string",
         )
       : null,
+    priority: step.priority,
+    waitsOn: readWaits(data),
+    waitFor: step.waitFor,
+    whenLate: step.whenLate,
+    dueFromOffset:
+      typeof data.dueFromOffset === "object" && data.dueFromOffset !== null
+        ? readDue(data.dueFromOffset as DocumentData)
+        : null,
+    startedAnyway: readStartedAnyway(data),
+    waitingOn: readWaitingOn(data),
   };
 }
 
@@ -175,6 +259,9 @@ export const taskConverter = createConverter<TaskRecord>({
     createdAt: fromDate(task.createdAt),
     updatedAt: fromDate(task.updatedAt),
     doneAt: fromDate(task.doneAt),
+    startedAnyway: task.startedAnyway
+      ? { ...task.startedAnyway, at: fromDate(task.startedAnyway.at) }
+      : null,
     eventGone: task.eventGone
       ? {
           title: task.eventGone.title,

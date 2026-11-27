@@ -59,6 +59,7 @@ const look: Record<NotificationKind, { icon: IconName; tone: string }> = {
   tasksMoved: { icon: "time", tone: "task" },
   tasksHandedOut: { icon: "myTasks", tone: "task" },
   taskWaiting: { icon: "warning", tone: "alert" },
+  taskUnlocked: { icon: "check", tone: "task" },
   release: { icon: "info", tone: "event" },
 };
 

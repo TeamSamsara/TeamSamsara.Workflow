@@ -34,6 +34,7 @@ export const NotificationKinds = [
   "tasksMoved",
   "tasksHandedOut",
   "taskWaiting",
+  "taskUnlocked",
   "release",
 ] as const;
 export type NotificationKind = (typeof NotificationKinds)[number];

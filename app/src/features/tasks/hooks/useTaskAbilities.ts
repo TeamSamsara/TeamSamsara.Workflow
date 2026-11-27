@@ -1,11 +1,13 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/hooks/useTaskAbilities.ts
-// Version : 2.0.0
-// Latest commit: feature/auto-assign
+// Version : 2.1.0
+// Latest commit: feature/1.2-tasks-follow-order
 // Author : Gerrah
 // Purpose : What the signed-in member may do with a task, asked of the shared
 // permission model (the same answers the server and database rules give): do
 // it, approve it (never their own work, the doer at or below them), reassign
-// it, edit it, delete it, with the reason when they can't.
+// it, edit it, delete it, with the reason when they can't. A task locked by
+// its order can't be worked on until it unlocks, unless whoever has it (or a
+// lead of its group) starts it anyway.
 
 import {
   decide,
@@ -13,6 +15,7 @@ import {
   type EventScope,
   type TaskScope,
 } from "@engine/access/index";
+import { lockState } from "@engine/order";
 import { useMemo } from "react";
 import { useActor } from "@/core/access";
 import { useMembers } from "@/features/members";
@@ -27,6 +30,12 @@ export interface TaskPermissions extends TaskAbilities {
   approveBlockedBy: DenyReason | null;
   /** The signed-in member's id, for recording who did what. */
   viewerId: string | null;
+  /** Waiting on other tasks (see waitingOn), so it can't be worked on yet. */
+  locked: boolean;
+  /** Unlocked because it's late and set to unlock at its due time. */
+  unlockedLate: boolean;
+  /** May start it anyway, saying why: whoever has it, or a lead. */
+  canStartAnyway: boolean;
 }
 
 /** What the task page knows about the task's event, for a planner's rights. */
@@ -66,9 +75,13 @@ export function useTaskAbilities(
         maker: rankOf(task.createdBy) ?? 0,
       },
     };
+    const lock = lockState(task, new Date());
     if (!actor)
       return {
         viewerId: null,
+        locked: lock.locked,
+        unlockedLate: lock.unlockedLate,
+        canStartAnyway: false,
         canWork: false,
         canApprove: false,
         canEdit: false,
@@ -77,9 +90,17 @@ export function useTaskAbilities(
         approveBlockedBy: null,
       };
     const approve = decide(actor, { action: "task.approve", task: scope });
+    const canDo = decide(actor, { action: "task.do", task: scope }).ok;
+    const leads = task.workGroupId
+      ? actor.leadOf.includes(task.workGroupId)
+      : false;
     return {
       viewerId: actor.id,
-      canWork: decide(actor, { action: "task.do", task: scope }).ok,
+      locked: lock.locked,
+      unlockedLate: lock.unlockedLate,
+      canStartAnyway:
+        lock.locked && ((canDo && task.memberId === actor.id) || leads),
+      canWork: canDo && !lock.locked,
       canApprove: approve.ok,
       approveBlockedBy:
         !approve.ok && approve.reason !== "missingPermission"

@@ -1,10 +1,11 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/service/taskService.ts
-// Version : 1.4.0
-// Latest commit: feature/auto-assign
+// Version : 1.5.0
+// Latest commit: feature/1.2-tasks-follow-order
 // Author : Gerrah
 // Purpose : Every change to a task: make one, edit it, move it on (send for
 // review, approve, ask for changes, mark done, reopen, set a status), tick its
-// checklist, add the published link, give it to someone else, delete it. Each
+// checklist, add the published link, give it to someone else, start a locked
+// task anyway (saying why), delete it. Each
 // write says who and when, and firestore.rules checks it was theirs to make.
 
 import {
@@ -19,7 +20,17 @@ import {
 import { Collections, fromDate, serverTime } from "@/core/data";
 import { db } from "@/lib/firebase";
 import type { TaskAction } from "../model/taskStatusFlow";
-import type { TaskChecklistItem, TaskFields } from "../types/taskTypes";
+import type {
+  TaskChecklistItem,
+  TaskFields,
+  TaskRecord,
+} from "../types/taskTypes";
+
+/** A task's order, from its workflow step. */
+export type TaskOrder = Pick<
+  TaskRecord,
+  "priority" | "waitsOn" | "waitFor" | "whenLate" | "dueFromOffset"
+>;
 
 const tasks = () => collection(db, Collections.tasks);
 
@@ -61,7 +72,7 @@ const standalone: TaskOrigin = {
 
 /** Everything a new task's document holds, for a write or a batch. */
 export function newTaskData(
-  fields: TaskFields,
+  fields: TaskFields & Partial<TaskOrder>,
   startingStatusId: string,
   createdBy: string,
   origin: TaskOrigin = standalone,
@@ -70,6 +81,16 @@ export function newTaskData(
 ) {
   return {
     ...tidy(fields),
+    // Tasks from a workflow step carry its order; one-off tasks don't.
+    ...(fields.waitsOn
+      ? {
+          priority: fields.priority ?? "normal",
+          waitsOn: fields.waitsOn,
+          waitFor: fields.waitFor ?? "all",
+          whenLate: fields.whenLate ?? "wait",
+          dueFromOffset: fields.dueFromOffset ?? null,
+        }
+      : {}),
     statusId: startingStatusId,
     liveLink: null,
     ...origin,
@@ -216,4 +237,11 @@ export function claimTask(id: string, memberId: string): Promise<void> {
 
 export function deleteTask(id: string): Promise<void> {
   return deleteDoc(doc(tasks(), id));
+}
+
+/** Starts a locked task anyway; the reason stays on it for everyone to see. */
+export function startAnyway(id: string, by: string, reason: string) {
+  return update(id, {
+    startedAnyway: { by, at: serverTime(), reason: reason.trim() },
+  });
 }

@@ -1,10 +1,12 @@
 // File : /TeamSamsara.Workflow/functions/src/workflowSync.ts
-// Version : 1.1.0
-// Latest commit: feature/audit-fixes
+// Version : 1.2.0
+// Latest commit: feature/1.2-tasks-follow-order
 // Author : Gerrah
 // Purpose : Keeps upcoming events' tasks in line with their workflows, in the
-// background. When a workflow is saved, every event still to come that uses
-// it gets its open tasks updated, part by part, by the engine's rules (parts
+// background. When a workflow is saved, every event that uses it and may
+// still have open tasks (still to come, or started in the last
+// RecentEventDays days, such as a recap due the day after) gets its open
+// tasks updated, part by part, by the engine's rules (parts
 // changed by hand stay), and a task for each step added in this save. The
 // same pass, without a previous version to compare with, is what the first
 // platform update runs on tasks planned before this existed.
@@ -48,16 +50,20 @@ const emptyResult = (): SyncResult => ({
   events: 0,
 });
 
-/** The events still to come that use a workflow. */
+/** How far back an event's open tasks still follow its workflow. */
+export const RecentEventDays = 30;
+
+/** The events that use a workflow and may still have open tasks. */
 async function upcomingEvents(
   db: Firestore,
   workflowId: string,
   now: Date,
 ): Promise<EventRow[]> {
+  const since = new Date(now.getTime() - RecentEventDays * 24 * 3600 * 1000);
   const snapshot = await db
     .collection("events")
     .where("workflowIds", "array-contains", workflowId)
-    .where("startsAt", ">=", now)
+    .where("startsAt", ">=", since)
     .get();
   return snapshot.docs.map((doc) => readEvent(doc.id, doc.data()));
 }
@@ -90,7 +96,14 @@ export interface SyncOptions {
 /** Brings the upcoming events of one workflow in line with it. */
 export async function syncWorkflow(
   db: Firestore,
-  { before, after, dryRun = false, byId = null, now = new Date(), formats }: SyncOptions,
+  {
+    before,
+    after,
+    dryRun = false,
+    byId = null,
+    now = new Date(),
+    formats,
+  }: SyncOptions,
 ): Promise<SyncResult> {
   const result = emptyResult();
   const events = await upcomingEvents(db, after.id, now);
@@ -103,16 +116,24 @@ export async function syncWorkflow(
     const tasks = await tasksOf(db, event.id, after.id);
     const values = gapValues(event, shown);
     for (const step of after.steps) {
-      const next = taskFromStep(step, after.id, event, values, shown);
+      const next = taskFromStep(
+        step,
+        after.id,
+        event,
+        values,
+        shown,
+        after.steps,
+      );
       const oldStep = before?.steps.find((entry) => entry.id === step.id);
-      const previous = oldStep
-        ? taskFromStep(oldStep, after.id, event, values, shown)
-        : null;
+      const previous =
+        oldStep && before
+          ? taskFromStep(oldStep, after.id, event, values, shown, before.steps)
+          : null;
       const task = tasks.find((entry) => entry.stepId === step.id);
       if (!task) {
         // Only a step new in this save gets a task: one that existed before
         // and has none on this event was deleted from it on purpose.
-        if (before && !oldStep && statusId) {
+        if (before && !oldStep && statusId && event.startsAt >= now) {
           const id = eventTaskId(event.id, after.id, step.id);
           result.createdIds.push(id);
           if (!dryRun)

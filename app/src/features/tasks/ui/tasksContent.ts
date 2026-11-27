@@ -1,9 +1,10 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/ui/tasksContent.ts
-// Version : 1.2.0
-// Latest commit: feature/audit-fixes
+// Version : 1.3.0
+// Latest commit: feature/1.2-tasks-follow-order
 // Author : Gerrah
 // Purpose : The words for tasks: rows and groups, the task page's cards, the
-// moves a task can make, the edit form, and the new task and reassign dialogs.
+// moves a task can make, the edit form, the new task and reassign dialogs,
+// and the order card (what it waits on, Start anyway).
 
 import type { DueGroup } from "../model/groupByDue";
 
@@ -28,6 +29,11 @@ export const DueGroupText: Record<DueGroup, string> = {
 };
 
 export const TaskRowText = {
+  high: "High priority",
+  waitingFor: (titles: readonly string[]) =>
+    titles.length > 0
+      ? `Waiting for ${titles.join(", ")}`
+      : "Waiting for another task",
   unassigned: "No one yet",
   doneAt: (when: string) => `Done ${when}`,
   eventGone: (title: string, when: string | null) =>
@@ -166,4 +172,46 @@ export const DoneThisWeekText = {
   dayCount: (day: string, count: number) =>
     `${day}: ${count === 1 ? "1 task" : `${count} tasks`}`,
   open: "See what was done",
+} as const;
+
+export const OrderCardText = {
+  title: "Order",
+  before: "Comes after",
+  after: "Comes before",
+  done: "Done",
+  condition: {
+    done: "Has to be done first",
+    approved: "Has to be approved first",
+    inReview: "Has to be sent for review first",
+    liveLink: "Needs its live link first",
+    order: "Only the order",
+  },
+  toBe: {
+    done: "to be done",
+    approved: "to be approved",
+    inReview: "to be sent for review",
+    liveLink: "to get its live link",
+    order: "",
+  },
+  priority: {
+    high: "High priority",
+    normal: "Normal priority",
+    low: "Low priority",
+  },
+  locked: "Locked.",
+  waitingOn: (items: readonly string[], any: boolean) =>
+    items.length === 0
+      ? "Waiting on another task."
+      : `Waiting for ${items.join(any ? " or " : " and ")}.`,
+  unlockedLate:
+    "Unlocked: what it waits on is late, and this task is set to start at its own due time.",
+  startedAnyway: (name: string | null, when: string | null) =>
+    `Started anyway${name ? ` by ${name}` : ""}${when ? `, ${when}` : ""}:`,
+  startAnyway: "Start anyway",
+  dialogTitle: "Start this task anyway?",
+  reason: "Why it can't wait",
+  reasonHint:
+    "Everyone who opens this task sees the reason. The tasks it waits on stay as they are.",
+  cancel: "Cancel",
+  started: "Started. The reason is on the task.",
 } as const;

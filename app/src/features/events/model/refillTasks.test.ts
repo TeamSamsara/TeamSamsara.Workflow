@@ -73,6 +73,8 @@ function made(): TaskRecord[] {
       doneBy: null,
       eventGone: null,
       editedParts: null,
+      startedAnyway: null,
+      waitingOn: [],
     }),
   );
 }
