@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/app/router.tsx
-// Version : 1.21.0
-// Latest commit: feature/audit-fixes
+// Version : 1.22.0
+// Latest commit: feature/1.2-calendars-lists
 // Author : Gerrah
 // Purpose : Every route in the app. Layouts and the not-found page load with the
 // app; every other page loads only when it is first opened. Pages not built yet show ComingSoonView, and each
@@ -125,6 +125,16 @@ const myAvailabilityView = () =>
 const teamAvailabilityView = () =>
   import("@/views/availability/TeamAvailabilityView").then((module) => ({
     Component: module.TeamAvailabilityView,
+  }));
+
+const calendarsView = () =>
+  import("@/views/calendar/CalendarsView").then((module) => ({
+    Component: module.CalendarsView,
+  }));
+
+const teamGroupsView = () =>
+  import("@/views/availability/TeamGroupsView").then((module) => ({
+    Component: module.TeamGroupsView,
   }));
 
 const calendarView = () =>
@@ -265,6 +275,8 @@ export const router = createBrowserRouter([
             element: <AppLayout />,
             children: [
               { path: RoutePaths.calendar, lazy: calendarView },
+              { path: RoutePaths.calendars, lazy: calendarsView },
+              { path: RoutePaths.calendarOf, lazy: calendarView },
               { path: RoutePaths.newEvent, lazy: newEventView },
               { path: RoutePaths.planSeveral, lazy: planSeveralView },
               {
@@ -291,6 +303,10 @@ export const router = createBrowserRouter([
                 children: [
                   {
                     path: RoutePaths.availabilityTeam,
+                    lazy: teamGroupsView,
+                  },
+                  {
+                    path: RoutePaths.availabilityTeamGroup,
                     lazy: teamAvailabilityView,
                   },
                 ],

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/pictures/aroundPictures.tsx
-// Version : 1.0.1
-// Latest commit: feature/audit-fixes
+// Version : 1.1.0
+// Latest commit: feature/1.2-calendars-lists
 // Author : Gerrah
 // Purpose : Pictures for getting around: the calendar and its controls, an
 // event's page, replying, how replies show on the calendar, times in your own
@@ -85,7 +85,10 @@ export function CalendarControls() {
     <Scene>
       <span style={line}>
         <Spot n={1}>
-          <Field>Calendar: My calendar ▾</Field>
+          <span style={{ ...line, fontSize: 12 }}>
+            <Chip tone="neutral">Calendars</Chip>
+            <b>My calendar</b>
+          </span>
         </Spot>
         <Spot n={2}>
           <span style={{ ...line, fontSize: 12 }}>

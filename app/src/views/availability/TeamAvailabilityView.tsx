@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/availability/TeamAvailabilityView.tsx
-// Version : 2.0.1
-// Latest commit: feature/audit-fixes
+// Version : 2.1.0
+// Latest commit: feature/1.2-calendars-lists
 // Author : Gerrah
 // Purpose : A work group's week of availability, for See everyone's
 // availability. On the left, its people grouped by people tag: tick a tag or
@@ -12,7 +12,7 @@
 // depends on hovering. The week, group and view are kept in the address.
 
 import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { usePermissions } from "@/core/access";
 import { isCurrentMember } from "@/core/data";
 import { useSession } from "@/core/session";
@@ -48,7 +48,6 @@ import { useWorkGroups } from "@/features/work-groups";
 import { Button } from "@/shared/components/Button/Button";
 import { IconButton } from "@/shared/components/Button/IconButton";
 import { LinkButton } from "@/shared/components/Button/LinkButton";
-import { Select } from "@/shared/components/Fields/Select/Select";
 import { PageHeader } from "@/shared/components/PageHeader/PageHeader";
 import { SegmentedControl } from "@/shared/components/SegmentedControl/SegmentedControl";
 import { RoutePaths } from "@/shared/constants/routePaths";
@@ -80,6 +79,7 @@ export function TeamAvailabilityView() {
   const time = useDisplayTime();
   const view = useTeamViewPrefs();
   const [params, setParams] = useSearchParams();
+  const { groupId: routeGroupId } = useParams();
   const [isTagging, setIsTagging] = useState(false);
   const [pickedAt, setPickedAt] = useState<{
     day: number;
@@ -112,7 +112,9 @@ export function TeamAvailabilityView() {
       Number(mine.includes(b.group.id)) - Number(mine.includes(a.group.id)) ||
       a.group.name.localeCompare(b.group.name),
   );
-  const groupId = params.get("group") ?? sorted[0]?.group.id ?? null;
+  // The group comes from the address (older links used ?group=).
+  const groupId =
+    routeGroupId ?? params.get("group") ?? sorted[0]?.group.id ?? null;
   const current =
     groups.items.find((item) => item.group.id === groupId) ?? null;
 
@@ -310,14 +312,12 @@ export function TeamAvailabilityView() {
   return (
     <div className={styles.page}>
       <PageHeader
-        title={ViewText.team}
+        title={current?.group.name ?? ViewText.team}
         breadcrumbs={[
-          { label: ViewText.calendar, to: RoutePaths.calendar },
-          { label: ViewText.team },
+          { label: ViewText.team, to: RoutePaths.availabilityTeam },
+          { label: current?.group.name ?? ViewText.team },
         ]}
-        description={[current?.group.name, formatWeek(week), zoneLine]
-          .filter(Boolean)
-          .join(" · ")}
+        description={[formatWeek(week), zoneLine].filter(Boolean).join(" · ")}
         actions={
           <LinkButton to={RoutePaths.availability} iconStart="user">
             {ViewText.mine}
@@ -350,17 +350,6 @@ export function TeamAvailabilityView() {
               >
                 {ViewText.thisWeek}
               </Button>
-              <Select
-                label={ViewText.group}
-                hideLabel
-                options={sorted.map((item) => ({
-                  value: item.group.id,
-                  label: item.group.name,
-                }))}
-                value={groupId ?? ""}
-                onChange={(event) => setParam({ group: event.target.value })}
-                className={styles.picker}
-              />
             </div>
             <div className={styles.switches}>
               <span className={styles.switchLabel}>{Team.seeBy}</span>
