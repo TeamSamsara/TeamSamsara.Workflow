@@ -1,8 +1,8 @@
 /* File : /TeamSamsara.Workflow/app/src/features/tasks/ui/TaskRow.module.css
-   Version : 1.0.0
-   Latest commit: feature/auto-assign
+   Version : 1.1.0
+   Latest commit: feature/1.2-tasks-follow-order
    Author : Gerrah
-   Purpose : Task lists: a card per group (Late gets a red edge) with its count, then a row per task: bold title on the left, who, when and status on the right (below on phones). */
+   Purpose : Task lists: a card per group (Late gets a red edge) with its count, then a row per task: bold title on the left, who, when and status on the right (below on phones). A flag for high priority; a lock and what it waits for when it's locked. */
 
 .card {
   display: flex;
@@ -166,4 +166,27 @@
 
 .row[data-done] .title {
   color: var(--color-text-muted);
+}
+
+/* High priority: a flag after the title. */
+.high {
+  display: inline-flex;
+  align-items: center;
+  margin-left: var(--space-1);
+  color: var(--color-error-text);
+  vertical-align: middle;
+}
+
+/* What a locked task is waiting for, after a lock. */
+.waitingNote {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.waitingNote > svg {
+  flex: none;
 }

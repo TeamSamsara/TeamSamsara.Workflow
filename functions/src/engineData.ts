@@ -1,10 +1,11 @@
 // File : /TeamSamsara.Workflow/functions/src/engineData.ts
-// Version : 1.0.0
-// Latest commit: feature/audit-fixes
+// Version : 1.1.0
+// Latest commit: feature/1.2-tasks-follow-order
 // Author : Gerrah
 // Purpose : Reads workflows, events and tasks from the database into the
 // shapes the engine works with, and the workspace's formats (time zone,
 // clock, date format, fields, names) so text fills exactly as in the app.
+// Steps and tasks come with their order (priority, what they wait on).
 // Also writes many changes in batches.
 
 import {
@@ -13,24 +14,33 @@ import {
   type DocumentData,
   type Firestore,
 } from "firebase-admin/firestore";
-import type {
-  ChecklistItem,
-  DueOffset,
-  EventForTasks,
-  Formats,
-  PlannedTask,
-  PlatformPost,
-  ReferenceLink,
-  StepForTasks,
-  TaskChecklistItem,
-  TaskForSync,
+import {
+  OrderConditions,
+  OrderRelations,
+  Priorities,
+  WaitForChoices,
+  WhenLateChoices,
+  type ChecklistItem,
+  type DueOffset,
+  type EventForTasks,
+  type Formats,
+  type PlannedTask,
+  type PlatformPost,
+  type ReferenceLink,
+  type OrderRule,
+  type StepForTasks,
+  type TaskChecklistItem,
+  type TaskForSync,
+  type TaskWait,
+  type WaitingOn,
 } from "../../engine/src/index.js";
 
 const toDate = (value: unknown): Date | null =>
   value instanceof Timestamp ? value.toDate() : null;
 const text = (value: unknown): string | null =>
   typeof value === "string" && value.trim() ? value : null;
-const str = (value: unknown): string => (typeof value === "string" ? value : "");
+const str = (value: unknown): string =>
+  typeof value === "string" ? value : "";
 const list = (value: unknown): string[] =>
   Array.isArray(value)
     ? value.filter((entry): entry is string => typeof entry === "string")
@@ -43,6 +53,42 @@ const records = (value: unknown): Record<string, unknown>[] =>
       )
     : [];
 const num = (value: unknown) => (typeof value === "number" ? value : 0);
+/** One of a fixed list of choices, or the fallback. */
+const choice = <T extends string>(
+  value: unknown,
+  choices: readonly T[],
+  fallback: T,
+): T => (choices.includes(value as T) ? (value as T) : fallback);
+
+function readOrder(value: unknown): OrderRule[] {
+  return records(value).map((rule) => ({
+    id: str(rule.id),
+    relation: choice(rule.relation, OrderRelations, "after"),
+    stepId: str(rule.stepId),
+    condition: choice(rule.condition, OrderConditions, "done"),
+  }));
+}
+
+function readWaitingOn(value: unknown): WaitingOn[] {
+  return records(value)
+    .filter((wait) => text(wait.taskId))
+    .map((wait) => ({
+      taskId: str(wait.taskId),
+      stepId: str(wait.stepId),
+      title: str(wait.title),
+      condition: choice(wait.condition, OrderConditions, "done"),
+    }));
+}
+
+function readWaits(value: unknown): TaskWait[] {
+  return records(value)
+    .filter((wait) => text(wait.stepId))
+    .map((wait) => ({
+      stepId: str(wait.stepId),
+      condition: choice(wait.condition, OrderConditions, "done"),
+      dueFrom: wait.dueFrom === true,
+    }));
+}
 
 function readDue(value: unknown): DueOffset {
   const due = (value ?? {}) as Record<string, unknown>;
@@ -120,6 +166,10 @@ export function readWorkflow(id: string, data: DocumentData): WorkflowData {
       checklist: readItems(step.checklist),
       links: readLinks(step.links),
       asksForLiveLink: step.asksForLiveLink === true,
+      order: readOrder(step.order),
+      waitFor: choice(step.waitFor, WaitForChoices, "all"),
+      whenLate: choice(step.whenLate, WhenLateChoices, "wait"),
+      priority: choice(step.priority, Priorities, "normal"),
     })),
   };
 }
@@ -152,6 +202,13 @@ export interface TaskRow extends TaskForSync {
   eventId: string | null;
   workflowId: string | null;
   stepId: string | null;
+  // What other tasks' order reads.
+  approvedAt: Date | null;
+  sentForReviewAt: Date | null;
+  liveLink: string | null;
+  startedAnyway: { by: string; at: Date | null; reason: string } | null;
+  /** What it still waits on, as last worked out. */
+  waitingOn: WaitingOn[];
 }
 
 /** Never touched since it was made: still in its first status, never saved. */
@@ -172,11 +229,33 @@ export function readTask(id: string, data: DocumentData): TaskRow {
     checklist: readTicks(data.checklist),
     posts: readPosts(data.posts),
     doneAt: toDate(data.doneAt),
-    editedParts: Array.isArray(data.editedParts) ? list(data.editedParts) : null,
+    editedParts: Array.isArray(data.editedParts)
+      ? list(data.editedParts)
+      : null,
     touched: !untouched(data),
     eventId: text(data.eventId),
     workflowId: text(data.workflowId),
     stepId: text(data.stepId),
+    priority: choice(data.priority, Priorities, "normal"),
+    waitsOn: readWaits(data.waitsOn),
+    waitFor: choice(data.waitFor, WaitForChoices, "all"),
+    whenLate: choice(data.whenLate, WhenLateChoices, "wait"),
+    dueFromOffset:
+      typeof data.dueFromOffset === "object" && data.dueFromOffset !== null
+        ? readDue(data.dueFromOffset)
+        : null,
+    waitingOn: readWaitingOn(data.waitingOn),
+    approvedAt: toDate(data.approvedAt),
+    sentForReviewAt: toDate(data.sentForReviewAt),
+    liveLink: text(data.liveLink),
+    startedAnyway:
+      typeof data.startedAnyway === "object" && data.startedAnyway !== null
+        ? {
+            by: str((data.startedAnyway as DocumentData).by),
+            at: toDate((data.startedAnyway as DocumentData).at),
+            reason: str((data.startedAnyway as DocumentData).reason),
+          }
+        : null,
   };
 }
 
@@ -242,6 +321,8 @@ export function newTaskDoc(
   statusId: string,
   createdBy: string,
   now: Date,
+  /** What it waits on as it's made (see waitingOnAtCreation). */
+  waitingOn: readonly WaitingOn[] = [],
 ): DocumentData {
   return {
     title: planned.title.trim(),
@@ -258,6 +339,12 @@ export function newTaskDoc(
         .filter((item) => item.text.length > 0) ?? null,
     links: planned.links,
     asksForLiveLink: planned.asksForLiveLink,
+    priority: planned.priority,
+    waitsOn: planned.waitsOn,
+    waitFor: planned.waitFor,
+    whenLate: planned.whenLate,
+    dueFromOffset: planned.dueFromOffset,
+    waitingOn,
     statusId,
     liveLink: null,
     eventId: event.id,

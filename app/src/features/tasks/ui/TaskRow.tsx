@@ -1,12 +1,14 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/ui/TaskRow.tsx
-// Version : 1.2.0
-// Latest commit: feature/auto-assign
+// Version : 1.3.0
+// Latest commit: feature/1.2-tasks-follow-order
 // Author : Gerrah
 // Purpose : One task in a list: its title (opens the task) with its event
 // under it (a link, or "Event deleted"), who it's given to, when it's due
 // (red once late, with "Late from the start" when it was planned after that),
-// and its status. Finished tasks show when they were done and by whom.
+// and its status. A high priority task has a flag; a locked one says what
+// it's waiting for. Finished tasks show when they were done and by whom.
 
+import { lockState } from "@engine/order";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import type { MemberRecord, StatusRecord } from "@/core/data";
@@ -15,6 +17,7 @@ import { memberName } from "@/features/members";
 import type { WorkGroupRecord } from "@/features/work-groups";
 import { Chip } from "@/shared/components/Chip/Chip";
 import { Pill } from "@/shared/components/Pill/Pill";
+import { VisuallyHidden } from "@/shared/components/VisuallyHidden/VisuallyHidden";
 import { Icon } from "@/shared/icons/Icon";
 import { statusOf } from "../model/taskStatusFlow";
 import type { TaskRecord } from "../types/taskTypes";
@@ -61,15 +64,33 @@ export function TaskRow({
     task.dueAt !== null &&
     task.dueAt.getTime() < context.now.getTime();
   const event = context.eventOf?.(task) ?? null;
-  const note = isDone ? (context.doneNote?.(task) ?? null) : null;
+  const locked = !isDone && lockState(task, context.now).locked;
+  const note = isDone
+    ? (context.doneNote?.(task) ?? null)
+    : locked
+      ? Text.waitingFor(task.waitingOn.map((wait) => wait.title))
+      : null;
 
   return (
     <li className={styles.row} data-done={isDone || undefined}>
       <span className={styles.lead}>
-        <Link to={context.hrefFor(task.id)} className={styles.title}>
-          {task.title}
-        </Link>
-        {note ? <span className={styles.muted}>{note}</span> : null}
+        <span>
+          <Link to={context.hrefFor(task.id)} className={styles.title}>
+            {task.title}
+          </Link>
+          {task.priority === "high" && !isDone ? (
+            <span className={styles.high} title={Text.high}>
+              <Icon name="priority" />
+              <VisuallyHidden>{Text.high}</VisuallyHidden>
+            </span>
+          ) : null}
+        </span>
+        {note ? (
+          <span className={locked ? styles.waitingNote : styles.muted}>
+            {locked ? <Icon name="lock" /> : null}
+            {note}
+          </span>
+        ) : null}
         {event ? (
           <Link to={event.href} className={styles.event}>
             <Icon name="calendar" />

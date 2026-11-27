@@ -1,17 +1,19 @@
 // File : /TeamSamsara.Workflow/app/src/views/tasks/TaskView.tsx
-// Version : 1.5.0
-// Latest commit: feature/audit-fixes
+// Version : 1.6.0
+// Latest commit: feature/1.2-tasks-follow-order
 // Author : Gerrah
 // Purpose : A task's page: where it is (the status steps), how to do it, the
 // post text to copy and the checklist to tick; beside them, the next step,
+// its order (what it waits on, Start anyway, the tasks before and after it),
 // approval and who it's given to. Edit opens the task's form in place.
 
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useBlocker, useNavigate, useParams } from "react-router-dom";
 import { dataErrorMessage, isCurrentMember } from "@/core/data";
+import { useSession } from "@/core/session";
 import { useDisplayTime, useWorkspaceRecord } from "@/core/workspace";
-import { useEvent, useEventLabels } from "@/features/events";
+import { useEvent, useEventLabels, useEventTasks } from "@/features/events";
 import { memberName, useMembers } from "@/features/members";
 import { usePlatforms } from "@/features/platforms";
 import { StatusPill, useStatuses, useTags } from "@/features/task-setup";
@@ -28,6 +30,8 @@ import {
   formatDue,
   HowToCard,
   NextStepCard,
+  OrderCard,
+  orderNeighbours,
   PostTextCard,
   saveTaskFields,
   statusOf,
@@ -39,6 +43,7 @@ import {
   type TaskRecord,
 } from "@/features/tasks";
 import { useWorkGroups } from "@/features/work-groups";
+import { useWorkflow } from "@/features/workflows";
 import { Banner } from "@/shared/components/Banner/Banner";
 import { Button } from "@/shared/components/Button/Button";
 import { Chip } from "@/shared/components/Chip/Chip";
@@ -70,6 +75,19 @@ function TaskPage({ task }: { task: TaskRecord }) {
       statuses.items.find((status) => status.id === task.statusId)?.category ===
       "awaitingApproval",
   });
+  const session = useSession();
+  const viewer = session.status === "active" ? session.member : null;
+  const siblings = useEventTasks(task.eventId ?? undefined, viewer);
+  const workflow = useWorkflow(task.workflowId ?? undefined);
+  const neighbours = orderNeighbours(
+    task,
+    siblings.items ?? [],
+    workflow?.steps ?? [],
+  );
+  const startedBy = task.startedAnyway
+    ? (members.records.find((entry) => entry.id === task.startedAnyway?.by) ??
+      null)
+    : null;
   const toast = useToast();
   const navigate = useNavigate();
   const now = useNow();
@@ -263,6 +281,14 @@ function TaskPage({ task }: { task: TaskRecord }) {
               task={task}
               statuses={statuses.items}
               abilities={abilities}
+              formatWhen={when}
+            />
+            <OrderCard
+              task={task}
+              abilities={abilities}
+              before={neighbours.before}
+              after={neighbours.after}
+              startedBy={startedBy ? memberName(startedBy) : null}
               formatWhen={when}
             />
             {task.needsApproval ? (

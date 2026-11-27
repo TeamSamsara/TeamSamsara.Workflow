@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/index.ts
-// Version : 1.4.0
-// Latest commit: feature/auto-assign
+// Version : 1.5.0
+// Latest commit: feature/1.2-tasks-follow-order
 // Author : Gerrah
 // Purpose : What other layers may use from the tasks feature.
 
@@ -57,6 +57,9 @@ export { AssignedCard } from "./ui/AssignedCard";
 export { DoneThisWeekCard } from "./ui/DoneThisWeekCard";
 export { NewTaskDialog } from "./ui/NewTaskDialog";
 export { NextStepCard } from "./ui/NextStepCard";
+export { OrderCard } from "./ui/OrderCard";
+export { orderNeighbours } from "./model/orderNeighbours";
+export { startAnyway } from "./service/taskService";
 export { ChecklistCard, HowToCard, PostTextCard } from "./ui/TaskDetails";
 export { TaskForm } from "./ui/TaskForm";
 export type { TaskFormOptions } from "./ui/TaskForm";

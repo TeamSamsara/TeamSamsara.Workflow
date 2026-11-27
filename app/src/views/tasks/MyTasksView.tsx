@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/tasks/MyTasksView.tsx
-// Version : 1.5.0
-// Latest commit: feature/auto-assign
+// Version : 1.6.0
+// Latest commit: feature/1.2-tasks-follow-order
 // Author : Gerrah
 // Purpose : My tasks. Whose: Mine (the default), My groups, or Pick groups,
 // remembered in the browser. How much: Focus (late, today and the next 7
@@ -18,6 +18,7 @@ import { decide } from "@engine/access/index";
 import { useActor, usePermissions } from "@/core/access";
 import { DataErrorText, dataErrorMessage, isCurrentMember } from "@/core/data";
 import { useSession } from "@/core/session";
+import { lockState } from "@engine/order";
 import { useDisplayTime, useWorkspaceRecord } from "@/core/workspace";
 import {
   useEventLabels,
@@ -300,7 +301,13 @@ export function MyTasksView() {
     },
   };
 
-  const byDue = groupByDue(openTasks, now, time.timeZone);
+  // Locked tasks wait on others: listed apart, under the due groups.
+  const lockedTasks = openTasks.filter((task) => lockState(task, now).locked);
+  const byDue = groupByDue(
+    openTasks.filter((task) => !lockedTasks.includes(task)),
+    now,
+    time.timeZone,
+  );
   const grouped = Object.fromEntries(
     DueGroups.map((group) => [group, inOrder(byDue[group])]),
   ) as typeof byDue;
@@ -491,6 +498,15 @@ export function MyTasksView() {
                     />
                   ))
               )}
+              {view !== "done" && lockedTasks.length > 0 ? (
+                <TaskGroupCard
+                  title={Text.waitingOnOthers}
+                  note={Text.waitingOnOthersNote}
+                  tasks={inOrder(lockedTasks)}
+                  context={context}
+                  tone="waiting"
+                />
+              ) : null}
               {view === "focus" &&
               list.status === "ready" &&
               later.length > 0 ? (

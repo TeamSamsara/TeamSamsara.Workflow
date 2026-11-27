@@ -38,6 +38,7 @@ export {
 } from "./model/workflowDraft";
 export { deleteWorkflow, setWorkflowArchived } from "./service/workflowService";
 export {
+  readDue,
   readStep,
   WorkflowLimits,
   workflowConverter,

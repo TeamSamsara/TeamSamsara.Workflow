@@ -1,9 +1,10 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/model/groupByDue.ts
-// Version : 1.1.0
-// Latest commit: feature/audit-fixes
+// Version : 1.2.0
+// Latest commit: feature/1.2-tasks-follow-order
 // Author : Gerrah
 // Purpose : Sorts tasks into Late, Today, Next 7 days, Later and No due date,
-// by the calendar in the given time zone, earliest first in each. Focus shows
+// by the calendar in the given time zone, earliest first in each (high
+// priority first among tasks due at the same time, low priority last). Focus shows
 // the first three; Planning shows them all. Also where a week starts, for
 // Done this week.
 
@@ -82,7 +83,11 @@ export function dueGroup(
   return "later";
 }
 
-export function groupByDue<TTask extends { dueAt: Date | null }>(
+const priorityRank = { high: 0, normal: 1, low: 2 } as const;
+
+export function groupByDue<
+  TTask extends { dueAt: Date | null; priority?: "high" | "normal" | "low" },
+>(
   tasks: readonly TTask[],
   now: Date,
   timeZone: string,
@@ -96,7 +101,9 @@ export function groupByDue<TTask extends { dueAt: Date | null }>(
   };
   const byDue = [...tasks].sort(
     (a, b) =>
-      (a.dueAt?.getTime() ?? Infinity) - (b.dueAt?.getTime() ?? Infinity),
+      (a.dueAt?.getTime() ?? Infinity) - (b.dueAt?.getTime() ?? Infinity) ||
+      priorityRank[a.priority ?? "normal"] -
+        priorityRank[b.priority ?? "normal"],
   );
   for (const task of byDue) {
     groups[dueGroup(task.dueAt, now, timeZone)].push(task);

@@ -289,6 +289,11 @@ const kinds: Record<NotificationKind, KindLook> = {
     detail: "when",
     whenLabel: "Due",
   },
+  taskUnlocked: {
+    eyebrow: "Ready to start",
+    button: "Open the task",
+    detail: "none",
+  },
   release: {
     eyebrow: "What's new",
     button: "See what's new",

@@ -71,46 +71,39 @@ export interface PlatformPost {
 // #endregion
 
 // #region Order and priority
-/**
- * How a rule relates this step to another one:
- * - after: this step follows that one;
- * - before: that step follows this one (the same link, set from this side);
- * - with: they unlock together;
- * - dueFrom: this step's due time counts from when that one is done.
- */
-export const OrderRelations = ["after", "before", "with", "dueFrom"] as const;
-export type OrderRelation = (typeof OrderRelations)[number];
-
-/**
- * What has to happen first. Every one but "order" locks the step that
- * follows until it happens; "order" only keeps it due after.
- */
-export const OrderConditions = [
-  "done",
-  "approved",
-  "inReview",
-  "liveLink",
-  "order",
-] as const;
-export type OrderCondition = (typeof OrderConditions)[number];
-
-export interface OrderRule {
-  /** Stable within the step, so the editor can follow a rule. */
-  id: string;
-  relation: OrderRelation;
-  /** The other step; empty while a new rule has no step picked yet. */
-  stepId: string;
-  condition: OrderCondition;
-}
-
-export const WaitForChoices = ["all", "any"] as const;
-export type WaitFor = (typeof WaitForChoices)[number];
-
-export const WhenLateChoices = ["wait", "unlock"] as const;
-export type WhenLate = (typeof WhenLateChoices)[number];
-
-export const Priorities = ["high", "normal", "low"] as const;
-export type Priority = (typeof Priorities)[number];
+// Shared with the server, which makes tasks wait on each other the same way.
+// Relations: after (this step follows that one), before (that step follows
+// this one, the same link set from this side), with (they unlock together),
+// dueFrom (its due time counts from when that one is done). Every condition
+// but "order" locks the step that follows until it happens.
+import {
+  OrderConditions,
+  OrderRelations,
+  Priorities,
+  WaitForChoices,
+  WhenLateChoices,
+  type OrderCondition,
+  type OrderRelation,
+  type OrderRule,
+  type Priority,
+  type WaitFor,
+  type WhenLate,
+} from "@engine/order";
+export {
+  OrderConditions,
+  OrderRelations,
+  Priorities,
+  WaitForChoices,
+  WhenLateChoices,
+};
+export type {
+  OrderCondition,
+  OrderRelation,
+  OrderRule,
+  Priority,
+  WaitFor,
+  WhenLate,
+};
 // #endregion
 
 export interface WorkflowStep {

@@ -68,6 +68,9 @@ export function sentence(kind: NotificationKind, said: Said): string {
       return `Playbook gave you ${said.title}`;
     case "taskWaiting":
       return `${said.title} is still waiting for someone${said.group ? ` in ${said.group}` : ""}`;
+    case "taskUnlocked":
+      // detail: the task that just did what it waited on.
+      return `${said.title} can start now${said.detail ? `: ${said.detail} is ready` : ""}`;
   }
 }
 

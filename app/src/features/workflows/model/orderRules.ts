@@ -15,48 +15,13 @@ import type {
   OrderRule,
   WorkflowStep,
 } from "../types/workflowTypes";
+import { locks, orderLinks, type OrderLink } from "@engine/order";
 import { describeDue, dueOrder } from "./dueOffset";
 import { OrderRulesText as Text } from "./orderRulesContent";
 
-/** One link: `to` follows `from`, and `condition` says what has to happen. */
-export interface OrderLink {
-  from: string;
-  to: string;
-  condition: OrderCondition;
-  /** "dueFrom": the follower's due time counts from when `from` is done. */
-  dueFrom: boolean;
-  /** The step and rule it was written on, so the editor can point at it. */
-  ownerId: string;
-  ruleId: string;
-}
-
-/** Whether a condition locks the step that follows until it happens. */
-export function locks(condition: OrderCondition): boolean {
-  return condition !== "order";
-}
-
-/** Every link the steps' rules make ("with" rules make none: they're not an order). */
-export function orderLinks(steps: readonly WorkflowStep[]): OrderLink[] {
-  const ids = new Set(steps.map((step) => step.id));
-  const links: OrderLink[] = [];
-  for (const step of steps) {
-    for (const rule of step.order) {
-      if (!rule.stepId || rule.stepId === step.id || !ids.has(rule.stepId))
-        continue;
-      if (rule.relation === "with") continue;
-      const before = rule.relation === "before";
-      links.push({
-        from: before ? step.id : rule.stepId,
-        to: before ? rule.stepId : step.id,
-        condition: rule.relation === "dueFrom" ? "done" : rule.condition,
-        dueFrom: rule.relation === "dueFrom",
-        ownerId: step.id,
-        ruleId: rule.id,
-      });
-    }
-  }
-  return links;
-}
+// The links themselves are worked out by the engine, which the server shares.
+export { locks, orderLinks } from "@engine/order";
+export type { OrderLink } from "@engine/order";
 
 /** Whether `to` can be reached from `from` by following links. */
 function reaches(links: readonly OrderLink[], from: string, to: string) {

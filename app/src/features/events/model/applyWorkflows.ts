@@ -22,7 +22,7 @@ import {
   nameFromKey,
   type FieldRecord,
 } from "@/features/fields";
-import type { TaskFields } from "@/features/tasks";
+import type { TaskFields, TaskRecord } from "@/features/tasks";
 import { findGaps, type WorkflowRecord } from "@/features/workflows";
 import type { ClockFormat, DateFormat } from "@/shared/time/dates";
 
@@ -43,8 +43,14 @@ export interface Formats {
   eventTypeName?: (eventTypeId: string) => string | null;
 }
 
-/** A task to make for an event, with where it came from. */
-export interface PlannedTask extends TaskFields {
+/** A task to make for an event, with where it came from and its order. */
+export interface PlannedTask
+  extends
+    TaskFields,
+    Pick<
+      TaskRecord,
+      "priority" | "waitsOn" | "waitFor" | "whenLate" | "dueFromOffset"
+    > {
   workflowId: string;
   stepId: string;
 }
