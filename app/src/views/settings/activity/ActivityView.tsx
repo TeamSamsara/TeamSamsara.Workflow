@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/activity/ActivityView.tsx
-// Version : 1.0.0
-// Latest commit: feature/auto-assign
+// Version : 1.1.0
+// Latest commit: feature/1.2-workload
 // Author : Gerrah
 // Purpose : Settings › Activity, for Administrators: the newest 200 changes to
 // people, roles, groups and settings, who made them and when, filtered by
@@ -29,7 +29,15 @@ import { ActivityViewText as Text } from "./activityViewContent";
 import styles from "./ActivityView.module.css";
 
 type Area = keyof typeof Text.areas;
-const areas: Area[] = ["all", "people", "roles", "groups", "settings", "tasks"];
+const areas: Area[] = [
+  "all",
+  "people",
+  "roles",
+  "groups",
+  "settings",
+  "tasks",
+  "workload",
+];
 
 interface ActivityEntry {
   id: string;

@@ -1,16 +1,18 @@
 // File : /TeamSamsara.Workflow/functions/src/access/managePlan.ts
-// Version : 1.1.0
-// Latest commit: feature/auto-assign
+// Version : 1.2.0
+// Latest commit: feature/1.2-workload
 // Author : Gerrah
 // Purpose : The protected changes, worked out before anything is written:
 // a member's name, roles, groups and access, removing or inviting someone,
 // saving the roles, setting a group's leads, and giving or giving up the
-// Owner role, and how a group hands out its tasks. Each is checked with the shared decide(), against ranks read
+// Owner role, how a group hands out its tasks, and usual weeks (a member's
+// and a group's, kept in the Workload area of Activity). Each is checked with the shared decide(), against ranks read
 // fresh from the roles (never a stored copy), and comes back as the writes
 // to make and the activity to record, or the reason it's refused.
 
 import {
   AssignLimits,
+  WorkloadLimits,
   decide,
   OwnerRank,
   OwnerRoleId,
@@ -38,6 +40,8 @@ export interface MemberEntry {
   roleIds: string[];
   workGroupIds: string[];
   joinedAt: Date | null;
+  /** Their own usual week, in tasks; null follows the workspace's. */
+  usualWeek: number | null;
 }
 
 export interface GroupEntry {
@@ -46,6 +50,8 @@ export interface GroupEntry {
   leadIds: string[];
   /** How it hands out its tasks. */
   assign: AssignSettings;
+  /** The group's usual week, all of it together; null when it has none. */
+  usualWeek: number | null;
 }
 
 export type ManageOp =
@@ -55,6 +61,8 @@ export type ManageOp =
       displayName?: string;
       roleIds?: string[];
       workGroupIds?: string[];
+      /** Their usual week in tasks; null to follow the workspace's. */
+      usualWeek?: number | null;
     }
   | { op: "member.access"; memberId: string; on: boolean }
   | { op: "member.remove"; memberId: string }
@@ -70,15 +78,17 @@ export type ManageOp =
       op: "group.assign";
       groupId: string;
       on?: boolean;
-      dailyLimit?: number;
       headsUpHours?: number;
+      /** The group's usual week in tasks; null for none. */
+      usualWeek?: number | null;
       /** Who doesn't take its tasks. */
       skip?: string[];
     }
   | { op: "owner.give"; memberId: string }
   | { op: "owner.stepDown" };
 
-export type ActivityArea = "people" | "roles" | "groups" | "settings" | "tasks";
+export type ActivityArea =
+  "people" | "roles" | "groups" | "settings" | "tasks" | "workload";
 
 export interface ActivityEntry {
   area: ActivityArea;
@@ -191,6 +201,30 @@ function planMemberUpdate(
       summary: `Renamed ${nameOf(member)} to ${name}`,
       before: { displayName: member.displayName },
       after: { displayName: name },
+    });
+  }
+
+  if (op.usualWeek !== undefined && op.usualWeek !== member.usualWeek) {
+    const { min, max } = WorkloadLimits.person;
+    if (
+      op.usualWeek !== null &&
+      (!Number.isInteger(op.usualWeek) ||
+        op.usualWeek < min ||
+        op.usualWeek > max)
+    )
+      return fail("invalid");
+    requests.push({ action: "workload.set" });
+    change.usualWeek = op.usualWeek;
+    plan.activity.push({
+      area: "workload",
+      action: "usualWeekChanged",
+      targetId: member.id,
+      summary:
+        op.usualWeek === null
+          ? `Set ${nameOf(member)}'s usual week back to the workspace's`
+          : `Changed ${nameOf(member)}'s usual week to about ${op.usualWeek} tasks`,
+      before: { usualWeek: member.usualWeek },
+      after: { usualWeek: op.usualWeek },
     });
   }
 
@@ -521,9 +555,10 @@ function planLeads(
 }
 
 /**
- * How a group hands out its tasks. The switch, the daily limit and the
- * heads-up are the group's settings (Manage work groups); who takes tasks is
- * also its leads' to choose, for themselves and anyone at their rank or below.
+ * How a group hands out its tasks. The switch and the heads-up are the
+ * group's settings (Manage work groups); its usual week is for Owners and
+ * Administrators; who takes tasks is also its leads' to choose, for
+ * themselves and anyone at their rank or below.
  */
 function planAssign(
   actor: Actor,
@@ -538,18 +573,23 @@ function planAssign(
 
   const settingsChanged =
     (op.on !== undefined && op.on !== before.on) ||
-    (op.dailyLimit !== undefined && op.dailyLimit !== before.dailyLimit) ||
     (op.headsUpHours !== undefined && op.headsUpHours !== before.headsUpHours);
-  if (settingsChanged) {
-    const { dailyLimit, headsUpHours } = AssignLimits;
-    if (op.on !== undefined && typeof op.on !== "boolean")
-      return fail("invalid");
+  const weekChanged =
+    op.usualWeek !== undefined && op.usualWeek !== group.usualWeek;
+  if (weekChanged) {
+    const { min, max } = WorkloadLimits.group;
     if (
-      op.dailyLimit !== undefined &&
-      (!Number.isInteger(op.dailyLimit) ||
-        op.dailyLimit < dailyLimit.min ||
-        op.dailyLimit > dailyLimit.max)
+      op.usualWeek !== null &&
+      (!Number.isInteger(op.usualWeek) ||
+        (op.usualWeek as number) < min ||
+        (op.usualWeek as number) > max)
     )
+      return fail("invalid");
+    requests.push({ action: "workload.set" });
+  }
+  if (settingsChanged) {
+    const { headsUpHours } = AssignLimits;
+    if (op.on !== undefined && typeof op.on !== "boolean")
       return fail("invalid");
     if (
       op.headsUpHours !== undefined &&
@@ -557,7 +597,6 @@ function planAssign(
     )
       return fail("invalid");
     next.on = op.on ?? before.on;
-    next.dailyLimit = op.dailyLimit ?? before.dailyLimit;
     next.headsUpHours = op.headsUpHours ?? before.headsUpHours;
     requests.push({ action: "group.settings" });
   }
@@ -595,7 +634,22 @@ function planAssign(
   if (refused) return fail(refused);
   const plan = empty();
   if (requests.length === 0) return { ok: true, plan };
-  plan.groups[group.id] = { assign: next };
+  if (weekChanged) {
+    plan.groups[group.id] = { usualWeek: op.usualWeek };
+    plan.activity.push({
+      area: "workload",
+      action: "groupWeekChanged",
+      targetId: group.id,
+      summary:
+        op.usualWeek === null
+          ? `Took away ${group.name}'s usual week`
+          : `Changed ${group.name}'s usual week to about ${op.usualWeek} tasks`,
+      before: { usualWeek: group.usualWeek },
+      after: { usualWeek: op.usualWeek },
+    });
+    if (!settingsChanged && op.skip === undefined) return { ok: true, plan };
+  }
+  plan.groups[group.id] = { ...plan.groups[group.id], assign: next };
   const turned =
     next.on !== before.on
       ? next.on

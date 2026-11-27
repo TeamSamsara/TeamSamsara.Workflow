@@ -128,7 +128,10 @@ service cloud.firestore {
         && isSetupBatch();
       allow update: if can("manageSettings")
         && isValidWorkspace(request.resource.data)
-        && request.resource.data.createdAt == resource.data.createdAt;
+        && request.resource.data.createdAt == resource.data.createdAt
+        // Everyone's usual week is for Owners and Administrators.
+        && (request.resource.data.get("usualWeek", 3) == resource.data.get("usualWeek", 3)
+          || can("administrator"));
     }
 
     // Whether the weekly check-up fixes what it finds (Apply) or only
@@ -166,7 +169,10 @@ service cloud.firestore {
       // dateFormat, upgradedPlatformIds and sessionDays came later, so older
       // workspaces may not have them.
       return data.keys().hasOnly(required.concat(["dateFormat",
-          "upgradedPlatformIds", "sessionDays"]))
+          "upgradedPlatformIds", "sessionDays", "usualWeek"]))
+        // Everyone's usual week, in tasks (WorkloadLimits.person in the engine).
+        && data.get("usualWeek", 3) is int
+        && data.get("usualWeek", 3) >= 1 && data.get("usualWeek", 3) <= 40
         && data.keys().hasAll(required)
         && isValidName(data.name)
         && data.timeZone is string && data.timeZone.size() > 0
@@ -393,11 +399,13 @@ service cloud.firestore {
         && isValidWorkGroup(request.resource.data)
         && request.resource.data.get("leadIds", []) == []
         && request.resource.data.get("assign", null) == null
+        && request.resource.data.get("usualWeek", null) == null
         && request.resource.data.createdAt == request.time;
       allow update: if can("manageWorkGroups")
         && isValidWorkGroup(request.resource.data)
         && request.resource.data.get("leadIds", []) == resource.data.get("leadIds", [])
         && request.resource.data.get("assign", null) == resource.data.get("assign", null)
+        && request.resource.data.get("usualWeek", null) == resource.data.get("usualWeek", null)
         && request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if can("manageWorkGroups");
     }
@@ -407,7 +415,7 @@ service cloud.firestore {
     // lead's permissions and each link's address are checked by the app.
     function isValidWorkGroup(data) {
       return data.keys().hasOnly(["name", "description", "createdAt",
-          "leadIds", "links", "color", "assign"])
+          "leadIds", "links", "color", "assign", "usualWeek"])
         && data.keys().hasAll(["name", "description", "createdAt"])
         && isValidName(data.name)
         && data.description is string

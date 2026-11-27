@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/access/readAccess.ts
-// Version : 1.1.0
-// Latest commit: feature/auto-assign
+// Version : 1.2.0
+// Latest commit: feature/1.2-workload
 // Author : Gerrah
 // Purpose : Reads what permission checks need from the database: the roles
 // (and writes them back with their permission index), members, groups, and
@@ -17,6 +17,8 @@ import {
   actorOf,
   decide,
   readAssign,
+  readUsualWeek,
+  WorkloadLimits,
   type AccessRequest,
   type Actor,
   type MemberStatus,
@@ -81,6 +83,7 @@ export function readMember(id: string, data: DocumentData): MemberEntry {
     workGroupIds: list(data.workGroupIds),
     joinedAt:
       data.joinedAt instanceof Timestamp ? data.joinedAt.toDate() : null,
+    usualWeek: readUsualWeek(data.usualWeek),
   };
 }
 
@@ -90,6 +93,7 @@ export function readGroup(id: string, data: DocumentData): GroupEntry {
     name: text(data.name),
     leadIds: list(data.leadIds),
     assign: readAssign(data.assign),
+    usualWeek: readUsualWeek(data.usualWeek, WorkloadLimits.group),
   };
 }
 

@@ -1,11 +1,13 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/models/workspaceModel.ts
-// Version : 1.3.0
-// Latest commit: feature/remember-me
+// Version : 1.4.0
+// Latest commit: feature/1.2-workload
 // Author : Gerrah
 // Purpose : The workspace record (config/workspace): its name, the time zone
 // events are planned in, week start, date and time formats, the default theme for new
-// members, which platforms are switched on, and which paid tiers it has.
+// members, which platforms are switched on, which paid tiers it has, and
+// everyone's usual week (how many tasks a person takes on in a week).
 
+import { readUsualWeek, WorkloadLimits } from "@engine/workload";
 import type { DocumentData } from "firebase/firestore";
 import type { ThemeChoice } from "@/core/theme";
 import { createConverter } from "../firestoreConverter";
@@ -56,6 +58,8 @@ export interface WorkspaceRecord {
   upgradedPlatformIds: string[];
   /** Days a sign-in lasts before the password is asked again; 0 is never. */
   sessionDays: SessionDays;
+  /** Everyone's usual week, in tasks, unless their own is set (Workload). */
+  usualWeek: number;
   createdAt: Date | null;
 }
 
@@ -89,6 +93,8 @@ function parse(_id: string, data: DocumentData): WorkspaceRecord {
     upgradedPlatformIds: readStringList(data, "upgradedPlatformIds"),
     // Workspaces made before this setting existed last 30 days.
     sessionDays: readSessionDays(data),
+    usualWeek:
+      readUsualWeek(data.usualWeek) ?? WorkloadLimits.person.default,
     createdAt: readDate(data, "createdAt"),
   };
 }
@@ -104,6 +110,7 @@ function serialize(workspace: WorkspaceRecord): DocumentData {
     enabledPlatformIds: workspace.enabledPlatformIds,
     upgradedPlatformIds: workspace.upgradedPlatformIds,
     sessionDays: workspace.sessionDays,
+    usualWeek: workspace.usualWeek,
     createdAt: fromDate(workspace.createdAt),
   };
 }

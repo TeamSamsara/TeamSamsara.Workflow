@@ -7,9 +7,10 @@
 // days, with how many more are coming up), Planning (everything still to do)
 // or Done this week (by day, with who did and approved it). Above the list,
 // for each of my groups that hands out its tasks, what's waiting for someone,
-// with Claim. Each task links to
-// its event. Beside it: what's waiting for approval (for approvers) and the
-// Done this week card. New task makes a one-off task.
+// with Claim. Tasks locked by their order are listed apart, under Waiting on
+// others. Each task links to its event. Beside it: your week in a word, what's
+// waiting for approval (for approvers) and the Done this week card. New task
+// makes a one-off task.
 
 import { useMutation } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
@@ -19,6 +20,7 @@ import { useActor, usePermissions } from "@/core/access";
 import { DataErrorText, dataErrorMessage, isCurrentMember } from "@/core/data";
 import { useSession } from "@/core/session";
 import { lockState } from "@engine/order";
+import { YourWeekCard } from "@/features/workload";
 import { useDisplayTime, useWorkspaceRecord } from "@/core/workspace";
 import {
   useEventLabels,
@@ -526,6 +528,9 @@ export function MyTasksView() {
           </div>
 
           <aside className={styles.side} data-tour="myTasksSide">
+            {member ? (
+              <YourWeekCard member={member} tasks={open.items} now={now} />
+            ) : null}
             {canApprove ? (
               approvals.length > 0 ? (
                 <TaskGroupCard

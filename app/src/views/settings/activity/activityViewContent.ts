@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/activity/activityViewContent.ts
-// Version : 1.0.0
-// Latest commit: feature/auto-assign
+// Version : 1.1.0
+// Latest commit: feature/1.2-workload
 // Author : Gerrah
 // Purpose : The words of Settings › Activity.
 
@@ -19,6 +19,7 @@ export const ActivityViewText = {
     groups: "Groups",
     settings: "Settings",
     tasks: "Tasks",
+    workload: "Workload",
   },
   by: (name: string) => `by ${name}`,
   system: "by Playbook",

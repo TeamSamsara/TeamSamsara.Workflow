@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/workspaceSettings.rules.test.ts
-// Version : 1.2.0
-// Latest commit: feature/remember-me
+// Version : 1.3.0
+// Latest commit: feature/1.2-workload
 // Author : Gerrah
 // Purpose : Tests Settings → General and Platforms against the rules: only
 // Manage settings (or an Administrator) edits the workspace record; every
@@ -96,6 +96,18 @@ describe("Signing in", () => {
     await assertSucceeds(updateDoc(settings("jordan"), { sessionDays: 0 }));
     await assertFails(updateDoc(settings("jordan"), { sessionDays: 5 }));
     await assertFails(updateDoc(settings("jordan"), { sessionDays: "30" }));
+  });
+});
+
+describe("Workload", () => {
+  it("leaves everyone's usual week to Administrators, as a whole number of tasks", async () => {
+    await assertFails(updateDoc(settings("jordan"), { usualWeek: 4 }));
+    await assertSucceeds(updateDoc(settings("alex"), { usualWeek: 4 }));
+    await assertFails(updateDoc(settings("alex"), { usualWeek: 0 }));
+    await assertFails(updateDoc(settings("alex"), { usualWeek: 41 }));
+    await assertFails(updateDoc(settings("alex"), { usualWeek: 2.5 }));
+    // Other settings still save with a usual week already there.
+    await assertSucceeds(updateDoc(settings("jordan"), { name: "Samsara" }));
   });
 });
 

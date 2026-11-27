@@ -33,6 +33,7 @@ describe("workspace record", () => {
     enabledPlatformIds: ["x", "youtube"],
     upgradedPlatformIds: ["x"],
     sessionDays: 14,
+    usualWeek: 3,
     createdAt: new Date("2026-10-01T12:00:00Z"),
   };
 
@@ -53,6 +54,7 @@ describe("workspace record", () => {
       enabledPlatformIds: [],
       upgradedPlatformIds: [],
       sessionDays: 30,
+      usualWeek: 3,
       createdAt: null,
     });
   });
@@ -68,6 +70,7 @@ describe("member record", () => {
     workGroupIds: ["social"],
     rank: 0,
     leadOf: [],
+    usualWeek: null,
     gameName: null,
     photoUrl: null,
     timeZone: null,

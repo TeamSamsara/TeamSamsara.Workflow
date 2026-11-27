@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/engine/src/assign.test.ts
-// Version : 1.0.0
-// Latest commit: feature/auto-assign
+// Version : 2.0.0
+// Latest commit: feature/1.2-workload
 // Author : Gerrah
 // Purpose : Tests handing out a group's tasks: free for an hour in the 6
 // hours before it's due, the daily limit (not counting tasks a step named
@@ -10,7 +10,6 @@
 
 // describe, it and expect come from Vitest's globals (see app/vitest.config.ts).
 import {
-  AssignLimits,
   handOut,
   isFreeBefore,
   needsHeadsUp,
@@ -28,14 +27,15 @@ const at = (text: string) => new Date(`${text}Z`);
 const now = at("2026-11-14T08:00:00");
 const settings: AssignSettings = {
   on: true,
-  dailyLimit: 3,
   headsUpHours: 24,
   skip: [],
 };
-const context = { settings, now, timeZone };
+// Weeks run Monday to Sunday: this one is Nov 9 to 15.
+const context = { settings, now, timeZone, weekStartsOn: "monday" as const };
 
 const person = (id: string, change: Partial<Candidate> = {}): Candidate => ({
   id,
+  usualWeek: 3,
   week: null,
   busy: [],
   tasks: [],
@@ -49,12 +49,14 @@ const task = (
   id,
   eventId,
   dueAt: due ? at(due) : null,
+  size: "quick",
 });
-const held = (id: string, due: string, eventId: string | null = null) => ({
-  id,
-  eventId,
-  dueAt: at(due),
-});
+const held = (
+  id: string,
+  due: string,
+  eventId: string | null = null,
+  size: "quick" | "bigger" = "quick",
+) => ({ id, eventId, dueAt: at(due), size });
 
 describe("free time", () => {
   it("reads the usual week, then the dates that differ", () => {
@@ -135,31 +137,30 @@ describe("free before it's due", () => {
 describe("who gets a task", () => {
   const due = "2026-11-14T20:00:00";
 
-  it("is the least busy over the next 7 days", () => {
+  it("has the most room in the week it's due", () => {
     const busy = person("a", {
       tasks: [
-        held("x", "2026-11-15T10:00:00"),
-        held("y", "2026-11-16T10:00:00"),
+        held("x", "2026-11-14T10:00:00"),
+        held("y", "2026-11-15T10:00:00"),
       ],
     });
-    // Two tasks, but one is weeks away.
-    const quiet = person("b", {
+    // Two tasks too, but one is due next week.
+    const roomy = person("b", {
       tasks: [
         held("z", "2026-11-14T10:00:00"),
-        held("w", "2026-12-20T10:00:00"),
+        held("w", "2026-11-16T10:00:00"),
       ],
     });
-    expect(pickAssignee(task("t", due), [busy, quiet], context)).toBe("b");
+    expect(pickAssignee(task("t", due), [busy, roomy], context)).toBe("b");
   });
 
-  it("doesn't count tasks a step named them for against the limit", () => {
-    const named = person("a", {
-      tasks: ["1", "2", "3"].map((id) => ({
-        ...held(id, "2026-11-14T09:00:00"),
-        byName: true,
-      })),
+  it("goes by each person's own usual week", () => {
+    const small = person("a", { usualWeek: 1 });
+    const big = person("b", {
+      usualWeek: 6,
+      tasks: [held("x", "2026-11-14T10:00:00")],
     });
-    expect(pickAssignee(task("t", due), [named], context)).toBe("a");
+    expect(pickAssignee(task("t", due), [small, big], context)).toBe("b");
   });
 
   it("on a tie, already has a task on that event", () => {
@@ -172,11 +173,18 @@ describe("who gets a task", () => {
     expect(pickAssignee(task("t", due), [other, same], context)).toBe("b");
   });
 
-  it("never someone at their daily limit", () => {
+  it("never someone with no room, nor a bigger task for someone with room for a quick one", () => {
     const full = person("a", {
       tasks: ["1", "2", "3"].map((id) => held(id, "2026-11-14T09:00:00")),
     });
     expect(pickAssignee(task("t", due), [full], context)).toBeNull();
+    const limited = person("b", {
+      tasks: [held("x", "2026-11-14T09:00:00", null, "bigger")],
+    });
+    expect(pickAssignee(task("t", due), [limited], context)).toBe("b");
+    expect(
+      pickAssignee({ ...task("t", due), size: "bigger" }, [limited], context),
+    ).toBeNull();
   });
 
   it("never someone who doesn't take tasks", () => {
@@ -194,8 +202,8 @@ describe("who gets a task", () => {
     ).toBeNull();
   });
 
-  it("gives a task with no due time to whoever has the fewest", () => {
-    const some = person("a", { tasks: [held("x", "2026-11-20T10:00:00")] });
+  it("gives a task with no due time to whoever has the most room this week", () => {
+    const some = person("a", { tasks: [held("x", "2026-11-13T10:00:00")] });
     expect(pickAssignee(task("t", null), [some, person("b")], context)).toBe(
       "b",
     );
@@ -210,14 +218,11 @@ describe("handing out a queue", () => {
     ).toEqual([]);
   });
 
-  it("counts each task given against the limit, earliest first", () => {
+  it("counts each task given against the week, earliest first", () => {
     const queue = ["4", "1", "3", "2"].map((n) =>
       task(`t${n}`, `2026-11-14T1${n}:00:00`),
     );
-    const given = handOut(queue, [person("a")], {
-      ...context,
-      settings: { ...settings, dailyLimit: AssignLimits.dailyLimit.min },
-    });
+    const given = handOut(queue, [person("a", { usualWeek: 2 })], context);
     expect(given).toEqual([
       { taskId: "t1", memberId: "a" },
       { taskId: "t2", memberId: "a" },
@@ -254,18 +259,16 @@ describe("the group's settings", () => {
   it("take the defaults and stay in bounds", () => {
     expect(readAssign(undefined)).toEqual({
       on: false,
-      dailyLimit: 3,
       headsUpHours: 24,
       skip: [],
     });
+    // A daily limit stored before 1.2 is left out.
     expect(
       readAssign({ on: true, dailyLimit: 40, headsUpHours: 5, skip: ["a", 2] }),
     ).toEqual({
       on: true,
-      dailyLimit: 10,
       headsUpHours: 24,
       skip: ["a"],
     });
-    expect(readAssign({ dailyLimit: 1, headsUpHours: 48 }).dailyLimit).toBe(2);
   });
 });

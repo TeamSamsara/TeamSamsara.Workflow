@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/access/manageService.ts
-// Version : 1.1.0
-// Latest commit: feature/auto-assign
+// Version : 1.2.0
+// Latest commit: feature/1.2-workload
 // Author : Gerrah
 // Purpose : Protected changes go through the server, which checks rank and
 // records them in the activity history: a member's name, roles, groups and
@@ -27,6 +27,8 @@ export type ManageOp =
       displayName?: string;
       roleIds?: string[];
       workGroupIds?: string[];
+      /** Their usual week in tasks; null to follow the workspace's. */
+      usualWeek?: number | null;
     }
   | { op: "member.access"; memberId: string; on: boolean }
   | { op: "member.remove"; memberId: string }
@@ -42,9 +44,10 @@ export type ManageOp =
       op: "group.assign";
       groupId: string;
       on?: boolean;
-      dailyLimit?: number;
       headsUpHours?: number;
       skip?: string[];
+      /** The group's usual week in tasks; null for none. */
+      usualWeek?: number | null;
     }
   | { op: "owner.give"; memberId: string }
   | { op: "owner.stepDown" };

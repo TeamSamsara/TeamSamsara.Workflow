@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/assign/runner.ts
-// Version : 1.0.0
-// Latest commit: feature/auto-assign
+// Version : 2.0.0
+// Latest commit: feature/1.2-workload
 // Author : Gerrah
 // Purpose : Hands out a group's waiting tasks on the server (the rule itself
 // is the engine's, engine/src/assign.ts). One run per group at a time: a run
@@ -26,6 +26,9 @@ import {
   type HeldTask,
   type QueuedTask,
   type UsualWeek,
+  readUsualWeek,
+  taskSize,
+  WorkloadLimits,
 } from "../../../engine/src/index.js";
 
 /** A run left this long is taken to have died. */
@@ -73,7 +76,26 @@ const queuedOf = (id: string, data: DocumentData): QueuedTask => ({
   id,
   eventId: typeof data.eventId === "string" ? data.eventId : null,
   dueAt: toDate(data.dueAt),
+  size: taskSize({
+    checklist: Array.isArray(data.checklist) ? data.checklist : null,
+    posts: Array.isArray(data.posts) ? data.posts : null,
+    needsApproval: data.needsApproval === true,
+  }),
 });
+
+/** The workspace's week: when it starts, and everyone's usual week. */
+export interface WorkspaceWeek {
+  weekStartsOn: "monday" | "sunday";
+  usualWeek: number;
+}
+
+export async function readWorkspaceWeek(db: Firestore): Promise<WorkspaceWeek> {
+  const data = (await db.doc("config/workspace").get()).data();
+  return {
+    weekStartsOn: data?.weekStartsOn === "sunday" ? "sunday" : "monday",
+    usualWeek: readUsualWeek(data?.usualWeek) ?? WorkloadLimits.person.default,
+  };
+}
 
 /** A group's waiting tasks: given to the group, to nobody in it, not done. */
 async function readQueue(db: Firestore, groupId: string) {
@@ -95,6 +117,7 @@ async function readCandidates(
   db: Firestore,
   groupId: string,
   now: Date,
+  usualWeek: number,
 ): Promise<Candidate[]> {
   const members = (
     await db
@@ -138,47 +161,17 @@ async function readCandidates(
       { startsAt, endsAt },
     ]);
   }
-  // Tasks a step gives someone by name don't count against their limit.
-  const heldDocs = held.flatMap((snapshot) => snapshot.docs);
-  const workflowIds = [
-    ...new Set(
-      heldDocs
-        .map((doc) => doc.data().workflowId)
-        .filter((id): id is string => typeof id === "string"),
-    ),
-  ];
-  const named = new Map<string, Map<string, string | null>>();
-  if (workflowIds.length)
-    for (const doc of await db.getAll(
-      ...workflowIds.map((id) => db.doc(`workflows/${id}`)),
-    )) {
-      const steps = Array.isArray(doc.data()?.steps)
-        ? (doc.data()?.steps as DocumentData[])
-        : [];
-      named.set(
-        doc.id,
-        new Map(
-          steps.map((step) => [
-            String(step?.id ?? ""),
-            typeof step?.memberId === "string" ? step.memberId : null,
-          ]),
-        ),
-      );
-    }
   const tasksOf = new Map<string, HeldTask[]>();
-  for (const doc of heldDocs) {
-    const data = doc.data();
-    const memberId = data.memberId as string;
-    const byName =
-      typeof data.workflowId === "string" &&
-      named.get(data.workflowId)?.get(String(data.stepId ?? "")) === memberId;
+  for (const doc of held.flatMap((snapshot) => snapshot.docs)) {
+    const memberId = doc.data().memberId as string;
     tasksOf.set(memberId, [
       ...(tasksOf.get(memberId) ?? []),
-      { ...queuedOf(doc.id, data), byName },
+      queuedOf(doc.id, doc.data()),
     ]);
   }
   return ids.map((id, index) => ({
     id,
+    usualWeek: readUsualWeek(members[index].data().usualWeek) ?? usualWeek,
     week: readWeek(weeks[index].data()),
     busy: busyOf.get(id) ?? [],
     tasks: tasksOf.get(id) ?? [],
@@ -269,11 +262,12 @@ async function runOnce(
   if (!group || !settings.on) return null;
   const queue = await readQueue(db, groupId);
   if (queue.length === 0) return { given: [], headsUp: [], settings };
-  const candidates = await readCandidates(db, groupId, now);
+  const week = await readWorkspaceWeek(db);
+  const candidates = await readCandidates(db, groupId, now, week.usualWeek);
   const handed = handOut(
     queue.map((entry) => entry.task),
     candidates,
-    { settings, now, timeZone },
+    { settings, now, timeZone, weekStartsOn: week.weekStartsOn },
   );
   const given = await give(db, groupId, handed);
   const givenIds = new Set(given.map((entry) => entry.taskId));

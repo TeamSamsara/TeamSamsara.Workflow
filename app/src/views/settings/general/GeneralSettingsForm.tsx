@@ -1,11 +1,13 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/general/GeneralSettingsForm.tsx
-// Version : 1.1.0
-// Latest commit: feature/remember-me
+// Version : 1.2.0
+// Latest commit: feature/1.2-workload
 // Author : Gerrah
-// Purpose : The fields of Settings → General, in three cards: the workspace's
-// name; its time zone, week start, date and time formats; and the default
-// theme. Used only by GeneralSettingsView, which holds the draft.
+// Purpose : The fields of Settings → General, in cards: the workspace's
+// name; its time zone, week start, date and time formats; the default theme;
+// signing in; and workload (everyone's usual week, with what the week words
+// mean). Used only by GeneralSettingsView, which holds the draft.
 
+import { WeekLegend, WorkloadText } from "@/features/workload";
 import { useMemo } from "react";
 import {
   DateFormats,
@@ -32,6 +34,8 @@ interface GeneralSettingsFormProps {
   onChange: (changes: Partial<WorkspaceSettings>) => void;
   nameError?: string;
   disabled: boolean;
+  /** Everyone's usual week: Owners and Administrators only. */
+  workloadDisabled: boolean;
 }
 
 /** The value picked in a Select, kept only if it's one of the choices. */
@@ -48,6 +52,7 @@ export function GeneralSettingsForm({
   onChange,
   nameError,
   disabled,
+  workloadDisabled,
 }: GeneralSettingsFormProps) {
   const zones = useMemo(() => timeZoneOptions(), []);
   const dateOptions = DateFormats.map((value) => ({
@@ -178,6 +183,30 @@ export function GeneralSettingsForm({
           hint={Text.sessionHint}
           disabled={disabled}
         />
+      </section>
+
+      <section className={styles.card}>
+        <h3 className={styles.cardTitle}>{WorkloadText.workloadHeading}</h3>
+        <Select
+          label={WorkloadText.everyone}
+          options={Array.from({ length: 15 }, (_, index) => index + 1)
+            .concat(settings.usualWeek > 15 ? [settings.usualWeek] : [])
+            .map((value) => ({
+              value: String(value),
+              label: WorkloadText.usualWeek(value),
+            }))}
+          value={String(settings.usualWeek)}
+          onChange={(event) =>
+            onChange({ usualWeek: Number(event.target.value) })
+          }
+          hint={
+            workloadDisabled && !disabled
+              ? WorkloadText.adminsOnly
+              : WorkloadText.everyoneHint
+          }
+          disabled={workloadDisabled}
+        />
+        <WeekLegend />
       </section>
     </>
   );

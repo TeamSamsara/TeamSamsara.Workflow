@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/general/GeneralSettingsView.tsx
-// Version : 1.5.0
-// Latest commit: feature/audit-fixes
+// Version : 1.6.0
+// Latest commit: feature/1.2-workload
 // Author : Gerrah
 // Purpose : Settings → General: the workspace's name, time and date settings
 // and default theme, saved together. Everyone signed in sees a rename at once
@@ -42,6 +42,7 @@ const fields = [
   "timeFormat",
   "defaultTheme",
   "sessionDays",
+  "usualWeek",
 ] as const satisfies readonly (keyof Editable)[];
 
 export function GeneralSettingsView() {
@@ -58,6 +59,7 @@ export function GeneralSettingsView() {
     timeFormat: workspace.timeFormat,
     defaultTheme: workspace.defaultTheme,
     sessionDays: workspace.sessionDays,
+    usualWeek: workspace.usualWeek,
   };
   // Only what was changed is kept; everything else follows the live workspace.
   const [edits, setEdits] = useState<Partial<Editable>>({});
@@ -133,6 +135,8 @@ export function GeneralSettingsView() {
         }}
         nameError={nameError}
         disabled={!canChange || save.isPending}
+        // Everyone's usual week is for Owners and Administrators.
+        workloadDisabled={!can("administrator") || save.isPending}
       />
 
       {/* Saves on its own, picture by picture: not part of Save above. */}
