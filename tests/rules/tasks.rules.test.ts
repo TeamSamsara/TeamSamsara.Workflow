@@ -735,6 +735,49 @@ describe("order between tasks", () => {
     await assertSucceeds(updateDoc(task("lena", "locked2"), started("lena")));
   });
 
+  it("keeps a locked task from being worked on until it unlocks or is started anyway", async () => {
+    const locked = {
+      ...waiting,
+      memberId: "sam",
+      waitingOn: [
+        {
+          taskId: "banner",
+          stepId: "s0",
+          title: "Launch banner",
+          condition: "approved",
+        },
+      ],
+    };
+    await seed(env, {
+      "tasks/locked": stored(locked),
+      "tasks/started": stored({
+        ...locked,
+        startedAnyway: {
+          by: "sam",
+          at: new Date(2026, 10, 2),
+          reason: "Late banner",
+        },
+      }),
+      "tasks/late": stored({
+        ...locked,
+        whenLate: "unlock",
+        dueAt: new Date(2020, 0, 1),
+      }),
+      "tasks/free": stored({ ...locked, waitingOn: [] }),
+    });
+    const tick = {
+      checklist: [
+        { id: "a", text: "Logos", done: true },
+        { id: "b", text: "Time", done: false },
+      ],
+      ...now(),
+    };
+    await assertFails(updateDoc(task("sam", "locked"), tick));
+    await assertSucceeds(updateDoc(task("sam", "started"), tick));
+    await assertSucceeds(updateDoc(task("sam", "late"), tick));
+    await assertSucceeds(updateDoc(task("sam", "free"), tick));
+  });
+
   it("lets planners and editors update the order with the content, not the people doing it", async () => {
     const order = { priority: "low", waitFor: "any", ...now() };
     await assertSucceeds(updateDoc(task("eddie"), order));

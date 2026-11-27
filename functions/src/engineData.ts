@@ -321,6 +321,8 @@ export function newTaskDoc(
   statusId: string,
   createdBy: string,
   now: Date,
+  /** What it waits on as it's made (see waitingOnAtCreation). */
+  waitingOn: readonly WaitingOn[] = [],
 ): DocumentData {
   return {
     title: planned.title.trim(),
@@ -342,6 +344,7 @@ export function newTaskDoc(
     waitFor: planned.waitFor,
     whenLate: planned.whenLate,
     dueFromOffset: planned.dueFromOffset,
+    waitingOn,
     statusId,
     liveLink: null,
     eventId: event.id,

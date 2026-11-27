@@ -8,7 +8,7 @@
 // workflows, and deletes it with its tasks.
 
 import { collection, doc } from "firebase/firestore";
-import { locks } from "@engine/order";
+import { freshTask, waitingOnAtCreation } from "@engine/order";
 import {
   Collections,
   commitWrites,
@@ -147,23 +147,20 @@ export function eventWrites(
                 isLateAtCreation(task.dueAt, now),
               ),
               // Nothing is done yet, so it waits on every task it comes after.
-              waitingOn: task.waitsOn.flatMap((wait) => {
-                const other = planned.find(
-                  (entry) =>
-                    entry.workflowId === workflowId &&
-                    entry.stepId === wait.stepId,
-                );
-                return other && locks(wait.condition)
-                  ? [
-                      {
-                        taskId: eventTaskId(eventId, workflowId, wait.stepId),
-                        stepId: wait.stepId,
-                        title: other.title,
-                        condition: wait.condition,
-                      },
-                    ]
-                  : [];
-              }),
+              waitingOn: waitingOnAtCreation(
+                {
+                  id: eventTaskId(eventId, workflowId, stepId),
+                  workflowId,
+                  waitsOn: task.waitsOn,
+                  waitFor: task.waitFor,
+                },
+                planned.map((entry) =>
+                  freshTask(
+                    eventTaskId(eventId, entry.workflowId, entry.stepId),
+                    entry,
+                  ),
+                ),
+              ),
             },
           ),
     ),
@@ -236,8 +233,20 @@ export function refreshEventTasks(
   updates: readonly TaskRefresh[],
   withDue: boolean,
   newSteps: readonly PlannedTask[],
-  options: { startingStatusId: string; createdBy: string; now?: Date },
+  options: {
+    startingStatusId: string;
+    createdBy: string;
+    now?: Date;
+    /** The event's tasks already there, for what the new ones wait on. */
+    existing?: readonly TaskRecord[];
+  },
 ): Promise<void> {
+  const others = [
+    ...(options.existing ?? []),
+    ...newSteps.map((step) =>
+      freshTask(eventTaskId(eventId, step.workflowId, step.stepId), step),
+    ),
+  ];
   const now = options.now ?? new Date();
   const writes: BatchWrite[] = [
     ...updates.map((refresh): BatchWrite => (batch) => {
@@ -259,13 +268,24 @@ export function refreshEventTasks(
               Collections.tasks,
               eventTaskId(eventId, workflowId, stepId),
             ),
-            newTaskData(
-              task,
-              options.startingStatusId,
-              options.createdBy,
-              { eventId, workflowId, stepId },
-              isLateAtCreation(task.dueAt, now),
-            ),
+            {
+              ...newTaskData(
+                task,
+                options.startingStatusId,
+                options.createdBy,
+                { eventId, workflowId, stepId },
+                isLateAtCreation(task.dueAt, now),
+              ),
+              waitingOn: waitingOnAtCreation(
+                {
+                  id: eventTaskId(eventId, workflowId, stepId),
+                  workflowId,
+                  waitsOn: task.waitsOn,
+                  waitFor: task.waitFor,
+                },
+                others,
+              ),
+            },
           ),
     ),
   ];

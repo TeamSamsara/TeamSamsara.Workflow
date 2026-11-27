@@ -764,6 +764,7 @@ service cloud.firestore {
             "doneBy", "approvedBy", "approvedAt", "updatedAt"])
           && holds(grants, held, "doAssignedTasks")
           && isGivenToMe(before)
+          && !isLockedTask(before)
           && isDoingTask())
         // A finished task kept as history when a planner deletes its event,
         // in the same batch.
@@ -771,6 +772,20 @@ service cloud.firestore {
           && before.eventId != null
           && plansEventOf(before, grants, held)
           && !existsAfter(/databases/$(database)/documents/events/$(before.eventId)));
+    }
+
+    /**
+     * Waiting on other tasks of its event, so it can't be worked on yet: what
+     * it still waits on (kept by the server, emptied once it no longer
+     * waits), unless it's done, started anyway, or late and set to unlock at
+     * its due time. The same as lockState in engine/src/order.ts.
+     */
+    function isLockedTask(task) {
+      return task.doneAt == null
+        && task.get("startedAnyway", null) == null
+        && task.get("waitingOn", []).size() > 0
+        && !(task.get("whenLate", "wait") == "unlock"
+          && task.dueAt != null && task.dueAt <= request.time);
     }
 
     function isNewTask(task) {

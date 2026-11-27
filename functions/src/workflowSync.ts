@@ -13,12 +13,16 @@
 
 import type { Firestore } from "firebase-admin/firestore";
 import {
+  freshTask,
   gapValues,
   planTaskSync,
   taskFromStep,
+  waitingOnAtCreation,
   type Formats,
+  type PlannedTask,
   type TaskSync,
 } from "../../engine/src/index.js";
+import { orderRow } from "./taskOrder.js";
 import {
   commitInBatches,
   engineFormats,
@@ -115,6 +119,8 @@ export async function syncWorkflow(
   for (const event of events) {
     const tasks = await tasksOf(db, event.id, after.id);
     const values = gapValues(event, shown);
+    // Tasks for steps new in this save, made once the event's are all known.
+    const made: { id: string; planned: PlannedTask }[] = [];
     for (const step of after.steps) {
       const next = taskFromStep(
         step,
@@ -136,13 +142,7 @@ export async function syncWorkflow(
         if (before && !oldStep && statusId && event.startsAt >= now) {
           const id = eventTaskId(event.id, after.id, step.id);
           result.createdIds.push(id);
-          if (!dryRun)
-            writes.push((batch) =>
-              batch.create(
-                db.doc(`tasks/${id}`),
-                newTaskDoc(next, event, statusId, byId ?? event.createdBy, now),
-              ),
-            );
+          made.push({ id, planned: next });
         }
         continue;
       }
@@ -159,6 +159,37 @@ export async function syncWorkflow(
             syncUpdate(sync.changes as Record<string, unknown>),
           ),
         );
+    }
+    // Each new task is made knowing what it waits on: the event's tasks
+    // already there and the others made with it.
+    const others = [
+      ...tasks.map(orderRow),
+      ...made.map(({ id, planned }) => freshTask(id, planned)),
+    ];
+    for (const { id, planned } of made) {
+      if (dryRun || !statusId) continue;
+      const waitingOn = waitingOnAtCreation(
+        {
+          id,
+          workflowId: after.id,
+          waitsOn: planned.waitsOn,
+          waitFor: planned.waitFor,
+        },
+        others,
+      );
+      writes.push((batch) =>
+        batch.create(
+          db.doc(`tasks/${id}`),
+          newTaskDoc(
+            planned,
+            event,
+            statusId,
+            byId ?? event.createdBy,
+            now,
+            waitingOn,
+          ),
+        ),
+      );
     }
   }
   result.events = events.length;

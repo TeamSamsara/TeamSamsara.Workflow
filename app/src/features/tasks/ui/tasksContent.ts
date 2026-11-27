@@ -186,6 +186,13 @@ export const OrderCardText = {
     liveLink: "Needs its live link first",
     order: "Only the order",
   },
+  waitsForThis: {
+    done: "Waits for this to be done",
+    approved: "Waits for this to be approved",
+    inReview: "Waits for this to be sent for review",
+    liveLink: "Waits for this to get its live link",
+    order: "Only the order",
+  },
   toBe: {
     done: "to be done",
     approved: "to be approved",

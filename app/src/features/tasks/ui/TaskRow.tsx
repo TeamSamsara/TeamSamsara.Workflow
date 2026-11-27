@@ -86,7 +86,7 @@ export function TaskRow({
           ) : null}
         </span>
         {note ? (
-          <span className={styles.muted}>
+          <span className={locked ? styles.waitingNote : styles.muted}>
             {locked ? <Icon name="lock" /> : null}
             {note}
           </span>

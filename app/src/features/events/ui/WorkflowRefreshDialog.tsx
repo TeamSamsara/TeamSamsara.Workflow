@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/events/ui/WorkflowRefreshDialog.tsx
-// Version : 1.1.0
-// Latest commit: feature/audit-fixes
+// Version : 1.2.0
+// Latest commit: feature/1.2-tasks-follow-order
 // Author : Gerrah
 // Purpose : "Update tasks from workflows" on an event: lists its open tasks
 // that differ from what their steps make now (and what differs), each ticked
@@ -76,6 +76,7 @@ export function WorkflowRefreshDialog({
       return refreshEventTasks(event.id, chosen, withDue, chosenSteps, {
         startingStatusId: startId,
         createdBy: member.id,
+        existing: tasks.items,
       });
     },
     onSuccess: () => {

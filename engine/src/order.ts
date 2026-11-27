@@ -180,14 +180,17 @@ export interface WaitingTask {
 /**
  * What a task still waits on, given the other tasks of its event: each task
  * a locking wait points at that hasn't done what it asks. A task that no
- * longer exists doesn't hold it.
+ * longer exists doesn't hold it. Empty once it no longer waits: all of them
+ * done, or, when it waits for any one, as soon as one is. So a task is
+ * waiting exactly when this isn't empty, which the database rules can check
+ * on the task alone.
  */
 export function waitingOnOf(
   task: WaitingTask,
   siblings: readonly TaskForOrder[],
 ): WaitingOn[] {
   if (!task.workflowId) return [];
-  return task.waitsOn
+  const holding = task.waitsOn
     .filter((wait) => locks(wait.condition))
     .flatMap((wait) => {
       const other = siblings.find(
@@ -196,17 +199,55 @@ export function waitingOnOf(
           entry.workflowId === task.workflowId &&
           entry.stepId === wait.stepId,
       );
-      return other && !conditionMet(wait.condition, other)
-        ? [
-            {
-              taskId: other.id,
-              stepId: wait.stepId,
-              title: other.title,
-              condition: wait.condition,
-            },
-          ]
-        : [];
+      return other ? [{ wait, other }] : [];
     });
+  const unmet = holding.filter(
+    ({ wait, other }) => !conditionMet(wait.condition, other),
+  );
+  if (task.waitFor === "any" && unmet.length < holding.length) return [];
+  return unmet.map(({ wait, other }) => ({
+    taskId: other.id,
+    stepId: wait.stepId,
+    title: other.title,
+    condition: wait.condition,
+  }));
+}
+
+/**
+ * What a task waits on as it's made, from the other tasks of its event: the
+ * ones already there and the ones made with it (new, so nothing done yet).
+ */
+export function waitingOnAtCreation(
+  task: Pick<WaitingTask, "id" | "workflowId" | "waitsOn" | "waitFor">,
+  others: readonly TaskForOrder[],
+): WaitingOn[] {
+  return waitingOnOf(
+    {
+      ...task,
+      whenLate: "wait",
+      dueAt: null,
+      doneAt: null,
+      startedAnyway: null,
+    },
+    others,
+  );
+}
+
+/** A task about to be made, as the order of the others reads it. */
+export function freshTask(
+  id: string,
+  task: { title: string; workflowId: string; stepId: string },
+): TaskForOrder {
+  return {
+    id,
+    title: task.title,
+    workflowId: task.workflowId,
+    stepId: task.stepId,
+    doneAt: null,
+    approvedAt: null,
+    sentForReviewAt: null,
+    liveLink: null,
+  };
 }
 
 export interface LockState {
@@ -216,20 +257,19 @@ export interface LockState {
 }
 
 /**
- * Whether a task is locked, from what it still waits on: all of them or any
- * one, unless it's late and set to unlock, or someone started it anyway.
+ * Whether a task is locked, from what it still waits on (see waitingOnOf),
+ * unless it's late and set to unlock, or someone started it anyway. The
+ * database rules check the same (isLockedTask in firestore.rules).
  */
 export function lockState(
-  task: WaitingTask & { waitingOn: readonly { stepId: string }[] },
+  task: Pick<WaitingTask, "whenLate" | "dueAt" | "doneAt" | "startedAnyway"> & {
+    waitingOn: readonly unknown[];
+  },
   now: Date,
 ): LockState {
   const open = { locked: false, unlockedLate: false };
-  if (task.doneAt || task.startedAnyway) return open;
-  const holding = task.waitsOn.filter((wait) => locks(wait.condition)).length;
-  const unmet = task.waitingOn.length;
-  const waiting =
-    task.waitFor === "any" ? unmet > 0 && unmet >= holding : unmet > 0;
-  if (!waiting) return open;
+  if (task.doneAt || task.startedAnyway || task.waitingOn.length === 0)
+    return open;
   if (
     task.whenLate === "unlock" &&
     task.dueAt !== null &&

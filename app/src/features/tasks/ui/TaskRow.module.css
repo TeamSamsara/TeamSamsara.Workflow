@@ -173,11 +173,20 @@
   display: inline-flex;
   align-items: center;
   margin-left: var(--space-1);
-  color: var(--color-alert);
+  color: var(--color-error-text);
   vertical-align: middle;
 }
 
-.muted > svg {
-  margin-right: var(--space-1);
-  vertical-align: -2px;
+/* What a locked task is waiting for, after a lock. */
+.waitingNote {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+}
+
+.waitingNote > svg {
+  flex: none;
 }

@@ -9,6 +9,9 @@
 // describe, it and expect come from Vitest's globals (see app/vitest.config.ts).
 import {
   conditionMet,
+  freshTask,
+  waitingOnAtCreation,
+  waitingOnOf,
   dueFromDone,
   unlockedBy,
   waitsOf,
@@ -107,7 +110,12 @@ describe("waitState", () => {
     const state = waitState(task("post"), all, now);
     expect(state.locked).toBe(true);
     expect(state.waitingOn).toEqual([
-      { taskId: "banner", stepId: "banner", title: "banner", condition: "approved" },
+      {
+        taskId: "banner",
+        stepId: "banner",
+        title: "banner",
+        condition: "approved",
+      },
     ]);
     const approved = all.map((other) =>
       other.id === "banner" ? { ...other, approvedAt: done } : other,
@@ -231,5 +239,53 @@ describe("dueFromDone", () => {
       "America/Toronto",
     );
     expect(due.toISOString()).toBe("2026-12-02T18:00:00.000Z");
+  });
+});
+
+describe("waitingOnOf and waitingOnAtCreation", () => {
+  it("empties once a task waiting for any one is free, so the rules can check the task alone", () => {
+    const all = ["flyers", "banner", "post", "photos", "recap"].map((id) =>
+      task(id),
+    );
+    const any = task("recap", { waitFor: "any" });
+    expect(waitingOnOf(any, all).map((wait) => wait.stepId)).toEqual([
+      "post",
+      "photos",
+    ]);
+    const photosDone = all.map((other) =>
+      other.id === "photos" ? { ...other, doneAt: done } : other,
+    );
+    expect(waitingOnOf(any, photosDone)).toEqual([]);
+    expect(waitingOnOf(task("recap"), photosDone).map((w) => w.stepId)).toEqual(
+      ["post"],
+    );
+  });
+
+  it("works out what a new task waits on from the tasks made with it", () => {
+    const others = [
+      freshTask("e_launch_banner", {
+        title: "Launch banner",
+        workflowId: "launch",
+        stepId: "banner",
+      }),
+    ];
+    expect(
+      waitingOnAtCreation(
+        {
+          id: "e_launch_post",
+          workflowId: "launch",
+          waitsOn: waitsOf(steps, "post"),
+          waitFor: "all",
+        },
+        others,
+      ),
+    ).toEqual([
+      {
+        taskId: "e_launch_banner",
+        stepId: "banner",
+        title: "Launch banner",
+        condition: "approved",
+      },
+    ]);
   });
 });

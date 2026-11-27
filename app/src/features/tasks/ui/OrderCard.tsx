@@ -48,9 +48,12 @@ interface OrderCardProps {
 function Neighbours({
   title,
   items,
+  side,
 }: {
   title: string;
   items: readonly OrderNeighbour[];
+  /** before: what has to happen to them; after: what they wait for from this one. */
+  side: "before" | "after";
 }) {
   if (items.length === 0) return null;
   return (
@@ -71,7 +74,11 @@ function Neighbours({
               <span>{item.title}</span>
             )}
             <span className={styles.muted}>
-              {item.done ? Text.done : Text.condition[item.condition]}
+              {item.done
+                ? Text.done
+                : (side === "before" ? Text.condition : Text.waitsForThis)[
+                    item.condition
+                  ]}
             </span>
           </li>
         ))}
@@ -110,8 +117,9 @@ export function OrderCard({
           {Text.title}
         </h2>
         {task.priority !== "normal" ? (
-          <span className={styles.muted}>
-            <Icon name="priority" /> {Text.priority[task.priority]}
+          <span className={styles.priority}>
+            <Icon name="priority" />
+            {Text.priority[task.priority]}
           </span>
         ) : null}
       </div>
@@ -150,8 +158,8 @@ export function OrderCard({
         </Button>
       ) : null}
 
-      <Neighbours title={Text.before} items={before} />
-      <Neighbours title={Text.after} items={after} />
+      <Neighbours title={Text.before} items={before} side="before" />
+      <Neighbours title={Text.after} items={after} side="after" />
 
       {isAsking ? (
         <Modal
