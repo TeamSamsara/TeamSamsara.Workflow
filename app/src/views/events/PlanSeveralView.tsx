@@ -1,12 +1,13 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/PlanSeveralView.tsx
-// Version : 1.4.0
-// Latest commit: feature/audit-fixes
+// Version : 1.5.0
+// Latest commit: feature/1.2-workload-checks
 // Author : Gerrah
 // Purpose : Planning several events at once, as a set: what they share (the
 // set's name, type, usual times, a title with {gaps}, who's in them), then
 // one row per event, filled by a weekly pattern, pasted from a spreadsheet or
 // typed. The side says what it will make and which workflows give each event
-// its tasks. ?set=<id> adds more events to a set, starting from what its
+// its tasks, with a warning when they'd push a group over its usual week.
+// ?set=<id> adds more events to a set, starting from what its
 // events were made with.
 
 import { useMutation } from "@tanstack/react-query";
@@ -28,6 +29,7 @@ import {
 import { useWhoCanMake } from "@/features/availability";
 import {
   addToEventSet,
+  applyWorkflows,
   askedGaps,
   AudiencePicker,
   AudienceText,
@@ -67,6 +69,11 @@ import {
 import { formatDue } from "@/features/tasks";
 import { useWorkGroups } from "@/features/work-groups";
 import { useWorkflows } from "@/features/workflows";
+import {
+  useGroupWeeks,
+  workloadWarnings,
+  WorkloadWarningNotice,
+} from "@/features/workload";
 import { Banner } from "@/shared/components/Banner/Banner";
 import { Button } from "@/shared/components/Button/Button";
 import { LinkButton } from "@/shared/components/Button/LinkButton";
@@ -133,6 +140,26 @@ function PlanSeveral({ set }: { set: EventSetRecord | null }) {
     .map((row) => rowFields(draft, row, tz, valueText(formats)))
     .filter((fields): fields is EventFields => fields !== null);
   const late = findLateTasks(events, selected, formats, now);
+  // Groups these events would push over their usual week (a warning only).
+  const groupWeeks = useGroupWeeks(groups.items.map((item) => item.group.id));
+  const warnings = workloadWarnings(
+    events.flatMap((fields) =>
+      applyWorkflows(
+        {
+          title: fields.title,
+          startsAt: fields.startsAt,
+          endsAt: fields.endsAt,
+          eventTypeId: fields.eventTypeId,
+          link: fields.link,
+          details: fields.details,
+        },
+        selected,
+        formats,
+      ),
+    ),
+    groupWeeks,
+    workspace,
+  );
   const taskCount =
     events.length * tasksEach - (lateChoice === "skip" ? late.length : 0);
   const today = dayKey(now, tz);
@@ -403,6 +430,13 @@ function PlanSeveral({ set }: { set: EventSetRecord | null }) {
               formatDue(date, time.timeZone, time.timeFormat, time.dateFormat)
             }
             disabled={create.isPending}
+          />
+          <WorkloadWarningNotice
+            warnings={warnings}
+            groupName={(groupId) =>
+              groups.items.find((item) => item.group.id === groupId)?.group
+                .name ?? ""
+            }
           />
           <WorkflowPicker
             workflows={available}

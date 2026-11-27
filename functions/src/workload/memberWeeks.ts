@@ -1,13 +1,15 @@
 // File : /TeamSamsara.Workflow/functions/src/workload/memberWeeks.ts
-// Version : 1.1.0
-// Latest commit: feature/1.2-workload-c
+// Version : 1.2.0
+// Latest commit: feature/1.2-workload-checks
 // Author : Gerrah
 // Purpose : Each person's weeks, kept by the server in memberWeeks/{id} as
 // one word per week (Available, Limited, At capacity, Over capacity). People
 // can't read each other's tasks, but Reassign, claiming and a group's page
 // need to know who has room; the word is all they see, never the tasks or the
 // numbers. Worked out again when someone's tasks, their usual week, or the
-// workspace's week change.
+// workspace's week change. Each open task also carries the week it's due in
+// (weekKey), so the database rules can check someone has room for it before
+// they claim it or it's given to them.
 
 import {
   FieldValue,
@@ -330,4 +332,58 @@ export async function saveMemberWeeks(
     });
   }
   return roomAgain;
+}
+
+/** The week a due time falls in, as memberWeeks keys it; null with no due time. */
+export function weekKeyOf(
+  dueAt: Date | null,
+  timeZone: string,
+  weekStartsOn: WorkspaceWeek["weekStartsOn"],
+): string | null {
+  return dueAt
+    ? dayKey(weekOf(dueAt, timeZone, weekStartsOn).start, timeZone)
+    : null;
+}
+
+/** Whether a task's week needs working out again after this write. */
+export function needsWeekKey(
+  before: DocumentData | undefined,
+  after: DocumentData | undefined,
+): boolean {
+  if (!after || toDate(after.doneAt)) return false;
+  const due = toDate(after.dueAt)?.getTime() ?? null;
+  const has = typeof after.weekKey === "string" ? after.weekKey : null;
+  if (due === null) return has !== null;
+  return has === null || toDate(before?.dueAt)?.getTime() !== due;
+}
+
+/** Writes a task's week (weekKey) when it's missing or changed. */
+export async function keepWeekKey(
+  db: Firestore,
+  taskId: string,
+  data: DocumentData,
+  week?: WorkspaceWeek,
+  timeZone?: string,
+): Promise<boolean> {
+  const settings = week ?? (await readWorkspaceWeek(db));
+  const zone =
+    timeZone ??
+    String((await db.doc("config/workspace").get()).data()?.timeZone ?? "UTC");
+  const key = weekKeyOf(toDate(data.dueAt), zone, settings.weekStartsOn);
+  if ((data.weekKey ?? null) === key) return false;
+  await db.doc(`tasks/${taskId}`).update({ weekKey: key });
+  return true;
+}
+
+/** Every open task's week again (the workspace's week or time zone changed). */
+export async function keepAllWeekKeys(db: Firestore): Promise<number> {
+  const week = await readWorkspaceWeek(db);
+  const zone = String(
+    (await db.doc("config/workspace").get()).data()?.timeZone ?? "UTC",
+  );
+  const open = await db.collection("tasks").where("doneAt", "==", null).get();
+  let changed = 0;
+  for (const doc of open.docs)
+    if (await keepWeekKey(db, doc.id, doc.data(), week, zone)) changed += 1;
+  return changed;
 }

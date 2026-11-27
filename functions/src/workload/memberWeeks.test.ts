@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/workload/memberWeeks.test.ts
-// Version : 1.1.0
-// Latest commit: feature/1.2-workload-c
+// Version : 1.2.0
+// Latest commit: feature/1.2-workload-checks
 // Author : Gerrah
 // Purpose : Tests someone's weeks as one word each, a group's weeks as how
 // much each takes, and which task changes make them be worked out again.
@@ -12,6 +12,8 @@ import {
   groupWeeks,
   memberWeeks,
   touchesWeeks,
+  needsWeekKey,
+  weekKeyOf,
 } from "./memberWeeks.js";
 
 const at = (iso: string) => new Date(iso);
@@ -110,5 +112,42 @@ describe("groupWeeks", () => {
       "social",
     ]);
     expect(groupsTouched(task, { ...task, memberId: "sam" })).toEqual([]);
+  });
+});
+
+describe("weekKeyOf and needsWeekKey", () => {
+  const due = (iso: string) => Timestamp.fromDate(new Date(iso));
+
+  it("keys a due time by its week's first day, in the workspace's zone", () => {
+    // Sunday 9 PM in Toronto is Monday in UTC: still the week of Nov 9.
+    expect(
+      weekKeyOf(new Date("2026-11-16T02:00:00Z"), "America/Toronto", "monday"),
+    ).toBe("2026-11-09");
+    expect(weekKeyOf(null, "America/Toronto", "monday")).toBeNull();
+  });
+
+  it("works it out when it's missing or the due time moved", () => {
+    const task = { dueAt: due("2026-11-18T15:00:00Z"), doneAt: null };
+    expect(needsWeekKey(undefined, task)).toBe(true);
+    expect(needsWeekKey(task, { ...task, weekKey: "2026-11-16" })).toBe(false);
+    expect(
+      needsWeekKey(
+        { ...task, weekKey: "2026-11-16" },
+        { ...task, dueAt: due("2026-11-25T15:00:00Z"), weekKey: "2026-11-16" },
+      ),
+    ).toBe(true);
+  });
+
+  it("clears it with no due time, and leaves finished tasks alone", () => {
+    expect(
+      needsWeekKey(undefined, { dueAt: null, doneAt: null, weekKey: "x" }),
+    ).toBe(true);
+    expect(needsWeekKey(undefined, { dueAt: null, doneAt: null })).toBe(false);
+    expect(
+      needsWeekKey(undefined, {
+        dueAt: due("2026-11-18T15:00:00Z"),
+        doneAt: due("2026-11-17T15:00:00Z"),
+      }),
+    ).toBe(false);
   });
 });

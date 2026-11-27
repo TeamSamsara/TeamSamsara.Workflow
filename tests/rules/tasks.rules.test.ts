@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/tasks.rules.test.ts
-// Version : 2.3.0
-// Latest commit: feature/1.2-workload-b
+// Version : 2.4.0
+// Latest commit: feature/1.2-workload-checks
 // Author : Gerrah
 // Purpose : Tests tasks against the rules: who reads them (everything with
 // View all, else what's theirs), who makes standalone ones, and the four kinds
@@ -10,6 +10,7 @@
 // "Late from the start" mark: only on a task already due, and never changed.
 // And the order between tasks: priority and what each waits on, and starting
 // a locked task anyway (once, by whoever has it or a lead, saying why).
+// And room: claiming or being given a task needs room in that week.
 
 import {
   assertFails,
@@ -843,6 +844,68 @@ describe("workload on a task", () => {
         editedParts: ["assignee"],
         ...now(),
       }),
+    );
+  });
+
+  it("needs room in someone's week to claim a task or have it given to them", async () => {
+    await seed(env, {
+      "memberWeeks/sam": {
+        states: { "2026-11-09": "atCapacity", "2026-11-16": "limited" },
+        empty: "available",
+      },
+      "tasks/full": stored({ weekKey: "2026-11-09" }),
+      "tasks/quick": stored({ weekKey: "2026-11-16" }),
+      "tasks/big": stored({ weekKey: "2026-11-16", needsApproval: true }),
+      "tasks/free": stored({ weekKey: "2026-11-23" }),
+    });
+    // At capacity: no claiming, no plain reassign.
+    await assertFails(
+      updateDoc(task("sam", "full"), { memberId: "sam", ...now() }),
+    );
+    await assertFails(
+      updateDoc(task("ollie", "full"), {
+        memberId: "sam",
+        editedParts: ["assignee"],
+        ...now(),
+      }),
+    );
+    // Limited: room for a quick task, not a bigger one.
+    await assertSucceeds(
+      updateDoc(task("sam", "quick"), { memberId: "sam", ...now() }),
+    );
+    await assertFails(
+      updateDoc(task("sam", "big"), { memberId: "sam", ...now() }),
+    );
+    // A week with nothing in it yet.
+    await assertSucceeds(
+      updateDoc(task("sam", "free"), { memberId: "sam", ...now() }),
+    );
+    // An Administrator can give it past capacity, saying why.
+    await assertSucceeds(
+      updateDoc(task("ada", "full"), {
+        memberId: "sam",
+        givenPastCapacity: {
+          by: "ada",
+          at: serverTimestamp(),
+          memberId: "sam",
+          reason: "Only Sam has the launch photos.",
+        },
+        editedParts: ["assignee"],
+        ...now(),
+      }),
+    );
+  });
+
+  it("leaves the week a task is due in to the server", async () => {
+    await assertFails(
+      addDoc(
+        collection(signedInAs(env, "pat"), "tasks"),
+        fresh("pat", { weekKey: "2026-11-09" }),
+      ),
+    );
+    await seed(env, { "tasks/week": stored({ weekKey: "2026-11-09" }) });
+    await assertFails(
+      updateDoc(task("sam", "week"), { weekKey: "2026-11-16", ...now() }),
     );
   });
 });

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workload/index.ts
-// Version : 1.2.0
-// Latest commit: feature/1.2-workload-c
+// Version : 1.3.0
+// Latest commit: feature/1.2-workload-checks
 // Author : Gerrah
 // Purpose : What other layers may use from the workload feature: someone's
 // week and the cards and pills that show it.
@@ -26,4 +26,4 @@ export { MemberWorkloadCard } from "./ui/MemberWorkloadCard";
 export { WeekLegend } from "./ui/WeekLegend";
 export { WeekPill } from "./ui/WeekPill";
 export { YourWeekCard } from "./ui/YourWeekCard";
-export { WeekStateText, WorkloadText } from "./ui/workloadContent";
+export { WarningText, WeekStateText, WorkloadText } from "./ui/workloadContent";

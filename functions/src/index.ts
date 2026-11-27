@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/index.ts
-// Version : 1.11.0
-// Latest commit: feature/1.2-after-saving
+// Version : 1.12.0
+// Latest commit: feature/1.2-workload-checks
 // Author : Gerrah
 // Purpose : Playbook's server functions. They watch tasks and events and
 // write notifications for the people a change concerns (never the person who
@@ -90,6 +90,9 @@ import {
   saveMemberWeeks,
   touchesWeeks,
   weekTaskRow,
+  keepAllWeekKeys,
+  keepWeekKey,
+  needsWeekKey,
 } from "./workload/memberWeeks.js";
 import {
   compareVersions,
@@ -1166,6 +1169,9 @@ export const onTaskForWeeks = onDocumentWritten(
   async (event) => {
     const before = event.data?.before.data();
     const after = event.data?.after.data();
+    // The week it's due in, for the rules' room check (claim, reassign).
+    if (after && needsWeekKey(before, after))
+      await keepWeekKey(db, event.params.taskId, after);
     await tellRoomAgain(await saveMemberWeeks(db, touchesWeeks(before, after)));
     await saveGroupWeeks(db, groupsTouched(before, after));
   },
@@ -1232,6 +1238,11 @@ export const onWorkspaceWeekChanged = onDocumentWritten(
       db,
       members.docs.map((doc) => doc.id),
     );
+    if (
+      before?.weekStartsOn !== after.weekStartsOn ||
+      before?.timeZone !== after.timeZone
+    )
+      await keepAllWeekKeys(db);
     const groups = await db.collection("workGroups").get();
     await saveGroupWeeks(
       db,

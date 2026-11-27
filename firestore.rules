@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/firestore.rules
-// Version : 2.4.0
-// Latest commit: feature/1.2-after-saving
+// Version : 2.5.0
+// Latest commit: feature/1.2-workload-checks
 // Author : Gerrah
 // Purpose : Who may read and write what in Firestore. Everything is denied until
 // a rule below allows it; each PR opens exactly what its feature needs, with a
@@ -771,7 +771,11 @@ service cloud.firestore {
           && subjectRank(before) <= myRank()
           && rankOf(after.memberId) <= myRank()
           && (after.memberId == null
-            || isEligible(after.memberId, after.workGroupId, grants)))
+            || isEligible(after.memberId, after.workGroupId, grants))
+          // Room in their week, unless an Administrator gives it past it.
+          && (after.memberId == before.memberId
+            || after.get("givenPastCapacity", null) != null
+            || hasRoomFor(after.memberId, before)))
         // Starting a locked task anyway, saying why: whoever it's given to, or
         // a lead of its group. Once; it stays as a record.
         || (changed.hasOnly(["startedAnyway", "updatedAt"])
@@ -784,7 +788,8 @@ service cloud.firestore {
           && before.memberId == null
           && after.memberId == request.auth.uid
           && isInGroup(before.workGroupId)
-          && holds(grants, held, "doAssignedTasks"))
+          && holds(grants, held, "doAssignedTasks")
+          && hasRoomFor(request.auth.uid, before))
         || (changed.hasOnly(["statusId", "approvedBy", "approvedAt",
             "changesRequested", "doneAt", "doneBy", "updatedAt"])
           && (holds(grants, held, "approveTasks") || leadsGroup(before.workGroupId))
@@ -813,7 +818,7 @@ service cloud.firestore {
     /**
      * Giving a task past someone's capacity (Owners and Administrators): in
      * their own name, now, to the person it's given to, with a reason. Or no
-     * override at all. Whether there was room is the app's to check.
+     * override at all. Without one, hasRoomFor checks there's room.
      */
     function isHonestOverride(given, memberId) {
       return given == null
@@ -825,6 +830,34 @@ service cloud.firestore {
           && given.reason is string && given.reason.size() > 0
           && given.reason.size() <= 500
           && can("administrator"));
+    }
+
+    /**
+     * Whether someone's week has room for a task, from the word the server
+     * keeps for each of their weeks (memberWeeks) and the week the task is
+     * due in (weekKey). A bigger task (an approval, a long checklist, several
+     * platforms) needs an Available week; a quick one, Available or Limited.
+     * The same as fits (app) and fitsState (server). A task with no due time, or
+     * not given its week yet, and someone with no weeks worked out yet, pass.
+     */
+    function hasRoomFor(memberId, task) {
+      let path = /databases/$(database)/documents/memberWeeks/$(memberId);
+      let week = task.get("weekKey", null);
+      return memberId == null || week == null || !exists(path)
+        || fitsWeek(get(path).data.get("states", {})
+            .get(week, get(path).data.get("empty", "available")),
+          isBiggerTask(task));
+    }
+
+    function isBiggerTask(task) {
+      return task.get("needsApproval", false) == true
+        || (task.get("checklist", null) is list && task.checklist.size() >= 3)
+        || (task.get("posts", null) is list && task.posts.size() >= 2);
+    }
+
+    function fitsWeek(state, bigger) {
+      return bigger ? state == "available"
+        : state in ["available", "limited"];
     }
 
     /** A task's order, as made or edited: its priority and what it waits on. */
@@ -871,6 +904,7 @@ service cloud.firestore {
         && task.get("startedAnyway", null) == null
         && task.get("meantFor", null) == null
         && task.get("givenPastCapacity", null) == null
+        && task.get("weekKey", null) == null
         // "Late from the start" only when its due time has really passed.
         && (task.get("lateAtCreation", false) == false
           || (task.dueAt != null && task.dueAt < request.time));
@@ -953,11 +987,12 @@ service cloud.firestore {
       // handedOutAt and headsUpAt are the server's, when a group hands out tasks.
       // The order fields (priority, what it waits on) come from its workflow
       // step; startedAnyway is set when someone starts it while it's locked;
-      // waitingOn is set when it's made, then only the server changes it.
+      // waitingOn is set when it's made, then only the server changes it;
+      // weekKey (the week it's due in) is the server's too.
       let optional = ["lateAtCreation", "doneBy", "eventGone", "editedParts",
         "handedOutAt", "headsUpAt", "priority", "waitsOn", "waitFor",
         "whenLate", "dueFromOffset", "startedAnyway", "waitingOn",
-        "givenPastCapacity", "meantFor"];
+        "givenPastCapacity", "meantFor", "weekKey"];
       let gone = task.get("eventGone", null);
       let edited = task.get("editedParts", null);
       // Their values are checked by the only changes that write them (see
