@@ -1,0 +1,119 @@
+/* File : /TeamSamsara.Workflow/app/src/features/workflows/ui/WorkflowFlow.module.css
+   Version : 1.0.0
+   Latest commit: feature/1.2-flow-view
+   Author : Gerrah
+   Purpose : The Flow view: the chart with its legend and hint, and beside it the picked step (or link) and the checks. The side goes under the chart on narrower screens. */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.main,
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3);
+  padding: var(--card-padding);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.card > button {
+  align-self: flex-start;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-section-heading);
+  text-transform: uppercase;
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.muted,
+.hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}
+
+.flag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: var(--space-2);
+  color: var(--color-error-text);
+}
+
+.problems {
+  margin-left: auto;
+  color: var(--color-error-text);
+}
+
+.passing,
+.problemList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.passing li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+}
+
+.problemLink {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  width: 100%;
+  padding: var(--space-2) var(--space-2-5);
+  border: 0;
+  border-left: 3px solid var(--color-error);
+  background-color: var(--color-page);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-meta);
+  text-align: left;
+  cursor: pointer;
+}
+
+.problemLink span {
+  color: var(--color-error-text);
+}
+
+/* Under 1100px the side goes under the chart. */
+@media (max-width: 1099px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

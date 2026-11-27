@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/ui/workflowsContent.ts
-// Version : 1.5.0
-// Latest commit: feature/1.2-order-rules
+// Version : 1.6.0
+// Latest commit: feature/1.2-flow-view
 // Author : Gerrah
 // Purpose : The words for the workflows list and editor: the table, the steps
 // list, each step's six parts, order rules, extras, the rail beside it, due
@@ -245,4 +245,40 @@ export const AboutCardText = {
   eventTypeHelp:
     "When someone plans an event of this type, this workflow is offered first.",
   noEventTypes: "Add event types in Settings → Tasks and events.",
+} as const;
+
+export const FlowChartText = {
+  eventStarts: "Event starts",
+  dragToLink: "Drag onto another step to link them",
+  changeLink: "Change or remove this link",
+  hard: "Has to happen first",
+  soft: "Only the order",
+  bad: "Out of order",
+} as const;
+
+export const WorkflowFlowText = {
+  label: "The workflow's steps as a flow",
+  views: { list: "List", flow: "Flow" },
+  viewLabel: "Show the steps as",
+  high: "High priority",
+  problems: (count: number) =>
+    count === 1 ? "1 problem" : `${count} problems`,
+  howToLink:
+    "Drag from a step's edge onto another step to link them. Click a link to make it Has to be done first or Only the order, or to remove it.",
+  refused: "Those steps are already linked, or linking them would make a loop.",
+  sideLabel: "The picked step",
+  pick: "Pick a step to change when it's due, its order rules and its priority.",
+  openStep: "Open the whole step",
+  linkTitle: "Link",
+  linkBetween: (from: string, to: string) => `${to} comes after ${from}.`,
+  linkKind: "What has to happen",
+  hardLink: "Has to be done first",
+  softLink: "Nothing, only the order",
+  removeLink: "Remove the link",
+  checks: "Checks",
+  passing: [
+    "Steps come in order",
+    "Every condition can be met",
+    "Steps that need approval are due before the ones after them",
+  ],
 } as const;
