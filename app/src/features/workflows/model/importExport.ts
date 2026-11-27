@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/model/importExport.ts
-// Version : 1.1.0
-// Latest commit: fix/general-wording
+// Version : 1.2.0
+// Latest commit: feature/1.2-order-rules
 // Author : Gerrah
 // Purpose : A workflow as a JSON file and back, to keep a copy or move one to
 // another workspace. An import is read as carefully as a stored workflow, and
@@ -103,34 +103,39 @@ export function importWorkflow(
     return null;
   };
 
-  const steps = readSteps(workflow)
-    .slice(0, WorkflowLimits.steps)
-    .map((step) => {
-      const tagIds = step.tagIds.filter((id) => context.tagIds.includes(id));
-      const posts =
-        step.posts?.filter((post) =>
-          context.platformIds.includes(post.platformId),
-        ) ?? null;
-      dropped +=
-        step.tagIds.length -
-        tagIds.length +
-        (step.posts?.length ?? 0) -
-        (posts?.length ?? 0);
-      return {
-        ...step,
-        // New ids, so an import never shares ids with the workflow it came from.
-        id: localId(),
-        workGroupId: keep(step.workGroupId, context.workGroupIds),
-        memberId: keep(step.memberId, context.memberIds),
-        tagIds,
-        posts,
-        checklist:
-          step.checklist
-            ?.slice(0, WorkflowLimits.checklistItems)
-            .map((item) => ({ ...item, id: localId() })) ?? null,
-        links: step.links?.slice(0, WorkflowLimits.links) ?? null,
-      };
-    });
+  const read = readSteps(workflow).slice(0, WorkflowLimits.steps);
+  // New ids, so an import never shares ids with the workflow it came from;
+  // order rules follow their steps to the new ids.
+  const newIds = new Map(read.map((step) => [step.id, localId()]));
+  const steps = read.map((step) => {
+    const tagIds = step.tagIds.filter((id) => context.tagIds.includes(id));
+    const posts =
+      step.posts?.filter((post) =>
+        context.platformIds.includes(post.platformId),
+      ) ?? null;
+    dropped +=
+      step.tagIds.length -
+      tagIds.length +
+      (step.posts?.length ?? 0) -
+      (posts?.length ?? 0);
+    return {
+      ...step,
+      id: newIds.get(step.id) ?? localId(),
+      workGroupId: keep(step.workGroupId, context.workGroupIds),
+      memberId: keep(step.memberId, context.memberIds),
+      tagIds,
+      posts,
+      checklist:
+        step.checklist
+          ?.slice(0, WorkflowLimits.checklistItems)
+          .map((item) => ({ ...item, id: localId() })) ?? null,
+      links: step.links?.slice(0, WorkflowLimits.links) ?? null,
+      order: step.order.flatMap((rule) => {
+        const stepId = newIds.get(rule.stepId);
+        return stepId ? [{ ...rule, id: localId(), stepId }] : [];
+      }),
+    };
+  });
 
   const eventTypeId = keep(
     typeof workflow.eventTypeId === "string" ? workflow.eventTypeId : null,

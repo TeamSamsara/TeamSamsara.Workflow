@@ -1,13 +1,16 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/model/workflowDraft.ts
-// Version : 1.0.0
-// Latest commit: feature/workflows
+// Version : 1.1.0
+// Latest commit: feature/1.2-order-rules
 // Author : Gerrah
 // Purpose : The changes the editor makes to a workflow's steps: add, change,
-// duplicate, move and remove a step. Each returns a new list.
+// duplicate, move and remove a step, and its order rules. Each returns a new
+// list, and no rule is left pointing at a step that's gone.
 
+import { byDue } from "./orderRules";
 import {
   WorkflowLimits,
   type DueOffset,
+  type OrderRule,
   type WorkflowFields,
   type WorkflowStep,
 } from "../types/workflowTypes";
@@ -36,7 +39,16 @@ export function newStep(): WorkflowStep {
     checklist: null,
     links: null,
     asksForLiveLink: false,
+    order: [],
+    waitFor: "all",
+    whenLate: "wait",
+    priority: "normal",
   };
+}
+
+/** A new order rule: comes after a step not picked yet, done first. */
+export function newOrderRule(): OrderRule {
+  return { id: localId(), relation: "after", stepId: "", condition: "done" };
 }
 
 export const emptyWorkflow: WorkflowFields = {
@@ -79,6 +91,7 @@ export function duplicateStep(
     id: localId(),
     checklist:
       original.checklist?.map((item) => ({ ...item, id: localId() })) ?? null,
+    order: original.order.map((rule) => ({ ...rule, id: localId() })),
   };
   return {
     steps: [...steps.slice(0, index + 1), copy, ...steps.slice(index + 1)],
@@ -86,11 +99,18 @@ export function duplicateStep(
   };
 }
 
+/** Takes the step out, and every rule of another step that points at it. */
 export function removeStep(
   steps: readonly WorkflowStep[],
   id: string,
 ): WorkflowStep[] {
-  return steps.filter((step) => step.id !== id);
+  return steps
+    .filter((step) => step.id !== id)
+    .map((step) =>
+      step.order.some((rule) => rule.stepId === id)
+        ? { ...step, order: step.order.filter((rule) => rule.stepId !== id) }
+        : step,
+    );
 }
 
 /** Puts the steps in the given order; ids it doesn't know are ignored. */
@@ -107,13 +127,13 @@ export function orderSteps(
   return [...ordered, ...missing];
 }
 
-/** Trims what people typed, ready to save. */
+/** Trims what people typed, ready to save, with the steps in due order. */
 export function tidyWorkflow(fields: WorkflowFields): WorkflowFields {
   return {
     name: fields.name.trim(),
     description: fields.description.trim(),
     eventTypeId: fields.eventTypeId,
-    steps: fields.steps.map((step) => ({
+    steps: byDue(fields.steps).map((step) => ({
       ...step,
       title: step.title.trim(),
       notes: step.notes.trim(),
@@ -126,6 +146,14 @@ export function tidyWorkflow(fields: WorkflowFields): WorkflowFields {
           label: link.label.trim(),
           url: link.url.trim(),
         })) ?? null,
+      // A rule with no step picked is dropped, and so is a second rule on
+      // the same step.
+      order: step.order.filter(
+        (rule, index, all) =>
+          rule.stepId !== "" &&
+          rule.stepId !== step.id &&
+          all.findIndex((other) => other.stepId === rule.stepId) === index,
+      ),
     })),
   };
 }

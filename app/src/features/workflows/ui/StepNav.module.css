@@ -1,0 +1,117 @@
+/* File : /TeamSamsara.Workflow/app/src/features/workflows/ui/StepNav.module.css
+   Version : 1.0.0
+   Latest commit: feature/1.2-order-rules
+   Author : Gerrah
+   Purpose : The workflow editor's left column: About, then the steps in due order, the open one outlined, Add a step at the foot. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+  padding: var(--space-4) var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-1-5) var(--space-1);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-section-heading);
+  text-transform: uppercase;
+}
+
+.hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-3);
+  border: var(--border-width) dashed var(--color-border-control);
+  border-radius: var(--radius-field);
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  width: 100%;
+  padding: var(--space-2-5) var(--space-3);
+  border: 2px solid transparent;
+  border-radius: var(--radius-field);
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.item:hover {
+  background-color: var(--color-page);
+}
+
+.item[aria-current="true"] {
+  border-color: var(--color-text);
+  background-color: var(--color-surface);
+}
+
+.item:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-body);
+}
+
+.meta {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: var(--leading-meta);
+}
+
+.high {
+  display: inline-flex;
+  color: var(--color-error-text);
+}
+
+.rules {
+  color: var(--color-accent-text);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+}
+
+.problem {
+  color: var(--color-error-text);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+}

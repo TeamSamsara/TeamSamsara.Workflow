@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/index.ts
-// Version : 1.4.0
-// Latest commit: feature/audit-fixes
+// Version : 1.5.0
+// Latest commit: feature/1.2-order-rules
 // Author : Gerrah
 // Purpose : What other layers may use from the workflows feature.
 
@@ -17,6 +17,8 @@ export {
 } from "./model/importExport";
 export type { ImportContext, ImportResult } from "./model/importExport";
 export type { GuideAnswers } from "./model/guide";
+export { byDue, linksOf, locks, orderLinks } from "./model/orderRules";
+export type { OrderLink, StepLink } from "./model/orderRules";
 export {
   EventGaps,
   fillGaps,
@@ -25,6 +27,7 @@ export {
 } from "./model/placeholders";
 export {
   addStep,
+  canAddStep,
   changeStep,
   duplicateStep,
   emptyWorkflow,
@@ -42,6 +45,10 @@ export {
 export type {
   ChecklistItem,
   DueOffset,
+  OrderCondition,
+  OrderRelation,
+  OrderRule,
+  Priority,
   PlatformPost,
   ReferenceLink,
   WorkflowFields,
@@ -56,7 +63,10 @@ export { TagPicker } from "./ui/TagPicker";
 export { GapsCard } from "./ui/GapsCard";
 export { WorkflowGuide } from "./ui/guide/WorkflowGuide";
 export { WorkflowTutorial } from "./ui/tutorial/WorkflowTutorial";
-export { StepList } from "./ui/StepList";
+export { StepEditor } from "./ui/StepEditor";
 export type { StepEditorOptions } from "./ui/StepEditor";
+export { StepNav } from "./ui/StepNav";
+export type { EditorSelection } from "./ui/StepNav";
+export { StepRail } from "./ui/StepRail";
 export { WorkflowsTable } from "./ui/WorkflowsTable";
 export { ReferenceLinksText, SectionText } from "./ui/workflowsContent";

@@ -1,8 +1,8 @@
 /* File : /TeamSamsara.Workflow/app/src/features/workflows/ui/StepEditor.module.css
-   Version : 1.1.0
-   Latest commit: feature/auto-assign
+   Version : 2.0.0
+   Latest commit: feature/1.2-order-rules
    Author : Gerrah
-   Purpose : An open task in the workflow editor: its fields stacked, group and person side by side, each section in a soft box, and Duplicate/Delete at the foot. Also the tag chips and checklist rows. */
+   Purpose : An open step in the workflow editor: its six numbered parts one under another, paired fields side by side (stacked on a phone), and Duplicate/Delete at the foot. Also the tag chips and checklist rows. */
 
 .editor {
   display: flex;
@@ -10,18 +10,59 @@
   gap: var(--space-5);
 }
 
-.assign {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-2) var(--space-3);
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
 }
 
-.whoNote {
-  grid-column: 1 / -1;
+.title {
   margin: 0;
-  color: var(--color-text-muted);
-  font-size: var(--text-meta);
-  line-height: var(--leading-meta);
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  line-height: var(--leading-section-heading);
+}
+
+.part {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-5);
+  border-top: var(--border-width) solid var(--color-border);
+}
+
+.partHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-body);
+}
+
+.partNumber {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: var(--color-accent-soft);
+  color: var(--color-accent-text);
+  font-size: var(--text-small);
+}
+
+.partName {
+  min-width: 0;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  align-items: start;
 }
 
 .group {
@@ -46,50 +87,6 @@
   color: var(--color-text-muted);
   font-size: var(--text-meta);
   line-height: var(--leading-meta);
-}
-
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--space-4);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-field);
-  background-color: var(--color-page);
-}
-
-.sectionHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
-.sectionHeading {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-}
-
-.sectionTitle {
-  margin: 0;
-  font-size: var(--text-body);
-  font-weight: var(--weight-bold);
-  line-height: var(--leading-body);
-}
-
-.addSection {
-  align-self: flex-start;
-}
-
-.sectionItem {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-0-5);
-  max-width: 320px;
-  white-space: normal;
-  text-align: left;
 }
 
 .footer {
@@ -145,7 +142,7 @@
 
 /* Breakpoints.small */
 @media (max-width: 640px) {
-  .assign {
+  .pair {
     grid-template-columns: minmax(0, 1fr);
   }
 }
