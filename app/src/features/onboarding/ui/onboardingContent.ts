@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/ui/onboardingContent.ts
-// Version : 1.6.0
-// Latest commit: feature/1.2-calendars-lists
+// Version : 1.7.0
+// Latest commit: feature/1.2-wording-help
 // Author : Gerrah
 // Purpose : The words of the walkthrough: chapter names, each step's note, the
 // welcome, the "make it yours" step, the calendar card and the invite preview.
@@ -63,7 +63,7 @@ export const ChapterText = {
       body: "Add a dentist visit or a class to your calendar. Only you see what it is (or your group leads, if you share it); everyone else sees Busy.",
     },
     newEvent: {
-      title: "Plan an event",
+      title: "Create an event",
       body: "New event plans one event (or one that repeats), several at once, or a personal appointment.",
     },
     people: {
@@ -96,7 +96,7 @@ export const ChapterText = {
     },
     best: {
       title: "When everyone's free",
-      body: "Stretches of two hours or more when everyone shown is free. Pick one, then Plan an event then.",
+      body: "Stretches of two hours or more when everyone shown is free. Pick one, then Create an event then.",
     },
     whatIs: {
       title: "What a workflow is",

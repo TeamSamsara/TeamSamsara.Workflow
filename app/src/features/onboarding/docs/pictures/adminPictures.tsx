@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/pictures/adminPictures.tsx
-// Version : 1.0.1
-// Latest commit: feature/audit-fixes
+// Version : 1.1.0
+// Latest commit: feature/1.2-wording-help
 // Author : Gerrah
 // Purpose : Pictures for settings and your account: inviting people, a
 // member's access, roles and their permissions, work groups, the workspace's
@@ -157,7 +157,7 @@ export function RolesList() {
               <span
                 style={{ display: "flex", flexDirection: "column", gap: 6 }}
               >
-                <Check on>Plan events and repeats</Check>
+                <Check on>Create events and repeats</Check>
                 <Check on>Edit workflows</Check>
                 <Check on>Approve tasks</Check>
                 <Check>Manage members</Check>

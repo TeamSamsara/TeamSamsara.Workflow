@@ -1,10 +1,20 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/pictures/index.ts
-// Version : 1.0.5
-// Latest commit: feature/audit-fixes
+// Version : 1.1.0
+// Latest commit: feature/1.2-wording-help
 // Author : Gerrah
 // Purpose : Every picture the help can show, by the name an article uses.
 
 import type { ComponentType } from "react";
+import {
+  GivePast,
+  MeantFor,
+  OrderRules,
+  PlanningWarning,
+  StepChecks,
+  ViewingAs,
+  WaitingTask,
+  YourWeek,
+} from "./workloadPictures";
 import {
   FillClick,
   FillDone,
@@ -138,6 +148,14 @@ export const docPictures = {
   tagsOnPerson: TagsOnPerson,
   groupPage: GroupPage,
   profile: Profile,
+  yourWeek: YourWeek,
+  waitingTask: WaitingTask,
+  orderRules: OrderRules,
+  stepChecks: StepChecks,
+  givePast: GivePast,
+  meantFor: MeantFor,
+  viewingAs: ViewingAs,
+  planningWarning: PlanningWarning,
 } satisfies Record<string, ComponentType>;
 
 export type PictureName = keyof typeof docPictures;

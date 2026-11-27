@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/availability/ui/availabilityContent.ts
-// Version : 1.4.0
-// Latest commit: feature/audit-fixes
+// Version : 1.5.0
+// Latest commit: feature/1.2-wording-help
 // Author : Gerrah
 // Purpose : The words for availability, personal appointments and who can
 // make an event.
@@ -115,7 +115,7 @@ export const TeamText = {
   clashes: (count: number) => (count === 1 ? "1 clash" : `${count} clashes`),
   clash: (event: string, reason: string) => `${event} clashes with ${reason}`,
   bestTimes: (group: string) => `When all of ${group} is free`,
-  bestNote: "Pick one to plan an event at that time.",
+  bestNote: "Pick one to create an event at that time.",
   noBest: "No two-hour stretch this week when everyone is free.",
   legend: {
     topic: "the colours",

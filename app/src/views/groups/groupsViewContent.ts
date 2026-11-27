@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/groups/groupsViewContent.ts
-// Version : 1.1.0
-// Latest commit: feature/auto-assign
+// Version : 1.2.0
+// Latest commit: feature/1.2-wording-help
 // Author : Gerrah
 // Purpose : The words on the Groups list and a group's overview.
 
@@ -38,7 +38,7 @@ export const GroupViewText = {
     availability: "Availability",
   },
   addMembers: "Add members",
-  planEvent: "Plan an event",
+  planEvent: "Create an event",
   leads: (names: string[]) =>
     names.length === 0
       ? "No leads yet"

@@ -1,9 +1,9 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/pictures/taskPictures.tsx
-// Version : 1.0.1
-// Latest commit: feature/audit-fixes
+// Version : 1.1.0
+// Latest commit: feature/1.2-wording-help
 // Author : Gerrah
 // Purpose : Pictures for My tasks: the page with its switches and parts, and
-// how an event's tasks line up in their workflow's order.
+// how an event's tasks line up in due order, high priority first.
 
 import {
   Chip,
@@ -76,21 +76,21 @@ export function MyTasksPage() {
 }
 
 export function TaskOrder() {
-  const steps = [
-    ["1", "Speaker graphic", "Tue"],
-    ["2", "Write the announcement", "Wed"],
-    ["4", "Publish the announcement", "Wed"],
-    ["6", "Send the sign-up link", "Thu"],
+  const tasks: [string, string, boolean][] = [
+    ["Print the flyers", "Tue 3 PM", false],
+    ["Launch banner", "Wed 12 PM", true],
+    ["Announcement post", "Wed 5 PM", false],
+    ["Share the recap", "Fri 1 PM", false],
   ];
   return (
     <Scene height={200}>
-      <Small>Workshop: Dana Reyes · its tasks, in the workflow's order</Small>
+      <Small>Product launch · its tasks, in due order</Small>
       <Panel>
-        {steps.map(([n, title, day]) => (
-          <Row key={n}>
-            <Chip tone="neutral">Step {n}</Chip>
-            <Text title={title} />
-            <Small>{day}</Small>
+        {tasks.map(([title, due, high]) => (
+          <Row key={title}>
+            <Text title={high ? `${title} ⚑` : title} />
+            {high ? <Chip tone="alert">High priority</Chip> : null}
+            <Small>{due}</Small>
           </Row>
         ))}
       </Panel>

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workflows/ui/tutorial/tutorialContent.ts
-// Version : 1.1.0
-// Latest commit: fix/general-wording
+// Version : 1.2.0
+// Latest commit: feature/1.2-wording-help
 // Author : Gerrah
 // Purpose : The words of the workflows tutorial: what a workflow is, who and
 // when, using one on an event, and adding details; plus the examples drawn in it.
@@ -18,7 +18,7 @@ export const TutorialText = {
     },
     {
       title: "Use it on an event",
-      body: "When you plan an event, pick the workflow. Its tasks are made for that event with real dates and show up in each person's My tasks.",
+      body: "When you create an event, pick the workflow. Its tasks are made for that event with real dates and show up in each person's My tasks.",
     },
     {
       title: "Add details when you need them",

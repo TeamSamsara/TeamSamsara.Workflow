@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/articles.ts
-// Version : 1.9.0
-// Latest commit: feature/1.2-calendars-lists
+// Version : 1.10.0
+// Latest commit: feature/1.2-wording-help
 // Author : Gerrah
 // Purpose : The Documentation: one short article per feature, in groups. Each
 // group (or article) is for the people with its permission, the same as the
@@ -57,7 +57,7 @@ export interface DocGroup {
   title: string;
   /** Shown to people with one of these; null is everyone. */
   requires: readonly PermissionKey[] | null;
-  /** Its label in the list, e.g. "Plan events". */
+  /** Its label in the list, e.g. "Create events". */
   requiresLabel?: string;
   /** The walkthrough chapter that shows it in the app. */
   chapter?: ChapterId;
@@ -310,11 +310,11 @@ export const DocGroups: readonly DocGroup[] = [
           ),
           h("The order of your tasks"),
           p(
-            "An event's tasks stay together, in the order of its workflow's steps, then by due time. Tasks added by hand come after them. Reordering a workflow's steps reorders the tasks it made.",
+            "Tasks are listed by when they're due. Among tasks due at the same time, a high priority one comes first, with a flag, and a low priority one last.",
           ),
-          figure(
-            "taskOrder",
-            "One event's tasks, in the order of its workflow.",
+          figure("taskOrder", "One event's tasks, in due order."),
+          p(
+            "Tasks that can't start yet, because they wait on someone else's, are listed apart under Waiting on others.",
           ),
           p(
             "A task planned after its due time had already passed says Late from the start, so nobody's blamed for it. One whose event was deleted says Event deleted, with the event's name.",
@@ -322,6 +322,65 @@ export const DocGroups: readonly DocGroup[] = [
           steps(
             "Open a task to see its notes, checklist, links and posts.",
             "Do it, then tick it, or move it to the right status.",
+          ),
+        ],
+      },
+      {
+        id: "your-week",
+        title: "Your week",
+        summary: "Available, Limited or At capacity, and why Claim can be off.",
+        body: [
+          p(
+            "My tasks shows how your week looks: Available, Limited or At capacity. It counts the tasks you have that week, and bigger tasks count for more.",
+          ),
+          figure(
+            "yourWeek",
+            "Your week on My tasks, and the waiting list.",
+            callout(
+              "Your week",
+              "This week in a word, and what's in it. A task is bigger when it has a long checklist, posts to several platforms or needs approval; a bigger task counts twice.",
+            ),
+            callout(
+              "Claim",
+              "Off for a task too big for your week, with the reason beside it. A quick task can still fit when a bigger one doesn't.",
+            ),
+            callout(
+              "The four words",
+              "Available: room even for a bigger task. Limited: room for a quick one. At capacity: no room. Over capacity: given more through an override.",
+            ),
+          ),
+          p(
+            "When you're at capacity, nobody can give you more, and the waiting list won't let you claim more. If your usual week should change, tell your lead.",
+          ),
+        ],
+      },
+      {
+        id: "waiting-on-others",
+        title: "Tasks waiting on others",
+        summary:
+          "Why a task is locked, Start anyway, and what comes before and after.",
+        body: [
+          p(
+            "Some tasks can only start once another task has done something first: been done, approved, sent for review, or given its live link. Until then the task is locked.",
+          ),
+          figure(
+            "waitingTask",
+            "A task waiting for another one to be approved.",
+            callout(
+              "Waiting on others",
+              "Locked tasks are listed apart on My tasks, with what each is waiting for. You get a notification when one can start.",
+            ),
+            callout(
+              "Start anyway",
+              "If it really can't wait, whoever has it, or a lead of its group, can start it anyway. You say why, and everyone who opens the task sees the reason.",
+            ),
+            callout(
+              "Before and after",
+              "The task page shows the tasks it comes after and the ones that come after it. Solid means something has to happen first; dashed means it's only the order.",
+            ),
+          ),
+          tip(
+            "Some tasks unlock on their own at their due time when what they wait on is late. Their workflow says so.",
           ),
         ],
       },
@@ -421,7 +480,7 @@ export const DocGroups: readonly DocGroup[] = [
     id: "planning",
     title: "Planning events",
     requires: ["planEvents"],
-    requiresLabel: "Plan events",
+    requiresLabel: "Create events",
     chapter: "planning",
     articles: [
       {
@@ -535,7 +594,7 @@ export const DocGroups: readonly DocGroup[] = [
     id: "several",
     title: "Several events and sets",
     requires: ["planEvents"],
-    requiresLabel: "Plan events",
+    requiresLabel: "Create events",
     chapter: "several",
     articles: [
       {
@@ -631,7 +690,7 @@ export const DocGroups: readonly DocGroup[] = [
             ),
             callout(
               "When they're free",
-              "Each hour is shaded by how many of the people shown are free: bright when all of them are. Click one to see who's free and plan an event at that time.",
+              "Each hour is shaded by how many of the people shown are free: bright when all of them are. Click one to see who's free and create an event at that time.",
             ),
             callout(
               "Whose time",
@@ -683,8 +742,8 @@ export const DocGroups: readonly DocGroup[] = [
             "workflowTasks",
             "A workflow for workshops.",
             callout(
-              "A task",
-              "Its title, how to do it, and who it's given to: people or a work group. Add a checklist, post text, reference links or a live link.",
+              "A step",
+              "Each step becomes a task on every event. It has the same six parts: what, who, when, its order, priority and approval, and extras like a checklist, post text, reference links or a live link.",
             ),
             callout(
               "Needs approval",
@@ -706,6 +765,52 @@ export const DocGroups: readonly DocGroup[] = [
           figure("dueTimeline", "A Monday 7 PM workshop."),
           p(
             "Picked when planning an event, its tasks are made for that event with the right dates. Change the workflow later and upcoming events follow.",
+          ),
+        ],
+      },
+      {
+        id: "step-order",
+        title: "The order of steps",
+        summary: "Order rules: what has to happen before a step can start.",
+        body: [
+          p(
+            "Steps are listed in due order. A step's order rules say how it fits with the others. Each rule reads left to right: how it relates, which step, and what has to happen.",
+          ),
+          figure(
+            "orderRules",
+            "The Order part of a step.",
+            callout(
+              "How it relates",
+              "Comes after, Comes before (the same link, set from the other step), Starts with (they unlock together) or Due from (its due time counts from when the other one is done).",
+            ),
+            callout(
+              "Which step",
+              "Steps that can't work are greyed out with the reason: already in a rule, it would make a loop, or it isn't due before this one.",
+            ),
+            callout(
+              "What has to happen",
+              "Done, approved, sent for review, or its live link added. Nothing, only the order, keeps them in order without locking anything.",
+            ),
+            callout(
+              "Several steps, or late ones",
+              "Wait for all of them or any one. And when what it waits on is late: keep waiting, or unlock at its own due time.",
+            ),
+          ),
+          h("Checking the order"),
+          figure(
+            "stepChecks",
+            "Beside the step: how it reads, and the checks.",
+            callout(
+              "Reads as",
+              "The step as one sentence, so you can check it says what you mean.",
+            ),
+            callout(
+              "Checks",
+              "Loops, a step due at the same time or before one it comes after, and conditions the other step can't meet. Some have a fix in one click.",
+            ),
+          ),
+          p(
+            "Priority (high, normal or low) sorts My tasks: among tasks due at the same time, high priority comes first.",
           ),
         ],
       },
@@ -857,6 +962,84 @@ export const DocGroups: readonly DocGroup[] = [
           ),
           p(
             "Someone with several roles can do what any of them allows. Each role has a colour, shown next to names and on role chips.",
+          ),
+        ],
+      },
+      {
+        id: "view-as-role",
+        title: "Viewing as a role",
+        summary: "See the app the way people with a role see it.",
+        body: [
+          p(
+            "To check what a role lets people see, open it in Settings › Roles and pick View as. It's there for people who manage roles, for roles below their own.",
+          ),
+          figure(
+            "viewingAs",
+            "Viewing as Contributor.",
+            callout(
+              "The bar",
+              "It stays on every page until you stop, and says which role you're viewing as.",
+            ),
+            callout("Stop viewing", "Back to what your own roles let you do."),
+            callout(
+              "View as",
+              "In the role's editor. Save or reset changes to the role first.",
+            ),
+          ),
+          tip(
+            "It only hides what that role can't see. Nothing you do while viewing is done as them.",
+          ),
+        ],
+      },
+      {
+        id: "workload",
+        title: "Workload and usual weeks",
+        summary: "How much people and groups take on in a week.",
+        body: [
+          p(
+            "Everyone has a usual week: about how many tasks they take on in a week. New members start at everyone's usual week, set in Settings › General. Someone's own is set on their member page, and a group's in its settings. Only Owners and Administrators change them, and Activity keeps every change.",
+          ),
+          p(
+            "People see their week as a word, never the number: Available, Limited, At capacity or Over capacity. Tasks are handed out to whoever has the most room in the week they're due.",
+          ),
+          h("Giving a task past someone's capacity"),
+          figure(
+            "givePast",
+            "Reassigning to someone with no room.",
+            callout(
+              "Why it has to be them",
+              "Required. They see it, the group's leads are told, and Activity keeps it. Their usual week doesn't change.",
+            ),
+            callout(
+              "Give past capacity",
+              "Only Owners and Administrators can. Everyone else can't pick people with no room.",
+            ),
+          ),
+          h("A task meant for someone"),
+          figure(
+            "meantFor",
+            "A task waiting with its group.",
+            callout(
+              "Meant for",
+              "When a workflow names someone who has no room that week, the task waits with the group instead, and the leads are told.",
+            ),
+            callout(
+              "Give to them",
+              "Works once they have room. The leads get a notification when they do.",
+            ),
+          ),
+          h("Planning warnings"),
+          figure(
+            "planningWarning",
+            "A warning on a new event, and a group's coming weeks.",
+            callout(
+              "The warning",
+              "When an event would push a group past its usual week. It never stops you creating the event.",
+            ),
+            callout(
+              "Coming weeks",
+              "Each group's page shows its next four weeks, for groups with a usual week.",
+            ),
           ),
         ],
       },

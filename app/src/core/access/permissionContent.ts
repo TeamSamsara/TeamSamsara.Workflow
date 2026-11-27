@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/access/permissionContent.ts
-// Version : 1.3.0
-// Latest commit: feature/audit-fixes
+// Version : 1.4.0
+// Latest commit: feature/1.2-wording-help
 // Author : Gerrah
 // Purpose : The name and one-line description of every permission and group, as
 // the Roles page and member pages show them.
@@ -48,7 +48,7 @@ export const PermissionText: Record<
     description: "Create, change and archive workflows.",
   },
   planEvents: {
-    label: "Plan events and repeats",
+    label: "Create events and repeats",
     description: "Add events to the calendar, apply workflows, set repeats.",
   },
   createStandaloneTasks: {
