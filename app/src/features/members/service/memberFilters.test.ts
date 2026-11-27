@@ -23,6 +23,7 @@ const item = (
     workGroupIds: [],
     rank: 0,
     leadOf: [],
+    usualWeek: null,
     gameName: null,
     photoUrl: null,
     timeZone: null,

@@ -14,4 +14,5 @@ export * from "./order.js";
 export * from "./sync.js";
 export * from "./tasks.js";
 export * from "./time.js";
+export * from "./workload.js";
 export * from "./access/index.js";

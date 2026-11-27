@@ -6,6 +6,7 @@
 // workspace (name, time zone, week start, time format), then the account that
 // becomes its first Admin. Already signed in, only the name is asked for.
 
+import { WorkloadLimits } from "@engine/workload";
 import { useMemo, useState, type FormEvent } from "react";
 import {
   DateFormats,
@@ -128,6 +129,8 @@ export function SetupForm({
         defaultTheme: "device",
         enabledPlatformIds: [],
         upgradedPlatformIds: [],
+        // New workspaces start everyone at about 3 tasks a week.
+        usualWeek: WorkloadLimits.person.default,
         sessionDays: defaultSessionDays,
       },
       account: { displayName, email, password },

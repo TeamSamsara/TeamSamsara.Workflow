@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/engine/src/access/decide.ts
-// Version : 1.1.0
-// Latest commit: feature/auto-assign
+// Version : 1.2.0
+// Latest commit: feature/1.2-workload
 // Author : Gerrah
 // Purpose : The one answer to "can this person do this, to this, here?".
 // Permissions say what, rank says over whom (at your rank or below for tasks
@@ -84,6 +84,8 @@ export type AccessRequest =
   | { action: "group.removeMember"; memberRank: number }
   | { action: "group.setLeads" }
   | { action: "group.settings" }
+  /** Someone's, a group's or everyone's usual week (Owners and Administrators). */
+  | { action: "workload.set" }
   | {
       action: "group.setTakesTasks";
       groupId: string;
@@ -476,6 +478,7 @@ export function decide(actor: Actor, request: AccessRequest): Decision {
     case "settings.taskSetup":
       return all(need(actor, "manageSettings"));
     case "settings.admin":
+    case "workload.set":
       return all(need(actor, "administrator"));
     // #endregion
   }

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/access/managePlan.test.ts
-// Version : 1.1.0
-// Latest commit: feature/auto-assign
+// Version : 1.2.0
+// Latest commit: feature/1.2-workload
 // Author : Gerrah
 // Purpose : Tests the protected changes: strictly below for people and roles,
 // leads always members, the Owner role, stale role saves, and the activity
@@ -60,6 +60,7 @@ const member = (
   roleIds,
   workGroupIds,
   joinedAt: new Date("2026-01-01"),
+  usualWeek: null,
 });
 
 const people = [
@@ -78,6 +79,7 @@ const groups: GroupEntry[] = [
     name: "Design",
     leadIds: ["lena"],
     assign: { ...defaultAssign, skip: ["lena"] },
+    usualWeek: null,
   },
 ];
 
@@ -296,27 +298,47 @@ describe("a group's hand-out", () => {
     });
   });
 
-  it("lets a manager turn it on and set the limit, and records it", () => {
+  it("lets a manager turn it on, and records it", () => {
     const result = planManage(actor("manager"), state(), {
       op: "group.assign",
       groupId: "design",
       on: true,
-      dailyLimit: 5,
     });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.plan.groups.design).toEqual({
-      assign: { on: true, dailyLimit: 5, headsUpHours: 24, skip: ["lena"] },
+      assign: { on: true, headsUpHours: 24, skip: ["lena"] },
     });
     expect(result.plan.activity[0].summary).toBe(
       "Turned on handing out tasks for Design",
     );
   });
 
-  it("keeps the limit and heads-up within their choices", () => {
+  it("leaves the group's usual week to Owners and Administrators, and records it", () => {
+    const change = {
+      op: "group.assign" as const,
+      groupId: "design",
+      usualWeek: 15,
+    };
+    expect(planManage(actor("manager"), state(), change)).toEqual({
+      ok: false,
+      reason: "missingPermission",
+    });
+    const result = planManage(actor("admin"), state(), change);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.plan.groups.design).toEqual({ usualWeek: 15 });
+    expect(result.plan.activity[0]).toMatchObject({
+      area: "workload",
+      summary: "Changed Design's usual week to about 15 tasks",
+    });
+  });
+
+  it("keeps the usual weeks and heads-up within their choices", () => {
     for (const change of [
-      { dailyLimit: 1 },
-      { dailyLimit: 11 },
+      { usualWeek: 0 },
+      { usualWeek: 2.5 },
+      { usualWeek: 401 },
       { headsUpHours: 6 },
     ])
       expect(
@@ -326,6 +348,28 @@ describe("a group's hand-out", () => {
           ...change,
         }),
       ).toEqual({ ok: false, reason: "invalid" });
+  });
+
+  it("sets someone's usual week, for Owners and Administrators only", () => {
+    const change = {
+      op: "member.update" as const,
+      memberId: "sol",
+      usualWeek: 2,
+    };
+    expect(planManage(actor("manager"), state(), change)).toEqual({
+      ok: false,
+      reason: "missingPermission",
+    });
+    const result = planManage(actor("admin"), state(), change);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.plan.members.sol).toEqual({ usualWeek: 2 });
+    expect(result.plan.activity[0].summary).toBe(
+      "Changed sol's usual week to about 2 tasks",
+    );
+    expect(
+      planManage(actor("admin"), state(), { ...change, usualWeek: 41 }),
+    ).toEqual({ ok: false, reason: "invalid" });
   });
 
   it("lets a lead choose who takes tasks, but not the settings", () => {

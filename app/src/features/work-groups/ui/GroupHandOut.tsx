@@ -1,23 +1,24 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/ui/GroupHandOut.tsx
-// Version : 1.0.0
-// Latest commit: feature/auto-assign
+// Version : 2.0.0
+// Latest commit: feature/1.2-workload
 // Author : Gerrah
 // Purpose : A group's hand-out panel: the switch to hand out its tasks
-// automatically, how it picks someone, the daily limit and the leads'
-// heads-up (for people who manage work groups), and who takes tasks (also
-// the group's leads', for themselves and anyone at their rank or below).
+// automatically, how it picks someone and the leads' heads-up (for people who
+// manage work groups), the group's usual week (Owners and Administrators),
+// and who takes tasks, each with their week in a word (also the group's
+// leads', for themselves and anyone at their rank or below).
 // Each change saves straight away through the server.
 
 import { decide, type Actor } from "@engine/access/index";
 import { AssignLimits } from "@engine/assign";
+import type { WeekState } from "@engine/workload";
 import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
 import { manageRefusal, useActor } from "@/core/access";
 import { dataErrorMessage, type MemberRecord } from "@/core/data";
 import { memberName } from "@/features/members";
+import { WeekStateText, WorkloadText } from "@/features/workload";
 import { Select } from "@/shared/components/Fields/Select/Select";
 import { Switch } from "@/shared/components/Fields/Switch/Switch";
-import { TextField } from "@/shared/components/Fields/TextField/TextField";
 import { useToast } from "@/shared/components/Toast/useToast";
 import { changeHandOut, type HandOutChange } from "../service/workGroupService";
 import type { WorkGroupRecord } from "../types/workGroupTypes";
@@ -28,8 +29,8 @@ interface GroupHandOutProps {
   group: WorkGroupRecord;
   /** The group's current members. */
   members: readonly MemberRecord[];
-  /** Someone's open tasks in the next 7 days, when the page knows them. */
-  loadOf?: (memberId: string) => number;
+  /** Someone's week in a word, when the page knows their tasks. */
+  weekOf?: (memberId: string) => WeekState | null;
 }
 
 export function GroupHandOut(props: GroupHandOutProps) {
@@ -68,18 +69,16 @@ interface PanelProps extends GroupHandOutProps {
 export function GroupHandOutPanel({
   group,
   members,
-  loadOf,
+  weekOf,
   actor,
   busy,
   onChange,
 }: PanelProps) {
   const settings = group.assign;
-  const { dailyLimit, headsUpHours } = AssignLimits;
-  // What's typed in the limit until it's saved; otherwise the saved limit.
-  const [typed, setTyped] = useState<string | null>(null);
-  const limit = typed ?? String(settings.dailyLimit);
+  const { headsUpHours } = AssignLimits;
 
   const canSettings = decide(actor, { action: "group.settings" }).ok;
+  const canWeek = decide(actor, { action: "workload.set" }).ok;
   const canChoose = (member: MemberRecord) =>
     decide(actor, {
       action: "group.setTakesTasks",
@@ -90,17 +89,9 @@ export function GroupHandOutPanel({
   const leads = actor.leadOf.includes(group.id);
   if (!canSettings && !leads) return null;
 
-  const commitLimit = () => {
-    const value = Number(limit);
-    setTyped(null);
-    if (
-      Number.isInteger(value) &&
-      value >= dailyLimit.min &&
-      value <= dailyLimit.max &&
-      value !== settings.dailyLimit
-    )
-      onChange({ dailyLimit: value });
-  };
+  const weekChoices = [5, 8, 10, 12, 15, 20, 25, 30, 40, 50, 75, 100];
+  if (group.usualWeek !== null && !weekChoices.includes(group.usualWeek))
+    weekChoices.push(group.usualWeek);
   const setTakes = (memberId: string, takes: boolean) =>
     onChange({
       skip: takes
@@ -142,21 +133,6 @@ export function GroupHandOutPanel({
         <p className={styles.muted}>{Text.reach}</p>
         {canSettings ? null : <p className={styles.muted}>{Text.leadsCant}</p>}
         <div className={styles.fields}>
-          <TextField
-            label={Text.limitLabel}
-            type="number"
-            inputMode="numeric"
-            min={dailyLimit.min}
-            max={dailyLimit.max}
-            value={limit}
-            onChange={(event) => setTyped(event.target.value)}
-            onBlur={commitLimit}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") commitLimit();
-            }}
-            hint={Text.limitHint(dailyLimit.min, dailyLimit.max)}
-            disabled={!canSettings || busy}
-          />
           <Select
             label={Text.headsUpLabel}
             options={headsUpHours.choices.map((hours) => ({
@@ -172,6 +148,31 @@ export function GroupHandOutPanel({
         </div>
       </div>
 
+      {/* Used for the planning warnings whether or not it hands out tasks. */}
+      <div className={styles.fields}>
+        <Select
+          label={WorkloadText.groupTitle(group.name)}
+          help={WorkloadText.groupHelp(group.name)}
+          options={[
+            { value: "", label: WorkloadText.noGroupWeek },
+            ...[...weekChoices]
+              .sort((a, b) => a - b)
+              .map((value) => ({
+                value: String(value),
+                label: WorkloadText.usualWeek(value),
+              })),
+          ]}
+          value={group.usualWeek === null ? "" : String(group.usualWeek)}
+          onChange={(event) =>
+            onChange({
+              usualWeek: event.target.value ? Number(event.target.value) : null,
+            })
+          }
+          hint={canWeek ? undefined : WorkloadText.adminsOnly}
+          disabled={!canWeek || busy}
+        />
+      </div>
+
       <div className={styles.takers}>
         <h4 className={styles.subheading}>{Text.takersTitle}</h4>
         {people.length === 0 ? (
@@ -183,7 +184,9 @@ export function GroupHandOutPanel({
               const allowed = canChoose(member);
               const meta = [
                 group.leadIds.includes(member.id) ? Text.lead : Text.member,
-                ...(loadOf ? [Text.load(loadOf(member.id))] : []),
+                ...(weekOf?.(member.id)
+                  ? [WeekStateText[weekOf(member.id) as WeekState].label]
+                  : []),
                 ...(allowed ? [] : [Text.lockedRank]),
               ].join(" · ");
               return (

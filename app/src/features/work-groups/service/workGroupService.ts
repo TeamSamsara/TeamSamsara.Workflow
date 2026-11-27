@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/service/workGroupService.ts
-// Version : 2.1.0
-// Latest commit: feature/auto-assign
+// Version : 2.2.0
+// Latest commit: feature/1.2-workload
 // Author : Gerrah
 // Purpose : Creates, edits and deletes work groups. Names and descriptions are
 // trimmed on the way in. Who is in a group is kept on member records, and who
@@ -68,8 +68,9 @@ export async function saveWorkGroup(
 /** A change to how a group hands out its tasks; only what's given changes. */
 export interface HandOutChange {
   on?: boolean;
-  dailyLimit?: number;
   headsUpHours?: number;
+  /** The group's usual week in tasks; null for none (Owners and Administrators). */
+  usualWeek?: number | null;
   /** Who doesn't take its tasks. */
   skip?: string[];
 }

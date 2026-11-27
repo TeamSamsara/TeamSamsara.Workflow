@@ -69,7 +69,7 @@ export const StepEditorText = {
   lead: (name: string) => `${name} (lead)`,
   aboveRank: (name: string) => `${name} (above your rank)`,
   whoNamed: (name: string, group: string) =>
-    `On each event this step goes to ${name}, even over ${group}'s daily limit. If ${name} leaves ${group}, it goes back to the group.`,
+    `On each event this step goes to ${name}. If ${name} leaves ${group}, it goes back to the group.`,
   whoHandedOut: (group: string) =>
     `${group} hands out its tasks: on each event this step goes to whoever's least busy and free, or waits for someone in ${group} to claim it.`,
   whoAnyone: (group: string) =>

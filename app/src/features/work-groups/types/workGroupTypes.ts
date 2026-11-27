@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/work-groups/types/workGroupTypes.ts
-// Version : 1.3.0
-// Latest commit: feature/auto-assign
+// Version : 1.4.0
+// Latest commit: feature/1.2-workload
 // Author : Gerrah
 // Purpose : A work group (workGroups/{id}): a team that tasks can be given to,
 // with a name, what it does, its leads (who approve and hand out its tasks)
@@ -9,6 +9,7 @@
 // their groups in one write.
 
 import { readAssign, type AssignSettings } from "@engine/assign";
+import { readUsualWeek, WorkloadLimits } from "@engine/workload";
 import type { DocumentData } from "firebase/firestore";
 import {
   createConverter,
@@ -38,6 +39,8 @@ export interface WorkGroupRecord {
   color: string | null;
   /** How it hands out its tasks; set by the server (changeHandOut). */
   assign: AssignSettings;
+  /** How much the group takes on in a week, all together; null for none. Set by the server. */
+  usualWeek: number | null;
   createdAt: Date | null;
 }
 
@@ -92,6 +95,7 @@ function parse(id: string, data: DocumentData): WorkGroupRecord {
     links: readLinks(data),
     color: readOptionalString(data, "color"),
     assign: readAssign(data.assign),
+    usualWeek: readUsualWeek(data.usualWeek, WorkloadLimits.group),
     createdAt: readDate(data, "createdAt"),
   };
 }

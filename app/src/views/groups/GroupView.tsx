@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/groups/GroupView.tsx
-// Version : 1.1.0
-// Latest commit: feature/auto-assign
+// Version : 1.2.0
+// Latest commit: feature/1.2-workload
 // Author : Gerrah
 // Purpose : One work group's overview: a band in its colour behind its badge,
 // its leads and size, and Plan an event (for planners). Members as a grid,
@@ -16,7 +16,8 @@ import { useTaskOrder } from "@/features/events";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { usePermissions, useActor } from "@/core/access";
 import { isCurrentMember, type MemberRecord } from "@/core/data";
-import { useDisplayTime } from "@/core/workspace";
+import { useDisplayTime, useWorkspaceRecord } from "@/core/workspace";
+import { memberWeek, usualWeekOf } from "@/features/workload";
 import { formatDue, type TaskRecord } from "@/features/tasks";
 import { memberName } from "@/features/members";
 import { usePeopleTags } from "@/features/people-tags";
@@ -58,6 +59,7 @@ export function GroupView() {
   const tags = usePeopleTags();
   const time = useDisplayTime();
   const now = useNow();
+  const workspace = useWorkspaceRecord();
   const [tagFilter, setTagFilter] = useState("all");
   const item = groups.items.find((entry) => entry.group.id === groupId);
   const members = (item?.members ?? []).filter(isCurrentMember);
@@ -92,14 +94,19 @@ export function GroupView() {
   const canManage = access.can("manageWorkGroups");
   // Its leads and the people who manage groups choose how it hands out tasks.
   const showsHandOut = canManage || (actor?.leadOf.includes(group.id) ?? false);
-  const weekAhead = now.getTime() + 7 * 24 * 60 * 60 * 1000;
-  const loadOf = (memberId: string) =>
-    (overview.tasks ?? []).filter(
-      (task) =>
-        task.memberId === memberId &&
-        task.dueAt !== null &&
-        task.dueAt.getTime() <= weekAhead,
-    ).length;
+  // Each person's week from the tasks this page can see (the group's own).
+  const weekOf = (memberId: string) => {
+    const member = members.find((entry) => entry.id === memberId);
+    return member
+      ? memberWeek(
+          member.id,
+          usualWeekOf(member, workspace),
+          overview.tasks ?? [],
+          now,
+          workspace,
+        ).state
+      : null;
+  };
   const groupTags = tags.items.filter((tag) =>
     members.some((member) => member.tagIds.includes(tag.id)),
   );
@@ -271,7 +278,7 @@ export function GroupView() {
 
           {showsHandOut ? (
             <section className={styles.section} aria-label={Text.handOut}>
-              <GroupHandOut group={group} members={members} loadOf={loadOf} />
+              <GroupHandOut group={group} members={members} weekOf={weekOf} />
             </section>
           ) : null}
 

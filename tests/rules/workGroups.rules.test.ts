@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/tests/rules/workGroups.rules.test.ts
-// Version : 2.1.0
-// Latest commit: feature/auto-assign
+// Version : 2.2.0
+// Latest commit: feature/1.2-workload
 // Author : Gerrah
 // Purpose : Tests work groups: active members read them; only Manage work
 // groups (or an Administrator) creates, edits and deletes them, with valid
@@ -125,6 +125,27 @@ describe("leads and links", () => {
     });
     await assertSucceeds(
       updateDoc(doc(db, "workGroups/handing"), { description: "Still on." }),
+    );
+  });
+
+  it("leaves the group's usual week to the server, kept on every edit", async () => {
+    const db = signedInAs(env, "jordan");
+    await assertFails(
+      updateDoc(doc(db, "workGroups/design"), { usualWeek: 15 }),
+    );
+    await assertFails(
+      setDoc(doc(db, "workGroups/video"), { ...newGroup(), usualWeek: 15 }),
+    );
+    await seed(env, {
+      "workGroups/weekly": {
+        name: "Weekly",
+        description: "",
+        createdAt: new Date(2026, 0, 1),
+        usualWeek: 15,
+      },
+    });
+    await assertSucceeds(
+      updateDoc(doc(db, "workGroups/weekly"), { description: "Still 15." }),
     );
   });
 

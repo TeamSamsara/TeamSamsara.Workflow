@@ -1,11 +1,12 @@
 // File : /TeamSamsara.Workflow/app/src/core/data/models/memberModel.ts
-// Version : 1.6.0
-// Latest commit: feature/audit-fixes
+// Version : 1.7.0
+// Latest commit: feature/1.2-workload
 // Author : Gerrah
 // Purpose : The member record (members/{account id}): who the person is, whether
 // they may use the app, and which roles and work groups they are in. A record
 // with no valid status counts as disabled, so a broken record never grants access.
 
+import { readUsualWeek } from "@engine/workload";
 import type { DocumentData } from "firebase/firestore";
 import { createConverter } from "../firestoreConverter";
 import {
@@ -101,6 +102,11 @@ export interface MemberRecord {
    */
   rank: number;
   leadOf: string[];
+  /**
+   * Their own usual week, in tasks; null follows the workspace's. Set by the
+   * server for Owners and Administrators (manage: member.update).
+   */
+  usualWeek: number | null;
   /** Shown first wherever they appear, with the real name under it. */
   gameName: string | null;
   /** Their profile photo (a download address in Storage); null shows initials. */
@@ -139,6 +145,7 @@ function parse(id: string, data: DocumentData): MemberRecord {
     workGroupIds: readStringList(data, "workGroupIds"),
     rank: typeof data.rank === "number" ? data.rank : 0,
     leadOf: readStringList(data, "leadOf"),
+    usualWeek: readUsualWeek(data.usualWeek),
     gameName: readOptionalString(data, "gameName"),
     photoUrl: readOptionalString(data, "photoUrl"),
     timeZone: readOptionalString(data, "timeZone"),

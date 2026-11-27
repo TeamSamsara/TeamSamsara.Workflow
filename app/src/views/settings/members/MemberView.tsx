@@ -1,9 +1,10 @@
 // File : /TeamSamsara.Workflow/app/src/views/settings/members/MemberView.tsx
-// Version : 1.5.0
-// Latest commit: feature/audit-fixes
+// Version : 1.6.0
+// Latest commit: feature/1.2-workload
 // Author : Gerrah
 // Purpose : One member's page: their name, roles and work groups (saved
-// together with Save changes), what their roles let them do, and their access.
+// together with Save changes), what their roles let them do, their access,
+// and, for Owners and Administrators, their workload and usual week.
 // An Administrator's page is read-only for anyone who isn't one.
 
 import { useMutation } from "@tanstack/react-query";
@@ -28,7 +29,10 @@ import {
   type MemberListItem,
 } from "@/features/members";
 import { givableRoles } from "@/features/roles";
+import { useOpenTasksFor } from "@/features/tasks";
 import { useWorkGroups } from "@/features/work-groups";
+import { MemberWorkloadCard } from "@/features/workload";
+import { useNow } from "@/shared/hooks/useNow";
 import { Banner } from "@/shared/components/Banner/Banner";
 import { Button } from "@/shared/components/Button/Button";
 import { LinkButton } from "@/shared/components/Button/LinkButton";
@@ -49,6 +53,9 @@ function MemberEditor({ item }: { item: MemberListItem }) {
   const toast = useToast();
   const navigate = useNavigate();
   const everyone = useMembers();
+  const now = useNow();
+  const isAdmin = access.can("administrator");
+  const openTasks = useOpenTasksFor(isAdmin ? member.id : null, []);
   const ownerChange = useMutation({
     mutationFn: (give: boolean) =>
       give
@@ -237,6 +244,14 @@ function MemberEditor({ item }: { item: MemberListItem }) {
           />
         </div>
         <div className={styles.side}>
+          {isAdmin ? (
+            <MemberWorkloadCard
+              member={member}
+              tasks={openTasks.items}
+              now={now}
+              canSet={isAdmin}
+            />
+          ) : null}
           <MemberPermissionsCard
             name={sentenceName}
             roleIds={draft.details.roleIds}
