@@ -1,11 +1,12 @@
 // File : /TeamSamsara.Workflow/app/src/views/workflows/WorkflowEditView.tsx
-// Version : 2.1.0
-// Latest commit: feature/1.2-flow-view
+// Version : 2.2.0
+// Latest commit: feature/1.2-preview-date
 // Author : Gerrah
 // Purpose : The workflow editor: About and the steps in due order on the left,
 // the one picked open in the middle in its six parts, and beside it how the
 // step reads, where it sits in the flow and the checks. List | Flow switches
-// to the steps drawn as a flow, linked by their order rules. Save, Export,
+// to the steps drawn as a flow, linked by their order rules; Preview on a
+// date shows the tasks it would make for an event then. Save, Export,
 // Archive or Restore, and Delete once archived. Saving a workflow that
 // upcoming events use offers to update the tasks it made for them. Also opens a new workflow,
 // blank or from an import. Without Edit workflows, everything is read-only.
@@ -65,6 +66,7 @@ import {
 } from "@/shared/constants/routePaths";
 import { cameFromGuide, readImportedWorkflow } from "./importedWorkflow";
 import { WorkflowEditViewText as Text } from "./workflowEditViewContent";
+import { WorkflowPreviewDialog } from "./WorkflowPreviewDialog";
 import styles from "./WorkflowEditView.module.css";
 
 type ListAction = "archive" | "restore" | "delete";
@@ -103,6 +105,7 @@ function WorkflowEditor({ workflow }: { workflow: WorkflowRecord | null }) {
   const draft = useWorkflowDraft(workflow, imported?.imported ?? emptyWorkflow);
   const [selection, setSelection] = useState<EditorSelection | null>(null);
   const [view, setView] = useState<StepsView>("list");
+  const [isPreviewing, setIsPreviewing] = useState(false);
   const [triedToSave, setTriedToSave] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [showNextSteps, setShowNextSteps] = useState(() =>
@@ -327,6 +330,9 @@ function WorkflowEditor({ workflow }: { workflow: WorkflowRecord | null }) {
             value={view}
             onChange={setView}
           />
+          <Button iconStart="calendar" onClick={() => setIsPreviewing(true)}>
+            {Text.previewOpen}
+          </Button>
         </div>
       ) : null}
 
@@ -419,6 +425,15 @@ function WorkflowEditor({ workflow }: { workflow: WorkflowRecord | null }) {
           ) : null}
         </div>
       )}
+
+      {isPreviewing ? (
+        <WorkflowPreviewDialog
+          workflowId={workflow?.id ?? null}
+          fields={fields}
+          options={options}
+          onClose={() => setIsPreviewing(false)}
+        />
+      ) : null}
 
       {isConfirmingDelete && workflow ? (
         <Modal

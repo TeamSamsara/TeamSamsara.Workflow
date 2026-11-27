@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/workflows/workflowEditViewContent.ts
-// Version : 1.3.0
-// Latest commit: feature/1.2-flow-view
+// Version : 1.4.0
+// Latest commit: feature/1.2-preview-date
 // Author : Gerrah
 // Purpose : The words on the workflow editor page.
 
@@ -12,6 +12,32 @@ export const WorkflowEditViewText = {
   notFound: "That workflow doesn't exist any more.",
   backToList: "Back to workflows",
   views: { label: "Show the steps as", list: "List", flow: "Flow" },
+  previewOpen: "Preview on a date",
+  preview: {
+    title: "Preview on a date",
+    description:
+      "The tasks this workflow, as it is now, would make for an event starting then. Nothing is created.",
+    date: "Event starts on",
+    time: "At",
+    close: "Close",
+    eventTitle: "Your event",
+    pickDate: "Pick a date and a time to see the tasks.",
+    noTasks: "This workflow has no steps yet.",
+    count: (count: number) => (count === 1 ? "1 task." : `${count} tasks.`),
+    summary: (count: number, first: string, last: string) =>
+      `${count === 1 ? "1 task" : `${count} tasks`}, from ${first} to ${last}.`,
+    late: (titles: readonly string[]) =>
+      titles.length === 1
+        ? `${titles[0]} would already be late. Pick a later date, or make it due later.`
+        : `${titles.length} tasks would already be late: ${titles.join(", ")}. Pick a later date, or make them due later.`,
+    flowLabel: "The tasks this workflow would make, as a flow",
+    noDue: "No due time",
+    anyoneIn: (group: string) => `Someone in ${group}`,
+    nobody: "Not given to anyone",
+    lateFromStart: "Late from the start",
+    weekNote: "The pill shows how full that week already is",
+    stillNote: "Tasks nobody has room for would wait for someone in the group.",
+  },
   export: "Export",
   archive: "Archive",
   restore: "Restore",

@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/workload/ui/WorkloadWarningNotice.tsx
-// Version : 1.0.0
-// Latest commit: feature/1.2-workload-c
+// Version : 1.1.0
+// Latest commit: feature/1.2-preview-date
 // Author : Gerrah
 // Purpose : The warning when an event's tasks would push a group over its
 // usual week: which group, which week, and how it stood before. It never
@@ -15,11 +15,14 @@ import styles from "./Workload.module.css";
 interface WorkloadWarningNoticeProps {
   warnings: readonly WorkloadWarning[];
   groupName: (groupId: string) => string;
+  /** The last line, when "You can still create it" doesn't fit. */
+  note?: string;
 }
 
 export function WorkloadWarningNotice({
   warnings,
   groupName,
+  note = Text.still,
 }: WorkloadWarningNoticeProps) {
   const workspace = useWorkspaceRecord();
   if (warnings.length === 0) return null;
@@ -43,7 +46,7 @@ export function WorkloadWarningNotice({
             </span>
           );
         })}
-        <span>{Text.still}</span>
+        <span>{note}</span>
       </span>
     </Banner>
   );
