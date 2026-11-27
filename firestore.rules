@@ -689,6 +689,7 @@ service cloud.firestore {
       allow create: if isActiveMember()
         && isValidTask(request.resource.data)
         && isNewTask(request.resource.data)
+        && hasValidOrder(request.resource.data)
         && ((request.resource.data.eventId == null && can("createStandaloneTasks"))
           || (request.resource.data.eventId != null && can("planEvents")
             && existsAfter(/databases/$(database)/documents/events/$(request.resource.data.eventId))
@@ -732,7 +733,8 @@ service cloud.firestore {
             "dueFromOffset", "updatedAt"])
           && (holds(grants, held, "editAnyTask") || madeOneOff(before)
             || plansEventOf(before, grants, held))
-          && subjectRank(before) <= myRank())
+          && subjectRank(before) <= myRank()
+          && hasValidOrder(after))
         || (changed.hasOnly(["workGroupId", "memberId", "editedParts", "updatedAt"])
           && (holds(grants, held, "reassignTasks") || madeOneOff(before)
             || (leadsGroup(before.workGroupId)
@@ -745,8 +747,7 @@ service cloud.firestore {
         // a lead of its group. Once; it stays as a record.
         || (changed.hasOnly(["startedAnyway", "updatedAt"])
           && before.get("startedAnyway", null) == null
-          && after.startedAnyway.by == request.auth.uid
-          && after.startedAnyway.at == request.time
+          && isStartingAnyway(after.startedAnyway)
           && ((isGivenToMe(before) && holds(grants, held, "doAssignedTasks"))
             || leadsGroup(before.workGroupId)))
         // Claiming a group's waiting task for yourself.
@@ -780,6 +781,27 @@ service cloud.firestore {
      * waits), unless it's done, started anyway, or late and set to unlock at
      * its due time. The same as lockState in engine/src/order.ts.
      */
+    /** A task's order, as made or edited: its priority and what it waits on. */
+    function hasValidOrder(task) {
+      return task.get("priority", "normal") in ["high", "normal", "low"]
+        && task.get("waitsOn", []) is list && task.get("waitsOn", []).size() <= 30
+        && task.get("waitFor", "all") in ["all", "any"]
+        && task.get("whenLate", "wait") in ["wait", "unlock"]
+        && isNullOr(task.get("dueFromOffset", null), "map")
+        // What it still waits on: set when it's made, then kept by the server.
+        && task.get("waitingOn", []) is list && task.get("waitingOn", []).size() <= 30;
+    }
+
+    /** Starting a locked task anyway: in their own name, now, saying why. */
+    function isStartingAnyway(started) {
+      return started is map
+        && started.keys().hasOnly(["by", "at", "reason"])
+        && started.by == request.auth.uid
+        && started.at == request.time
+        && started.reason is string && started.reason.size() > 0
+        && started.reason.size() <= 500;
+    }
+
     function isLockedTask(task) {
       return task.doneAt == null
         && task.get("startedAnyway", null) == null
@@ -889,20 +911,10 @@ service cloud.firestore {
         "whenLate", "dueFromOffset", "startedAnyway", "waitingOn"];
       let gone = task.get("eventGone", null);
       let edited = task.get("editedParts", null);
-      let started = task.get("startedAnyway", null);
+      // Their values are checked by the only changes that write them (see
+      // hasValidOrder and isStartingAnyway), which keeps every other update
+      // under Firestore's 1,000-step limit.
       return task.keys().hasOnly(fields.concat(optional))
-        && task.get("priority", "normal") in ["high", "normal", "low"]
-        && task.get("waitsOn", []) is list && task.get("waitsOn", []).size() <= 30
-        && task.get("waitFor", "all") in ["all", "any"]
-        && task.get("whenLate", "wait") in ["wait", "unlock"]
-        && isNullOr(task.get("dueFromOffset", null), "map")
-        // What it still waits on: set when it's made, then kept by the server.
-        && task.get("waitingOn", []) is list && task.get("waitingOn", []).size() <= 30
-        && (started == null || (started is map
-          && started.keys().hasOnly(["by", "at", "reason"])
-          && started.by is string && started.at is timestamp
-          && started.reason is string && started.reason.size() > 0
-          && started.reason.size() <= 500))
         && task.keys().hasAll(fields)
         && task.get("lateAtCreation", false) is bool
         && isNullOr(task.get("doneBy", null), "string")
