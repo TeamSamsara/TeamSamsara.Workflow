@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/articles.ts
-// Version : 1.11.0
-// Latest commit: feature/1.2-after-saving
+// Version : 1.12.0
+// Latest commit: feature/1.2-docs-seed
 // Author : Gerrah
 // Purpose : The Documentation: one short article per feature, in groups. Each
 // group (or article) is for the people with its permission, the same as the
@@ -619,6 +619,9 @@ export const DocGroups: readonly DocGroup[] = [
           tip(
             "Don't know every speaker yet? Leave it TBD. Fill it in later from the set's page, and the title and tasks follow.",
           ),
+          p(
+            "If the events would push a group past its usual week, a warning says which group and which week. It never stops you creating them.",
+          ),
         ],
       },
       {
@@ -815,6 +818,71 @@ export const DocGroups: readonly DocGroup[] = [
         ],
       },
       {
+        id: "flow-view",
+        title: "The Flow view",
+        summary:
+          "A workflow's steps, or an event's tasks, in time order with what waits for what.",
+        body: [
+          p(
+            "Switch a workflow from List to Flow to see its steps in columns by when they're due, linked by their order rules.",
+          ),
+          figure(
+            "flowView",
+            "A workflow's steps as a flow.",
+            callout(
+              "List or Flow",
+              "Above the steps. Preview on a date is beside it.",
+            ),
+            callout(
+              "Event starts",
+              "The dashed line between the steps due before the event and those due after it.",
+            ),
+            callout(
+              "Links",
+              "Solid: something has to happen first. Dashed: only the order. Red: a step comes after one due at the same time or later.",
+            ),
+            callout(
+              "Pick a step",
+              "Change when it's due, its order rules and its priority beside the flow, or open the whole step.",
+            ),
+          ),
+          steps(
+            "Drag from the dot on a step's edge onto another step: the second now comes after the first, once it's done.",
+            "Click a link to make it Has to be done first or Only the order, or to remove it.",
+          ),
+          tip(
+            "Linking is refused when the two steps are already linked, or when it would make a loop.",
+          ),
+          h("On an event"),
+          p(
+            "An event's page has the same switch above its tasks. The flow shows them by date and time, with who has each one, or that it's waiting for someone in its group, and Waiting while it waits on others. Pick a task to open it.",
+          ),
+        ],
+      },
+      {
+        id: "preview-on-a-date",
+        title: "Preview on a date",
+        summary: "The tasks a workflow would make for an event on a date.",
+        body: [
+          p(
+            "Preview on a date shows the tasks the workflow, as it is in the editor, would make for an event starting when you say. Nothing is created, and it works before you save.",
+          ),
+          figure(
+            "previewOnDate",
+            "Preview on a date, beside List | Flow.",
+            callout("When", "The day and time the event would start."),
+            callout(
+              "Already late",
+              "Tasks that would be due before now. Pick a later date, or make them due later.",
+            ),
+            callout(
+              "How full their week is",
+              "Each task shows who gets it and how full that person's or group's week already is. Groups the event would push over their usual week get a warning.",
+            ),
+          ),
+        ],
+      },
+      {
         id: "fields",
         title: "Fields like {speaker}",
         summary: "Details filled in from each event.",
@@ -859,8 +927,18 @@ export const DocGroups: readonly DocGroup[] = [
             ],
           ),
           h("Due times never move by themselves"),
-          p(
-            "Saving never moves anyone's tasks. After you save, the upcoming tasks whose due time now differs from their step are listed, with when each is due and when the step says. Move one, move them all, or leave them. The people whose tasks you move are told.",
+          figure(
+            "afterSaving",
+            "After saving: the tasks that differ from their step.",
+            callout(
+              "Due now, and what the step says",
+              "Saving never moves anyone's tasks, so their due times stay until you choose.",
+            ),
+            callout("Move", "Moves that one task to its step's due time."),
+            callout(
+              "Move them all, or leave them",
+              "The people whose tasks move are told. A task finished or moved since is left as it is.",
+            ),
           ),
           h("What stays as it is"),
           compare(
@@ -1042,7 +1120,7 @@ export const DocGroups: readonly DocGroup[] = [
             "A warning on a new event, and a group's coming weeks.",
             callout(
               "The warning",
-              "When an event would push a group past its usual week. It never stops you creating the event.",
+              "When an event (or every date it repeats on, or several planned at once) would push a group past its usual week. It never stops you creating it.",
             ),
             callout(
               "Coming weeks",

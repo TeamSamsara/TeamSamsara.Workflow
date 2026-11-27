@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/index.ts
-// Version : 1.1.0
-// Latest commit: feature/docs-refresh
+// Version : 1.2.0
+// Latest commit: feature/1.2-docs-seed
 // Author : Gerrah
 // Purpose : What other layers may use from the onboarding feature.
 
@@ -20,3 +20,4 @@ export { TourTarget } from "./ui/TourTarget";
 export { WalkthroughCard } from "./ui/WalkthroughCard";
 export { WalkthroughProvider } from "./ui/WalkthroughProvider";
 export { DocPicture } from "./docs/ui/DocPicture";
+export { docPictures } from "./docs/pictures";

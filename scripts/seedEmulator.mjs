@@ -1,10 +1,13 @@
 // File : /TeamSamsara.Workflow/scripts/seedEmulator.mjs
-// Version : 1.18.0
-// Latest commit: feature/audit-fixes
+// Version : 1.19.0
+// Latest commit: feature/1.2-docs-seed
 // Author : Gerrah
 // Purpose : Fills the local emulators with a ready-made workspace and test
 // accounts, so the app can be tried without touching the real project. It wipes
 // the emulators first. Run it while `npm run emulators` is running: npm run seed
+// It includes what 1.2 brings (usual weeks, tasks that wait on each other, a
+// task meant for someone, tasks to claim, a workflow with order rules) and an
+// account that used Playbook before 1.2, so What's new shows.
 
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -72,11 +75,13 @@ const workGroups = [
     id: "design",
     name: "Design",
     description: "Graphics, overlays and brand assets.",
+    usualWeek: 8,
   },
   {
     id: "video",
     name: "Video",
     description: "Edits highlights and clips.",
+    usualWeek: 6,
   },
   {
     id: "bloom",
@@ -340,6 +345,221 @@ function sampleEvent(now, uidOf) {
   };
 }
 
+/** A date's parts as the wall clock reads them in a time zone. */
+function wallParts(date, timeZone) {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone,
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      hourCycle: "h23",
+    })
+      .formatToParts(date)
+      .map((part) => [part.type, Number(part.value)]),
+  );
+  return parts;
+}
+
+/** The moment a wall-clock time happens in a time zone (days may overflow). */
+function atWall(year, month, day, hourOfDay, minute, timeZone) {
+  const wanted = Date.UTC(year, month - 1, day, hourOfDay, minute);
+  let at = wanted;
+  for (let pass = 0; pass < 3; pass += 1) {
+    const read = wallParts(new Date(at), timeZone);
+    at -=
+      Date.UTC(read.year, read.month - 1, read.day, read.hour, read.minute) -
+      wanted;
+  }
+  return new Date(at);
+}
+
+/** Next week (Monday start), as dates in the seed's time zone and its key ("2026-11-30"). */
+function nextWeek(now, timeZone) {
+  const today = wallParts(now, timeZone);
+  const weekday = new Date(
+    Date.UTC(today.year, today.month - 1, today.day),
+  ).getUTCDay();
+  const monday = today.day - ((weekday + 6) % 7) + 7;
+  const at = (dayOffset, hourOfDay, minute = 0) =>
+    atWall(
+      today.year,
+      today.month,
+      monday + dayOffset,
+      hourOfDay,
+      minute,
+      timeZone,
+    );
+  const key = new Date(Date.UTC(today.year, today.month - 1, monday))
+    .toISOString()
+    .slice(0, 10);
+  return { at, key };
+}
+
+/**
+ * What 1.2 brings, to try: a workflow whose steps wait on each other, a launch
+ * next week planned with it (one task locked until another is approved),
+ * Design tasks to claim (a quick one Sam has room for, a bigger one Sam
+ * doesn't), and a task meant for Sam waiting in Design. Sam's usual week is 3
+ * and next week already has 2 (Limited); the server works the weeks out
+ * again as soon as these are written.
+ */
+function release12(now, uidOf, timeZone) {
+  const week = nextWeek(now, timeZone);
+  const rule = (id, stepId, condition) => ({
+    id,
+    relation: "after",
+    stepId,
+    condition,
+  });
+  const ordered = (id, fields) =>
+    step(id, {
+      order: [],
+      waitFor: "all",
+      whenLate: "wait",
+      priority: "normal",
+      ...fields,
+    });
+  const workflow = {
+    name: "Product launch",
+    description: "Flyers, a banner and the posts around a launch.",
+    eventTypeId: null,
+    archived: false,
+    steps: [
+      ordered("flyers", {
+        title: "Print the flyers",
+        workGroupId: "design",
+        due: due("before", 2, 0, "15:00"),
+        needsApproval: true,
+      }),
+      ordered("banner", {
+        title: "Launch banner",
+        workGroupId: "design",
+        due: due("before", 1, 0, "15:00"),
+        priority: "high",
+        order: [rule("r1", "flyers", "approved")],
+      }),
+      ordered("announce", {
+        title: "Announcement post",
+        workGroupId: "video",
+        due: due("before", 0, 2),
+        order: [rule("r2", "banner", "done")],
+      }),
+      ordered("recap", {
+        title: "Share the recap",
+        memberId: uidOf("sam"),
+        due: due("after", 1, 0, "13:00"),
+        order: [rule("r3", "announce", "order")],
+      }),
+    ],
+    createdAt: now,
+    updatedAt: now,
+  };
+  const startsAt = week.at(3, 19);
+  const event = {
+    title: "Product launch",
+    eventTypeId: null,
+    startsAt,
+    endsAt: new Date(startsAt.getTime() + 2 * hour),
+    link: null,
+    details: {},
+    workflowIds: ["product-launch"],
+    notes: "",
+    repeatId: null,
+    everyone: true,
+    groupIds: [],
+    memberIds: [],
+    createdBy: uidOf("alex"),
+    createdAt: now,
+    updatedAt: now,
+  };
+  const base = sampleTasks(now, uidOf).recap;
+  const task = (fields) => ({
+    ...base,
+    memberId: null,
+    weekKey: week.key,
+    priority: "normal",
+    waitsOn: [],
+    waitFor: "all",
+    whenLate: "wait",
+    dueFromOffset: null,
+    waitingOn: [],
+    ...fields,
+  });
+  const fromLaunch = (stepId, fields) =>
+    task({
+      eventId: "launch",
+      workflowId: "product-launch",
+      stepId,
+      ...fields,
+    });
+  const tasks = {
+    launchFlyers: fromLaunch("flyers", {
+      title: "Print the flyers",
+      workGroupId: "design",
+      dueAt: week.at(1, 15),
+      needsApproval: true,
+    }),
+    launchBanner: fromLaunch("banner", {
+      title: "Launch banner",
+      workGroupId: "design",
+      memberId: uidOf("sam"),
+      dueAt: week.at(2, 15),
+      priority: "high",
+      waitsOn: [{ stepId: "flyers", condition: "approved", dueFrom: false }],
+      waitingOn: [
+        {
+          taskId: "launchFlyers",
+          stepId: "flyers",
+          title: "Print the flyers",
+          condition: "approved",
+        },
+      ],
+    }),
+    launchAnnounce: fromLaunch("announce", {
+      title: "Announcement post",
+      workGroupId: "video",
+      dueAt: week.at(3, 17),
+      waitsOn: [{ stepId: "banner", condition: "done", dueFrom: false }],
+      waitingOn: [
+        {
+          taskId: "launchBanner",
+          stepId: "banner",
+          title: "Launch banner",
+          condition: "done",
+        },
+      ],
+    }),
+    launchRecap: fromLaunch("recap", {
+      title: "Share the recap",
+      memberId: uidOf("sam"),
+      dueAt: week.at(4, 13),
+      waitsOn: [{ stepId: "announce", condition: "order", dueFrom: false }],
+    }),
+    resizeLogo: task({
+      title: "Resize the logo for the store",
+      workGroupId: "design",
+      dueAt: week.at(1, 12),
+    }),
+    productPhotos: task({
+      title: "Product photos",
+      notes: "Sam took the prototype photos, so this is meant for Sam.",
+      workGroupId: "design",
+      dueAt: week.at(2, 12),
+      needsApproval: true,
+      meantFor: uidOf("sam"),
+    }),
+  };
+  return {
+    workflow,
+    event,
+    tasks,
+    samWeeks: { states: { [week.key]: "limited" }, empty: "available" },
+  };
+}
+
 /** status null = an account with no member record (never invited). */
 const accounts = [
   {
@@ -347,7 +567,9 @@ const accounts = [
     name: "Alex Moreau",
     status: "active",
     roleIds: [OwnerRoleId],
-    note: "Owner",
+    workGroupIds: ["design"],
+    leadOf: ["design"],
+    note: "Owner, leads Design",
   },
   {
     key: "jordan",
@@ -364,7 +586,18 @@ const accounts = [
     status: "active",
     roleIds: [],
     workGroupIds: ["design", "video", "bloom"],
-    note: "Member, Everyone role only",
+    usualWeek: 3,
+    note: "Member, Everyone role only. Next week is Limited: can claim a quick task, not a bigger one",
+  },
+  {
+    key: "riley",
+    name: "Riley Chen",
+    status: "active",
+    roleIds: [],
+    workGroupIds: ["video"],
+    joinedDaysAgo: 60,
+    lastSeenRelease: "1.1.0",
+    note: "Used Playbook before 1.2: What's new opens on sign-in",
   },
   {
     key: "mika",
@@ -456,6 +689,7 @@ async function main() {
   await env.withSecurityRulesDisabled(async (context) => {
     const db = context.firestore();
     const roles = [...startingRoles, peopleManagerRole, teamManagerRole];
+    const uidOf = (key) => created.find((account) => account.key === key).uid;
     const writes = [
       // The same starting statuses as a real setup; tags start empty.
       ...defaultStatuses.map((status, index) =>
@@ -467,7 +701,12 @@ async function main() {
         updatedAt: now,
       }),
       ...workGroups.map(({ id, ...group }) =>
-        db.doc(`workGroups/${id}`).set({ ...group, createdAt: now }),
+        db.doc(`workGroups/${id}`).set({
+          ...group,
+          leadIds: id === "design" ? [uidOf("alex")] : [],
+          usualWeek: group.usualWeek ?? null,
+          createdAt: now,
+        }),
       ),
       db.doc("config/workspace").set({
         name: "Team Samsara (dev)",
@@ -475,6 +714,7 @@ async function main() {
         weekStartsOn: "monday",
         dateFormat: "weekdayMonthDay",
         timeFormat: "12h",
+        usualWeek: 3,
         defaultTheme: "device",
         enabledPlatformIds: ["x", "instagram", "youtube", "tiktok", "twitch"],
         upgradedPlatformIds: [],
@@ -485,7 +725,6 @@ async function main() {
         grants: buildPermissionGrants(roles),
       }),
     ];
-    const uidOf = (key) => created.find((account) => account.key === key).uid;
     for (const [id, task] of Object.entries(sampleTasks(now, uidOf))) {
       writes.push(db.doc(`tasks/${id}`).set(task));
     }
@@ -636,6 +875,21 @@ async function main() {
       );
     });
     writes.push(db.doc("events/nova").set(nova.event));
+    const launch = release12(now, uidOf, seedTimeZone);
+    writes.push(db.doc("workflows/product-launch").set(launch.workflow));
+    writes.push(db.doc("events/launch").set(launch.event));
+    for (const [id, task] of Object.entries(launch.tasks)) {
+      writes.push(db.doc(`tasks/${id}`).set(task));
+    }
+    // Worked out again by the server as the tasks land; written here so the
+    // weeks show even before it does.
+    writes.push(
+      db.doc(`memberWeeks/${uidOf("sam")}`).set({
+        ...launch.samWeeks,
+        weekStartsOn: "monday",
+        updatedAt: now,
+      }),
+    );
     for (const [id, task] of Object.entries(nova.tasks)) {
       writes.push(db.doc(`tasks/${id}`).set(task));
     }
@@ -652,8 +906,18 @@ async function main() {
           timeZone: null,
           invitedBy: null,
           invitedAt: now,
-          joinedAt: account.status === "active" ? now : null,
+          joinedAt:
+            account.status === "active"
+              ? new Date(
+                  now.getTime() - (account.joinedDaysAgo ?? 0) * 24 * hour,
+                )
+              : null,
           lastActiveAt: null,
+          leadOf: account.leadOf ?? [],
+          usualWeek: account.usualWeek ?? null,
+          ...(account.lastSeenRelease
+            ? { prefs: { lastSeenRelease: account.lastSeenRelease } }
+            : {}),
         }),
       );
     }
