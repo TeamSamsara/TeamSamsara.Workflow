@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/workload/memberWeeks.ts
-// Version : 1.0.0
-// Latest commit: feature/1.2-workload-b
+// Version : 1.1.0
+// Latest commit: feature/1.2-workload-c
 // Author : Gerrah
 // Purpose : Each person's weeks, kept by the server in memberWeeks/{id} as
 // one word per week (Available, Limited, At capacity, Over capacity). People
@@ -22,6 +22,7 @@ import {
   taskSize,
   weekOf,
   weekState,
+  WorkloadLimits,
   type TaskSize,
   type WeekState,
 } from "../../../engine/src/index.js";
@@ -155,6 +156,92 @@ export async function readRoom(
     week,
     timeZone: String(workspace.data()?.timeZone ?? "UTC"),
   };
+}
+
+/** A group's weeks: how much of each week its open tasks take, and its usual week. */
+export interface GroupWeeks {
+  /** By the first day of each week that has dated tasks. */
+  loads: Record<string, number>;
+  /** What a week with no dated tasks takes (tasks with no due time). */
+  base: number;
+  usualWeek: number | null;
+}
+
+/** A group's weeks from its open tasks (given to it, to anyone in it or no one). */
+export function groupWeeks(
+  tasks: readonly WeekTaskRow[],
+  usualWeek: number | null,
+  timeZone: string,
+  weekStartsOn: WorkspaceWeek["weekStartsOn"],
+): GroupWeeks {
+  const base = tasks
+    .filter((task) => !task.dueAt)
+    .reduce((sum, task) => sum + sizeWeight(task.size), 0);
+  const loads: Record<string, number> = {};
+  for (const task of tasks) {
+    if (!task.dueAt) continue;
+    const key = dayKey(
+      weekOf(task.dueAt, timeZone, weekStartsOn).start,
+      timeZone,
+    );
+    loads[key] = (loads[key] ?? base) + sizeWeight(task.size);
+  }
+  return { loads, base, usualWeek };
+}
+
+/** The groups whose weeks a task change touches. */
+export function groupsTouched(
+  before: DocumentData | undefined,
+  after: DocumentData | undefined,
+): string[] {
+  const ids = new Set<string>();
+  const changed =
+    !before ||
+    !after ||
+    before.workGroupId !== after.workGroupId ||
+    toDate(before.dueAt)?.getTime() !== toDate(after.dueAt)?.getTime() ||
+    (toDate(before.doneAt) === null) !== (toDate(after.doneAt) === null) ||
+    weekTaskRow(before).size !== weekTaskRow(after).size;
+  if (!changed) return [];
+  for (const data of [before, after])
+    if (typeof data?.workGroupId === "string") ids.add(data.workGroupId);
+  return [...ids];
+}
+
+/** Works out and saves these groups' weeks. */
+export async function saveGroupWeeks(
+  db: Firestore,
+  groupIds: readonly string[],
+): Promise<void> {
+  if (groupIds.length === 0) return;
+  const week = await readWorkspaceWeek(db);
+  const zone = String(
+    (await db.doc("config/workspace").get()).data()?.timeZone ?? "UTC",
+  );
+  for (const groupId of groupIds) {
+    const [group, open] = await Promise.all([
+      db.doc(`workGroups/${groupId}`).get(),
+      db
+        .collection("tasks")
+        .where("workGroupId", "==", groupId)
+        .where("doneAt", "==", null)
+        .get(),
+    ]);
+    if (!group.exists) {
+      await db.doc(`groupWeeks/${groupId}`).delete();
+      continue;
+    }
+    await db.doc(`groupWeeks/${groupId}`).set({
+      ...groupWeeks(
+        open.docs.map((doc) => weekTaskRow(doc.data())),
+        readUsualWeek(group.data()?.usualWeek, WorkloadLimits.group),
+        zone,
+        week.weekStartsOn,
+      ),
+      weekStartsOn: week.weekStartsOn,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  }
 }
 
 /** Whether a week in this state has room for a task of this size. */

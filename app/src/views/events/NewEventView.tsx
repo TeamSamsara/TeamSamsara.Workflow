@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/NewEventView.tsx
-// Version : 1.8.0
-// Latest commit: feature/audit-fixes
+// Version : 1.9.0
+// Latest commit: feature/1.2-workload-c
 // Author : Gerrah
 // Purpose : Planning an event: its details on the left; on the right the
 // workflows to apply (the ones made for its type ticked to start with) and
@@ -59,6 +59,11 @@ import {
 } from "@/features/task-setup";
 import { formatDue } from "@/features/tasks";
 import { useWorkGroups } from "@/features/work-groups";
+import {
+  useGroupWeeks,
+  workloadWarnings,
+  WorkloadWarningNotice,
+} from "@/features/workload";
 import { useWorkflows } from "@/features/workflows";
 import { Banner } from "@/shared/components/Banner/Banner";
 import { Button } from "@/shared/components/Button/Button";
@@ -140,6 +145,11 @@ export function NewEventView() {
     ? lateOf(planned, { title: fields.title, startsAt: fields.startsAt }, now)
     : [];
   const taskCount = planned.length - (lateChoice === "skip" ? late.length : 0);
+  // Groups this event would push over their usual week (a warning only).
+  const groupWeeks = useGroupWeeks(groups.items.map((item) => item.group.id));
+  const warnings = fields
+    ? workloadWarnings(planned, groupWeeks, workspace)
+    : [];
   const problems = checkEventDraft(draft);
   const startId = startingStatus(statuses.items)?.id ?? null;
   const today = dayKey(now, workspace.timeZone);
@@ -318,6 +328,13 @@ export function NewEventView() {
               formatDue(date, time.timeZone, time.timeFormat, time.dateFormat)
             }
             disabled={create.isPending}
+          />
+          <WorkloadWarningNotice
+            warnings={warnings}
+            groupName={(groupId) =>
+              groups.items.find((item) => item.group.id === groupId)?.group
+                .name ?? ""
+            }
           />
           <TaskPreview
             tasks={planned}
