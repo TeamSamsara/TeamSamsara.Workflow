@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/calendar/CalendarView.tsx
-// Version : 1.9.0
-// Latest commit: feature/audit-fixes
+// Version : 1.10.0
+// Latest commit: feature/1.2-calendars-lists
 // Author : Gerrah
 // Purpose : The calendar: a month, a week (8 AM to midnight) or a list, of the
 // calendar picked: My calendar (what involves me), my work groups, one group,
@@ -21,7 +21,12 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import { usePermissions } from "@/core/access";
 import { DataErrorText, isCurrentMember } from "@/core/data";
 import { useSession } from "@/core/session";
@@ -36,7 +41,6 @@ import {
   involves,
   occurrenceStart,
   readScope,
-  scopeValue,
   SkippedItem,
   TaskItem,
   useAudienceOptions,
@@ -76,6 +80,7 @@ import { useWorkGroups } from "@/features/work-groups";
 import { TourTarget, WalkthroughCard } from "@/features/onboarding";
 import { formatClockTime, useWorkflows } from "@/features/workflows";
 import { Banner } from "@/shared/components/Banner/Banner";
+import { LinkButton } from "@/shared/components/Button/LinkButton";
 import { Button } from "@/shared/components/Button/Button";
 import { ButtonContent } from "@/shared/components/Button/ButtonContent";
 import { buttonLook } from "@/shared/components/Button/buttonLook";
@@ -84,7 +89,6 @@ import { Dropdown } from "@/shared/components/Dropdown/Dropdown";
 import { DropdownItem } from "@/shared/components/Dropdown/DropdownItem";
 import { DropdownPanel } from "@/shared/components/Dropdown/DropdownPanel";
 import { DropdownTrigger } from "@/shared/components/Dropdown/DropdownTrigger";
-import { Select } from "@/shared/components/Fields/Select/Select";
 import { Switch } from "@/shared/components/Fields/Switch/Switch";
 import { SegmentedControl } from "@/shared/components/SegmentedControl/SegmentedControl";
 import { Spinner } from "@/shared/components/Spinner/Spinner";
@@ -121,7 +125,6 @@ type View = (typeof Views)[number];
 /** What the browser remembers between visits. */
 const remembered = {
   view: "workflow.calendar.view",
-  cal: "workflow.calendar.cal",
   tasks: "workflow.calendar.tasks",
 } as const;
 
@@ -173,6 +176,7 @@ export function CalendarView() {
   const navigate = useNavigate();
   const now = useNow();
   const [params, setParams] = useSearchParams();
+  const { cal: routeCal } = useParams();
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   // Off by default, so the calendar shows events; each event's badge has its tasks.
   const [showTasks, setShowTasks] = useState(
@@ -195,15 +199,16 @@ export function CalendarView() {
   // #region What's shown
   const asked = params.get("view") ?? recall(remembered.view);
   const view: View = Views.includes(asked as View) ? (asked as View) : "month";
+  // Which calendar comes from the address: "/" is My calendar, each other
+  // one has its own page (older links used ?cal= or ?group=).
   const scope: CalendarScope = readScope(
-    params.get("cal") ?? params.get("group") ?? recall(remembered.cal),
+    routeCal ?? params.get("cal") ?? params.get("group"),
     viewer,
     seesAllEvents,
   );
   useEffect(() => {
     remember(remembered.view, view);
-    remember(remembered.cal, scopeValue(scope));
-  }, [view, scope]);
+  }, [view]);
 
   const todayWall = toWallTime(now, tz);
   const shownMonth = parseMonthKey(params.get("month")) ?? {
@@ -448,33 +453,17 @@ export function CalendarView() {
   const previous = addMonths(shownMonth.year, shownMonth.month, -1);
   const next = addMonths(shownMonth.year, shownMonth.month, 1);
 
-  // #region The calendar picker
-  const myGroupIds = new Set(viewer?.workGroupIds ?? []);
-  const pickerOptions = [
-    { value: "mine", label: Text.mine },
-    ...((viewer?.workGroupIds.length ?? 0) > 1
-      ? [{ value: "groups", label: Text.allMyGroups, group: Text.myGroups }]
-      : []),
-    ...people.groups
-      .filter((group) => myGroupIds.has(group.id))
-      .map((group) => ({
-        value: group.id,
-        label: group.name,
-        group: Text.myGroups,
-      })),
-    ...(seesAllEvents
-      ? [
-          ...people.groups
-            .filter((group) => !myGroupIds.has(group.id))
-            .map((group) => ({
-              value: group.id,
-              label: group.name,
-              group: Text.otherGroups,
-            })),
-          { value: "all", label: Text.everything, group: Text.everythingGroup },
-        ]
-      : []),
-  ];
+  // #region Which calendar
+  // The calendar's name, shown beside the link back to every calendar.
+  const calendarName =
+    scope.kind === "mine"
+      ? Text.mine
+      : scope.kind === "groups"
+        ? Text.allMyGroups
+        : scope.kind === "all"
+          ? Text.everything
+          : (people.groups.find((group) => group.id === scope.groupId)?.name ??
+            Text.calendarLabel);
   // #endregion
 
   return (
@@ -516,13 +505,17 @@ export function CalendarView() {
         </div>
         <div className={styles.toolbar}>
           <TourTarget id="calendarPicker">
-            <Select
-              label={Text.calendarLabel}
-              options={pickerOptions}
-              value={scopeValue(scope)}
-              onChange={(event) => setParam({ cal: event.target.value })}
-              className={styles.picker}
-            />
+            <span className={styles.calendarName}>
+              <LinkButton
+                to={RoutePaths.calendars}
+                iconStart="calendar"
+                size="small"
+                variant="ghost"
+              >
+                {CalendarViewText.calendars}
+              </LinkButton>
+              <b>{calendarName}</b>
+            </span>
           </TourTarget>
           <TourTarget id="calendarViews">
             <SegmentedControl

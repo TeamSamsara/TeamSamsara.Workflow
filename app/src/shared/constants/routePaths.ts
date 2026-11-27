@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/shared/constants/routePaths.ts
-// Version : 1.17.0
-// Latest commit: feature/audit-fixes
+// Version : 1.18.0
+// Latest commit: feature/1.2-calendars-lists
 // Author : Gerrah
 // Purpose : Every address in the app, in one place, so links and routes can
 // never disagree about where a page lives.
@@ -33,8 +33,15 @@ export const RoutePaths = {
   docs: "/docs",
   /** One article. */
   docsArticle: "/docs/:articleId",
+  /** Every calendar the member can open, as cards. */
+  calendars: "/calendars",
+  /** One calendar: "groups", "all" or a group's id ("/" is My calendar). */
+  calendarOf: "/calendars/:cal",
   availability: "/availability",
+  /** Team availability: the member's groups (or every group), as cards. */
   availabilityTeam: "/availability/team",
+  /** One group's week. */
+  availabilityTeamGroup: "/availability/team/:groupId",
   /** Every work group, as cards. */
   groups: "/groups",
   /** One group's overview. */
@@ -100,6 +107,16 @@ export function workGroupPath(groupId: string): string {
 }
 
 /** /groups/:groupId, the group's overview. */
+/** A calendar's page; "mine" is My calendar, opened from the menu. */
+export function calendarPath(cal: string): string {
+  return cal === "mine" ? "/" : `/calendars/${encodeURIComponent(cal)}`;
+}
+
+/** One group's week in Team availability. */
+export function teamAvailabilityPath(groupId: string): string {
+  return `/availability/team/${encodeURIComponent(groupId)}`;
+}
+
 export function groupPath(groupId: string): string {
   return `/groups/${encodeURIComponent(groupId)}`;
 }

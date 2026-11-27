@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/ui/onboardingContent.ts
-// Version : 1.5.2
-// Latest commit: feature/audit-fixes
+// Version : 1.6.0
+// Latest commit: feature/1.2-calendars-lists
 // Author : Gerrah
 // Purpose : The words of the walkthrough: chapter names, each step's note, the
 // welcome, the "make it yours" step, the calendar card and the invite preview.
@@ -32,7 +32,7 @@ export const ChapterText = {
     },
     picker: {
       title: "Whose calendar",
-      body: "My calendar shows what involves you: events you're in, yourself or with your work groups, and anything for everyone. Pick a work group here to see theirs.",
+      body: "My calendar shows what involves you: events you're in, yourself or with your work groups, and anything for everyone. Calendars lists every other calendar you can open, like each of your work groups'.",
     },
     views: {
       title: "Month, week or list",

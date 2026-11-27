@@ -1,6 +1,6 @@
 /* File : /TeamSamsara.Workflow/app/src/views/groups/Groups.module.css
-   Version : 1.0.0
-   Latest commit: feature/audit-fixes
+   Version : 1.1.0
+   Latest commit: feature/1.2-calendars-lists
    Author : Gerrah
    Purpose : Look of the Groups pages: the card grid (badge, lead, next up and open tasks, avatar stack), and a group's overview (a band in its colour behind the big badge, then members, open tasks and the side cards). */
 
@@ -398,3 +398,10 @@
   }
 }
 /* #endregion */
+
+/* A titled list of cards (Team availability's groups). */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}

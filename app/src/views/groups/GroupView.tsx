@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/groups/GroupView.tsx
-// Version : 1.4.0
-// Latest commit: feature/1.2-workload-c
+// Version : 1.5.0
+// Latest commit: feature/1.2-calendars-lists
 // Author : Gerrah
 // Purpose : One work group's overview: a band in its colour behind its badge,
 // its leads and size, and Plan an event (for planners). Members as a grid,
@@ -33,11 +33,13 @@ import { SegmentedControl } from "@/shared/components/SegmentedControl/Segmented
 import { Spinner } from "@/shared/components/Spinner/Spinner";
 import { NavTabs } from "@/shared/components/Tabs/NavTabs";
 import {
+  calendarPath,
   eventPath,
   groupPath,
   personPath,
   RoutePaths,
   taskPath,
+  teamAvailabilityPath,
   workGroupPath,
 } from "@/shared/constants/routePaths";
 import { useNow } from "@/shared/hooks/useNow";
@@ -161,13 +163,13 @@ export function GroupView() {
         items={[
           { to: groupPath(group.id), label: Text.tabs.overview, end: true },
           {
-            to: `${RoutePaths.calendar}?cal=${encodeURIComponent(group.id)}`,
+            to: calendarPath(group.id),
             label: Text.tabs.calendar,
           },
           ...(access.can("viewAvailability")
             ? [
                 {
-                  to: `${RoutePaths.availabilityTeam}?group=${encodeURIComponent(group.id)}`,
+                  to: teamAvailabilityPath(group.id),
                   label: Text.tabs.availability,
                 },
               ]

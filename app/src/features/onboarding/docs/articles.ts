@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/onboarding/docs/articles.ts
-// Version : 1.8.6
-// Latest commit: feature/audit-fixes
+// Version : 1.9.0
+// Latest commit: feature/1.2-calendars-lists
 // Author : Gerrah
 // Purpose : The Documentation: one short article per feature, in groups. Each
 // group (or article) is for the people with its permission, the same as the
@@ -106,7 +106,7 @@ export const DocGroups: readonly DocGroup[] = [
             "The calendar, on a week.",
             callout(
               "Which calendar",
-              "My calendar, or one of your work groups'. People who can see everything also get Everything.",
+              "Calendars lists every calendar you can open, as cards: My calendar, your work groups', and for people who can see everything, every group and Everything. Each opens on its own page.",
             ),
             callout(
               "Show tasks",
@@ -620,7 +620,7 @@ export const DocGroups: readonly DocGroup[] = [
         summary: "Who's free when, for a work group.",
         body: [
           p(
-            "Calendar › Availability › Team availability shows a work group's week, to find a time that works.",
+            "Calendar › Availability › Team availability lists your work groups as cards. Open one to see its week and find a time that works.",
           ),
           figure(
             "teamAvailability",
