@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/core/access/roleRank.ts
-// Version : 2.0.0
-// Latest commit: feature/auto-assign
+// Version : 2.1.0
+// Latest commit: feature/1.2-view-as-role
 // Author : Gerrah
 // Purpose : Role order decides who manages whom, the same as the shared
 // permission model and the server: a member edits, gives and takes away only
@@ -39,4 +39,19 @@ export function assignableRoles(
     (role) =>
       role.id !== EveryoneRoleId && canManageRole(memberRoleIds, role, roles),
   );
+}
+
+/**
+ * The role someone may view the app as: one that still exists, below their
+ * own, when they manage roles; otherwise null.
+ */
+export function viewableRole(
+  roleId: string | null,
+  memberRoleIds: readonly string[],
+  permissions: ReadonlySet<string>,
+  roles: RolesRecord,
+): string | null {
+  if (!roleId || !permissions.has("manageRoles")) return null;
+  const role = roles.roles.find((entry) => entry.id === roleId);
+  return role && canManageRole(memberRoleIds, role, roles) ? role.id : null;
 }
