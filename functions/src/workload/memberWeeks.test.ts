@@ -1,13 +1,18 @@
 // File : /TeamSamsara.Workflow/functions/src/workload/memberWeeks.test.ts
-// Version : 1.0.0
-// Latest commit: feature/1.2-workload-b
+// Version : 1.1.0
+// Latest commit: feature/1.2-workload-c
 // Author : Gerrah
-// Purpose : Tests someone's weeks as one word each, and which task changes
-// make them be worked out again.
+// Purpose : Tests someone's weeks as one word each, a group's weeks as how
+// much each takes, and which task changes make them be worked out again.
 
 import { Timestamp } from "firebase-admin/firestore";
 import { describe, expect, it } from "vitest";
-import { memberWeeks, touchesWeeks } from "./memberWeeks.js";
+import {
+  groupsTouched,
+  groupWeeks,
+  memberWeeks,
+  touchesWeeks,
+} from "./memberWeeks.js";
 
 const at = (iso: string) => new Date(iso);
 
@@ -72,5 +77,38 @@ describe("touchesWeeks", () => {
     ]);
     expect(touchesWeeks(undefined, task)).toEqual(["sam"]);
     expect(touchesWeeks(task, { ...task, title: "Renamed" })).toEqual([]);
+  });
+});
+
+describe("groupWeeks", () => {
+  it("adds up each week's tasks, bigger ones twice", () => {
+    expect(
+      groupWeeks(
+        [
+          { dueAt: at("2026-11-18T17:00:00Z"), size: "bigger" },
+          { dueAt: at("2026-11-20T17:00:00Z"), size: "quick" },
+          { dueAt: null, size: "quick" },
+        ],
+        15,
+        "America/Toronto",
+        "monday",
+      ),
+    ).toEqual({ loads: { "2026-11-16": 4 }, base: 1, usualWeek: 15 });
+  });
+
+  it("finds the groups a task change touches", () => {
+    const task = {
+      workGroupId: "design",
+      dueAt: Timestamp.fromDate(at("2026-11-18T17:00:00Z")),
+      doneAt: null,
+      checklist: null,
+      posts: null,
+      needsApproval: false,
+    };
+    expect(groupsTouched(task, { ...task, workGroupId: "social" })).toEqual([
+      "design",
+      "social",
+    ]);
+    expect(groupsTouched(task, { ...task, memberId: "sam" })).toEqual([]);
   });
 });

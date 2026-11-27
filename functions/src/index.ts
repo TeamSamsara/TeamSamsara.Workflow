@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/functions/src/index.ts
-// Version : 1.9.0
-// Latest commit: feature/1.2-workload-b
+// Version : 1.10.0
+// Latest commit: feature/1.2-workload-c
 // Author : Gerrah
 // Purpose : Playbook's server functions. They watch tasks and events and
 // write notifications for the people a change concerns (never the person who
@@ -81,8 +81,10 @@ import { when, type Formats } from "./text.js";
 import { readTask, readWorkflow } from "./engineData.js";
 import { afterDeleted, orderEffects } from "./taskOrder.js";
 import {
+  groupsTouched,
   readRoom,
   roomForTask,
+  saveGroupWeeks,
   type RoomAgain,
   saveMemberWeeks,
   touchesWeeks,
@@ -1117,12 +1119,10 @@ export const onTaskForHandOut = onDocumentWritten(
 export const onTaskForWeeks = onDocumentWritten(
   { document: "tasks/{taskId}", secrets: [resendKey] },
   async (event) => {
-    await tellRoomAgain(
-      await saveMemberWeeks(
-        db,
-        touchesWeeks(event.data?.before.data(), event.data?.after.data()),
-      ),
-    );
+    const before = event.data?.before.data();
+    const after = event.data?.after.data();
+    await tellRoomAgain(await saveMemberWeeks(db, touchesWeeks(before, after)));
+    await saveGroupWeeks(db, groupsTouched(before, after));
   },
 );
 
@@ -1187,6 +1187,22 @@ export const onWorkspaceWeekChanged = onDocumentWritten(
       db,
       members.docs.map((doc) => doc.id),
     );
+    const groups = await db.collection("workGroups").get();
+    await saveGroupWeeks(
+      db,
+      groups.docs.map((doc) => doc.id),
+    );
+  },
+);
+
+/** A group's usual week changed, or the group went: its weeks again. */
+export const onGroupWeekChanged = onDocumentWritten(
+  "workGroups/{groupId}",
+  async (event) => {
+    const before = event.data?.before.data();
+    const after = event.data?.after.data();
+    if (after && before?.usualWeek === after.usualWeek) return;
+    await saveGroupWeeks(db, [event.params.groupId]);
   },
 );
 

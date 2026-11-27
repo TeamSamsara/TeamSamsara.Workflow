@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/firestore.rules
-// Version : 2.2.0
-// Latest commit: feature/1.2-workload-b
+// Version : 2.3.0
+// Latest commit: feature/1.2-workload-c
 // Author : Gerrah
 // Purpose : Who may read and write what in Firestore. Everything is denied until
 // a rule below allows it; each PR opens exactly what its feature needs, with a
@@ -1291,6 +1291,12 @@ service cloud.firestore {
     // capacity, Over capacity): written only by the server, so members can
     // see who has room without seeing each other's tasks.
     match /memberWeeks/{memberId} {
+      allow read: if isActiveMember();
+    }
+
+    // Each group's weeks: how much of each its open tasks take, and its
+    // usual week, for the planning warnings. Written only by the server.
+    match /groupWeeks/{groupId} {
       allow read: if isActiveMember();
     }
 

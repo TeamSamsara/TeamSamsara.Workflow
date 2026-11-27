@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/groups/GroupView.tsx
-// Version : 1.3.0
-// Latest commit: feature/1.2-workload-b
+// Version : 1.4.0
+// Latest commit: feature/1.2-workload-c
 // Author : Gerrah
 // Purpose : One work group's overview: a band in its colour behind its badge,
 // its leads and size, and Plan an event (for planners). Members as a grid,
@@ -17,7 +17,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { usePermissions, useActor } from "@/core/access";
 import { isCurrentMember, type MemberRecord } from "@/core/data";
 import { useDisplayTime, useWorkspaceRecord } from "@/core/workspace";
-import { stateAt, useMemberWeeks } from "@/features/workload";
+import { GroupWeeksCard, stateAt, useMemberWeeks } from "@/features/workload";
 import { formatDue, type TaskRecord } from "@/features/tasks";
 import { memberName } from "@/features/members";
 import { usePeopleTags } from "@/features/people-tags";
@@ -267,6 +267,8 @@ export function GroupView() {
               </div>
             )}
           </section>
+
+          <GroupWeeksCard groupId={group.id} groupName={group.name} now={now} />
 
           {showsHandOut ? (
             <section className={styles.section} aria-label={Text.handOut}>
