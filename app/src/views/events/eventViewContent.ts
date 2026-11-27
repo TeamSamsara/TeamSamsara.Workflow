@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/views/events/eventViewContent.ts
-// Version : 1.4.0
-// Latest commit: feature/your-account
+// Version : 1.5.0
+// Latest commit: feature/1.2-flow-view
 // Author : Gerrah
 // Purpose : The words on an event's page.
 
@@ -13,6 +13,20 @@ export const EventViewText = {
   openLink: "Open link",
   tasks: "Tasks",
   progress: (done: number, total: number) => `${done} of ${total} done`,
+  progressWaiting: (done: number, total: number, waiting: number) =>
+    waiting === 0
+      ? `${done} of ${total} done`
+      : `${done} of ${total} done · ${waiting} waiting for someone`,
+  views: { label: "Show the tasks as", list: "List", flow: "Flow" },
+  inTimeOrder: "In time order.",
+  flow: {
+    label: "The event's tasks as a flow",
+    noDue: "No due time",
+    waiting: "Waiting",
+    waitingKey: "Waiting: can start when what it waits for is done",
+    waitingForSomeone: (group: string) => `Waiting for someone in ${group}`,
+    unassigned: "Not given to anyone",
+  },
   noTasks: "No tasks yet.",
   limited: "Only the tasks given to you or your work groups show here.",
   details: "Details",

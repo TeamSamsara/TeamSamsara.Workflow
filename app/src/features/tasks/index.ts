@@ -1,6 +1,6 @@
 // File : /TeamSamsara.Workflow/app/src/features/tasks/index.ts
-// Version : 1.5.0
-// Latest commit: feature/1.2-tasks-follow-order
+// Version : 1.6.0
+// Latest commit: feature/1.2-flow-view
 // Author : Gerrah
 // Purpose : What other layers may use from the tasks feature.
 
@@ -25,6 +25,8 @@ export {
 } from "./model/groupByDue";
 export { doneByDay, weekCounts } from "./model/doneThisWeek";
 export { flowRank, noFlow, sortByFlow } from "./model/flowOrder";
+export { taskFlow } from "./model/taskFlow";
+export type { TaskFlow } from "./model/taskFlow";
 export type { FlowRank, FlowTask } from "./model/flowOrder";
 export type { DoneDay } from "./model/doneThisWeek";
 export {
